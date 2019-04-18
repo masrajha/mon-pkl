@@ -1,0 +1,77 @@
+.map {
+    height: 480px;
+    width: 100%;
+    background: rgb(202, 199, 199);
+}
+
+.alert {
+    text-align: center;
+    padding: 10px;
+    background: #79c879;
+    color: white;
+    margin-bottom: 10px;
+    display: none;
+}
+
+.myloc,
+#msg {
+    text-align: center;
+    padding: 10px;
+    background: #79c879;
+    color: white;
+    margin-bottom: 10px;
+    display: none;
+}
+
+.customMarker {
+    position: absolute;
+    cursor: pointer;
+    background: #424242;
+    width: 100px;
+    height: 100px;
+    /* -width/2 */
+    margin-left: -50px;
+    /* -height + arrow */
+    margin-top: -110px;
+    border-radius: 50%;
+    padding: 0px;
+}
+
+.customMarker:after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 40px;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: #424242 transparent;
+    display: block;
+    width: 0;
+}
+
+.customMarker img {
+    width: 90px;
+    height: 90px;
+    margin: 5px;
+    border-radius: 50%;
+}
+
+.fb {
+    background-color: #3B5998;
+    color: white;
+}
+
+.twitter {
+    background-color: #55ACEE;
+    color: white;
+}
+
+.google {
+    background-color: #dd4b39;
+    color: white;
+}
+
+
+/* #client{
+      display: none;
+    } */

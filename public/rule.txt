@@ -1,0 +1,9 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": "auth!== null",
+      "mon_pkl":{
+        ".validate" : "newData.child('properties').child('url').val()==='https://latihan-168007.firebaseapp.com/check-in.html'"
+      }
+  }
+}
