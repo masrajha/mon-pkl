@@ -8,6 +8,7 @@ firebase.auth().onAuthStateChanged(user => {
             document.getElementById('save').disabled = true;
             document.getElementById('save').addEventListener('click', doSave);
             document.getElementById('catatan').disabled=true;
+            document.getElementById('instansi').disabled=true;
         }
         currentUser = user;
         if (currentUser.photoURL) {
@@ -62,7 +63,7 @@ function doSave() {
     };
     properties.user = user;
     console.log(geometry, properties);
-    var path=monUserRef.child(email);
+    var path=monUserRef.child(properties.npm);
     saveData(dataRef, geometry, properties);
     saveData(path, geometry, properties);
 }
@@ -198,7 +199,10 @@ function getData(data) {
         imagePath: 'images/m'
     });
 }
-
+function npmInput(val){
+    document.getElementById('instansi').disabled=(val.length!=10);
+    console.log(val.length);
+}
 function instansiChange() {
     var instansi = document.getElementById('instansi');
     if (instansi.selectedIndex > 0) {

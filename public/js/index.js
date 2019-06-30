@@ -54,7 +54,7 @@ function getData(data) {
             img = 'images/placeholder-visited.png';
         markers.push(createMarker(loc, info, img));
     });
-    console.log(fitur[1].geometry);
+    // console.log(fitur[1].geometry);
     // var marker= data.val();
     // var keys = Object.keys(data.val());
     // for (var i=0;i<keys.length;i++){
