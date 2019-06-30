@@ -7,6 +7,7 @@ firebase.auth().onAuthStateChanged(user => {
         if (document.getElementById('save')) {
             document.getElementById('save').disabled = true;
             document.getElementById('save').addEventListener('click', doSave);
+            document.getElementById('catatan').disabled=true;
         }
         currentUser = user;
         if (currentUser.photoURL) {
@@ -31,6 +32,7 @@ var markerRef = firebase.database().ref('pkl');
 
 function doSave() {
     var dataRef = firebase.database().ref('mon_pkl');
+    var monUserRef = firebase.database().ref('mon_user');
     var coordinates = [
         [parseFloat(document.getElementById('lng').value), parseFloat(document.getElementById('lat').value)],
         [parseFloat(document.getElementById('lng_instansi').value), parseFloat(document.getElementById('lat_instansi').value)]
@@ -50,6 +52,7 @@ function doSave() {
     properties.time = new Date().getTime();
     properties.device = info;
     properties.url = window.location.href
+    properties.catatan=document.getElementById('catatan').value;
 
     var user = {
         displayName: currentUser.displayName,
@@ -59,9 +62,9 @@ function doSave() {
     };
     properties.user = user;
     console.log(geometry, properties);
+    var path=monUserRef.child(email);
     saveData(dataRef, geometry, properties);
-
-
+    saveData(path, geometry, properties);
 }
 
 function saveData(dataRef, geometry, properties) {
@@ -74,7 +77,7 @@ function saveData(dataRef, geometry, properties) {
     };
     console.log(JSON.stringify(data));
     newdataRef.set(data,
-        function(error) {
+        function (error) {
             if (error) {
                 // console.log(error);
 
@@ -82,7 +85,7 @@ function saveData(dataRef, geometry, properties) {
                 document.getElementById('msg').style.color = '#ffffff';
                 document.getElementById('msg').innerHTML = "Gagal Menyimpan Data";
                 document.getElementById('msg').style.display = 'block';
-                setTimeout(function() {
+                setTimeout(function () {
                     document.getElementById('msg').style.display = 'none';
                 }, 5000);
                 // window.location.href='monitoringmap.html';
@@ -92,10 +95,10 @@ function saveData(dataRef, geometry, properties) {
                 document.getElementById('msg').style.color = '#ffffff';
                 document.getElementById('msg').innerHTML = "Data Berhasil Disimpan";
                 document.getElementById('msg').style.display = 'block';
-                setTimeout(function() {
+                setTimeout(function () {
                     document.getElementById('msg').style.display = 'none';
                 }, 5000);
-                window.location.href = 'laporan.html';
+                window.location.href = 'index.html';
             }
         });
     // console.log(newMarkerRef);
@@ -107,15 +110,18 @@ function setButtonLabel() {
     console.log(time);
     document.getElementById('save').disabled = false;
     if (time < 70000) {
-        document.getElementById('save').disabled = true;
+        // document.getElementById('save').disabled = true;
+        document.getElementById('catatan').disabled=false;
     } else if (time < 80000) {
         document.getElementById('save').value = "Masuk";
     } else if (time < 120000) {
         document.getElementById('save').value = "Datang Terlambat";
     } else if (time < 160000) {
         document.getElementById('save').value = "Pulang Cepat";
+        document.getElementById('catatan').disabled=false;
     } else if (time < 190000) {
         document.getElementById('save').value = "Pulang";
+        document.getElementById('catatan').disabled=false;
     } else { document.getElementById('save').disabled = true; }
 }
 var features = [];
@@ -130,13 +136,14 @@ var dataInstansi = [];
 function getData(data) {
     var markers = [];
     var fitur = [];
-    data.forEach(function(datamarker) {
+    data.forEach(function (datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         fitur.push(datamarker.val());
         // console.log(datamarker.val());
         lat = parseFloat(datamarker.val().geometry.coordinates[1]);
         lng = parseFloat(datamarker.val().geometry.coordinates[0]);
         dataInstansi.push({ nama: datamarker.val().properties.instansi, lat: lat, lng: lng });
+
         info = '<h3>' + datamarker.val().properties.instansi + '</h3><br>';
         info += datamarker.val().properties.alamat + '<br>';
         info += '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z"><img src="images/direction.png"></a><br>'
@@ -161,7 +168,7 @@ function getData(data) {
             img = 'images/placeholder-visited.png';
         markers.push(createMarker(loc, info, img));
     });
-    console.log(fitur[1].geometry);
+    console.log(fitur);
     // var marker= data.val();
     // var keys = Object.keys(data.val());
     // for (var i=0;i<keys.length;i++){
@@ -174,14 +181,15 @@ function getData(data) {
     //   markers.push(createMarker(loc,marker[k].info,'images/placeholder.png'));
     // }
     var instansi = document.getElementById('instansi');
-    dataInstansi.sort(function(a, b) {
+    // console.log(dataInstansi);
+    dataInstansi.sort(function (a, b) {
         if (a.nama < b.nama) { return -1; } else if (a.nama < b.nama) {
             return 1;
         } else return 0;
 
     });
     console.log(dataInstansi);
-    dataInstansi.forEach(function(element) {
+    dataInstansi.forEach(function (element) {
         var opt = document.createElement('option');
         opt.innerHTML = opt.value = element.nama;
         instansi.appendChild(opt);
@@ -209,7 +217,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function() {
+    setTimeout(function () {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -230,7 +238,7 @@ function initMap() {
         zoom: 15
     });
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
+        navigator.geolocation.getCurrentPosition(function (position) {
             initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             map.setCenter(initialLocation);
             if (currentUser) {
@@ -254,7 +262,7 @@ function createMarker(coords, contentString = null, imageIcon = null) {
     if (contentString) {
         var infowindow = new google.maps.InfoWindow();
         infowindow.setContent(contentString);
-        marker.addListener('click', function() {
+        marker.addListener('click', function () {
             infowindow.open(map, marker);
         });
     }
