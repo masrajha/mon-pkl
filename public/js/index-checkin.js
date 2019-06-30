@@ -111,7 +111,7 @@ function setButtonLabel() {
     console.log(time);
     document.getElementById('save').disabled = false;
     if (time < 70000) {
-        // document.getElementById('save').disabled = true;
+        document.getElementById('save').disabled = true;
         document.getElementById('catatan').disabled=false;
     } else if (time < 80000) {
         document.getElementById('save').value = "Masuk";
