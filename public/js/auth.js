@@ -1,12 +1,14 @@
 // Initialize Firebase
-var config = {
-    apiKey: "AIzaSyBCmIfe6uYdwYtS6c7ET-IDEOKMq_sbDsQ",
-    authDomain: "latihan-168007.firebaseapp.com",
-    databaseURL: "https://latihan-168007.firebaseio.com",
-    projectId: "latihan-168007",
-    storageBucket: "latihan-168007.appspot.com",
-    messagingSenderId: "760935327738"
-};
+const config = {
+    apiKey: "AIzaSyArbN7yL_1ADsTSZ_5NEWiExxmZYZBpgMI",
+    authDomain: "ilkomunila.firebaseapp.com",
+    databaseURL: "https://ilkomunila.firebaseio.com",
+    projectId: "ilkomunila",
+    storageBucket: "ilkomunila.appspot.com",
+    messagingSenderId: "351909993041",
+    appId: "1:351909993041:web:e70d1179b97cf470"
+  };
+  
 firebase.initializeApp(config);
 
 var currentUser = null;

@@ -7,7 +7,7 @@ var config = {
     storageBucket: "latihan-168007.appspot.com",
     messagingSenderId: "760935327738"
 };
-f   irebase.initializeApp(config);
+firebase.initializeApp(config);
 
 var markerRef = firebase.database().ref('pkl');
 
