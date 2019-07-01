@@ -100,8 +100,10 @@ function initMap() {
         // // console.log(marker.getPosition().lat());
         setValue('lat', latLng.lat());
         setValue('lng', latLng.lng());
-        document.getElementById("save").disabled = false;
-        // createMarker(e.latLng);
+        /* -----------PENTING SEKALI ------------- */
+            document.getElementById("save").disabled = true; //dibuat false agar dapat berfungsi
+       
+       // createMarker(e.latLng);
         // coord={lat:latLng.lat(),lng:latLng.lng()};
         // saveData(coord);
     });
