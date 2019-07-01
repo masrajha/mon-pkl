@@ -101,7 +101,7 @@ function initMap() {
         setValue('lat', latLng.lat());
         setValue('lng', latLng.lng());
         /* -----------PENTING SEKALI ------------- */
-            document.getElementById("save").disabled = true; //dibuat false agar dapat berfungsi
+            document.getElementById("save").disabled = false; //dibuat false agar dapat berfungsi
        
        // createMarker(e.latLng);
         // coord={lat:latLng.lat(),lng:latLng.lng()};

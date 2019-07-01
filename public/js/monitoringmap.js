@@ -26,7 +26,7 @@ firebase.auth().onAuthStateChanged(user => {
 });
 
 var features = [];
-
+var users =[];
 
 var d = new Date();
 var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -47,7 +47,7 @@ var geoJSON = {
 function gotDataTempat(data) {
     var markers = [];
 
-    data.forEach(function(datamarker) {
+    data.forEach(function (datamarker) {
         lat = parseFloat(datamarker.val().geometry.coordinates[1]);
         lng = parseFloat(datamarker.val().geometry.coordinates[0]);
         info = '<h3>' + datamarker.val().properties.instansi + '</h3><br>';
@@ -82,7 +82,7 @@ function gotData(data) {
     var markers = [];
     var fitur = [];
     var isPrivate = document.getElementById('private').checked;
-    data.forEach(function(datamarker) {
+    data.forEach(function (datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         //panggil fungsi pushData disini
         if (isPrivate) {
@@ -93,7 +93,8 @@ function gotData(data) {
         }
     });
     // console.log(fitur[1].geometry);
-    CreateTableFromJSON(fitur);
+    // CreateTableFromJSON(fitur);
+    // console.log(JSON.stringify(users));
     var markerCluster = new MarkerClusterer(map, markers, {
         imagePath: 'images/m'
     });
@@ -101,11 +102,32 @@ function gotData(data) {
 
 function pushData(datamarker, fitur, markers) {
     fitur.push(datamarker.val());
-    console.log(datamarker.val().properties['user']['email']);
+    // console.log(datamarker.val().properties['user']['email']);
     mhslat = parseFloat(datamarker.val().geometry.coordinates[0][1]);
     mhslng = parseFloat(datamarker.val().geometry.coordinates[0][0]);
     inslat = parseFloat(datamarker.val().geometry.coordinates[1][1]);
     inslng = parseFloat(datamarker.val().geometry.coordinates[1][0]);
+
+    userid = datamarker.val().properties.user.uid;
+    usernama = datamarker.val().properties.nama;
+    usernpm = datamarker.val().properties.npm;
+    useremail = datamarker.val().properties.user.email;
+    userinstansi = datamarker.val().properties.instansi;
+
+    userdata = {};
+    userdata[userid] = {
+        nama: usernama,
+        npm: usernpm,
+        email: useremail,
+        instansi: {
+            nama: userinstansi,
+            lat: inslat,
+            lng: inslng
+        }
+    };
+    users.push(userdata);
+    // console.log(JSON.stringify(userdata));
+
     var a = new google.maps.LatLng(mhslat, mhslng);
     var b = new google.maps.LatLng(inslat, inslng);
     var jarak = google.maps.geometry.spherical.computeDistanceBetween(a, b).toFixed(2);
@@ -143,13 +165,13 @@ function pushData(datamarker, fitur, markers) {
     }
 
     var mhsToOffice = [{
-            lat: mhslat,
-            lng: mhslng
-        },
-        {
-            lat: inslat,
-            lng: inslng
-        }
+        lat: mhslat,
+        lng: mhslng
+    },
+    {
+        lat: inslat,
+        lng: inslng
+    }
     ];
     var mhsPath = new google.maps.Polyline({
         path: mhsToOffice,
@@ -239,7 +261,7 @@ function CreateTableFromJSON(data_all) {
     var divContainer = document.getElementById("data-table");
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
-    jQuery(function($) {
+    jQuery(function ($) {
         $('#table_1').DataTable({
             "pageLength": 50
         });
@@ -258,7 +280,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function() {
+    setTimeout(function () {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -293,7 +315,7 @@ function initMap() {
         zoom: 12
     });
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
+        navigator.geolocation.getCurrentPosition(function (position) {
             initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             map.setCenter(initialLocation);
             marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
@@ -313,7 +335,7 @@ function createMarker(coords, contentString = null, imageIcon = null) {
     if (contentString) {
         var infowindow = new google.maps.InfoWindow();
         infowindow.setContent(contentString);
-        marker.addListener('click', function() {
+        marker.addListener('click', function () {
             infowindow.open(map, marker);
         });
     }
