@@ -50,8 +50,8 @@ function app(user) {
     var btnLogout = document.createElement("button");
     if (document.getElementById('private'))
         document.getElementById('private').disabled = false;
-    btnLogout.innerHTML = "Logout";
-    btnLogout.addEventListener('click', logout);
+    // btnLogout.innerHTML = "Logout";
+    // btnLogout.addEventListener('click', logout);
     // Button Logout ditutup sementara
     client.appendChild(document.createElement("p"));
     client.appendChild(btnLogout);
