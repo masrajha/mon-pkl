@@ -93,7 +93,7 @@ function gotData(data) {
         }
     });
     // console.log(fitur[1].geometry);
-    // CreateTableFromJSON(fitur);
+    CreateTableFromJSON(fitur);
     // console.log(JSON.stringify(users));
     var markerCluster = new MarkerClusterer(map, markers, {
         imagePath: 'images/m'
