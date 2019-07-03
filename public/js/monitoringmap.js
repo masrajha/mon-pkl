@@ -15,8 +15,8 @@ function viewData() {
     var dataRef = firebase.database().ref();
     var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
     var tempatPKL = dataRef.child('pkl');
-    tempatPKL.once('value', gotDataTempat, showError);
-    monPKL.once('value', gotData, showError);
+    tempatPKL.on('value', gotDataTempat, showError);
+    monPKL.on('value', gotData, showError);
     initMap();
 }
 firebase.auth().onAuthStateChanged(user => {
@@ -35,8 +35,8 @@ var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
 var dataRef = firebase.database().ref();
 var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
 var tempatPKL = dataRef.child('pkl');
-tempatPKL.once('value', gotDataTempat, showError);
-monPKL.once('value', gotData, showError);
+tempatPKL.on('value', gotDataTempat, showError);
+monPKL.on('value', gotData, showError);
 
 var geoJSON = {
     type: "FeatureCollection",
