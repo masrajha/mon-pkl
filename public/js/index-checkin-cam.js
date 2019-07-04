@@ -35,10 +35,10 @@ function getUserInfo(user) {
     var monRef = firebase.database().ref('users/' + user.uid);
     console.log(monRef.toString());
     monRef.on('value', function (data) {
-        setValue('npm',data.val().npm);
-        setValue('instansi',data.val().instansi.nama);
-        setValue('lat_instansi',data.val().instansi.lat);
-        setValue('lng_instansi',data.val().instansi.lng);
+        setValue('npm', data.val().npm);
+        setValue('instansi', data.val().instansi.nama);
+        setValue('lat_instansi', data.val().instansi.lat);
+        setValue('lng_instansi', data.val().instansi.lng);
         document.getElementById('instansi').disabled = ((document.getElementById('npm').value).length != 10);
         setButtonLabel();
     });
@@ -75,7 +75,7 @@ function doSave() {
         photoURL: currentUser.photoURL
     };
     properties.user = user;
-    console.log(geometry, properties);
+    // console.log(geometry, properties);
     var path = monUserRef.child(properties.npm);
     saveData(dataRef, geometry, properties);
     saveData(path, geometry, properties);
@@ -89,7 +89,7 @@ function saveData(dataRef, geometry, properties) {
         geometry: geometry,
         properties: properties
     };
-    console.log(JSON.stringify(data));
+    // console.log(JSON.stringify(data));
     newdataRef.set(data,
         function (error) {
             if (error) {
@@ -122,7 +122,16 @@ function setButtonLabel() {
     var d = new Date(); // for now
     var time = d.getHours() * 10000 + d.getMinutes() * 100 + d.getSeconds();
     console.log(time);
-    document.getElementById('save').disabled = false;
+    document.getElementById('save').disabled = isNaN(parseFloat(document.getElementById('lng').value));
+    var msgText=null;
+    if (isNaN(parseFloat(document.getElementById('lng').value))){
+        msgText="GPS Tidak Aktif";
+    } else {
+        msgText="Bukan Jam Kerja";
+    }
+
+
+
     if (time < 70000) {
         document.getElementById('save').disabled = true;
         document.getElementById('catatan').disabled = false;
@@ -137,8 +146,13 @@ function setButtonLabel() {
         document.getElementById('save').value = "Pulang";
         document.getElementById('catatan').disabled = false;
     } else { document.getElementById('save').disabled = true; }
-    if (document.getElementById('save').disabled){
-        document.getElementById('save').value="Bukan Jam Kerja";
+    if (document.getElementById('save').disabled) {
+        document.getElementById('save').value = "Tidak Aktif";
+
+        document.getElementById('msg').style.background = '#D83E50';
+        document.getElementById('msg').style.color = '#ffffff';
+        document.getElementById('msg').innerHTML = "Error: "+msgText;
+        document.getElementById('msg').style.display = 'block';
     }
 }
 var features = [];
