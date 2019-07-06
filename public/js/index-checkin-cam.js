@@ -65,8 +65,9 @@ function doSave() {
     properties.instansi = document.getElementById('instansi').value;
     properties.time = new Date().getTime();
     properties.device = info;
-    properties.url = window.location.href
+    properties.url = window.location.href;
     properties.catatan = document.getElementById('catatan').value;
+    properties.imgURL = document.getElementById('imgURL').value;
 
     var user = {
         displayName: currentUser.displayName,
@@ -119,15 +120,33 @@ function saveData(dataRef, geometry, properties) {
 }
 
 function setButtonLabel() {
+
     var d = new Date(); // for now
     var time = d.getHours() * 10000 + d.getMinutes() * 100 + d.getSeconds();
-    console.log(time);
-    document.getElementById('save').disabled = isNaN(parseFloat(document.getElementById('lng').value));
-    var msgText=null;
-    if (isNaN(parseFloat(document.getElementById('lng').value))){
-        msgText="GPS Tidak Aktif";
+    var lng = document.getElementById('lng').value;
+    var lat = document.getElementById('lat').value;
+    var imgURL = document.getElementById('imgURL').value;
+    var nama = document.getElementById('nama').value;
+    document.getElementById('save').disabled = (isNaN(parseFloat(lng)) && isNaN(parseFloat(lat))) || imgURL.length <= 0 || nama.length <= 0;
+    console.log(document.getElementById('save').disabled);
+    var msgText = null;
+    if (document.getElementById('save').disabled) {
+        if (isNaN(parseFloat(document.getElementById('lng').value))) {
+            msgText = "GPS Tidak Aktif";
+        } else if (imgURL.length <= 0) {
+            msgText = "Belum ambil foto kamera";
+        }  else if (nama.length <= 0) {
+            msgText = "Belum Login";
+        } else {
+            msgText = "Bukan Jam Kerja";
+        }
+        document.getElementById('save').value = "Tidak Aktif";
+        document.getElementById('msg').style.background = '#D83E50';
+        document.getElementById('msg').style.color = '#ffffff';
+        document.getElementById('msg').innerHTML = "Error: " + msgText;
+        document.getElementById('msg').style.display = 'block';
     } else {
-        msgText="Bukan Jam Kerja";
+        document.getElementById('msg').style.display = 'none';
     }
 
 
@@ -146,14 +165,6 @@ function setButtonLabel() {
         document.getElementById('save').value = "Pulang";
         document.getElementById('catatan').disabled = false;
     } else { document.getElementById('save').disabled = true; }
-    if (document.getElementById('save').disabled) {
-        document.getElementById('save').value = "Tidak Aktif";
-
-        document.getElementById('msg').style.background = '#D83E50';
-        document.getElementById('msg').style.color = '#ffffff';
-        document.getElementById('msg').innerHTML = "Error: "+msgText;
-        document.getElementById('msg').style.display = 'block';
-    }
 }
 var features = [];
 markerRef.on('value', getData, showError);
