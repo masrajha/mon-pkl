@@ -34,7 +34,7 @@ function uploadFile(canvas,filename) {
     canvas.toBlob(function (blob) {
         var image = new Image();
         image.src = blob;
-        var uploadTask = storageRef.child('images/' + filename + ".png").put(blob);
+        var uploadTask = storageRef.child('images/' + filename).put(blob);
         uploadTask.on('state_changed', function (snapshot) {
             // Observe state change events such as progress, pause, and resume
             // See below for more detail
