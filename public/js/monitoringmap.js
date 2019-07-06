@@ -113,12 +113,22 @@ function pushData(datamarker, fitur, markers) {
     usernpm = datamarker.val().properties.npm;
     useremail = datamarker.val().properties.user.email;
     userinstansi = datamarker.val().properties.instansi;
+    var imgURL=null;
+    var catatan=null;
+    if (datamarker.val().properties.catatan){
+        catatan=datamarker.val().properties.catatan;
+    }
+    if (datamarker.val().properties.imgURL){
+        imgURL=datamarker.val().properties.imgURL;
+    }
 
     userdata = {};
     userdata[userid] = {
         nama: usernama,
         npm: usernpm,
         email: useremail,
+        catatan:catatan,
+        imgURL:imgURL,
         instansi: {
             nama: userinstansi,
             lat: inslat,
@@ -186,7 +196,7 @@ function pushData(datamarker, fitur, markers) {
 
 function CreateTableFromJSON(data_all) {
     var arrHead = new Array();
-    arrHead = ['img', 'mahasiswa', 'lokasi', 'waktu', 'keterangan', 'map'];
+    arrHead = ['img', 'mahasiswa', 'lokasi', 'waktu', 'keterangan', 'catatan'];
 
     // CREATE DYNAMIC TABLE.
     var table = document.createElement("table");
@@ -217,7 +227,11 @@ function CreateTableFromJSON(data_all) {
         for (var j = 0; j < arrHead.length; j++) {
             var tabCell = tr.insertCell(-1);
             if (j == 0) {
-                content = '<img src="' + data_all[i]['properties']['user']['photoURL'] + '" width=50 height=50>';
+                var img=(data_all[i]['properties']['imgURL'])?
+                        data_all[i]['properties']['imgURL'] :
+                        data_all[i]['properties']['user']['photoURL'];
+                
+                content = '<img src="' + img + '" width=50 height=50>';
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'mahasiswa') {
                 let content = '';
@@ -238,11 +252,8 @@ function CreateTableFromJSON(data_all) {
                 let content = data_all[i]['properties']['keterangan'] + '<br>';
                 content += 'Jarak : ' + jarak + ' m';
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'map ') {
-                let lng = data_all[i]['geometry']['coordinates'][0];
-                let lat = data_all[i]['geometry']['coordinates'][1];
-                let content = '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z">';
-                content += '<img src="images/directions-md.png"></a>';
+            } else if ('catatan'== arrHead[j]) {
+                content = data_all[i]['properties']['catatan'];
                 tabCell.innerHTML = content;
             }
         }
@@ -263,7 +274,15 @@ function CreateTableFromJSON(data_all) {
     divContainer.appendChild(table);
     jQuery(function ($) {
         $('#table_1').DataTable({
-            "pageLength": 50
+            "pageLength": 50,
+            "columns": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                { "width": "15%" }
+              ]
         });
         // $('#table_1').DataTable({
         //     "columnDefs": [{
