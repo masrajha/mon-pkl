@@ -8,7 +8,7 @@ firebase.auth().onAuthStateChanged(user => {
         if (document.getElementById('save')) {
             // document.getElementById('save').disabled = true;
             document.getElementById('save').addEventListener('click', doSave);
-            document.getElementById('catatan').disabled = true;
+            // document.getElementById('catatan').disabled = true;
         }
         currentUser = user;
         if (currentUser.photoURL) {
@@ -127,7 +127,8 @@ function setButtonLabel() {
     var lat = document.getElementById('lat').value;
     var imgURL = document.getElementById('imgURL').value;
     var nama = document.getElementById('nama').value;
-    document.getElementById('save').disabled = (isNaN(parseFloat(lng)) && isNaN(parseFloat(lat))) || imgURL.length <= 0 || nama.length <= 0;
+    var catatan = document.getElementById('catatan').value;
+    document.getElementById('save').disabled = (isNaN(parseFloat(lng)) && isNaN(parseFloat(lat))) || imgURL.length <= 0 || nama.length <= 0 ||catatan.length < 50;
     console.log(document.getElementById('save').disabled);
     var msgText = null;
     if (document.getElementById('save').disabled) {
@@ -137,7 +138,9 @@ function setButtonLabel() {
             msgText = "Belum ambil foto kamera";
         }  else if (nama.length <= 0) {
             msgText = "Belum Login";
-        } else {
+        } else if (catatan.length < 50) {
+            msgText = "Catatan harian minimal 50 karakter";
+        }else {
             msgText = "Bukan Jam Kerja";
         }
         document.getElementById('save').value = "Tidak Aktif";
@@ -153,17 +156,22 @@ function setButtonLabel() {
 
     if (time < 70000) {
         document.getElementById('save').disabled = true;
-        document.getElementById('catatan').disabled = false;
     } else if (time < 80000) {
         document.getElementById('save').value = "Masuk";
+        document.getElementById('lbl-catatan').innerHTML = "<b>[RENCANA]</b> Sesuai proposal rencana kerja, hari ini saya akan melakukan:\n";
+        document.getElementById('catatan').value="Rencana:\n";
     } else if (time < 120000) {
         document.getElementById('save').value = "Datang Terlambat";
+        document.getElementById('lbl-catatan').innerHTML = "<b>[RENCANA]</b> Sesuai proposal rencana kerja, hari ini saya akan melakukan:\n";
+        document.getElementById('catatan').value="Rencana:\n";
     } else if (time < 160000) {
         document.getElementById('save').value = "Pulang Cepat";
-        document.getElementById('catatan').disabled = false;
+        document.getElementById('lbl-catatan').innerHTML = "<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
+        document.getElementById('catatan').value="Realita:\n";
     } else if (time < 190000) {
         document.getElementById('save').value = "Pulang";
-        document.getElementById('catatan').disabled = false;
+        document.getElementById('lbl-catatan').innerHTML = "<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
+        document.getElementById('catatan').value="Realita:\n";
     } else { document.getElementById('save').disabled = true; }
 }
 var features = [];
@@ -243,6 +251,10 @@ function getData(data) {
 function npmInput(val) {
     document.getElementById('instansi').disabled = (val.length != 10);
     console.log(val.length);
+}
+function catatanInput(val) {
+    if (val.length >= 50)
+        setButtonLabel();
 }
 function instansiChange() {
     var instansi = document.getElementById('instansi');
