@@ -85,7 +85,7 @@ function gotData(data) {
     data.forEach(function (datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         //panggil fungsi pushData disini
-        if (datamarker.val().properties['npm']==='1707051002')
+        if (datamarker.val().properties['npm']==='1707051006')
             console.log(datamarker.key);
         if (isPrivate) {
             if (datamarker.val().properties['user']['email'] === currentUser.email)
