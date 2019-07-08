@@ -154,24 +154,20 @@ function setButtonLabel() {
 
 
 
-    if (time < 70000) {
+    if (time > 70000) {
         document.getElementById('save').disabled = true;
     } else if (time < 80000) {
         document.getElementById('save').value = "Masuk";
         document.getElementById('lbl-catatan').innerHTML = "<b>[RENCANA]</b> Sesuai proposal rencana kerja, hari ini saya akan melakukan:\n";
-        document.getElementById('catatan').value="Rencana:\n";
     } else if (time < 120000) {
         document.getElementById('save').value = "Datang Terlambat";
         document.getElementById('lbl-catatan').innerHTML = "<b>[RENCANA]</b> Sesuai proposal rencana kerja, hari ini saya akan melakukan:\n";
-        document.getElementById('catatan').value="Rencana:\n";
     } else if (time < 160000) {
         document.getElementById('save').value = "Pulang Cepat";
         document.getElementById('lbl-catatan').innerHTML = "<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
-        document.getElementById('catatan').value="Realita:\n";
     } else if (time < 190000) {
         document.getElementById('save').value = "Pulang";
         document.getElementById('lbl-catatan').innerHTML = "<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
-        document.getElementById('catatan').value="Realita:\n";
     } else { document.getElementById('save').disabled = true; }
 }
 var features = [];
@@ -253,7 +249,7 @@ function npmInput(val) {
     console.log(val.length);
 }
 function catatanInput(val) {
-    if (val.length >= 50)
+    // if (val.length >= 50)
         setButtonLabel();
 }
 function instansiChange() {
