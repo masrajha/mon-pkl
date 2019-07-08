@@ -154,7 +154,7 @@ function setButtonLabel() {
 
 
 
-    if (time > 70000) {
+    if (time < 70000) {
         document.getElementById('save').disabled = true;
     } else if (time < 80000) {
         document.getElementById('save').value = "Masuk";
