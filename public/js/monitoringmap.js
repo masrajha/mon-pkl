@@ -85,6 +85,8 @@ function gotData(data) {
     data.forEach(function (datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         //panggil fungsi pushData disini
+        if (datamarker.val().properties['npm']==='1707051002')
+            console.log(datamarker.key);
         if (isPrivate) {
             if (datamarker.val().properties['user']['email'] === currentUser.email)
                 pushData(datamarker, fitur, markers);
@@ -231,7 +233,7 @@ function CreateTableFromJSON(data_all) {
                         data_all[i]['properties']['imgURL'] :
                         data_all[i]['properties']['user']['photoURL'];
                 
-                content = '<img src="' + img + '" width=50 height=50>';
+                content = '<img src="' + img + '" width=80>';
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'mahasiswa') {
                 let content = '';
