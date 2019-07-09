@@ -9,6 +9,8 @@ var handleSuccess = function (stream) {
 };
 
 captureButton.addEventListener('click', function () {
+    captureButton.disabled = true;
+    captureButton.style.backgroundColor = 'grey';
     var date = new Date();
     var thn = date.getFullYear();
     var bln = leadingZero(date.getMonth() + 1);
@@ -24,12 +26,10 @@ captureButton.addEventListener('click', function () {
     var ket = document.getElementById('save').value;
     var filename = npm + '_' + thn + bln + tgl + '_' + ket + '.png';
     console.log(filename);
-    captureButton.disabled=true;
-    captureButton.style.backgroundColor='grey';
-    uploadFile(snapshotCanvas,filename);
+    uploadFile(snapshotCanvas, filename);
 });
 
-function uploadFile(canvas,filename) {
+function uploadFile(canvas, filename) {
     var storageRef = firebase.storage().ref();
     canvas.toBlob(function (blob) {
         var image = new Image();
@@ -38,12 +38,21 @@ function uploadFile(canvas,filename) {
         uploadTask.on('state_changed', function (snapshot) {
             // Observe state change events such as progress, pause, and resume
             // See below for more detail
+            var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            document.getElementById("progress").value=progress;
         }, function (error) {
             // Handle unsuccessful uploads
-            console.log(error);
+            setButtonLabel();
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(handleSuccess);
+            player.style.display = 'block';
+            snapshotCanvas.style.display = 'none';
+            captureButton.disabled = false;
+            captureButton.style.backgroundColor = 'DodgerBlue';
         }, function () {
             // Handle successful uploads on complete
             // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+            document.getElementById("success").style.display="inline";
             var downloadURL = uploadTask.snapshot.downloadURL;
             document.getElementById('imgURL').value = downloadURL;
             setButtonLabel();

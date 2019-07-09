@@ -104,6 +104,10 @@
   cursor: pointer;
 }
 
+#success {
+  color: #79c879;
+  display: none;
+}
 /* Darker background on mouse-over */
 .btn-cam:hover {
   background-color: RoyalBlue;
