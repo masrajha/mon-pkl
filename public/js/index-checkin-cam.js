@@ -34,7 +34,7 @@ var markerRef = firebase.database().ref('pkl');
 function getUserInfo(user) {
     var monRef = firebase.database().ref('users/' + user.uid);
     console.log(monRef.toString());
-    monRef.on('value', function (data) {
+    monRef.on('value', function(data) {
         setValue('npm', data.val().npm);
         setValue('instansi', data.val().instansi.nama);
         setValue('lat_instansi', data.val().instansi.lat);
@@ -44,6 +44,7 @@ function getUserInfo(user) {
     });
 
 }
+
 function doSave() {
     var dataRef = firebase.database().ref('mon_pkl');
     var monUserRef = firebase.database().ref('mon_user');
@@ -92,7 +93,7 @@ function saveData(dataRef, geometry, properties) {
     };
     // console.log(JSON.stringify(data));
     newdataRef.set(data,
-        function (error) {
+        function(error) {
             if (error) {
                 // console.log(error);
 
@@ -100,7 +101,7 @@ function saveData(dataRef, geometry, properties) {
                 document.getElementById('msg').style.color = '#ffffff';
                 document.getElementById('msg').innerHTML = "Gagal Menyimpan Data";
                 document.getElementById('msg').style.display = 'block';
-                setTimeout(function () {
+                setTimeout(function() {
                     document.getElementById('msg').style.display = 'none';
                 }, 5000);
                 // window.location.href='monitoringmap.html';
@@ -110,7 +111,7 @@ function saveData(dataRef, geometry, properties) {
                 document.getElementById('msg').style.color = '#ffffff';
                 document.getElementById('msg').innerHTML = "Data Berhasil Disimpan";
                 document.getElementById('msg').style.display = 'block';
-                setTimeout(function () {
+                setTimeout(function() {
                     document.getElementById('msg').style.display = 'none';
                 }, 5000);
                 window.location.href = 'index.html';
@@ -128,7 +129,7 @@ function setButtonLabel() {
     var imgURL = document.getElementById('imgURL').value;
     var nama = document.getElementById('nama').value;
     var catatan = document.getElementById('catatan').value;
-    document.getElementById('save').disabled = (isNaN(parseFloat(lng)) && isNaN(parseFloat(lat))) || imgURL.length <= 0 || nama.length <= 0 ||catatan.length < 50;
+    document.getElementById('save').disabled = (isNaN(parseFloat(lng)) && isNaN(parseFloat(lat))) || imgURL.length <= 0 || nama.length <= 0 || catatan.length < 50;
     console.log(document.getElementById('save').disabled);
     var msgText = null;
     if (document.getElementById('save').disabled) {
@@ -136,11 +137,11 @@ function setButtonLabel() {
             msgText = "GPS Tidak Aktif";
         } else if (imgURL.length <= 0) {
             msgText = "Belum ambil foto kamera";
-        }  else if (nama.length <= 0) {
+        } else if (nama.length <= 0) {
             msgText = "Belum Login";
         } else if (catatan.length < 50) {
             msgText = "Catatan harian minimal 50 karakter";
-        }else {
+        } else {
             msgText = "Bukan Jam Kerja";
         }
         document.getElementById('save').value = "Tidak Aktif";
@@ -152,16 +153,21 @@ function setButtonLabel() {
         document.getElementById('msg').style.display = 'none';
     }
 
-
+    var lbl_catatan = "Yang harus anda peroleh Minggu ini untuk BAB 2 sbb: <br>A.Gambaran umum perusahaan: " +
+        "<br>B.Uraian Tentang Landasan Teori yang digunakan untuk pembahasan" +
+        "<br>C.Analisis Proses Bisnis yang Berjalan" +
+        "<br>Yaitu analisis data dan fakta yang dijumpai selama PKL, yang relevan dan berhubungan erat dengan judul dan pokok bahasan laporan." +
+        "<br>Data dan fakta mencakup: permasalahan yang dihadapi, proses bisnis yang berjalan, analisis kebutuhan informasi yang belum tersedia dari sistem yang ada, dan sebagainya." +
+        "<br><b>RENCANA</b> Hari ini:";
 
     if (time < 70000) {
         document.getElementById('save').disabled = true;
     } else if (time < 80000) {
         document.getElementById('save').value = "Masuk";
-        document.getElementById('lbl-catatan').innerHTML = "<b>[RENCANA]</b> Sesuai proposal rencana kerja, hari ini saya akan melakukan:\n";
+        document.getElementById('lbl-catatan').innerHTML = lbl_catatan;
     } else if (time < 120000) {
         document.getElementById('save').value = "Datang Terlambat";
-        document.getElementById('lbl-catatan').innerHTML = "<b>[RENCANA]</b> Sesuai proposal rencana kerja, hari ini saya akan melakukan:\n";
+        document.getElementById('lbl-catatan').innerHTML = lbl_catatan;
     } else if (time < 160000) {
         document.getElementById('save').value = "Pulang Cepat";
         document.getElementById('lbl-catatan').innerHTML = "<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
@@ -182,7 +188,7 @@ var dataInstansi = [];
 function getData(data) {
     var markers = [];
     var fitur = [];
-    data.forEach(function (datamarker) {
+    data.forEach(function(datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         fitur.push(datamarker.val());
         // console.log(datamarker.val());
@@ -228,14 +234,14 @@ function getData(data) {
     // }
     var instansi = document.getElementById('instansi');
     // console.log(dataInstansi);
-    dataInstansi.sort(function (a, b) {
+    dataInstansi.sort(function(a, b) {
         if (a.nama < b.nama) { return -1; } else if (a.nama < b.nama) {
             return 1;
         } else return 0;
 
     });
     console.log(dataInstansi);
-    dataInstansi.forEach(function (element) {
+    dataInstansi.forEach(function(element) {
         var opt = document.createElement('option');
         opt.innerHTML = opt.value = element.nama;
         instansi.appendChild(opt);
@@ -244,14 +250,17 @@ function getData(data) {
         imagePath: 'images/m'
     });
 }
+
 function npmInput(val) {
     document.getElementById('instansi').disabled = (val.length != 10);
     console.log(val.length);
 }
+
 function catatanInput(val) {
     // if (val.length >= 50)
-        setButtonLabel();
+    setButtonLabel();
 }
+
 function instansiChange() {
     var instansi = document.getElementById('instansi');
     if (instansi.selectedIndex > 0) {
@@ -270,7 +279,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function () {
+    setTimeout(function() {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -291,7 +300,7 @@ function initMap() {
         zoom: 15
     });
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
+        navigator.geolocation.getCurrentPosition(function(position) {
             initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             map.setCenter(initialLocation);
             if (currentUser) {
@@ -315,7 +324,7 @@ function createMarker(coords, contentString = null, imageIcon = null) {
     if (contentString) {
         var infowindow = new google.maps.InfoWindow();
         infowindow.setContent(contentString);
-        marker.addListener('click', function () {
+        marker.addListener('click', function() {
             infowindow.open(map, marker);
         });
     }
