@@ -8,8 +8,8 @@ var handleSuccess = function(stream) {
     player.srcObject = stream;
     videoTracks = stream.getVideoTracks();
     playerDim = stream.getTracks()[0].getSettings();
-    snapshotCanvas.height = playerDim.height;
-    snapshotCanvas.width = playerDim.width;
+    // snapshotCanvas.height = playerDim.height;
+    // snapshotCanvas.width = playerDim.width;
 
 };
 
