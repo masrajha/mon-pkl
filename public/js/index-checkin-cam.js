@@ -153,12 +153,14 @@ function setButtonLabel() {
         document.getElementById('msg').style.display = 'none';
     }
 
-    var lbl_catatan = "Yang harus anda peroleh Minggu ini untuk BAB 2 sbb: <br>A.Gambaran umum perusahaan: " +
-        "<br>B.Uraian Tentang Landasan Teori yang digunakan untuk pembahasan" +
-        "<br>C.Analisis Proses Bisnis yang Berjalan" +
-        "<br>Yaitu analisis data dan fakta yang dijumpai selama PKL, yang relevan dan berhubungan erat dengan judul dan pokok bahasan laporan." +
-        "<br>Data dan fakta mencakup: permasalahan yang dihadapi, proses bisnis yang berjalan, analisis kebutuhan informasi yang belum tersedia dari sistem yang ada, dan sebagainya." +
-        "<br><b>RENCANA</b> Hari ini:";
+    var lbl_catatan = "<p>Minggu ini adalah untuk Bab III, yang harus diperoleh mencakup:<br /><strong>A. Deskripsi kegiatan</strong><br />"+
+                "Kegiatan apa yang akan dilakukan sebagai bahan untuk mengajukan solusi alternatif setelah mengamati dan menemukan adanya "+
+                "permasalahan yang dihadapi pada proses bisnis perusahaan/instansi yang sedang berjalan<br /><strong>"+
+                "B. Sumber data</strong><br />Bagian ini merupakan bagian paling penting, yaitu mengumpulkan sumber-sumber"+
+                " data (misal: Formulir, SOP, Raw Data, Daftar Tabel, hasil wawancara, hasil observasi, dsb) yang digunakan untuk mengajukan solusi alternatif.<br /><strong>C. Metode pengumpulan data</strong>"+
+                " <br /><strong>D. Metode penyelesaian masalah atau metode untuk mengerjakan solusi alternatif</strong> "+
+                "<br />Mendeskripsikan bagaimana tahap-tahap umum solusi alternatif dalam rangka penyelesaian masalah.</p>"+
+                "<br><b>RENCANA</b> Hari ini:";
 
     if (time < 70000) {
         document.getElementById('save').disabled = true;
