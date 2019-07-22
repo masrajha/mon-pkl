@@ -13,34 +13,13 @@ firebase.auth().onAuthStateChanged(user => {
 });
 var dataRef = firebase.database().ref();
 // var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
-// var monPKL = dataRef.child('mon_pkl');
-// var users = dataRef.child('users');
-// monPKL.on('value', gotData, showError);
+var monPKL = dataRef.child('mon_pkl');
+monPKL.on('value', gotData, showError);
 
 var geoJSON = {
     type: "FeatureCollection",
     features: features
 };
-$.getJSON("data/monpkl.json", function(json) {
-    // console.log(json); // this will show the info it in firebug console
-    json.forEach(function (item){
-        features.push(item);
-    });
-    $.getJSON("data/userdata.json", function(json) {
-        json.forEach(function (item){
-            userData.push(item);
-        });
-    
-        $.getJSON("data/userEmail.json", function(json) {
-            json.forEach(function (item){
-                userEmail.push(item);
-            });
-            
-            gotData();   
-        });
-        
-    });
-});
 
 document.getElementById('view').addEventListener('click', viewData);
 var hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -63,45 +42,44 @@ function viewData() {
         var para = document.createElement("p");
         para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
         para.innerHTML = 'Silahkan Login Terlebih Dahulu';
-        document.getElementById('client').appendChild(para);
+        document.getElementById('chart-waktu').appendChild(para);
 
         // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
     }
 }
 
 
-function gotData() {
-    
-    // // var isPrivate = (currentUser != null && currentUser.email != 'didikunila@gmail.com'); //for admin
-    // var isPrivate = null; //admin mode off
-    // if (currentUser != null)
-    //     data.forEach(function (item) {
-    //         // console.log(item.val().geometry, item.val().properties);
-    //         //panggil fungsi pushData disini
-    //         if (isPrivate) {
-    //             if (item.val().properties['user']['email'] === currentUser.email)
-    //                 pushData(item, features, userData);
-    //         } else {
-    //             //admin zone
-    //             pushData(item, features, userData);
-    //             if (item.val().properties['user']['email'] === currentUser.email)
-    //                 console.log(item.key);
-    //         }
-    //     });
-    // if (currentUser) {
-        // var dataPKL = laporanMhs(userData, currentUser.uid, '2019/1/24');
-        var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
-        var report = createReportAll(userEmail, userData, '2019/1/24');
-        
+function gotData(data) {
+    // var isPrivate = (currentUser != null && currentUser.email != 'didikunila@gmail.com'); //for admin
+    var isPrivate = null; //admin mode off
+    if (currentUser != null)
+        data.forEach(function (item) {
+            // console.log(item.val().geometry, item.val().properties);
+            //panggil fungsi pushData disini
+            if (isPrivate) {
+                if (item.val().properties['user']['email'] === currentUser.email)
+                    pushData(item, features, userData);
+            } else {
+                //admin zone
+                pushData(item, features, userData);
+                if (item.val().properties['user']['email'] === currentUser.email)
+                    console.log(item.key);
+            }
+        });
+    if (currentUser) {
+        var dataPKL = laporanMhs(userData, currentUser.uid, '2019/7/3');
+        // var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
+        var report = createReportAll(userEmail, userData, '2019/7/3');
+        console.log(report);
         CreateTableFromJSON(report);
-    // } else {
-    //     console.log("test");
-    //     var para = document.createElement("p");
-    //     para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
-    //     para.innerHTML = 'Silahkan Login Terlebih Dahulu';
-    //     document.getElementById('client').appendChild(para);
-    //     // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
-    // }
+    } else {
+        var para = document.createElement("p");
+        para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
+        para.innerHTML = 'Silahkan Login Terlebih Dahulu';
+        document.getElementById('chart-waktu').appendChild(para);
+
+        // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
+    }
 }
 
 function createReportAll(dataEmail, userData, start, end = 'now', sabtu = false, minggu = false, libur = false) {
@@ -310,8 +288,9 @@ function CreateTableFromJSON(data_all) {
     divContainer.appendChild(table);
     jQuery(function ($) {
         $('#table_1').removeAttr('width').DataTable({
-            scrollX: true,
+            scrollX: false,
             scrollCollapse: true,
+            paging:   false,
             columnDefs: [{
                     width: 200,
                     targets: 9
@@ -441,11 +420,11 @@ function laporanHarian(arr, npm, tgl) {
 }
 
 function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, minggu = false, libur = false) {
-    let tglLibur = ['2019/2/5'];
+    let tglLibur = ['2019/8/17'];
     let rekap = [];
     let end = null;
     let start = new Date(tglMulai).getTime();
-    end = (tglSelesai == 'now') ? Math.min(new Date().getTime(), new Date('2019/2/16').getTime()) : new Date(tglSelesai).getTime();
+    end = (tglSelesai == 'now') ? Math.min(new Date().getTime(), new Date('2019/8/16').getTime()) : new Date(tglSelesai).getTime();
     for (tgl = start; tgl <= end; tgl = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime()) {
         d = new Date(tgl);
         if (!sabtu)

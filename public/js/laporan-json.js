@@ -5,6 +5,8 @@ var userEmail = [];
 var d = new Date();
 var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+var npmInput = document.getElementById('npm');
+
 
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
@@ -13,14 +15,44 @@ firebase.auth().onAuthStateChanged(user => {
 });
 var dataRef = firebase.database().ref();
 // var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
-var monPKL = dataRef.child('mon_pkl');
-var users = dataRef.child('users');
-monPKL.on('value', gotData, showError);
+// var monPKL = dataRef.child('mon_pkl');
+// var users = dataRef.child('users');
+// monPKL.on('value', gotData, showError);
+
+npmInput.addEventListener("keyup", function(event) {
+    // Number 13 is the "Enter" key on the keyboard
+    if (event.keyCode === 13) {
+      // Cancel the default action, if needed
+      event.preventDefault();
+      // Trigger the button element with a click
+      document.getElementById("view").click();
+    }
+  });
 
 var geoJSON = {
     type: "FeatureCollection",
     features: features
 };
+$.getJSON("data/monpkl.json", function (json) {
+    // console.log(json); // this will show the info it in firebug console
+    json.forEach(function (item) {
+        features.push(item);
+    });
+    $.getJSON("data/userdata.json", function (json) {
+        json.forEach(function (item) {
+            userData.push(item);
+        });
+
+        $.getJSON("data/userEmail.json", function (json) {
+            json.forEach(function (item) {
+                userEmail.push(item);
+            });
+
+            gotData();
+        });
+
+    });
+});
 
 document.getElementById('view').addEventListener('click', viewData);
 var hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -35,74 +67,60 @@ function viewData() {
     var minggu = document.getElementById('minggu').checked;
     var libur = document.getElementById('libur').checked;
     var npm = document.getElementById('npm').value;
-    if (currentUser) {
-        console.log(start, end, sabtu, minggu);
-        if (npm.length == 10) {
-            var dataPKL = laporanMhs(userData, npm, start, end, sabtu, minggu, libur);
-        } else {
-            var dataPKL = laporanMhs(userData, currentUser.uid, start, end, sabtu, minggu, libur);
-        }
-        // var dataPKL = laporanMhs(userData, '1617051001', start, end, sabtu, minggu, libur);
-        // resumeMhs(dataPKL);
-        CreateTableFromJSON(dataPKL);
-        chartMhs(dataPKL, 'chart-waktu');
-        chartMhs(dataPKL, 'chart-durasi', 'durasi');
-        chartMhs(dataPKL, 'chart-jarak', 'jarak');
-        createReport(dataPKL);
-    } else {
-        var para = document.createElement("p");
-        para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
-        para.innerHTML = 'Silahkan Login Terlebih Dahulu';
-        document.getElementById('chart-waktu').appendChild(para);
 
-        // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
+    // console.log(start, end, npm, sabtu, minggu);
+    if (npm.length == 10) {
+        var dataPKL = laporanMhs(userData, npm, start, end, sabtu, minggu, libur);
+        if (CreateTableFromJSON(dataPKL) === null) {
+            errMsg();
+        } else {
+            document.getElementById('info').style.display='none';
+            chartMhs(dataPKL, 'chart-waktu');
+            chartMhs(dataPKL, 'chart-durasi', 'durasi');
+            chartMhs(dataPKL, 'chart-jarak', 'jarak');
+            createReport(dataPKL);
+        }
+    } else {
+        errMsg();
     }
+
 }
-
-
-function gotData(data) {
-    // var isPrivate = (currentUser != null && currentUser.email != 'didikunila@gmail.com'); //for admin
-    var isPrivate = false;
-    data.forEach(function (item) {
-        // console.log(item.val().geometry, item.val().properties);
-        //panggil fungsi pushData disini
-        if (isPrivate) {
-            if (item.val().properties['user']['email'] === currentUser.email)
-                pushData(item, features, userData);
-        } else {
-            //admin zone
-            pushData(item, features, userData);
-            if (item.val().properties['user']['email'] === currentUser.email)
-                console.log(item.key);
-        }
-    });
-    if (currentUser) {
-        var npm = findGetParameter('npm');
-        if (npm) {
-            document.getElementById('npm').value = npm;
-            var dataPKL = laporanMhs(userData, npm, '2019/7/3');
-        } else {
-            var dataPKL = laporanMhs(userData, currentUser.uid, '2019/7/3');
-        }
-        // var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
-        CreateTableFromJSON(dataPKL);
+function errMsg() {
+    var info=document.getElementById('info');
+    while (info.hasChildNodes()) {   
+        info.removeChild(info.firstChild);
+      }
+    info.style.display='block';
+    var para = document.createElement("p");
+    para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
+    para.innerHTML = 'Belum Input NPM/NPM tidak Benar/NPM tidak ada dalam daftar';
+    info.appendChild(para);
+    // document.getElementById('info').innerHTML= para.;
+}
+function gotData() {
+    var npm = findGetParameter('npm');
+    if (npm) {
+        document.getElementById('npm').value = npm;
+        var dataPKL = laporanMhs(userData, npm, '2019/1/24');
+        // console.log(dataPKL);
+    } else {
+        errMsg();
+    }
+    // var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
+    if (CreateTableFromJSON(dataPKL) === null) {
+        errMsg();
+    } else {
+        document.getElementById('info').style.display='none';
         chartMhs(dataPKL, 'chart-waktu');
         chartMhs(dataPKL, 'chart-durasi', 'durasi');
         chartMhs(dataPKL, 'chart-jarak', 'jarak');
         createReport(dataPKL);
-    } else {
-        var para = document.createElement("p");
-        para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
-        para.innerHTML = 'Silahkan Login Terlebih Dahulu';
-        document.getElementById('chart-waktu').appendChild(para);
-
-        // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
     }
 }
 
 function createReport(dataPKL) {
     resume = resumeMhs(dataPKL);
-    console.log(resume);
+    // console.log(resume);
     var divPhoto = document.getElementById('photo');
     var divResume = document.getElementById('resume');
     while (divResume.hasChildNodes()) {
@@ -239,7 +257,8 @@ function CreateTableFromJSON(data_all) {
     // table.setAttribute('class', 'table table-striped table-hover');
     table.setAttribute('id', 'table_1');
     table.setAttribute('class', 'display');
-
+    if (data_all[0] === null)
+        return null;
     // CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
     // ADD JSON DATA TO THE TABLE AS ROWS.
     for (var i = 0; i < data_all.length; i++) {
@@ -349,13 +368,14 @@ function filterUser(cari) {
 function laporanHarian(arr, npm, tgl) {
     report = {};
     dataUser = arr.filter(filterUser(npm));
+    // console.log(dataUser);
     if (dataUser.length == 0) return null;
     report.nama = dataUser[0].nama;
     report.tanggal = tgl;
     report.npm = dataUser[0].npm;
     data = dataUser[0].data;
-    console.log(dataUser.length);
-    console.log(data);
+    // console.log(dataUser.length);
+    // console.log(data);
 
     report.email = dataUser[0].email;
     report.uid = dataUser[0].uid;
@@ -404,11 +424,11 @@ function laporanHarian(arr, npm, tgl) {
 }
 
 function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, minggu = false, libur = false) {
-    let tglLibur = ['2019/8/17'];
+    let tglLibur = ['2019/2/5'];
     let rekap = [];
     let end = null;
     let start = new Date(tglMulai).getTime();
-    end = (tglSelesai == 'now') ? Math.min(new Date().getTime(), new Date('2019/8/16').getTime()) : new Date(tglSelesai).getTime();
+    end = (tglSelesai == 'now') ? Math.min(new Date().getTime(), new Date('2019/2/16').getTime()) : new Date(tglSelesai).getTime();
     for (tgl = start; tgl <= end; tgl = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime()) {
         d = new Date(tgl);
         if (!sabtu)
@@ -426,7 +446,9 @@ function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, mingg
                 continue;
         // console.log(npm, hari);
         // console.log();
-        rekap.push(laporanHarian(arr, npm, hari));
+        var harian = laporanHarian(arr, npm, hari);
+        // console.log(harian);
+        rekap.push(harian);
     }
     return rekap;
 }
@@ -515,7 +537,7 @@ function chartMhs(rekapMhs, div, kriteria = 'waktu') {
 }
 
 function resumeMhs(data) {
-    console.log(data);
+    // console.log(data);
     var jamMasuk = [],
         jamPulang = [],
         durasi = 0,

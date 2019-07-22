@@ -13,14 +13,34 @@ firebase.auth().onAuthStateChanged(user => {
 });
 var dataRef = firebase.database().ref();
 // var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
-var monPKL = dataRef.child('mon_pkl');
-var users = dataRef.child('users');
-monPKL.on('value', gotData, showError);
+// var monPKL = dataRef.child('mon_pkl');
+// var users = dataRef.child('users');
+// monPKL.on('value', gotData, showError);
 
 var geoJSON = {
     type: "FeatureCollection",
     features: features
 };
+$.getJSON("data/monpkl.json", function(json) {
+    // console.log(json); // this will show the info it in firebug console
+    json.forEach(function (item){
+        features.push(item);
+    });
+    $.getJSON("data/userdata.json", function(json) {
+        json.forEach(function (item){
+            userData.push(item);
+        });
+    
+        $.getJSON("data/userEmail.json", function(json) {
+            json.forEach(function (item){
+                userEmail.push(item);
+            });
+            
+            gotData();   
+        });
+        
+    });
+});
 
 document.getElementById('view').addEventListener('click', viewData);
 var hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
@@ -34,70 +54,66 @@ function viewData() {
     var sabtu = document.getElementById('sabtu').checked;
     var minggu = document.getElementById('minggu').checked;
     var libur = document.getElementById('libur').checked;
-    var npm = document.getElementById('npm').value;
     if (currentUser) {
         console.log(start, end, sabtu, minggu);
-        if (npm.length == 10) {
-            var dataPKL = laporanMhs(userData, npm, start, end, sabtu, minggu, libur);
-        } else {
-            var dataPKL = laporanMhs(userData, currentUser.uid, start, end, sabtu, minggu, libur);
-        }
-        // var dataPKL = laporanMhs(userData, '1617051001', start, end, sabtu, minggu, libur);
-        // resumeMhs(dataPKL);
-        CreateTableFromJSON(dataPKL);
-        chartMhs(dataPKL, 'chart-waktu');
-        chartMhs(dataPKL, 'chart-durasi', 'durasi');
-        chartMhs(dataPKL, 'chart-jarak', 'jarak');
-        createReport(dataPKL);
+        var report = createReportAll(userEmail, userData, start, end, sabtu, minggu, libur);
+        CreateTableFromJSON(report);
+        // CreateTableFromJSON(dataPKL);
     } else {
         var para = document.createElement("p");
         para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
         para.innerHTML = 'Silahkan Login Terlebih Dahulu';
-        document.getElementById('chart-waktu').appendChild(para);
+        document.getElementById('client').appendChild(para);
 
         // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
     }
 }
 
 
-function gotData(data) {
-    // var isPrivate = (currentUser != null && currentUser.email != 'didikunila@gmail.com'); //for admin
-    var isPrivate = false;
-    data.forEach(function (item) {
-        // console.log(item.val().geometry, item.val().properties);
-        //panggil fungsi pushData disini
-        if (isPrivate) {
-            if (item.val().properties['user']['email'] === currentUser.email)
-                pushData(item, features, userData);
-        } else {
-            //admin zone
-            pushData(item, features, userData);
-            if (item.val().properties['user']['email'] === currentUser.email)
-                console.log(item.key);
+function gotData() {
+    
+    // // var isPrivate = (currentUser != null && currentUser.email != 'didikunila@gmail.com'); //for admin
+    // var isPrivate = null; //admin mode off
+    // if (currentUser != null)
+    //     data.forEach(function (item) {
+    //         // console.log(item.val().geometry, item.val().properties);
+    //         //panggil fungsi pushData disini
+    //         if (isPrivate) {
+    //             if (item.val().properties['user']['email'] === currentUser.email)
+    //                 pushData(item, features, userData);
+    //         } else {
+    //             //admin zone
+    //             pushData(item, features, userData);
+    //             if (item.val().properties['user']['email'] === currentUser.email)
+    //                 console.log(item.key);
+    //         }
+    //     });
+    // if (currentUser) {
+        // var dataPKL = laporanMhs(userData, currentUser.uid, '2019/1/24');
+        var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
+        var report = createReportAll(userEmail, userData, '2019/1/24');
+        
+        CreateTableFromJSON(report);
+    // } else {
+    //     console.log("test");
+    //     var para = document.createElement("p");
+    //     para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
+    //     para.innerHTML = 'Silahkan Login Terlebih Dahulu';
+    //     document.getElementById('client').appendChild(para);
+    //     // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
+    // }
+}
+
+function createReportAll(dataEmail, userData, start, end = 'now', sabtu = false, minggu = false, libur = false) {
+    var allreport = [];
+    dataEmail.forEach(function (elm) {
+        if (elm) {
+            var dataPKL = laporanMhs(userData, elm, start, end, sabtu, minggu, libur);
+            var resume = resumeMhs(dataPKL);
+            allreport.push(resume);
         }
     });
-    if (currentUser) {
-        var npm = findGetParameter('npm');
-        if (npm) {
-            document.getElementById('npm').value = npm;
-            var dataPKL = laporanMhs(userData, npm, '2019/7/3');
-        } else {
-            var dataPKL = laporanMhs(userData, currentUser.uid, '2019/7/3');
-        }
-        // var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
-        CreateTableFromJSON(dataPKL);
-        chartMhs(dataPKL, 'chart-waktu');
-        chartMhs(dataPKL, 'chart-durasi', 'durasi');
-        chartMhs(dataPKL, 'chart-jarak', 'jarak');
-        createReport(dataPKL);
-    } else {
-        var para = document.createElement("p");
-        para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
-        para.innerHTML = 'Silahkan Login Terlebih Dahulu';
-        document.getElementById('chart-waktu').appendChild(para);
-
-        // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
-    }
+    return allreport;
 }
 
 function createReport(dataPKL) {
@@ -126,6 +142,7 @@ function createReport(dataPKL) {
     addRow(divResume, 'Rata-rata Jarak', printJarak(resume.jarak.toFixed(2)));
     addRow(divResume, 'Jam Masuk', printJam(resume.minMasuk, 'masuk') + ' s.d ' + printJam(resume.maxMasuk, 'masuk'));
     addRow(divResume, 'Jam Pulang', printJam(resume.minPulang, 'pulang') + ' s.d ' + printJam(resume.maxPulang, 'pulang'));
+
 }
 
 function addRow(divResume, key, val) {
@@ -229,14 +246,10 @@ function pushData(item, fitur, userData) {
 
 
 function CreateTableFromJSON(data_all) {
-    var arrHead = new Array();
-    arrHead = ["tanggal", "NAMA", "NPM", "Masuk", "Pulang", "Durasi",
-        "Jarak Masuk", "Jarak Pulang"
+    var arrHead = ["Foto", "NAMA", "NPM", "Email", "Tempat", "Jml Hari", "Rata-rata Jarak",
+        "Durasi (Jam)", "Jam Masuk", "Jam Pulang"
     ];
-
-    // CREATE DYNAMIC TABLE.
     var table = document.createElement("table");
-    // table.setAttribute('class', 'table table-striped table-hover');
     table.setAttribute('id', 'table_1');
     table.setAttribute('class', 'display');
 
@@ -247,28 +260,36 @@ function CreateTableFromJSON(data_all) {
         for (var j = 0; j < arrHead.length; j++) {
             var tabCell = tr.insertCell(-1);
             if (j == 0) {
-                content = data_all[i].tanggal;
+                content = '<img src="' + data_all[i].photoURL + '" width=50 height=50>';
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'NAMA') {
-                let content = data_all[i].nama;
+                let content = '<a href="laporan.html?npm=' + data_all[i].npm + '" target=_blank>';
+                content += data_all[i].nama;
+                content += '</a>';
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'NPM') {
                 let content = data_all[i].npm;
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Masuk') {
-                let content = printJam(data_all[i].jamMasuk, 'masuk');
+            } else if (arrHead[j] == 'Email') {
+                let content = data_all[i].email;
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Pulang') {
-                let content = printJam(data_all[i].jamPulang, 'pulang');
+            } else if (arrHead[j] == 'Tempat') {
+                let content = data_all[i].instansi;
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Durasi') {
-                let content = printDurasi(data_all[i].durasi.toFixed(2));
+            } else if (arrHead[j] == 'Jam Masuk') {
+                let content = printJam(data_all[i].minMasuk, 'masuk') + ' s.d ' + printJam(data_all[i].maxMasuk, 'masuk')
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Jarak Masuk') {
-                let content = printJarak(data_all[i].jrkMasuk.toFixed(2));
+            } else if (arrHead[j] == 'Jam Pulang') {
+                let content = printJam(data_all[i].minPulang, 'pulang') + ' s.d ' + printJam(data_all[i].maxPulang, 'pulang')
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Jarak Pulang') {
-                let content = printJarak(data_all[i].jrkPulang.toFixed(2));
+            } else if (arrHead[j] == 'Jml Hari') {
+                let content = data_all[i].jmlHari;
+                tabCell.innerHTML = content;
+            } else if (arrHead[j] == 'Rata-rata Jarak') {
+                let content = printJarak(data_all[i].jarak.toFixed(2));
+                tabCell.innerHTML = content;
+            } else if (arrHead[j] == 'Durasi (Jam)') {
+                let content = data_all[i].durasi.toFixed(2);
                 tabCell.innerHTML = content;
             }
         }
@@ -288,8 +309,27 @@ function CreateTableFromJSON(data_all) {
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
     jQuery(function ($) {
-        $('#table_1').DataTable({
-            "pageLength": 30
+        $('#table_1').removeAttr('width').DataTable({
+            scrollX: true,
+            scrollCollapse: true,
+            columnDefs: [{
+                    width: 200,
+                    targets: 9
+                },
+                {
+                    width: 200,
+                    targets: 8
+                },
+                {
+                    width: 20,
+                    targets: 3
+                }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ],
+            fixedColumns: true
         });
     });
 }
@@ -354,9 +394,6 @@ function laporanHarian(arr, npm, tgl) {
     report.tanggal = tgl;
     report.npm = dataUser[0].npm;
     data = dataUser[0].data;
-    console.log(dataUser.length);
-    console.log(data);
-
     report.email = dataUser[0].email;
     report.uid = dataUser[0].uid;
     report.photoURL = dataUser[0].photoURL;
@@ -404,11 +441,11 @@ function laporanHarian(arr, npm, tgl) {
 }
 
 function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, minggu = false, libur = false) {
-    let tglLibur = ['2019/8/17'];
+    let tglLibur = ['2019/2/5'];
     let rekap = [];
     let end = null;
     let start = new Date(tglMulai).getTime();
-    end = (tglSelesai == 'now') ? Math.min(new Date().getTime(), new Date('2019/8/16').getTime()) : new Date(tglSelesai).getTime();
+    end = (tglSelesai == 'now') ? Math.min(new Date().getTime(), new Date('2019/2/16').getTime()) : new Date(tglSelesai).getTime();
     for (tgl = start; tgl <= end; tgl = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime()) {
         d = new Date(tgl);
         if (!sabtu)
@@ -515,7 +552,7 @@ function chartMhs(rekapMhs, div, kriteria = 'waktu') {
 }
 
 function resumeMhs(data) {
-    console.log(data);
+    // console.log(data);
     var jamMasuk = [],
         jamPulang = [],
         durasi = 0,
@@ -608,16 +645,3 @@ Array.prototype.max = function () {
 Array.prototype.min = function () {
     return Math.min.apply(null, this);
 };
-
-function findGetParameter(parameterName) {
-    var result = null,
-        tmp = [];
-    location.search
-        .substr(1)
-        .split("&")
-        .forEach(function (item) {
-            tmp = item.split("=");
-            if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-        });
-    return result;
-}
