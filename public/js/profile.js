@@ -80,6 +80,7 @@ function setUserInfo(uid, user) {
 
 function doSave() {
     var userId = firebase.auth().currentUser.uid;
+    var npm = document.getElementById('npm').value;
     var nama = document.getElementById('nama').value;
     var dosen = document.getElementById('dosen').value;
     var pembimbing = document.getElementById('pembimbing').value;
@@ -89,6 +90,7 @@ function doSave() {
     var lng_instansi = document.getElementById('lng_instansi').value;
     var email = document.getElementById('email').value;
     user = {
+        npm: npm,
         nama: nama,
         dosen: dosen,
         pembimbing: pembimbing,
