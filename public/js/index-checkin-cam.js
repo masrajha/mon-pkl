@@ -36,6 +36,7 @@ function getUserInfo(user) {
     console.log(monRef.toString());
     monRef.on('value', function(data) {
         setValue('npm', data.val().npm);
+        setValue('nama', data.val().nama);
         setValue('instansi', data.val().instansi.nama);
         setValue('lat_instansi', data.val().instansi.lat);
         setValue('lng_instansi', data.val().instansi.lng);
