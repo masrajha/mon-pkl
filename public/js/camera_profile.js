@@ -10,6 +10,11 @@ var handleSuccess = function(stream) {
     playerDim = stream.getTracks()[0].getSettings();
     // snapshotCanvas.height = playerDim.height;
     // snapshotCanvas.width = playerDim.width;
+    var w =240;
+    var r = w/playerDim.width;
+    snapshotCanvas.width = w;
+    snapshotCanvas.height = r * playerDim.height;
+    console.log(snapshotCanvas.height,snapshotCanvas.width);
 
 };
 
