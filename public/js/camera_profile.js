@@ -3,22 +3,22 @@ var snapshotCanvas = document.getElementById('snapshot');
 var captureButton = document.getElementById('capture');
 var videoTracks;
 var playerDim = {};
-var handleSuccess = function(stream) {
+var handleSuccess = function (stream) {
     // Attach the video stream to the video element and autoplay.
     player.srcObject = stream;
     videoTracks = stream.getVideoTracks();
     playerDim = stream.getTracks()[0].getSettings();
     // snapshotCanvas.height = playerDim.height;
     // snapshotCanvas.width = playerDim.width;
-    var w =240;
-    var r = w/playerDim.width;
-    snapshotCanvas.width = w;
-    snapshotCanvas.height = r * playerDim.height;
-    console.log(snapshotCanvas.height,snapshotCanvas.width);
-
+    var w = 240;
+    var r = (playerDim.height < playerDim.width) ? w / playerDim.width : playerDim.width / w;
+    snapshotCanvas.height = w;
+    snapshotCanvas.width = r * playerDim.height;
+    document.getElementById('test').innerHTML = "H:"+playerDim.height+", W: "+playerDim.width+
+                                                " Canvas H:"+snapshotCanvas.height+" W:"+snapshotCanvas.width;
 };
 
-captureButton.addEventListener('click', function() {
+captureButton.addEventListener('click', function () {
     captureButton.disabled = true;
     captureButton.style.backgroundColor = 'grey';
     var date = new Date();
@@ -31,7 +31,7 @@ captureButton.addEventListener('click', function() {
         snapshotCanvas.height);
     player.style.display = 'none';
     snapshotCanvas.style.display = 'block';
-    videoTracks.forEach(function(track) { track.stop() });
+    videoTracks.forEach(function (track) { track.stop() });
     var npm = document.getElementById('npm').value;
     var ket = document.getElementById('save').value;
     var filename = npm + '.png';
@@ -41,16 +41,16 @@ captureButton.addEventListener('click', function() {
 
 function uploadFile(canvas, filename) {
     var storageRef = firebase.storage().ref();
-    canvas.toBlob(function(blob) {
+    canvas.toBlob(function (blob) {
         var image = new Image();
         image.src = blob;
         var uploadTask = storageRef.child('images/profiles/' + filename).put(blob);
-        uploadTask.on('state_changed', function(snapshot) {
+        uploadTask.on('state_changed', function (snapshot) {
             // Observe state change events such as progress, pause, and resume
             // See below for more detail
             var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             document.getElementById("progress").value = progress;
-        }, function(error) {
+        }, function (error) {
             // Handle unsuccessful uploads
             setButtonLabel();
             navigator.mediaDevices.getUserMedia({ video: true })
@@ -59,7 +59,7 @@ function uploadFile(canvas, filename) {
             snapshotCanvas.style.display = 'none';
             captureButton.disabled = false;
             captureButton.style.backgroundColor = 'DodgerBlue';
-        }, function() {
+        }, function () {
             // Handle successful uploads on complete
             // For instance, get the download URL: https://firebasestorage.googleapis.com/...
             document.getElementById("success").style.display = "inline";

@@ -11,9 +11,10 @@ var handleSuccess = function(stream) {
     // snapshotCanvas.height = playerDim.height;
     // snapshotCanvas.width = playerDim.width;
     console.log(playerDim.height,playerDim.width);
-    var r = 160/playerDim.width;
-    snapshotCanvas.width = 160;
-    snapshotCanvas.height = r * playerDim.height;
+    var w = 160;
+    var r = (playerDim.height < playerDim.width) ? w / playerDim.width : playerDim.width / w;
+    snapshotCanvas.height = w;
+    snapshotCanvas.width = r * playerDim.height;
     console.log(snapshotCanvas.height,snapshotCanvas.width);
 };
 
