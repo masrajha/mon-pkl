@@ -12,10 +12,16 @@ var handleSuccess = function (stream) {
     // snapshotCanvas.width = playerDim.width;
     var w = 240;
     var r = (playerDim.height < playerDim.width) ? w / playerDim.width : playerDim.width / w;
-    snapshotCanvas.height = w;
-    snapshotCanvas.width = r * playerDim.height;
-    document.getElementById('test').innerHTML = "H:"+playerDim.height+", W: "+playerDim.width+
-                                                " Canvas H:"+snapshotCanvas.height+" W:"+snapshotCanvas.width;
+    if (playerDim.height < playerDim.width) {
+        snapshotCanvas.height = w;
+        snapshotCanvas.width = r * playerDim.height;
+    } else {
+        snapshotCanvas.height = r * playerDim.height;
+        snapshotCanvas.width = w;
+    }
+
+    document.getElementById('test').innerHTML = "H:" + playerDim.height + ", W: " + playerDim.width +
+        " Canvas H:" + snapshotCanvas.height + " W:" + snapshotCanvas.width;
 };
 
 captureButton.addEventListener('click', function () {
