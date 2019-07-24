@@ -28,7 +28,7 @@ function getUserInfo(user) {
     console.log(user.uid);
     var monRef = firebase.database().ref('users/' + user.uid);
     console.log(monRef.toString());
-    monRef.on('value', function(data) {
+    monRef.on('value', function (data) {
         setValue('npm', data.val().npm);
         setValue('nama', data.val().nama);
         setValue('instansi', data.val().instansi.nama);
@@ -39,6 +39,7 @@ function getUserInfo(user) {
         setValue('imgURL', data.val().photoURL);
         setValue('email', data.val().email);
         document.getElementById('instansi').disabled = ((document.getElementById('npm').value).length != 10);
+        document.getElementById('npm').disabled = (data.val().npm != null);
         setButtonLabel();
     });
 
@@ -52,7 +53,7 @@ function setUserInfo(uid, user) {
     // userRef.child('photoURL').set(user.photoURL);
     // userRef.child('instansi/nama').set(user.instansi);
     userRef.set(user,
-        function(error) {
+        function (error) {
             if (error) {
                 // console.log(error);
 
@@ -60,7 +61,7 @@ function setUserInfo(uid, user) {
                 document.getElementById('msg').style.color = '#ffffff';
                 document.getElementById('msg').innerHTML = "Gagal Menyimpan Data";
                 document.getElementById('msg').style.display = 'block';
-                setTimeout(function() {
+                setTimeout(function () {
                     document.getElementById('msg').style.display = 'none';
                 }, 5000);
                 // window.location.href='monitoringmap.html';
@@ -70,7 +71,7 @@ function setUserInfo(uid, user) {
                 document.getElementById('msg').style.color = '#ffffff';
                 document.getElementById('msg').innerHTML = "Data Berhasil Disimpan";
                 document.getElementById('msg').style.display = 'block';
-                setTimeout(function() {
+                setTimeout(function () {
                     document.getElementById('msg').style.display = 'none';
                 }, 5000);
                 window.location.href = 'index.html';
@@ -117,7 +118,7 @@ var dataInstansi = [];
 function getData(data) {
     var markers = [];
     var fitur = [];
-    data.forEach(function(datamarker) {
+    data.forEach(function (datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         fitur.push(datamarker.val());
         // console.log(datamarker.val());
@@ -128,14 +129,14 @@ function getData(data) {
     console.log(fitur);
     var instansi = document.getElementById('instansi');
     // console.log(dataInstansi);
-    dataInstansi.sort(function(a, b) {
+    dataInstansi.sort(function (a, b) {
         if (a.nama < b.nama) { return -1; } else if (a.nama < b.nama) {
             return 1;
         } else return 0;
 
     });
     console.log(dataInstansi);
-    dataInstansi.forEach(function(element) {
+    dataInstansi.forEach(function (element) {
         var opt = document.createElement('option');
         opt.innerHTML = opt.value = element.nama;
         instansi.appendChild(opt);
@@ -148,7 +149,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function() {
+    setTimeout(function () {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -169,14 +170,17 @@ function setValue(id, val) {
 
 function setButtonLabel() {
     var nama = document.getElementById('nama').value;
+    var npm = document.getElementById('npm').value;
     var dosen = document.getElementById('dosen').value;
     var pembimbing = document.getElementById('pembimbing').value;
     var photoURL = document.getElementById('imgURL').value;
-    document.getElementById('save').disabled = photoURL.length <= 0 || nama.length <= 0 || dosen.length <= 0 || pembimbing.length <= 0;
+    document.getElementById('save').disabled = npm.length !=10 || photoURL.length <= 0 || nama.length <= 0 || dosen.length <= 0 || pembimbing.length <= 0;
     console.log(document.getElementById('save').disabled);
     var msgText = null;
     if (document.getElementById('save').disabled) {
-        if (imgURL.length <= 0) {
+        if (npm.length !=10) {
+            msgText = "NPM harus 10 karakter";
+        } else if (imgURL.length <= 0) {
             msgText = "Belum ambil foto kamera";
         } else if (nama.length <= 0) {
             msgText = "Nama masih kosong";
