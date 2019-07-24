@@ -11,13 +11,13 @@ var handleSuccess = function (stream) {
     // snapshotCanvas.height = playerDim.height;
     // snapshotCanvas.width = playerDim.width;
     var w = 240;
-    var r = (playerDim.height < playerDim.width) ? w / playerDim.width : playerDim.width / w;
+    var r = (playerDim.height < playerDim.width) ? w / playerDim.width : w / playerDim.height;
     if (playerDim.height < playerDim.width) {
         snapshotCanvas.height = w;
         snapshotCanvas.width = r * playerDim.height;
     } else {
-        snapshotCanvas.height = r * playerDim.height;
-        snapshotCanvas.width = w;
+        snapshotCanvas.height = w;
+        snapshotCanvas.width = r * playerDim.width;
     }
 
     document.getElementById('test').innerHTML = "H:" + playerDim.height + ", W: " + playerDim.width +
