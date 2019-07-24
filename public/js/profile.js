@@ -25,7 +25,7 @@ firebase.auth().onAuthStateChanged(user => {
 var markerRef = firebase.database().ref('pkl');
 
 function getUserInfo(user) {
-    console.log(user.uid);
+    console.log(user.email);
     var monRef = firebase.database().ref('users/' + user.uid);
     console.log(monRef.toString());
     monRef.on('value', function (data) {
@@ -37,7 +37,7 @@ function getUserInfo(user) {
         setValue('dosen', data.val().dosen);
         setValue('pembimbing', data.val().pembimbing);
         setValue('imgURL', data.val().photoURL);
-        setValue('email', data.val().email);
+        setValue('email', user.email);
         document.getElementById('instansi').disabled = ((document.getElementById('npm').value).length != 10);
         document.getElementById('npm').disabled = (data.val().npm != null);
         setButtonLabel();
