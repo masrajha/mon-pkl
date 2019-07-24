@@ -1,22 +1,27 @@
 var features = [];
 var userData = [];
 var userEmail = [];
+var userInfo = null;
+var npm = findGetParameter('npm');
 
 var d = new Date();
 var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+var dataRef = firebase.database().ref();
 
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
+
         document.getElementById('client').innerHTML = user.displayName;
+        if (npm) {
+            var monPKL = dataRef.child('mon_user/' + npm).limitToFirst(1);
+            monPKL.on('value', getUserDataByNPM, showError);
+        } else {
+            var userRef = firebase.database().ref('users/' + user.uid);
+            userRef.on('value', getUserData, showError);
+        }
     }
 });
-var dataRef = firebase.database().ref();
-// var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
-var monPKL = dataRef.child('mon_pkl');
-var users = dataRef.child('users');
-monPKL.on('value', gotData, showError);
-
 var geoJSON = {
     type: "FeatureCollection",
     features: features
@@ -27,7 +32,31 @@ var hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 if (!firebase.auth().currentUser) {
     // document.getElementById('private').disabled = true;
 }
-
+function getUserDataByNPM(data) {
+    data.forEach((child) => {
+        // console.log(child.val().properties.user.uid);
+        var uid = child.val().properties.user.uid;
+        var userRef = firebase.database().ref('users/' + uid);
+        userRef.on('value', getUserData, showError);
+    });
+}
+function getUserData(data) {
+    userInfo = {
+        npm: data.val().npm,
+        nama: data.val().nama,
+        instansi: data.val().instansi.nama,
+        lat_instansi: data.val().instansi.lat,
+        lng_instansi: data.val().instansi.lng,
+        dosen: data.val().dosen,
+        pembimbing: data.val().pembimbing,
+        imgURL: data.val().photoURL,
+        email: data.val().email
+    };
+    // console.log(userInfo);
+    document.getElementById('npm').value = userInfo.npm;
+    var monPKL = dataRef.child('mon_user/' + userInfo.npm);
+    monPKL.on('value', gotData, showError);
+}
 function viewData() {
     var start = document.getElementById('start').value;
     var end = document.getElementById('end').value;
@@ -35,6 +64,7 @@ function viewData() {
     var minggu = document.getElementById('minggu').checked;
     var libur = document.getElementById('libur').checked;
     var npm = document.getElementById('npm').value;
+    console.log(userData);
     if (currentUser) {
         console.log(start, end, sabtu, minggu);
         if (npm.length == 10) {
@@ -44,6 +74,7 @@ function viewData() {
         }
         // var dataPKL = laporanMhs(userData, '1617051001', start, end, sabtu, minggu, libur);
         // resumeMhs(dataPKL);
+        console.log(dataPKL);
         CreateTableFromJSON(dataPKL);
         chartMhs(dataPKL, 'chart-waktu');
         chartMhs(dataPKL, 'chart-durasi', 'durasi');
@@ -77,7 +108,7 @@ function gotData(data) {
         }
     });
     if (currentUser) {
-        var npm = findGetParameter('npm');
+        npm = findGetParameter('npm');
         if (npm) {
             document.getElementById('npm').value = npm;
             var dataPKL = laporanMhs(userData, npm, '2019/7/3');
@@ -90,13 +121,6 @@ function gotData(data) {
         chartMhs(dataPKL, 'chart-durasi', 'durasi');
         chartMhs(dataPKL, 'chart-jarak', 'jarak');
         createReport(dataPKL);
-    } else {
-        var para = document.createElement("p");
-        para.setAttribute('class', 'p-3 mb-2 bg-danger text-white justify-content-center');
-        para.innerHTML = 'Silahkan Login Terlebih Dahulu';
-        document.getElementById('chart-waktu').appendChild(para);
-
-        // document.getElementById('chart-waktu').innerHTML = 'Silahkan Login Terlebih Dahulu';
     }
 }
 
@@ -119,8 +143,10 @@ function createReport(dataPKL) {
 
     addRow(divResume, 'Nama', resume.nama);
     addRow(divResume, 'NPM', resume.npm);
+    addRow(divResume, 'Dosen Pembimbing', resume.dosen);
     addRow(divResume, 'Email', resume.email);
     addRow(divResume, 'Tempat KP', resume.instansi);
+    addRow(divResume, 'Pemb. Lapangan', resume.pembimbing);
     addRow(divResume, 'Total Hari', resume.jmlHari);
     addRow(divResume, 'Total Jam', resume.durasi);
     addRow(divResume, 'Rata-rata Jarak', printJarak(resume.jarak.toFixed(2)));
@@ -229,6 +255,7 @@ function pushData(item, fitur, userData) {
 
 
 function CreateTableFromJSON(data_all) {
+    console.log(data_all);
     var arrHead = new Array();
     arrHead = ["tanggal", "NAMA", "NPM", "Masuk", "Pulang", "Durasi",
         "Jarak Masuk", "Jarak Pulang"
@@ -350,17 +377,28 @@ function laporanHarian(arr, npm, tgl) {
     report = {};
     dataUser = arr.filter(filterUser(npm));
     if (dataUser.length == 0) return null;
-    report.nama = dataUser[0].nama;
-    report.tanggal = tgl;
-    report.npm = dataUser[0].npm;
     data = dataUser[0].data;
-    console.log(dataUser.length);
-    console.log(data);
-
-    report.email = dataUser[0].email;
     report.uid = dataUser[0].uid;
-    report.photoURL = dataUser[0].photoURL;
-    report.instansi = dataUser[0].instansi;
+    report.tanggal = tgl;
+    // console.log(dataUser.length);
+    // console.log(data);
+    if (userInfo) {
+        report.nama = userInfo.nama;
+        report.npm = userInfo.npm;
+        report.email = userInfo.email;
+        report.photoURL = userInfo.imgURL;
+        report.instansi = userInfo.instansi;
+        report.dosen = userInfo.dosen;
+        report.pembimbing = userInfo.pembimbing;
+    } else {
+        report.nama = dataUser[0].nama;
+        report.npm = dataUser[0].npm;
+        report.email = dataUser[0].email;
+        report.photoURL = dataUser[0].photoURL;
+        report.instansi = dataUser[0].instansi;
+        report.dosen = "-";
+        report.pembimbing = "-";
+    }
     // console.log(data);
     dataKehadiran = data.filter(function (elm) {
         return (new Date(elm.tanggal).getTime() == new Date(tgl).getTime());
@@ -542,6 +580,7 @@ function resumeMhs(data) {
         nama: data[0].nama,
         npm: data[0].npm,
         email: data[0].email,
+        dosen: data[0].dosen,
         photoURL: data[0].photoURL,
         minMasuk: jamMasuk.min(),
         maxMasuk: jamMasuk.max(),
@@ -550,7 +589,8 @@ function resumeMhs(data) {
         jarak: rataJarak,
         durasi: durasi,
         jmlHari: (data.length - jml0),
-        instansi: data[0].instansi
+        instansi: data[0].instansi,
+        pembimbing:data[0].pembimbing
     };
 }
 

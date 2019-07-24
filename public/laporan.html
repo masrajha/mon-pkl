@@ -91,7 +91,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <label for="npm">NPM</label>
-                        <input type="text" name="npm" id="npm">
+                        <input type="text" name="npm" id="npm" disabled readonly>
                     </div>
                     <div class="col-md-12">
                         <div>
@@ -107,17 +107,17 @@
                             today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
                             $('#start').datepicker({
                                 uiLibrary: 'bootstrap4',
-                                value: '2019/01/24',
+                                value: '2019/07/3',
                                 format: 'yyyy/mm/dd',
-                                minDate: '2019/01/24',
+                                minDate: '2019/07/3',
                                 maxDate: today
                             });
                             $('#end').datepicker({
                                 uiLibrary: 'bootstrap4',
                                 // value: today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate(),
-                                value: '2019/02/15',
+                                value: '2019/08/15',
                                 format: 'yyyy/mm/dd',
-                                minDate: '2019/01/24',
+                                minDate: '2019/07/3',
                                 maxDate: today
                             });
                         </script>
