@@ -67,9 +67,9 @@ function gotData(data) {
             }
         });
     if (currentUser) {
-        var dataPKL = laporanMhs(userData, currentUser.uid, '2019/7/3');
+        var dataPKL = laporanMhs(userData, currentUser.uid, '2019/7/2');
         // var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
-        var report = createReportAll(userEmail, userData, '2019/7/3');
+        var report = createReportAll(userEmail, userData, '2019/7/2');
         console.log(report);
         CreateTableFromJSON(report);
     } else {

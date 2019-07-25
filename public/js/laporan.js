@@ -111,9 +111,9 @@ function gotData(data) {
         npm = findGetParameter('npm');
         if (npm) {
             document.getElementById('npm').value = npm;
-            var dataPKL = laporanMhs(userData, npm, '2019/7/3');
+            var dataPKL = laporanMhs(userData, npm, '2019/7/2');
         } else {
-            var dataPKL = laporanMhs(userData, currentUser.uid, '2019/7/3');
+            var dataPKL = laporanMhs(userData, currentUser.uid, '2019/7/2');
         }
         // var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
         CreateTableFromJSON(dataPKL);
