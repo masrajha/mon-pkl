@@ -12,7 +12,7 @@ var dataRef = firebase.database().ref();
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
 
-        document.getElementById('client').innerHTML = user.displayName+' <i class="fa fa-print  btn-print" onClick="printDiv(\'printarea\')"></i>';
+        document.getElementById('client').innerHTML = user.displayName + ' <i class="fa fa-print  btn-print" onClick="printDiv(\'printarea\')"></i>';
         if (npm) {
             var monPKL = dataRef.child('mon_user/' + npm).limitToFirst(1);
             monPKL.on('value', getUserDataByNPM, showError);
@@ -152,6 +152,7 @@ function createReport(dataPKL) {
     addRow(divResume, 'Rata-rata Jarak', printJarak(resume.jarak.toFixed(2)));
     addRow(divResume, 'Jam Masuk', printJam(resume.minMasuk, 'masuk') + ' s.d ' + printJam(resume.maxMasuk, 'masuk'));
     addRow(divResume, 'Jam Pulang', printJam(resume.minPulang, 'pulang') + ' s.d ' + printJam(resume.maxPulang, 'pulang'));
+    printTtd(resume.dosen)
 }
 
 function addRow(divResume, key, val) {
@@ -316,7 +317,9 @@ function CreateTableFromJSON(data_all) {
     divContainer.appendChild(table);
     jQuery(function ($) {
         $('#table_1').DataTable({
-            "pageLength": 30
+            "paging": false,
+            "ordering": false,
+            "info": false
         });
     });
 }
@@ -590,7 +593,7 @@ function resumeMhs(data) {
         durasi: durasi,
         jmlHari: (data.length - jml0),
         instansi: data[0].instansi,
-        pembimbing:data[0].pembimbing
+        pembimbing: data[0].pembimbing
     };
 }
 
@@ -671,4 +674,17 @@ function printDiv(divName) {
     window.print();
 
     document.body.innerHTML = originalContents;
+}
+
+function printTtd(nama) {
+    var bulan = ["Januari", "Februari", "Maret", "April",
+        "Mei", "Juni", "Juli", "Agustus",
+        "September", "Oktober", "November", "Desember"];
+    var d = new Date();
+    var tgl = d.getDate();
+    var bln = d.getMonth();
+    var thn = d.getFullYear();
+    var teks = "Bandar Lampung, " + tgl + " " + bulan[bln+2] + " " + thn + "<br>";
+    teks += "Dosen Pembimbing<br><br><br><br>";
+    document.getElementById("ttd-pembimbing").innerHTML = teks + nama;
 }
