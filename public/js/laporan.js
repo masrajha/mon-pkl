@@ -12,7 +12,7 @@ var dataRef = firebase.database().ref();
 firebase.auth().onAuthStateChanged(user => {
     if (user) {
 
-        document.getElementById('client').innerHTML = user.displayName;
+        document.getElementById('client').innerHTML = user.displayName+' <i class="fa fa-print  btn-print" onClick="printDiv(\'printarea\')"></i>';
         if (npm) {
             var monPKL = dataRef.child('mon_user/' + npm).limitToFirst(1);
             monPKL.on('value', getUserDataByNPM, showError);
@@ -660,4 +660,15 @@ function findGetParameter(parameterName) {
             if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
         });
     return result;
+}
+
+function printDiv(divName) {
+    var printContents = document.getElementById(divName).innerHTML;
+    var originalContents = document.body.innerHTML;
+
+    document.body.innerHTML = printContents;
+
+    window.print();
+
+    document.body.innerHTML = originalContents;
 }
