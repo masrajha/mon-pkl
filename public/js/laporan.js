@@ -684,7 +684,7 @@ function printTtd(nama) {
     var tgl = d.getDate();
     var bln = d.getMonth();
     var thn = d.getFullYear();
-    var teks = "Bandar Lampung, " + tgl + " " + bulan[bln+2] + " " + thn + "<br>";
+    var teks = "Bandar Lampung, " + tgl + " " + bulan[bln] + " " + thn + "<br>";
     teks += "Dosen Pembimbing<br><br><br><br>";
     document.getElementById("ttd-pembimbing").innerHTML = teks + nama;
 }
