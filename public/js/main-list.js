@@ -96,13 +96,19 @@ function CreateTableFromJSON() {
     var divContainer = document.getElementById("showData");
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
+    var opts = {
+        "columnDefs": [
+            { "width": "50%", "targets": 1 }
+        ],
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ],
+        fixedColumns: true
+    };
     jQuery(function($) {
-        $('#table_1').DataTable({
-            "columnDefs": [
-                { "width": "50%", "targets": 1 }
-            ]
-        });
-        console.log("coba");
+        $('#table_1').DataTable(opts);
+        console.log(opts);
     });
 }
 

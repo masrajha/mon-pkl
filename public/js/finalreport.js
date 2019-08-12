@@ -53,7 +53,7 @@ function gotData(data) {
     // var isPrivate = (currentUser != null && currentUser.email != 'didikunila@gmail.com'); //for admin
     var isPrivate = null; //admin mode off
     if (currentUser != null)
-        data.forEach(function (item) {
+        data.forEach(function(item) {
             // console.log(item.val().geometry, item.val().properties);
             //panggil fungsi pushData disini
             if (isPrivate) {
@@ -84,7 +84,7 @@ function gotData(data) {
 
 function createReportAll(dataEmail, userData, start, end = 'now', sabtu = false, minggu = false, libur = false) {
     var allreport = [];
-    dataEmail.forEach(function (elm) {
+    dataEmail.forEach(function(elm) {
         if (elm) {
             var dataPKL = laporanMhs(userData, elm, start, end, sabtu, minggu, libur);
             var resume = resumeMhs(dataPKL);
@@ -139,7 +139,7 @@ function addRow(divResume, key, val) {
 }
 
 function filterTgl(tgl) {
-    return function (element) {
+    return function(element) {
         var date = new Date(element.data.tanggal);
         var y = date.getFullYear();
         var m = date.getMonth();
@@ -286,11 +286,11 @@ function CreateTableFromJSON(data_all) {
     var divContainer = document.getElementById("data-table");
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
-    jQuery(function ($) {
+    jQuery(function($) {
         $('#table_1').removeAttr('width').DataTable({
             scrollX: false,
             scrollCollapse: true,
-            paging:   false,
+            paging: false,
             columnDefs: [{
                     width: 200,
                     targets: 9
@@ -360,7 +360,7 @@ function diff(start, end) {
 }
 
 function filterUser(cari) {
-    return function (element) {
+    return function(element) {
         return (cari === element.npm || cari === element.email || cari === element.uid);
     }
 }
@@ -378,7 +378,7 @@ function laporanHarian(arr, npm, tgl) {
     report.photoURL = dataUser[0].photoURL;
     report.instansi = dataUser[0].instansi;
     // console.log(data);
-    dataKehadiran = data.filter(function (elm) {
+    dataKehadiran = data.filter(function(elm) {
         return (new Date(elm.tanggal).getTime() == new Date(tgl).getTime());
     });
     if (dataKehadiran.length == 0) {
@@ -435,13 +435,13 @@ function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, mingg
             if (d.getDay() == 0)
                 continue;
 
-        // console.log(d);
+            // console.log(d);
         let hari = d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
         if (!libur)
             if (tglLibur.indexOf(hari) > -1)
                 continue;
-        // console.log(npm, hari);
-        // console.log();
+            // console.log(npm, hari);
+            // console.log();
         rekap.push(laporanHarian(arr, npm, hari));
     }
     return rekap;
@@ -477,7 +477,7 @@ function chartMhs(rekapMhs, div, kriteria = 'waktu') {
                 ['0', 0, 0]
             ])
         } else {
-            rekapMhs.forEach(function (elm) {
+            rekapMhs.forEach(function(elm) {
                 if (kriteria == 'waktu') {
                     title = 'Jam Masuk dan Jam Pulang';
                     subtitle = 'Dalam Jam';
@@ -537,7 +537,7 @@ function resumeMhs(data) {
         durasi = 0,
         jarak = 0;
     jml0 = 0;
-    data.forEach(function (elm) {
+    data.forEach(function(elm) {
         if (elm.jamMasuk != 0) {
             var d = new Date(elm.jamMasuk);
             var masuk = d.getHours() * 60 * 60 + d.getMinutes() * 60 + d.getSeconds();
@@ -617,10 +617,10 @@ function printJarak(jarak, format = null) {
     return content;
 }
 
-Array.prototype.max = function () {
+Array.prototype.max = function() {
     return Math.max.apply(null, this);
 };
 
-Array.prototype.min = function () {
+Array.prototype.min = function() {
     return Math.min.apply(null, this);
 };
