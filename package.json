@@ -1,0 +1,22 @@
+{
+  "name": "sig-kp6",
+  "version": "1.0.0",
+  "description": "Monitoring kerja praktek",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://didikunila@bitbucket.org/didikunila/monpkl.git"
+  },
+  "keywords": [
+    "SIG"
+  ],
+  "author": "Didik Kurniawan",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/didikunila/monpkl#readme",
+  "dependencies": {
+    "firebase": "^7.6.1"
+  }
+}
