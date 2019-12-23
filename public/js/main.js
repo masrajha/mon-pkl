@@ -225,13 +225,14 @@ function setKabOption() {
         "Lampung Selatan",
         "Lampung Tengah",
         "Metro",
-        "Painan",
+        "Pagar Alam",
         "Palembang",
         "Pesawaran",
         "Prabumulih",
         "Pringsewu",
         "Tanggamus",
-        "Tulang Bawang Barat"
+        "Tulang Bawang Barat",
+        "Way Kanan"
     ];
     select = document.getElementById('kota');
 
