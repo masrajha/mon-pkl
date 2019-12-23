@@ -222,18 +222,18 @@ function setKabOption() {
         "Jakarta Selatan",
         "Jakarta Utara",
         "Kotabumi",
+        "Kota Pagar Alam",
+        "Kota Serang",
         "Lampung Selatan",
         "Lampung Tengah",
         "Metro",
-        "Pagar Alam",
         "Palembang",
         "Pesawaran",
         "Prabumulih",
         "Pringsewu",
         "Tanggamus",
         "Tulang Bawang Barat",
-        "Way Kanan",
-        "Kota Serang"
+        "Way Kanan"
     ];
     select = document.getElementById('kota');
 
