@@ -232,7 +232,8 @@ function setKabOption() {
         "Pringsewu",
         "Tanggamus",
         "Tulang Bawang Barat",
-        "Way Kanan"
+        "Way Kanan",
+        "Kota Serang"
     ];
     select = document.getElementById('kota');
 
