@@ -1,0 +1,500 @@
+{
+  "-LwWCJ-UiEM8APyfptvQ" : {
+    "geometry" : {
+      "coordinates" : [ 105.23258829999999, -5.3573828 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Gedung Ilmu Komputer L1 C.",
+      "hp_mhs" : "",
+      "instansi" : "Jurusan Ilmu Komputer (Pembekalan KP/PKL)",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Didik Kurniawan",
+        "npm" : "98173122"
+      } ],
+      "pemb_hp" : "085721133326",
+      "pemb_lap" : "Didik Kurniawan",
+      "time" : 1576810135598,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkB3ZzV5R-uCUMRWiV" : {
+    "geometry" : {
+      "coordinates" : [ 104.98064696788788, -5.357211987856163 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Melati 1 No 115 Pringsewu Timur, Kec. Pringsewu",
+      "hp_mhs" : "08877227004",
+      "instansi" : "LKP Sewucomp",
+      "kota" : "Pringsewu",
+      "mhs" : [ {
+        "nama" : "Arie Cahyadi",
+        "npm" : "1717051056"
+      } ],
+      "pemb_hp" : "081373394929",
+      "pemb_lap" : "Antonius Aan Patria, S.T",
+      "time" : 1577061468984,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkCukQCzVo9p08v3sg" : {
+    "geometry" : {
+      "coordinates" : [ 105.229766, -5.366978 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Pramuka No.1, Rajabasa Nyunyai, Bandar Lampung 35144",
+      "hp_mhs" : "08117265917",
+      "instansi" : "PT. Tunas Dwipa Matra",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Brenda Natalia",
+        "npm" : "1717050121"
+      }, {
+        "nama" : "Naomy Tiara Dewi",
+        "npm" : "1717051045"
+      }, {
+        "nama" : "Cahyani Ramadhani",
+        "npm" : "1717051033"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "-",
+      "time" : 1577061951507,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkE5BBTAlWJ1qVOmuk" : {
+    "geometry" : {
+      "coordinates" : [ 105.2550342, -5.4370934 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. RW Monginsidi No 184, Sumur Putri, Kec. Teluk. Betung Utara, Kota Bandar Lampunh, Lampung 35224",
+      "hp_mhs" : "083897503577",
+      "instansi" : "Kantor Wilayah Kementerian Hukum dan HAM Lampung",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "RIFKY EKANANDA PRAMSWARY",
+        "npm" : "1717051020"
+      }, {
+        "nama" : "Muhammad Farhan Saputra",
+        "npm" : "1717051009"
+      }, {
+        "nama" : "Alharis Dharmariski",
+        "npm" : "1717051049"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "",
+      "time" : 1577062261305,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkEHiEABKyJ4nqsP4W" : {
+    "geometry" : {
+      "coordinates" : [ 105.2354543, -5.3694538 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. ZA. Pagar Alam KM.11, Rajabasa, Kec. Rajabasa, Kota Bandar Lampung, Lampung 35144",
+      "hp_mhs" : "081294253585",
+      "instansi" : "Dinas Pekerjaan Umum dan Penataan Ruang provinsi Lampung",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Jodi afandi",
+        "npm" : "1717051065"
+      }, {
+        "nama" : "Riki Sofyan",
+        "npm" : "1717051067"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "-",
+      "time" : 1577062311032,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkFJluTn-PW0IkL3yw" : {
+    "geometry" : {
+      "coordinates" : [ 105.2584536, -5.4414165 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Wolter Monginsidi No.69, Talang, Kec. Telukbetung Selatan, Kota Bandar Lampung, Lampung 35221",
+      "hp_mhs" : "082185497357",
+      "instansi" : "Dinas Kominfo provinsi lampung",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "M Syahputra Prima Negara",
+        "npm" : "1717051057"
+      }, {
+        "nama" : "Zulhaqqi muslim Nasution",
+        "npm" : "1757051007"
+      }, {
+        "nama" : "Eki Tri suenda",
+        "npm" : "1757051003"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "-",
+      "time" : 1577062583318,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkPl6h76ZRsj42ZSDR" : {
+    "geometry" : {
+      "coordinates" : [ 105.260682, -5.3854263 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Teuku Umar no 300",
+      "hp_mhs" : "085274544239",
+      "instansi" : "PT Perkebunan Nusantara VII",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Fikri Aulia",
+        "npm" : "1717051047"
+      }, {
+        "nama" : "Wildan Mutaqin",
+        "npm" : "1717051037"
+      }, {
+        "nama" : "Mayda Brilliani Fauzi",
+        "npm" : "1717051003"
+      } ],
+      "pemb_hp" : "082180226687",
+      "pemb_lap" : "Bpk Hariyanto",
+      "time" : 1577065318391,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkU5J5LqzhjZF64oJs" : {
+    "geometry" : {
+      "coordinates" : [ 106.9153487, -6.1118718 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Tebet Timur Dalam Raya No. 93 A\nTebet Timur – Jakarta Selatan",
+      "hp_mhs" : "082279511988",
+      "instansi" : "PT. Sarana Prima Telematika",
+      "kota" : "Jakarta Selatan",
+      "mhs" : [ {
+        "nama" : "Oktaviana",
+        "npm" : "1717051007"
+      }, {
+        "nama" : "Irsyaas Abinaya Nabil Hisyam",
+        "npm" : "1717051040"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "",
+      "time" : 1577066455930,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkX-DQFh3odXTZiEC8" : {
+    "geometry" : {
+      "coordinates" : [ 105.2542188, -5.3853987 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Pagar Alam No.44 Kedaton",
+      "hp_mhs" : "081928316552",
+      "instansi" : "CV. Dr. Coffee Jaya Raya",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Fauzi Riski",
+        "npm" : "1717051029"
+      }, {
+        "nama" : "Ahmad Fathoni ",
+        "npm" : "1717051053"
+      }, {
+        "nama" : "Mizar Zulmi Ramadhan",
+        "npm" : "1717051073"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "M. Alghazali Qurtubi",
+      "time" : 1577067215623,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkYNfMEp3usGvjmK6K" : {
+    "geometry" : {
+      "coordinates" : [ 106.1985609, -6.1186463 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Kp. Baru No.4, Panancangan, Kec. Cipocok Jaya, Kota Serang, Banten",
+      "hp_mhs" : "",
+      "instansi" : "Dinas Perhubungan Kota Serang",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Ilham Maulidan",
+        "npm" : "1757051008"
+      } ],
+      "pemb_hp" : "081927963077",
+      "pemb_lap" : "Indra",
+      "time" : 1577067579608,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkY_CVTgXPJ5PP0sCb" : {
+    "geometry" : {
+      "coordinates" : [ 104.5176103, -4.5042909 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl.Radin Jambat No.4 Blambangan Umpu Kabupaten Way Kanan",
+      "hp_mhs" : "085658748070",
+      "instansi" : "Badan Narkotika Nasional Kabupaten Way Kanan",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Yulita Sari",
+        "npm" : "1717051072"
+      } ],
+      "pemb_hp" : "6282372727283",
+      "pemb_lap" : "Nopizan Putra,  S. Sos., M.M",
+      "time" : 1577067631254,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwkbW9bHWEQ_-h7yup4" : {
+    "geometry" : {
+      "coordinates" : [ 103.2601381, -4.0361622 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Beringin Sakti No.100 Pagaralam, Sumatera Selatan",
+      "hp_mhs" : "085337290878",
+      "instansi" : "PT PLN Persero Pagaralam Sumatera Selatan",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Meria Nensi",
+        "npm" : "1717051015"
+      } ],
+      "pemb_hp" : "081369069191",
+      "pemb_lap" : "Astri Putri Paulis",
+      "time" : 1577068662123,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-Lwl0ml5_-lCBlitWITq" : {
+    "geometry" : {
+      "coordinates" : [ 104.83072757720947, -3.3923196281807346 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Cintaraja, Kec. Kayuagung, Kab. Ogan Komering Ilir, Sumatera Selatan, 30867",
+      "hp_mhs" : "085758127699",
+      "instansi" : "Dinas Ketahanan Pangan, Tanaman Pangan, dan Hortikultura",
+      "kota" : "Palembang",
+      "mhs" : [ {
+        "nama" : "Yenny Hartanti",
+        "npm" : "1717051016"
+      }, {
+        "nama" : "Yenny Hartanti",
+        "npm" : "1717051016"
+      }, {
+        "nama" : "Susi Indah Lestari",
+        "npm" : "1717051035"
+      } ],
+      "pemb_hp" : "085267082251",
+      "pemb_lap" : "Iswadi,Sp.M.Si",
+      "time" : 1577075551051,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-Lwl25GDw_134xOH3SUO" : {
+    "geometry" : {
+      "coordinates" : [ 105.09855285286903, -4.554423070060169 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jln. Tirta Makmur, Tulang Bawang Tengah,Tulang Bawang Barat",
+      "hp_mhs" : "082281102564",
+      "instansi" : "Badan Pusat Statistik Tulang Bawang Barat",
+      "kota" : "Tulang Bawang Barat",
+      "mhs" : [ {
+        "nama" : "Nia Marsela",
+        "npm" : "1717051010"
+      }, {
+        "nama" : "Nonik Aisyah",
+        "npm" : "1717051011"
+      } ],
+      "pemb_hp" : "082210129786",
+      "pemb_lap" : "Adam Kurniawan",
+      "time" : 1577075893605,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-Lwv2AQAIh7mFZDk5m6R" : {
+    "geometry" : {
+      "coordinates" : [ 105.2605579, -5.3785336 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Graha Pena Lampung\nJl. Sultan Agung No.18 Kedaton Bandar Lampung",
+      "hp_mhs" : "085789828680",
+      "instansi" : "Radar Lampung TV PT.Radar Lampung Visual",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Elisa Aprilyanti",
+        "npm" : "1617051054"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "",
+      "time" : 1577243685854,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwzX6GF9nmXuttTpp6X" : {
+    "geometry" : {
+      "coordinates" : [ 105.2914923, -5.3821123 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl.jambu lorong buntu,  way dadi,  kecamatan sukarame,  bandar lampung",
+      "hp_mhs" : "085268268316",
+      "instansi" : "PT.GLOBAL GREEN TRADING(COLONY GROUP) ",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Istiqomah Eka Anjarwati",
+        "npm" : "1607051014"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "",
+      "time" : 1577318904649,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwzcV1YApxY-3dGMD06" : {
+    "geometry" : {
+      "coordinates" : [ 105.2585932, -5.4053095 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "",
+      "hp_mhs" : "081286987278",
+      "instansi" : "PT. Kereta Api Indonesia Persero",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Ester Caroline Lumban Gaol",
+        "npm" : "1717051002"
+      }, {
+        "nama" : "Kasandra Cahyani",
+        "npm" : "1717051027"
+      }, {
+        "nama" : "Adinda Rizky F",
+        "npm" : "1717051042"
+      } ],
+      "pemb_hp" : "081278511541",
+      "pemb_lap" : "Panji Pratama",
+      "time" : 1577320578097,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwzfhqPuEGVbLcMSuK9" : {
+    "geometry" : {
+      "coordinates" : [ 105.2635498, -5.4204252 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jalan Bougenvile No. 8, Rawa Laut, Tanjung Karang Timur, Rw. Laut, Engal, Kota Bandar Lampung, Lampung",
+      "hp_mhs" : "087708250997",
+      "instansi" : "KPID Provinsi Lampung",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "M. Fachrian Thaariq Aziz Th.",
+        "npm" : "1617051146"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "-",
+      "time" : 1577321420205,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-LwzinohGA9CoiWbNOya" : {
+    "geometry" : {
+      "coordinates" : [ 105.58382213115692, -5.714852210814073 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jalan Indra Bangsawan No.27, Way Urang, Kalianda, Way Urang, Lampung Selatan, Kabupaten Lampung Selatan, Lampung 35551",
+      "hp_mhs" : "083803546928",
+      "instansi" : "Dinas kependudukan dan pencatatan sipil",
+      "kota" : "Lampung Selatan",
+      "mhs" : [ {
+        "nama" : "Bonema Tri Prasetyo",
+        "npm" : "1717051017"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "-",
+      "time" : 1577322232332,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-Lwzm0zHotDSeINhzYXe" : {
+    "geometry" : {
+      "coordinates" : [ 104.6524339, -5.5047692 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jln.Ir H. Juanda kotaagung ",
+      "hp_mhs" : "08994260314",
+      "instansi" : "BADAN PUSAT STATISTIKA KAB.TANGGAMUS",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Tasya Aprilla Almuqaramah Yuton",
+        "npm" : "1717051006"
+      } ],
+      "pemb_hp" : "085281057057",
+      "pemb_lap" : "Nansi Ria Hapsari S.Si",
+      "time" : 1577323077516,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  },
+  "-Lwzs10EgFfVhV7fK66A" : {
+    "geometry" : {
+      "coordinates" : [ 105.27215346693993, -5.425913218241179 ],
+      "type" : "Point"
+    },
+    "properties" : {
+      "alamat" : "Jl. Way pengubuan no. 16, Pahoman ",
+      "hp_mhs" : "081369784196",
+      "instansi" : "Gink Technology",
+      "kota" : "Bandar Lampung",
+      "mhs" : [ {
+        "nama" : "Irham Setyaki",
+        "npm" : "1757051005"
+      }, {
+        "nama" : "Patar martua doli s",
+        "npm" : "1717051051"
+      }, {
+        "nama" : "Yosua sandi susanto",
+        "npm" : "1717051064"
+      } ],
+      "pemb_hp" : "",
+      "pemb_lap" : "",
+      "time" : 1577324650124,
+      "visited" : 0
+    },
+    "type" : "Feature"
+  }
+}
