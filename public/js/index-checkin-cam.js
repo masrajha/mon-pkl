@@ -207,7 +207,8 @@ function getData(data) {
             info += ' ' + sendWhatsapp(datamarker.val().properties.pemb_hp) +
                 ' ' + call(datamarker.val().properties.pemb_hp) + '<br>';
         }
-        info += 'Jumlah mhs : ' + datamarker.val().properties.mhs.length + '<br>';
+        if (datamarker.val().properties.mhs.length)
+            info += 'Jumlah mhs : ' + datamarker.val().properties.mhs.length + '<br>';
         if (datamarker.val().properties.mhs[0].nama) {
             info += 'Contact mhs : ' + datamarker.val().properties.mhs[0].nama +
                 ' ' + sendWhatsapp(datamarker.val().properties.hp_mhs) +
