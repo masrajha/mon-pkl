@@ -2,6 +2,8 @@ var features = [];
 var userData = [];
 var userEmail = [];
 var userInfo = null;
+var tglMulaiPKL='2019/12/23';
+var tglSelesaiPKL='2020/2/16';
 var npm = findGetParameter('npm');
 
 var d = new Date();
@@ -111,9 +113,9 @@ function gotData(data) {
         npm = findGetParameter('npm');
         if (npm) {
             document.getElementById('npm').value = npm;
-            var dataPKL = laporanMhs(userData, npm, '2019/7/2');
+            var dataPKL = laporanMhs(userData, npm, tglMulaiPKL);
         } else {
-            var dataPKL = laporanMhs(userData, currentUser.uid, '2019/7/2');
+            var dataPKL = laporanMhs(userData, currentUser.uid, tglMulaiPKL);
         }
         // var dataPKL = laporanMhs(userData, '1617051001', '2019/1/24');
         CreateTableFromJSON(dataPKL);
@@ -445,11 +447,11 @@ function laporanHarian(arr, npm, tgl) {
 }
 
 function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, minggu = false, libur = false) {
-    let tglLibur = ['2019/8/17'];
+    let tglLibur = ['2019/12/24','2019/12/25','2020/1/1'];
     let rekap = [];
     let end = null;
     let start = new Date(tglMulai).getTime();
-    end = (tglSelesai == 'now') ? Math.min(new Date().getTime(), new Date('2019/8/16').getTime()) : new Date(tglSelesai).getTime();
+    end = (tglSelesai == 'now') ? Math.min(new Date().getTime(), new Date(tglSelesaiPKL).getTime()) : new Date(tglSelesai).getTime();
     for (tgl = start; tgl <= end; tgl = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime()) {
         d = new Date(tgl);
         if (!sabtu)
