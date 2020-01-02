@@ -157,23 +157,22 @@ function setButtonLabel() {
     var lbl_catatan = "<p>Minggu ini adalah untuk Proposal Rencana Kerja</strong><br />" +
         "Tuliskan Rencana Singkat Kegiatan KP yang akan saudara " +
         "sesuai dengan format pada buku panduan KP " +
-        "Submit tugas di vclass, kirim ke email koordinator KP dan dosen pembimbing paling lambat Minggu, 5 Januari 2019 Pukul 17:00.</p>"+
-        "<br><b>RENCANA</b> Hari ini:";
+        "Submit tugas di vclass, kirim ke email koordinator KP dan dosen pembimbing paling lambat Minggu, 5 Januari 2019 Pukul 17:00.</p>"
 
     if (time < 70000) {
         document.getElementById('save').disabled = true;
     } else if (time < 80000) {
         document.getElementById('save').value = "Masuk";
-        document.getElementById('lbl-catatan').innerHTML = lbl_catatan;
+        document.getElementById('lbl-catatan').innerHTML = lbl_catatan+"<br><b>RENCANA</b> Hari ini:";
     } else if (time < 120000) {
         document.getElementById('save').value = "Datang Terlambat";
-        document.getElementById('lbl-catatan').innerHTML = lbl_catatan;
+        document.getElementById('lbl-catatan').innerHTML = lbl_catatan+"<br><b>RENCANA</b> Hari ini:";
     } else if (time < 160000) {
         document.getElementById('save').value = "Pulang Cepat";
-        document.getElementById('lbl-catatan').innerHTML = "<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
+        document.getElementById('lbl-catatan').innerHTML = lbl_catatan+"<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
     } else if (time < 190000) {
         document.getElementById('save').value = "Pulang";
-        document.getElementById('lbl-catatan').innerHTML = "<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
+        document.getElementById('lbl-catatan').innerHTML = lbl_catatan+"<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
     } else { document.getElementById('save').disabled = true; }
 }
 var features = [];
