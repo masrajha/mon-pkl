@@ -3,6 +3,7 @@ var userData = [];
 var userEmail = [];
 var tglMulaiPKL='2019/12/23';
 var tglSelesaiPKL='2020/2/16';
+var tglLibur = ['2019/12/24','2019/12/25','2020/1/1'];
 
 var d = new Date();
 var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -220,6 +221,8 @@ function pushData(item, fitur, userData) {
         userData[i].data.push(data);
         if (userData[i].npm.length !== 10 && item.val().properties.npm.length === 10)
             userData[i].npm = item.val().properties.npm;
+        if (userData[i].instansi !== item.val().properties.instansi && item.val().properties.instansi.length>0)
+            userData[i].instansi = item.val().properties.instansi;
     }
     // console.log(item.key);
 }
@@ -422,7 +425,6 @@ function laporanHarian(arr, npm, tgl) {
 }
 
 function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, minggu = false, libur = false) {
-    let tglLibur = ['2019/12/24','2019/12/25','2020/1/1'];
     let rekap = [];
     let end = null;
     let start = new Date(tglMulai).getTime();

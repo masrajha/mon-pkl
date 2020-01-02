@@ -100,19 +100,22 @@
                         </div>
                         <script>
                             var today;
+                            var tglMulaiPKL='2019/12/23';
+                            var tglSelesaiPKL='2020/2/16';
                             today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
                             $('#start').datepicker({
                                 uiLibrary: 'bootstrap4',
-                                value: '2019/01/24',
+                                value: tglMulaiPKL,
                                 format: 'yyyy/mm/dd',
-                                minDate: '2019/01/24',
+                                minDate: tglMulaiPKL,
                                 maxDate: today
                             });
                             $('#end').datepicker({
                                 uiLibrary: 'bootstrap4',
-                                value: today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate(),
+                                // value: today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate(),
+                                value: tglSelesaiPKL,
                                 format: 'yyyy/mm/dd',
-                                minDate: '2019/01/24',
+                                minDate: tglMulaiPKL,
                                 maxDate: today
                             });
                         </script>
