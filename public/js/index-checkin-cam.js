@@ -157,7 +157,7 @@ function setButtonLabel() {
     var lbl_catatan = "<p>Minggu ini adalah untuk Proposal Rencana Kerja</strong><br />" +
         "Tuliskan Rencana Singkat Kegiatan KP yang akan saudara " +
         "sesuai dengan format pada buku panduan KP " +
-        "Submit tugas di vclass, kirim ke email koordinator KP dan dosen pembimbing paling lambat Minggu, 5 Januari 2019 Pukul 17:00.</p>"
+        "Submit tugas di vclass, kirim ke email koordinator KP dan dosen pembimbing paling lambat Minggu, 5 Januari 2020 Pukul 17:00.</p>"
 
     if (time < 70000) {
         document.getElementById('save').disabled = true;
