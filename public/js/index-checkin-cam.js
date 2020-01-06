@@ -173,6 +173,9 @@ function setButtonLabel() {
     } else if (time < 190000) {
         document.getElementById('save').value = "Pulang";
         document.getElementById('lbl-catatan').innerHTML = lbl_catatan+"<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
+    } else if (time < 220000) {
+        document.getElementById('save').value = "Lembur";
+        document.getElementById('lbl-catatan').innerHTML = lbl_catatan+"<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
     } else { document.getElementById('save').disabled = true; }
 }
 var features = [];
