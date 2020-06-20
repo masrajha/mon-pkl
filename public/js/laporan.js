@@ -2,9 +2,9 @@ var features = [];
 var userData = [];
 var userEmail = [];
 var userInfo = null;
-var tglMulaiPKL='2019/12/23';
-var tglSelesaiPKL='2020/2/16';
-var tglLibur = ['2019/12/24','2019/12/25','2020/1/1'];
+var tglMulaiPKL='2020/6/22';
+var tglSelesaiPKL='2020/8/1';
+var tglLibur = ['2020/7/31'];
 var npm = findGetParameter('npm');
 
 var d = new Date();
