@@ -9,36 +9,48 @@ console.log(geoJSON);
 
 function getData(data) {
     var markers = [];
-    data.forEach(function(datamarker) {
-        // console.log(datamarker.val().geometry, datamarker.val().properties);
-        features.push(datamarker.val());
-        // console.log(datamarker.val());
-        lat = parseFloat(datamarker.val().geometry.coordinates[1]);
-        lng = parseFloat(datamarker.val().geometry.coordinates[0]);
-        info = '<h3>' + datamarker.val().properties.instansi + '</h3><br>';
-        info += datamarker.val().properties.alamat + '<br>';
-        info += '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z"><img src="images/direction.png"></a><br>'
-        info += 'Pembimbing : ' + datamarker.val().properties.pemb_lap;
-        if (datamarker.val().properties.pemb_hp) {
-            info += ' ' + sendWhatsapp(datamarker.val().properties.pemb_hp) +
-                ' ' + call(datamarker.val().properties.pemb_hp) + '<br>';
-        }
-        info += 'Jumlah mhs : ' + datamarker.val().properties.mhs.length + '<br>';
-        if (datamarker.val().properties.mhs[0].nama) {
-            info += 'Contact mhs : ' + datamarker.val().properties.mhs[0].nama +
-                ' ' + sendWhatsapp(datamarker.val().properties.hp_mhs) +
-                ' ' + call(datamarker.val().properties.hp_mhs) + '<br>';
-        }
-        // console.log(datamarker.key);
-        loc = {
-            lat: lat,
-            lng: lng
-        };
-        var img = 'images/placeholder.png';
-        if (datamarker.val().properties.visited == 1)
-            img = 'images/placeholder-visited.png';
-        markers.push(createMarker(loc, info, img));
-    });
+    var lat = -5.3649665;
+    var lng = 105.2426845;
+    var info = '<h3>Universitas Lampung</h3><br>';
+    info    += 'Jl. Sumantri Brojonegoro No. 1 Bandar Lampung ';
+    info    += '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z"><img src="images/direction.png"></a><br>'
+    var logo = 'images/unila.jpg';
+    var loc = {
+        lat: lat,
+        lng: lng
+    };
+    markers.push(createMarker(loc, info, img));
+    if (data.length > 0)
+        data.forEach(function (datamarker) {
+            // console.log(datamarker.val().geometry, datamarker.val().properties);
+            features.push(datamarker.val());
+            // console.log(datamarker.val());
+            lat = parseFloat(datamarker.val().geometry.coordinates[1]);
+            lng = parseFloat(datamarker.val().geometry.coordinates[0]);
+            info = '<h3>' + datamarker.val().properties.instansi + '</h3><br>';
+            info += datamarker.val().properties.alamat + '<br>';
+            info += '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z"><img src="images/direction.png"></a><br>'
+            info += 'Pembimbing : ' + datamarker.val().properties.pemb_lap;
+            if (datamarker.val().properties.pemb_hp) {
+                info += ' ' + sendWhatsapp(datamarker.val().properties.pemb_hp) +
+                    ' ' + call(datamarker.val().properties.pemb_hp) + '<br>';
+            }
+            info += 'Jumlah mhs : ' + datamarker.val().properties.mhs.length + '<br>';
+            if (datamarker.val().properties.mhs[0].nama) {
+                info += 'Contact mhs : ' + datamarker.val().properties.mhs[0].nama +
+                    ' ' + sendWhatsapp(datamarker.val().properties.hp_mhs) +
+                    ' ' + call(datamarker.val().properties.hp_mhs) + '<br>';
+            }
+            // console.log(datamarker.key);
+            loc = {
+                lat: lat,
+                lng: lng
+            };
+            var img = 'images/placeholder.png';
+            if (datamarker.val().properties.visited == 1)
+                img = 'images/placeholder-visited.png';
+            markers.push(createMarker(loc, info, img));
+        });
     // var marker= data.val();
     // var keys = Object.keys(data.val());
     // for (var i=0;i<keys.length;i++){
@@ -59,7 +71,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function() {
+    setTimeout(function () {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -82,7 +94,7 @@ function initMap() {
         zoom: 17
     });
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
+        navigator.geolocation.getCurrentPosition(function (position) {
             initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             map.setCenter(initialLocation);
             marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
@@ -93,7 +105,7 @@ function initMap() {
     // marker = createMarker(center, '<h3>Jurusan Ilmu Komputer</h3><hr>' +
     //     '<p><a href="http://ilkom.unila.ac.id" target="blank">http://ilkom.unila.ac.id</a>');
     // marker.setMap(map);
-    google.maps.event.addListener(map, "click", function(e) {
+    google.maps.event.addListener(map, "click", function (e) {
         // //lat and lng is available in e object
         var latLng = e.latLng;
         marker.setPosition(latLng);
@@ -116,7 +128,7 @@ function createMarker(coords, contentString = null, imageIcon = null) {
     if (contentString) {
         var infowindow = new google.maps.InfoWindow();
         infowindow.setContent(contentString);
-        marker.addListener('click', function() {
+        marker.addListener('click', function () {
             infowindow.open(map, marker);
         });
     }
@@ -128,7 +140,7 @@ function setValue(id, val) {
     document.getElementById(id).value = val;
 }
 
-document.getElementById("save").addEventListener("click", function() {
+document.getElementById("save").addEventListener("click", function () {
     // console.log("save click");
     lat = parseFloat(document.getElementById('lat').value);
     lng = parseFloat(document.getElementById('lng').value);
@@ -194,19 +206,19 @@ function saveData(coord, info = null, imageIcon = null) {
             type: 'Point'
         },
         properties: info
-    }, function(error) {
+    }, function (error) {
         if (error) {
             document.querySelector('.alert').style.display = 'block';
             document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
             document.querySelector('.alert').style.background = 'red';
-            setTimeout(function() {
+            setTimeout(function () {
                 document.querySelector('.alert').style.display = 'none';
             }, 3000);
         } else {
             document.getElementById("save").disabled = true;
             document.querySelector('.alert').style.display = 'block';
             document.getElementById("alert").innerHTML = "Data Disimpan ke Firebase";
-            setTimeout(function() {
+            setTimeout(function () {
                 document.querySelector('.alert').style.display = 'none';
             }, 3000);
 
