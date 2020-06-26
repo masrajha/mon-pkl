@@ -13,7 +13,7 @@ function viewData() {
     // console.log(isPrivate);
 
     var dataRef = firebase.database().ref();
-    var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
+    var monPKL = dataRef.child('mon_user').orderByChild('properties/time').startAt(start).endAt(end);
     var tempatPKL = dataRef.child('pkl');
     tempatPKL.on('value', gotDataTempat, showError);
     monPKL.on('value', gotData, showError);
@@ -33,8 +33,8 @@ var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
 
 var dataRef = firebase.database().ref();
-// var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
-var monPKL = dataRef.child('mon_user');
+var monPKL = dataRef.child('mon_user').orderByChild('properties/time').startAt(start).endAt(end);
+// var monPKL = dataRef.child('mon_user');
 var tempatPKL = dataRef.child('pkl');
 tempatPKL.on('value', gotDataTempat, showError);
 monPKL.on('value', gotData, showError);

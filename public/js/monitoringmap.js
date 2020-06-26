@@ -13,7 +13,7 @@ function viewData() {
     // console.log(isPrivate);
 
     var dataRef = firebase.database().ref();
-    var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
+    var monPKL = dataRef.child('mon_user').orderByChild('properties/time').startAt(start).endAt(end);
     var tempatPKL = dataRef.child('pkl');
     tempatPKL.on('value', gotDataTempat, showError);
     monPKL.on('value', gotData, showError);
