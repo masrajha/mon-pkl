@@ -15,8 +15,8 @@ function viewData() {
     var dataRef = firebase.database().ref();
     var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
     var tempatPKL = dataRef.child('pkl');
-    tempatPKL.once('value', gotDataTempat, showError);
-    monPKL.once('value', gotData, showError);
+    tempatPKL.on('value', gotDataTempat, showError);
+    monPKL.on('value', gotData, showError);
     initMap();
 }
 firebase.auth().onAuthStateChanged(user => {
@@ -26,17 +26,18 @@ firebase.auth().onAuthStateChanged(user => {
 });
 
 var features = [];
-
+var users = [];
 
 var d = new Date();
 var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
 
 var dataRef = firebase.database().ref();
-var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
+// var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
+var monPKL = dataRef.child('mon_user');
 var tempatPKL = dataRef.child('pkl');
-tempatPKL.once('value', gotDataTempat, showError);
-monPKL.once('value', gotData, showError);
+tempatPKL.on('value', gotDataTempat, showError);
+monPKL.on('value', gotData, showError);
 
 var geoJSON = {
     type: "FeatureCollection",
@@ -83,8 +84,11 @@ function gotData(data) {
     var fitur = [];
     var isPrivate = document.getElementById('private').checked;
     data.forEach(function(datamarker) {
+        console.log(datamarker.key);
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         //panggil fungsi pushData disini
+        // if (datamarker.val().properties['npm'] === '1707051014')
+        //     console.log(datamarker.key);
         if (isPrivate) {
             if (datamarker.val().properties['user']['email'] === currentUser.email)
                 pushData(datamarker, fitur, markers);
@@ -94,6 +98,7 @@ function gotData(data) {
     });
     // console.log(fitur[1].geometry);
     CreateTableFromJSON(fitur);
+    // console.log(JSON.stringify(users));
     var markerCluster = new MarkerClusterer(map, markers, {
         imagePath: 'images/m'
     });
@@ -101,11 +106,42 @@ function gotData(data) {
 
 function pushData(datamarker, fitur, markers) {
     fitur.push(datamarker.val());
-    console.log(datamarker.val().properties['user']['email']);
+    // console.log(datamarker.val().properties['user']['email']);
     mhslat = parseFloat(datamarker.val().geometry.coordinates[0][1]);
     mhslng = parseFloat(datamarker.val().geometry.coordinates[0][0]);
     inslat = parseFloat(datamarker.val().geometry.coordinates[1][1]);
     inslng = parseFloat(datamarker.val().geometry.coordinates[1][0]);
+
+    userid = datamarker.val().properties.user.uid;
+    usernama = datamarker.val().properties.nama;
+    usernpm = datamarker.val().properties.npm;
+    useremail = datamarker.val().properties.user.email;
+    userinstansi = datamarker.val().properties.instansi;
+    var imgURL = null;
+    var catatan = null;
+    if (datamarker.val().properties.catatan) {
+        catatan = datamarker.val().properties.catatan;
+    }
+    if (datamarker.val().properties.imgURL) {
+        imgURL = datamarker.val().properties.imgURL;
+    }
+
+    userdata = {};
+    userdata[userid] = {
+        nama: usernama,
+        npm: usernpm,
+        email: useremail,
+        catatan: catatan,
+        imgURL: imgURL,
+        instansi: {
+            nama: userinstansi,
+            lat: inslat,
+            lng: inslng
+        }
+    };
+    users.push(userdata);
+    // console.log(JSON.stringify(userdata));
+
     var a = new google.maps.LatLng(mhslat, mhslng);
     var b = new google.maps.LatLng(inslat, inslng);
     var jarak = google.maps.geometry.spherical.computeDistanceBetween(a, b).toFixed(2);
@@ -164,7 +200,7 @@ function pushData(datamarker, fitur, markers) {
 
 function CreateTableFromJSON(data_all) {
     var arrHead = new Array();
-    arrHead = ['img', 'mahasiswa', 'lokasi', 'waktu', 'keterangan', 'map'];
+    arrHead = ['img', 'mahasiswa', 'lokasi', 'waktu', 'keterangan', 'catatan'];
 
     // CREATE DYNAMIC TABLE.
     var table = document.createElement("table");
@@ -195,7 +231,11 @@ function CreateTableFromJSON(data_all) {
         for (var j = 0; j < arrHead.length; j++) {
             var tabCell = tr.insertCell(-1);
             if (j == 0) {
-                content = '<img src="' + data_all[i]['properties']['user']['photoURL'] + '" width=50 height=50>';
+                var img = (data_all[i]['properties']['imgURL']) ?
+                    data_all[i]['properties']['imgURL'] :
+                    data_all[i]['properties']['user']['photoURL'];
+
+                content = '<img src="' + img + '" width=80>';
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'mahasiswa') {
                 let content = '';
@@ -216,11 +256,8 @@ function CreateTableFromJSON(data_all) {
                 let content = data_all[i]['properties']['keterangan'] + '<br>';
                 content += 'Jarak : ' + jarak + ' m';
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'map ') {
-                let lng = data_all[i]['geometry']['coordinates'][0];
-                let lat = data_all[i]['geometry']['coordinates'][1];
-                let content = '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z">';
-                content += '<img src="images/directions-md.png"></a>';
+            } else if ('catatan' == arrHead[j]) {
+                content = data_all[i]['properties']['catatan'];
                 tabCell.innerHTML = content;
             }
         }
@@ -241,7 +278,15 @@ function CreateTableFromJSON(data_all) {
     divContainer.appendChild(table);
     jQuery(function($) {
         $('#table_1').DataTable({
-            "pageLength": 50
+            "pageLength": 50,
+            "columns": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                { "width": "15%" }
+            ]
         });
         // $('#table_1').DataTable({
         //     "columnDefs": [{

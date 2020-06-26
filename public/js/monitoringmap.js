@@ -26,14 +26,14 @@ firebase.auth().onAuthStateChanged(user => {
 });
 
 var features = [];
-var users =[];
+var users = [];
 
 var d = new Date();
 var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
 
 var dataRef = firebase.database().ref();
-var monPKL = dataRef.child('mon_pkl').orderByChild('properties/time').startAt(start).endAt(end);
+var monPKL = dataRef.child('mon_user').orderByChild('properties/time').startAt(start).endAt(end);
 var tempatPKL = dataRef.child('pkl');
 tempatPKL.on('value', gotDataTempat, showError);
 monPKL.on('value', gotData, showError);
@@ -47,7 +47,7 @@ var geoJSON = {
 function gotDataTempat(data) {
     var markers = [];
 
-    data.forEach(function (datamarker) {
+    data.forEach(function(datamarker) {
         lat = parseFloat(datamarker.val().geometry.coordinates[1]);
         lng = parseFloat(datamarker.val().geometry.coordinates[0]);
         info = '<h3>' + datamarker.val().properties.instansi + '</h3><br>';
@@ -82,10 +82,10 @@ function gotData(data) {
     var markers = [];
     var fitur = [];
     var isPrivate = document.getElementById('private').checked;
-    data.forEach(function (datamarker) {
+    data.forEach(function(datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         //panggil fungsi pushData disini
-        if (datamarker.val().properties['npm']==='1707051014')
+        if (datamarker.val().properties['npm'] === '1707051014')
             console.log(datamarker.key);
         if (isPrivate) {
             if (datamarker.val().properties['user']['email'] === currentUser.email)
@@ -115,13 +115,13 @@ function pushData(datamarker, fitur, markers) {
     usernpm = datamarker.val().properties.npm;
     useremail = datamarker.val().properties.user.email;
     userinstansi = datamarker.val().properties.instansi;
-    var imgURL=null;
-    var catatan=null;
-    if (datamarker.val().properties.catatan){
-        catatan=datamarker.val().properties.catatan;
+    var imgURL = null;
+    var catatan = null;
+    if (datamarker.val().properties.catatan) {
+        catatan = datamarker.val().properties.catatan;
     }
-    if (datamarker.val().properties.imgURL){
-        imgURL=datamarker.val().properties.imgURL;
+    if (datamarker.val().properties.imgURL) {
+        imgURL = datamarker.val().properties.imgURL;
     }
 
     userdata = {};
@@ -129,8 +129,8 @@ function pushData(datamarker, fitur, markers) {
         nama: usernama,
         npm: usernpm,
         email: useremail,
-        catatan:catatan,
-        imgURL:imgURL,
+        catatan: catatan,
+        imgURL: imgURL,
         instansi: {
             nama: userinstansi,
             lat: inslat,
@@ -177,13 +177,13 @@ function pushData(datamarker, fitur, markers) {
     }
 
     var mhsToOffice = [{
-        lat: mhslat,
-        lng: mhslng
-    },
-    {
-        lat: inslat,
-        lng: inslng
-    }
+            lat: mhslat,
+            lng: mhslng
+        },
+        {
+            lat: inslat,
+            lng: inslng
+        }
     ];
     var mhsPath = new google.maps.Polyline({
         path: mhsToOffice,
@@ -229,10 +229,10 @@ function CreateTableFromJSON(data_all) {
         for (var j = 0; j < arrHead.length; j++) {
             var tabCell = tr.insertCell(-1);
             if (j == 0) {
-                var img=(data_all[i]['properties']['imgURL'])?
-                        data_all[i]['properties']['imgURL'] :
-                        data_all[i]['properties']['user']['photoURL'];
-                
+                var img = (data_all[i]['properties']['imgURL']) ?
+                    data_all[i]['properties']['imgURL'] :
+                    data_all[i]['properties']['user']['photoURL'];
+
                 content = '<img src="' + img + '" width=80>';
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'mahasiswa') {
@@ -254,7 +254,7 @@ function CreateTableFromJSON(data_all) {
                 let content = data_all[i]['properties']['keterangan'] + '<br>';
                 content += 'Jarak : ' + jarak + ' m';
                 tabCell.innerHTML = content;
-            } else if ('catatan'== arrHead[j]) {
+            } else if ('catatan' == arrHead[j]) {
                 content = data_all[i]['properties']['catatan'];
                 tabCell.innerHTML = content;
             }
@@ -274,7 +274,7 @@ function CreateTableFromJSON(data_all) {
     var divContainer = document.getElementById("data-table");
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
-    jQuery(function ($) {
+    jQuery(function($) {
         $('#table_1').DataTable({
             "pageLength": 50,
             "columns": [
@@ -284,7 +284,7 @@ function CreateTableFromJSON(data_all) {
                 null,
                 null,
                 { "width": "15%" }
-              ]
+            ]
         });
         // $('#table_1').DataTable({
         //     "columnDefs": [{
@@ -301,7 +301,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function () {
+    setTimeout(function() {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -336,7 +336,7 @@ function initMap() {
         zoom: 12
     });
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
+        navigator.geolocation.getCurrentPosition(function(position) {
             initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             map.setCenter(initialLocation);
             marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
@@ -356,7 +356,7 @@ function createMarker(coords, contentString = null, imageIcon = null) {
     if (contentString) {
         var infowindow = new google.maps.InfoWindow();
         infowindow.setContent(contentString);
-        marker.addListener('click', function () {
+        marker.addListener('click', function() {
             infowindow.open(map, marker);
         });
     }

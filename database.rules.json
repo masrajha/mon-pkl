@@ -4,7 +4,14 @@
         ".write": "auth!== null",
         "mon_pkl": {
             "$mon_pkl": {
-                ".validate": "newData.child('properties').child('url').val()==='https://ilkomunila.firebaseapp.com/check-in.html'",
+                "properties": {
+                    ".indexOn": ["nama", "time", "npm"]
+                }
+            },
+            ".indexOn": ["properties/nama", "properties/time", "properties/npm"]
+        	},
+        "mon_user": {
+            "$mon_user": {
                 "properties": {
                     ".indexOn": ["nama", "time", "npm"]
                 }
