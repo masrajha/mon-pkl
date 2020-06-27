@@ -40,6 +40,7 @@ captureButton.addEventListener('click', function () {
     videoTracks.forEach(function (track) { track.stop() });
     var npm = document.getElementById('npm').value;
     var ket = document.getElementById('save').value;
+    ket += '_'+Math.floor(Math.random() * 100);
     var filename = npm + '_' + thn + bln + tgl + '_' + ket + '.png';
     console.log(filename);
     uploadFile(snapshotCanvas, filename);

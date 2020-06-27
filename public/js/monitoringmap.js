@@ -1,3 +1,12 @@
+var features = [];
+var users = [];
+
+var d = new Date();
+var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+
+var dataRef = firebase.database().ref();
+
 document.getElementById('view').addEventListener('click', viewData);
 var hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 if (!firebase.auth().currentUser) {
@@ -6,14 +15,14 @@ if (!firebase.auth().currentUser) {
 
 function viewData() {
     var tgl = document.getElementById('tgl').value;
-    var d = new Date(tgl);
-    var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-    var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+    d = new Date(tgl);
+    start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
 
     // console.log(isPrivate);
 
     var dataRef = firebase.database().ref();
-    var monPKL = dataRef.child('mon_user').orderByChild('properties/time').startAt(start).endAt(end);
+    var monPKL = dataRef.child('mon_user');
     var tempatPKL = dataRef.child('pkl');
     tempatPKL.on('value', gotDataTempat, showError);
     monPKL.on('value', gotData, showError);
@@ -25,15 +34,9 @@ firebase.auth().onAuthStateChanged(user => {
     }
 });
 
-var features = [];
-var users = [];
 
-var d = new Date();
-var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-var end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
-
-var dataRef = firebase.database().ref();
-var monPKL = dataRef.child('mon_user').orderByChild('properties/time').startAt(start).endAt(end);
+// var monPKL = dataRef.child('mon_user').orderByChild('properties/time').startAt(start).endAt(end);
+var monPKL = dataRef.child('mon_user');
 var tempatPKL = dataRef.child('pkl');
 tempatPKL.on('value', gotDataTempat, showError);
 monPKL.on('value', gotData, showError);
@@ -47,7 +50,7 @@ var geoJSON = {
 function gotDataTempat(data) {
     var markers = [];
 
-    data.forEach(function(datamarker) {
+    data.forEach(function (datamarker) {
         lat = parseFloat(datamarker.val().geometry.coordinates[1]);
         lng = parseFloat(datamarker.val().geometry.coordinates[0]);
         info = '<h3>' + datamarker.val().properties.instansi + '</h3><br>';
@@ -82,17 +85,26 @@ function gotData(data) {
     var markers = [];
     var fitur = [];
     var isPrivate = document.getElementById('private').checked;
-    data.forEach(function(datamarker) {
+    data.forEach(function (datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         //panggil fungsi pushData disini
-        if (datamarker.val().properties['npm'] === '1707051014')
-            console.log(datamarker.key);
-        if (isPrivate) {
-            if (datamarker.val().properties['user']['email'] === currentUser.email)
-                pushData(datamarker, fitur, markers);
-        } else {
-            pushData(datamarker, fitur, markers);
-        }
+        // console.log(datamarker.key);
+        var mon_user = monPKL.child(datamarker.key).orderByChild('properties/time').startAt(start).endAt(end);
+        mon_user.on("value", function (snapshot) {
+            console.log(snapshot.val());
+            if (snapshot.val())
+                forEach(snapshot.val(), function (val, prop, obj) {
+                    if (isPrivate) {
+                        if (val.properties['user']['email'] === currentUser.email)
+                            pushData(snapshot, fitur, markers);
+                    } else {
+                        pushData(val, fitur, markers);
+                    }
+                });
+        });
+        // if (datamarker.val().properties['npm'] === '1707051014')
+        //     console.log(datamarker.key);
+
     });
     // console.log(fitur[1].geometry);
     CreateTableFromJSON(fitur);
@@ -103,25 +115,25 @@ function gotData(data) {
 }
 
 function pushData(datamarker, fitur, markers) {
-    fitur.push(datamarker.val());
-    // console.log(datamarker.val().properties['user']['email']);
-    mhslat = parseFloat(datamarker.val().geometry.coordinates[0][1]);
-    mhslng = parseFloat(datamarker.val().geometry.coordinates[0][0]);
-    inslat = parseFloat(datamarker.val().geometry.coordinates[1][1]);
-    inslng = parseFloat(datamarker.val().geometry.coordinates[1][0]);
+    fitur.push(datamarker);
+    // console.log(datamarker.properties['user']['email']);
+    mhslat = parseFloat(datamarker.geometry.coordinates[0][1]);
+    mhslng = parseFloat(datamarker.geometry.coordinates[0][0]);
+    inslat = parseFloat(datamarker.geometry.coordinates[1][1]);
+    inslng = parseFloat(datamarker.geometry.coordinates[1][0]);
 
-    userid = datamarker.val().properties.user.uid;
-    usernama = datamarker.val().properties.nama;
-    usernpm = datamarker.val().properties.npm;
-    useremail = datamarker.val().properties.user.email;
-    userinstansi = datamarker.val().properties.instansi;
+    userid = datamarker.properties.user.uid;
+    usernama = datamarker.properties.nama;
+    usernpm = datamarker.properties.npm;
+    useremail = datamarker.properties.user.email;
+    userinstansi = datamarker.properties.instansi;
     var imgURL = null;
     var catatan = null;
-    if (datamarker.val().properties.catatan) {
-        catatan = datamarker.val().properties.catatan;
+    if (datamarker.properties.catatan) {
+        catatan = datamarker.properties.catatan;
     }
-    if (datamarker.val().properties.imgURL) {
-        imgURL = datamarker.val().properties.imgURL;
+    if (datamarker.properties.imgURL) {
+        imgURL = datamarker.properties.imgURL;
     }
 
     userdata = {};
@@ -143,15 +155,15 @@ function pushData(datamarker, fitur, markers) {
     var a = new google.maps.LatLng(mhslat, mhslng);
     var b = new google.maps.LatLng(inslat, inslng);
     var jarak = google.maps.geometry.spherical.computeDistanceBetween(a, b).toFixed(2);
-    let waktu = new Date(datamarker.val().properties.time);
+    let waktu = new Date(datamarker.properties.time);
 
-    info = '<h5>' + datamarker.val().properties.nama.toUpperCase() + ' NPM ';
-    info += datamarker.val().properties.npm + '</h5>';
+    info = '<h5>' + datamarker.properties.nama.toUpperCase() + ' NPM ';
+    info += datamarker.properties.npm + '</h5>';
     // info += '<a target="_blank" href="https://www.google.com/maps/place/' + mhslat + '+' + mhslng + '/@' + mhslat + ',' + mhslng + ',15z"><img src="images/direction.png"></a><br>'
-    info += '<p class="font-weight-bold">' + datamarker.val().properties.instansi + '</p>';
+    info += '<p class="font-weight-bold">' + datamarker.properties.instansi + '</p>';
     info += '<p class="font-weight-bold">' + hari[waktu.getDay()] + ', ' + waktu.getDate() + '/' + (waktu.getMonth() + 1) + '/' + waktu.getFullYear() + '</p>';
     info += '<h6> Keterangan: </h6>';
-    info += '<ul><li>' + datamarker.val().properties.keterangan + '</li>';
+    info += '<ul><li>' + datamarker.properties.keterangan + '</li>';
 
     info += '<li>Jam : ' + waktu.getHours() + ':' + waktu.getMinutes() + ':' + waktu.getSeconds() + '</li>';
     // info += '<li>' + waktu + '</li>';
@@ -163,9 +175,9 @@ function pushData(datamarker, fitur, markers) {
         lng: mhslng
     };
 
-    if (datamarker.val().properties.user.photoURL) {
+    if (datamarker.properties.user.photoURL) {
         var icon = {
-            url: datamarker.val().properties.user.photoURL, // url
+            url: datamarker.properties.user.photoURL, // url
             scaledSize: new google.maps.Size(32, 32), // scaled size
             origin: new google.maps.Point(0, 0), // origin
             anchor: new google.maps.Point(0, 0) // anchor
@@ -177,13 +189,13 @@ function pushData(datamarker, fitur, markers) {
     }
 
     var mhsToOffice = [{
-            lat: mhslat,
-            lng: mhslng
-        },
-        {
-            lat: inslat,
-            lng: inslng
-        }
+        lat: mhslat,
+        lng: mhslng
+    },
+    {
+        lat: inslat,
+        lng: inslng
+    }
     ];
     var mhsPath = new google.maps.Polyline({
         path: mhsToOffice,
@@ -274,7 +286,7 @@ function CreateTableFromJSON(data_all) {
     var divContainer = document.getElementById("data-table");
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
-    jQuery(function($) {
+    jQuery(function ($) {
         $('#table_1').DataTable({
             "pageLength": 50,
             "columns": [
@@ -301,7 +313,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function() {
+    setTimeout(function () {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -336,7 +348,7 @@ function initMap() {
         zoom: 12
     });
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
+        navigator.geolocation.getCurrentPosition(function (position) {
             initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             map.setCenter(initialLocation);
             marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
@@ -356,7 +368,7 @@ function createMarker(coords, contentString = null, imageIcon = null) {
     if (contentString) {
         var infowindow = new google.maps.InfoWindow();
         infowindow.setContent(contentString);
-        marker.addListener('click', function() {
+        marker.addListener('click', function () {
             infowindow.open(map, marker);
         });
     }
