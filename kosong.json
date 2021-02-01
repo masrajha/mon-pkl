@@ -1,6 +1,33 @@
 {
     "mon_pkl":{},
     "mon_user":{},
-    "pkl":{},
+    "pkl":{ "-MAKwAFmPGD-VpNUWUl3" : {
+        "geometry" : {
+          "coordinates" : [ 105.2440363, -5.3671403 ],
+          "type" : "Point"
+        },
+        "properties" : {
+          "alamat" : "Jl.Prof.Dr.Ir Sumantri BrojoNegoro No.1 Gedung meneng,Kec.Rajabasa",
+          "hp_mhs" : "-58",
+          "instansi" : "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+          "kota" : "Bandar Lampung",
+          "mhs" : [ {
+            "nama" : "Firman Artha Yudha",
+            "npm" : "1807051026"
+          }, {
+            "nama" : "Ilham Dwi Nugraha",
+            "npm" : "1807051029"
+          }, {
+            "nama" : "Maulana Ikhsan",
+            "npm" : "1807051007"
+          } ],
+          "pemb_hp" : "082183179777",
+          "pemb_lap" : "Anie Rose Irawati",
+          "time" : 1592727221956,
+          "visited" : 0
+        },
+        "type" : "Feature"
+      }
+    },
     "users":{}
 }
