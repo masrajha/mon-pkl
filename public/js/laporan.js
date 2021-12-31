@@ -2,9 +2,13 @@ var features = [];
 var userData = [];
 var userEmail = [];
 var userInfo = null;
-var tglMulaiPKL='2021/2/1';
-var tglSelesaiPKL='2021/3/26';
-var tglLibur = ['2021/2/12','2021/3/11','2021/3/14'];
+// const thisMonth = new Date().getMonth();
+
+var tglMulaiPKL=thisMonth < 6 ? new Date(new Date().getFullYear(),0,1).toString(): new Date(new Date().getFullYear(),6,1).toString();
+var tglSelesaiPKL=new Date().toString();
+var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2022/4/15','2022/5/2','2022/5/3',
+                    '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
+                    '2022/5/16','2022/10/8','2022/12/25'];
 var npm = findGetParameter('npm');
 
 var d = new Date();
@@ -448,7 +452,9 @@ function laporanHarian(arr, npm, tgl) {
 }
 
 function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, minggu = false, libur = false) {
-    let tglLibur = ['2019/12/24','2019/12/25','2020/1/1'];
+    var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2023/4/15','2022/5/2','2022/5/3',
+                    '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
+                    '2022/5/16','2022/10/8','2022/12/25'];
     let rekap = [];
     let end = null;
     let start = new Date(tglMulai).getTime();
