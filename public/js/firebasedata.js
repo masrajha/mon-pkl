@@ -1,6 +1,6 @@
 // Initialize Firebase
 const config = {
-    apiKey: "AIzaSyArbN7yL_1ADsTSZ_5NEWiExxmZYZBpgMI",
+    apiKey: "AIzaSyCQPT9kR18A8rqwMIgO2Ou6i9BcdZ4BDvE",
     authDomain: "ilkomunila.firebaseapp.com",
     databaseURL: "https://ilkomunila.firebaseio.com",
     projectId: "ilkomunila",
