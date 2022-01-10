@@ -154,11 +154,11 @@ function setButtonLabel() {
         document.getElementById('msg').style.display = 'none';
     }
 
-    var lbl_catatan = "<p>Minggu ini adalah untuk Proposal Rencana Kerja</strong><br />" +
+    var lbl_catatan = "<p>-------------</strong><br />" +
         "Tuliskan Rencana Singkat Kegiatan KP yang akan saudara " +
         "sesuai dengan format pada buku panduan KP " +
-        "Submit tugas di vclass, kirim ke email koordinator KP dan dosen pembimbing paling lambat Minggu, 5 Januari 2020 Pukul 17:00.</p>"
-
+        "</p>"
+    console.log(time);
     if (time < 70000) {
         document.getElementById('save').disabled = true;
     } else if (time < 80000) {
@@ -173,7 +173,7 @@ function setButtonLabel() {
     } else if (time < 190000) {
         document.getElementById('save').value = "Pulang";
         document.getElementById('lbl-catatan').innerHTML = lbl_catatan+"<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
-    } else if (time < 220000) {
+    } else if (time < 230000) {
         document.getElementById('save').value = "Lembur";
         document.getElementById('lbl-catatan').innerHTML = lbl_catatan+"<b>[REALITA]</b> Yang saya lakukan hari ini sbb:\n";
     } else { document.getElementById('save').disabled = true; }
