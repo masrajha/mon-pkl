@@ -51,7 +51,7 @@ function CreateTableFromJSON() {
                 let mhs = data_all[i]['properties']['mhs'];
                 let hp_mhs = data_all[i]['properties']['hp_mhs'];
                 console.log(mhs);
-                mhs.forEach((element, index) => {
+                if (mhs) mhs.forEach((element, index) => {
                     if (index == 0) {
                         content += '<li>' + element.nama + '<br>' + sendWhatsapp(hp_mhs) +
                             ' ' + call(hp_mhs) + '</li>';
