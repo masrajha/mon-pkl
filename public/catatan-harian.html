@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <title>Rekap Kehadiran PKL Jurusan Ilmu Komputer FMIPA Unila</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/gijgo.min.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/gijgo.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="index.html">PKL ILKOM UNILA</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="index.html">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="list-data-kp.html">List Data KP</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="input.html">Input Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Check In<span class="sr-only">(current)</span></a>
+                </li>
+                <!-- <li class="nav-item">
+                    <a class="nav-link" href="#">Data Monitoring</a>
+                </li> -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Monitoring
+                          </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#">Peta Mahasiswa</a>
+                        <a class="dropdown-item" href="finalreport.html">Rekap Data</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="laporan.html">Rekap Data Saya</a>
+                    </div>
+                </li>
+                <!-- <li class="nav-item">
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+                </li> -->
+            </ul>
+            <!-- <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form> -->
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row mx-md-n5">
+            <div class="col-md-8">
+                <h3>Rekap Kehadiran Mahasiswa PKL Jurusan Ilmu Komputer</h3>
+            </div>
+            <div class="col-md-4">
+                <div id="client" class="col-md-6">
+                    <div class="btn white darken-4 col s10 m4">
+                        <a href="#" class="google btn" onclick="login()"> <i class="fa fa-google"></i> Login with Google
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mx-md-n5">
+            <div class="col-md-3">
+            </div>
+            <div class="col-md-9">
+                <div id="info"></div>
+            </div>
+        </div>
+        <div class="row mx-md-n5">
+            <div class="col-md-3">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="npm">NPM</label>
+                        <input type="text" name="npm" id="npm" disabled readonly>
+                    </div>
+                    <div class="col-md-12">
+                        <div>
+                            <label for="start">Dari</label>
+                            <input type="text" name="start" id="start">
+                        </div>
+                        <div>
+                            <label for="end">s.d</label>
+                            <input type="text" name="end" id="end">
+                        </div>
+                        <script>
+                            const thisMonth = new Date().getMonth();
+                            var startDate=thisMonth < 6 ? new Date(new Date().getFullYear(),0,1).toString(): new Date(new Date().getFullYear(),6,1).toString();
+                            var endDate=new Date();
+                            var today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+                            tglMulaiPKL = new Date(startDate).getFullYear()+"/"+(new Date(startDate).getMonth()+1)+"/"+new Date(startDate).getDate();
+                            tglSelesaiPKL = endDate.getFullYear()+"/"+(endDate.getMonth()+1)+"/"+endDate.getDate();
+                            $('#start').datepicker({
+                                uiLibrary: 'bootstrap4',
+                                value: tglMulaiPKL,
+                                format: 'yyyy/mm/dd',
+                                minDate: tglMulaiPKL,
+                                maxDate: today
+                            });
+                            $('#end').datepicker({
+                                uiLibrary: 'bootstrap4',
+                                // value: today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate(),
+                                value: tglSelesaiPKL,
+                                format: 'yyyy/mm/dd',
+                                minDate: tglMulaiPKL,
+                                maxDate: today
+                            });
+                        </script>
+                    </div>
+                    <div class="col-md-12">
+                        <p></p>
+                        <p>Termasuk hari:</p>
+                        <input type="checkbox" name="sabtu" id="sabtu">Sabtu
+                        <input type="checkbox" name="minggu" id="minggu">Minggu
+                        <input type="checkbox" name="libur" id="libur">Libur
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <button class="btn btn-outline-success my-2 my-sm-0" id="view" type="button">Lihat</button>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="col-md-9" id="printarea">
+                <div class="row mx-md-n5">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div id="photo"></div>
+                            </div>
+                            <div class="col-md-8">
+                                <div id="resume">
+                                    <img src="images/loader.gif" width="80" height="80">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mx-md-n5 mt-4">
+                    <div class="col-md-12">
+                        <h3>Grafik Kehadiran</h3>
+                    </div>
+                </div>
+                <div class="row mx-md-n5 mt-4">
+                    <div class="col-md-12" id="loader"><img src="images/loader.gif" width="80" height="80"></div>
+                    <div class="col-md-12">
+                        <div class="chart-waktu" id="chart-waktu"></div>
+                    </div>
+                </div>
+                <div class="row mx-md-n5">
+                    <div class="col-md-12">
+                        <div class="chart-jarak" id="chart-jarak"></div>
+                    </div>
+                </div>
+                <div class="row mx-md-n5">
+                    <div class="col-md-12">
+                        <div class="chart-durasi" id="chart-durasi"></div>
+                    </div>
+                </div>
+                <div class="row mx-md-n5 mt-4">
+                    <div class="col-md-12">
+                        <h3>Rekapitulasi</h3>
+                    </div>
+                </div>
+                <div class="row mx-md-n5">
+                    <div class="col-md-12">
+                        <div class="data-table" id="data-table"><img src="images/loader.gif" width="80" height="80"></div>
+                    </div>
+                </div>
+                <div class="row mx-md-n5">
+                    <div class="col-md-8">
+                    </div>
+                    <div class="col-md-4">
+                        <div id="ttd-pembimbing"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+<script async defer src="https://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false&key=AIzaSyBqIy-vX5tDUpnN5EUuIVG5fNeEuHWm3q4"></script>
+<script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/catatan-harian.js"></script>
+
+</html>

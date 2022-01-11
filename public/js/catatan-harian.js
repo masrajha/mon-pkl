@@ -9,7 +9,7 @@ var tglSelesaiPKL=new Date().toString();
 var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2022/4/15','2022/5/2','2022/5/3',
                     '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
                     '2022/5/16','2022/10/8','2022/12/25'];
-
+                    
 var npm = findGetParameter('npm');
 
 var d = new Date();
@@ -49,6 +49,7 @@ function getUserDataByNPM(data) {
     });
 }
 function getUserData(data) {
+    // console.log(data.val());
     userInfo = {
         npm: data.val().npm,
         nama: data.val().nama,
@@ -192,7 +193,7 @@ function filterTgl(tgl) {
 
 function pushData(item, fitur, userData) {
     fitur.push(item.val());
-    // console.log(item.val().properties['user']['email']);
+    console.log(item.val());
     mhslat = parseFloat(item.val().geometry.coordinates[0][1]);
     mhslng = parseFloat(item.val().geometry.coordinates[0][0]);
     inslat = parseFloat(item.val().geometry.coordinates[1][1]);
@@ -225,7 +226,8 @@ function pushData(item, fitur, userData) {
                 tanggal: tanggal,
                 waktu: item.val().properties.time,
                 jarak: jarak,
-                keterangan: item.val().properties.keterangan
+                keterangan: item.val().properties.keterangan,
+                catatan: item.val().properties.catatan
             };
             userData[i].data.push(data);
         } else {
@@ -242,7 +244,8 @@ function pushData(item, fitur, userData) {
                     tanggal: tanggal,
                     waktu: item.val().properties.time,
                     jarak: jarak,
-                    keterangan: item.val().properties.keterangan
+                    keterangan: item.val().properties.keterangan,
+                    catatan: item.val().properties.catatan
                 }]
             }
         }
@@ -252,7 +255,8 @@ function pushData(item, fitur, userData) {
             tanggal: tanggal,
             waktu: item.val().properties.time,
             jarak: jarak,
-            keterangan: item.val().properties.keterangan
+            keterangan: item.val().properties.keterangan,
+            catatan: item.val().properties.catatan
         };
 
         userData[i].data.push(data);
@@ -266,8 +270,8 @@ function pushData(item, fitur, userData) {
 function CreateTableFromJSON(data_all) {
     console.log(data_all);
     var arrHead = new Array();
-    arrHead = ["tanggal", "NAMA", "NPM", "Masuk", "Pulang", "Durasi",
-        "Jarak Masuk", "Jarak Pulang"
+    arrHead = ["tanggal", "Jam", "Durasi",
+        "Jarak","Catatan","Paraf Pem. Lapangan"
     ];
 
     // CREATE DYNAMIC TABLE.
@@ -283,7 +287,10 @@ function CreateTableFromJSON(data_all) {
         for (var j = 0; j < arrHead.length; j++) {
             var tabCell = tr.insertCell(-1);
             if (j == 0) {
-                content = data_all[i].tanggal;
+                let hari=["Minggu", "Senin", "Selasa","Rabu","Kamis","Jumat","Sabtu"];
+                let bulan=["Jan", "Feb", "Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+                let date = new Date(data_all[i].tanggal);
+                content = hari[date.getDay()]+", "+date.getDate()+" "+bulan[date.getMonth()]+" "+date.getFullYear();
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'NAMA') {
                 let content = data_all[i].nama;
@@ -291,20 +298,17 @@ function CreateTableFromJSON(data_all) {
             } else if (arrHead[j] == 'NPM') {
                 let content = data_all[i].npm;
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Masuk') {
-                let content = printJam(data_all[i].jamMasuk, 'masuk');
+            } else if (arrHead[j] == 'Jam') {
+                let content = "Masuk: "+printJam(data_all[i].jamMasuk);
+                    content += "<br>Pulang: "+ printJam(data_all[i].jamPulang);
+                    content += "<br>Durasi: "+ printDurasi(data_all[i].durasi.toFixed(2));
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Pulang') {
-                let content = printJam(data_all[i].jamPulang, 'pulang');
+            } else if (arrHead[j] == 'Jarak') {
+                let content = "Masuk: "+printJarak(data_all[i].jrkMasuk.toFixed(2));
+                content+="<br>Pulang: "+printJarak(data_all[i].jrkPulang.toFixed(2));
                 tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Durasi') {
-                let content = printDurasi(data_all[i].durasi.toFixed(2));
-                tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Jarak Masuk') {
-                let content = printJarak(data_all[i].jrkMasuk.toFixed(2));
-                tabCell.innerHTML = content;
-            } else if (arrHead[j] == 'Jarak Pulang') {
-                let content = printJarak(data_all[i].jrkPulang.toFixed(2));
+            } else if (arrHead[j] == 'Catatan') {
+                let content = data_all[i].catatan;
                 tabCell.innerHTML = content;
             }
         }
@@ -392,7 +396,7 @@ function laporanHarian(arr, npm, tgl) {
     report.uid = dataUser[0].uid;
     report.tanggal = tgl;
     // console.log(dataUser.length);
-    // console.log(data);
+    console.log(dataUser);
     if (userInfo) {
         report.nama = userInfo.nama;
         report.npm = userInfo.npm;
@@ -414,13 +418,14 @@ function laporanHarian(arr, npm, tgl) {
     dataKehadiran = data.filter(function (elm) {
         return (new Date(elm.tanggal).getTime() == new Date(tgl).getTime());
     });
-   
+    // console.log(dataKehadiran);
     if (dataKehadiran.length == 0) {
         report.jamMasuk = 0;
         report.jamPulang = 0;
         report.durasi = 0;
         report.jrkMasuk = 0;
         report.jrkPulang = 0;
+        report.catatan="Tidak Hadir";
     } else if (dataKehadiran.length == 1) {
         let t1 = new Date(dataKehadiran[0].waktu).getFullYear();
         let t2 = new Date(dataKehadiran[0].waktu).getMonth();
@@ -428,20 +433,20 @@ function laporanHarian(arr, npm, tgl) {
         let t4 = new Date(dataKehadiran[0].waktu).getHours();
         let t5 = new Date(dataKehadiran[0].waktu).getMinutes();
         let tt = t4 * 100 + t5
+        report.catatan=dataKehadiran[0].catatan;
         if (tt < 1200) {
             report.jamMasuk = dataKehadiran[0].waktu;
             report.jamPulang = new Date(t1, t2, t3, 13, t5).getTime();
             report.jrkMasuk = parseFloat(dataKehadiran[0].jarak);
             report.jrkPulang = report.jrkMasuk;
             report.durasi = diff(report.jamPulang, report.jamMasuk);
-
+            
         } else {
             report.jamMasuk = new Date(t1, t2, t3, 11, t5).getTime();
             report.jamPulang = dataKehadiran[0].waktu;
             report.jrkMasuk = parseFloat(dataKehadiran[0].jarak);
             report.jrkPulang = report.jrkMasuk;
             report.durasi = diff(report.jamPulang, report.jamMasuk);
-
         }
     } else {
         report.durasi = diff(dataKehadiran[0].waktu, dataKehadiran[dataKehadiran.length - 1].waktu);
@@ -449,6 +454,8 @@ function laporanHarian(arr, npm, tgl) {
         report.jamPulang = dataKehadiran[dataKehadiran.length - 1].waktu;
         report.jrkMasuk = parseFloat(dataKehadiran[0].jarak);
         report.jrkPulang = parseFloat(dataKehadiran[1].jarak);
+        // console.log(dataKehadiran);
+        report.catatan="<strong>Rencana:</strong> "+dataKehadiran[0].catatan+"<p><br><strong>Realisasi:</strong> "+dataKehadiran[dataKehadiran.length - 1].catatan;
     }
     return report;
 }
@@ -636,6 +643,8 @@ function printJam(time, format = null) {
 }
 
 function printDurasi(durasi, format = null) {
+    if (!format)
+        return durasi;
     let content = '<span class="p-2 mb-2 ';
     content += durasi > 6 ? 'bg-success' : durasi > 4 ? 'bg-warning' : 'bg-danger';
     content += ' text-white">';
@@ -645,6 +654,8 @@ function printDurasi(durasi, format = null) {
 }
 
 function printJarak(jarak, format = null) {
+    if (!format)
+        return jarak;
     let content = '<span class="p-2 mb-2 ';
     if (jarak == 0) content += 'bg-danger';
     else
