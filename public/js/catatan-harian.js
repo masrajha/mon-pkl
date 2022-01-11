@@ -270,7 +270,7 @@ function pushData(item, fitur, userData) {
 function CreateTableFromJSON(data_all) {
     console.log(data_all);
     var arrHead = new Array();
-    arrHead = ["tanggal", "Jam", "Durasi",
+    arrHead = ["tanggal", "Jam",
         "Jarak","Catatan","Paraf Pem. Lapangan"
     ];
 
