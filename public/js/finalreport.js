@@ -250,12 +250,10 @@ function CreateTableFromJSON(data_all) {
                 content = '<img src="' + data_all[i].photoURL + '" width=50 height=50>';
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'NAMA') {
-                let content = '<a href="laporan.html?npm=' + data_all[i].npm + '" target=_blank>';
-                content += data_all[i].nama;
-                content += '</a>';
+                let content = data_all[i].nama;
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'NPM') {
-                let content = data_all[i].npm;
+                let content = printDropdown(data_all[i].npm);
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'Email') {
                 let content = data_all[i].email;
@@ -624,7 +622,16 @@ function printJarak(jarak, format = null) {
     content += '</span>';
     return content;
 }
-
+function printDropdown(text){
+    let content='<div class="dropdown">';
+    content+='<span>'+text+'</span>';
+    content+='<div class="dropdown-content">';
+    content+=  '<p><a href="laporan.html?npm='+text+'">Laporan</p>';
+    content+=  '<p><a href="catatan-harian.html?npm='+text+'">Catatan Harian</p>';
+    content+='</div>';
+    content+='</div>';
+    return content;
+}
 Array.prototype.max = function() {
     return Math.max.apply(null, this);
 };
