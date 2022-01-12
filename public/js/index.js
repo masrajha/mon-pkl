@@ -24,7 +24,7 @@ var geoJSON = {
 function getData(data) {
     var markers = [];
     var fitur = [];
-    data.forEach(function(datamarker) {
+    data.forEach(function (datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         fitur.push(datamarker.val());
         // console.log(datamarker.val());
@@ -38,11 +38,13 @@ function getData(data) {
             info += ' ' + sendWhatsapp(datamarker.val().properties.pemb_hp) +
                 ' ' + call(datamarker.val().properties.pemb_hp) + '<br>';
         }
-        info += 'Jumlah mhs : ' + datamarker.val().properties.mhs.length + '<br>';
-        if (datamarker.val().properties.mhs[0].nama) {
-            info += 'Contact mhs : ' + datamarker.val().properties.mhs[0].nama +
-                ' ' + sendWhatsapp(datamarker.val().properties.hp_mhs) +
-                ' ' + call(datamarker.val().properties.hp_mhs) + '<br>';
+        if (datamarker.val().properties.mhs) {
+            info += 'Jumlah mhs : ' + datamarker.val().properties.mhs.length + '<br>';
+            if (datamarker.val().properties.mhs[0].nama) {
+                info += 'Contact mhs : ' + datamarker.val().properties.mhs[0].nama +
+                    ' ' + sendWhatsapp(datamarker.val().properties.hp_mhs) +
+                    ' ' + call(datamarker.val().properties.hp_mhs) + '<br>';
+            }
         }
         // console.log(datamarker.key);
         loc = {
@@ -75,7 +77,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function() {
+    setTimeout(function () {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -96,7 +98,7 @@ function initMap() {
         zoom: 15
     });
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
+        navigator.geolocation.getCurrentPosition(function (position) {
             initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
             map.setCenter(initialLocation);
             marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
@@ -116,7 +118,7 @@ function createMarker(coords, contentString = null, imageIcon = null) {
     if (contentString) {
         var infowindow = new google.maps.InfoWindow();
         infowindow.setContent(contentString);
-        marker.addListener('click', function() {
+        marker.addListener('click', function () {
             infowindow.open(map, marker);
         });
     }
