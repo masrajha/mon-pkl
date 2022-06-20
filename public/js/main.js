@@ -222,6 +222,7 @@ function setKabOption() {
         "Asahan",
         "Jakarta Barat",
         "Jakarta Selatan",
+        "Jakarta Timur",
         "Jakarta Utara",
         "Kotabumi",
         "Kota Bandung",
@@ -237,6 +238,7 @@ function setKabOption() {
         "Prabumulih",
         "Pringsewu",
         "Tanggamus",
+        "Tulang Bawang",
         "Tulang Bawang Barat",
         "Way Kanan"
     ];
