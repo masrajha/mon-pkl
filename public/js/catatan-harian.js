@@ -4,7 +4,7 @@ var userEmail = [];
 var userInfo = null;
 // const thisMonth = new Date().getMonth();
 
-var tglMulaiPKL=thisMonth < 6 ? new Date(new Date().getFullYear(),0,1).toString(): new Date(new Date().getFullYear(),6,1).toString();
+var tglMulaiPKL=thisMonth < 5 ? new Date(new Date().getFullYear(),0,1).toString(): new Date(new Date().getFullYear(),5,1).toString();
 var tglSelesaiPKL=new Date().toString();
 var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2022/4/15','2022/5/2','2022/5/3',
                     '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
