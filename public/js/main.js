@@ -224,6 +224,7 @@ function setKabOption() {
         "Jakarta Selatan",
         "Jakarta Timur",
         "Jakarta Utara",
+        "Jakarta Pusat",
         "Kotabumi",
         "Kota Bandung",
         "Kota Pagar Alam",
