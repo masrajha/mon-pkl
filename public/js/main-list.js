@@ -147,18 +147,27 @@ function setKabOption() {
         "Asahan",
         "Jakarta Barat",
         "Jakarta Selatan",
+        "Jakarta Timur",
         "Jakarta Utara",
+        "Jakarta Pusat",
         "Kotabumi",
+        "Kota Bandung",
+        "Kota Pagar Alam",
+        "Kota Serang",
         "Lampung Selatan",
         "Lampung Tengah",
         "Metro",
         "Painan",
         "Palembang",
         "Pesawaran",
+        "Pesisir Barat",
         "Prabumulih",
         "Pringsewu",
         "Tanggamus",
-        "Tulang Bawang Barat"
+        "Tulang Bawang",
+        "Tulang Bawang Barat",
+        "Way Kanan",
+        "Kota Malang"
     ];
     select = document.getElementById('kota');
 

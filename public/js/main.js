@@ -241,7 +241,8 @@ function setKabOption() {
         "Tanggamus",
         "Tulang Bawang",
         "Tulang Bawang Barat",
-        "Way Kanan"
+        "Way Kanan",
+        "Kota Malang"
     ];
     select = document.getElementById('kota');
 
