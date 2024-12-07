@@ -4,12 +4,44 @@ var userEmail = [];
 var userInfo = null;
 // const thisMonth = new Date().getMonth();
 
-var tglMulaiPKL=thisMonth < 5 ? new Date(new Date().getFullYear(),0,1).toString(): new Date(new Date().getFullYear(),5,1).toString();
-var tglSelesaiPKL=new Date().toString();
-var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2022/4/15','2022/5/2','2022/5/3',
-                    '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
-                    '2022/5/16','2022/10/8','2022/12/25'];
-                    
+var tglMulaiPKL = thisMonth < 5 ? new Date(new Date().getFullYear(), 0, 1).toString() : new Date(new Date().getFullYear(), 5, 1).toString();
+var tglSelesaiPKL = new Date().toString();
+var tglLibur = ['2024/2/1', '2024/2/8', '2024/2/10', '2024/3/11', '2024/3/29',
+    '2024/5/1', '2024/5/23', '2024/6/1',
+    '2024/6/17', '2024/7/7', '2024/8/17',
+    '2024/9/16', '2024/12/25'];
+var tglLibur2025 = [
+    "2025/1/1",  // Tahun Baru Masehi
+    "2025/1/27", // Isra Mi'raj
+    "2025/1/29", // Tahun Baru Imlek
+    "2025/3/29", // Hari Suci Nyepi
+    "2025/3/31", // Hari Raya Idul Fitri
+    "2025/4/1",  // Hari Raya Idul Fitri
+    "2025/4/18", // Jumat Agung
+    "2025/4/20", // Kebangkitan Yesus Kristus (Paskah)
+    "2025/5/1",  // Hari Buruh
+    "2025/5/12", // Hari Waisak
+    "2025/5/29", // Kenaikan Isa Almasih
+    "2025/6/1",  // Hari Lahir Pancasila
+    "2025/6/6",  // Hari Raya Idul Adha
+    "2025/6/27", // Tahun Baru Islam
+    "2025/8/17", // Hari Kemerdekaan Indonesia
+    "2025/9/5",  // Maulid Nabi Muhammad SAW
+    "2025/12/25",// Hari Natal
+    "2025/1/28", // Tahun Baru Imlek (Cuti Bersama)
+    "2025/3/28", // Hari Suci Nyepi (Cuti Bersama)
+    "2025/4/2",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/3",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/4",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/7",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/5/13", // Hari Raya Waisak 2569 BE (Cuti Bersama)
+    "2025/5/30", // Kenaikan Yesus Kristus (Cuti Bersama)
+    "2025/6/9",  // Idul Adha 1446 Hijriah (Cuti Bersama)
+    "2025/12/26" // Kelahiran Yesus Kristus (Cuti Bersama)
+];
+
+tglLibur = tglLibur.concat(tglLibur2025);
+
 var npm = findGetParameter('npm');
 
 var d = new Date();
@@ -271,7 +303,7 @@ function CreateTableFromJSON(data_all) {
     console.log(data_all);
     var arrHead = new Array();
     arrHead = ["tanggal", "Jam",
-        "Jarak","Catatan","Paraf Pem. Lapangan"
+        "Jarak", "Catatan", "Paraf Pem. Lapangan"
     ];
 
     // CREATE DYNAMIC TABLE.
@@ -287,10 +319,10 @@ function CreateTableFromJSON(data_all) {
         for (var j = 0; j < arrHead.length; j++) {
             var tabCell = tr.insertCell(-1);
             if (j == 0) {
-                let hari=["Minggu", "Senin", "Selasa","Rabu","Kamis","Jumat","Sabtu"];
-                let bulan=["Jan", "Feb", "Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+                let hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+                let bulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
                 let date = new Date(data_all[i].tanggal);
-                content = hari[date.getDay()]+", "+date.getDate()+" "+bulan[date.getMonth()]+" "+date.getFullYear();
+                content = hari[date.getDay()] + ", " + date.getDate() + " " + bulan[date.getMonth()] + " " + date.getFullYear();
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'NAMA') {
                 let content = data_all[i].nama;
@@ -299,13 +331,13 @@ function CreateTableFromJSON(data_all) {
                 let content = data_all[i].npm;
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'Jam') {
-                let content = "Masuk: "+printJam(data_all[i].jamMasuk);
-                    content += "<br>Pulang: "+ printJam(data_all[i].jamPulang);
-                    content += "<br>Durasi: "+ printDurasi(data_all[i].durasi.toFixed(2));
+                let content = "Masuk: " + printJam(data_all[i].jamMasuk);
+                content += "<br>Pulang: " + printJam(data_all[i].jamPulang);
+                content += "<br>Durasi: " + printDurasi(data_all[i].durasi.toFixed(2));
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'Jarak') {
-                let content = "Masuk: "+printJarak(data_all[i].jrkMasuk.toFixed(2));
-                content+="<br>Pulang: "+printJarak(data_all[i].jrkPulang.toFixed(2));
+                let content = "Masuk: " + printJarak(data_all[i].jrkMasuk.toFixed(2));
+                content += "<br>Pulang: " + printJarak(data_all[i].jrkPulang.toFixed(2));
                 tabCell.innerHTML = content;
             } else if (arrHead[j] == 'Catatan') {
                 let content = data_all[i].catatan;
@@ -425,7 +457,7 @@ function laporanHarian(arr, npm, tgl) {
         report.durasi = 0;
         report.jrkMasuk = 0;
         report.jrkPulang = 0;
-        report.catatan="Tidak Hadir";
+        report.catatan = "Tidak Hadir";
     } else if (dataKehadiran.length == 1) {
         let t1 = new Date(dataKehadiran[0].waktu).getFullYear();
         let t2 = new Date(dataKehadiran[0].waktu).getMonth();
@@ -433,14 +465,14 @@ function laporanHarian(arr, npm, tgl) {
         let t4 = new Date(dataKehadiran[0].waktu).getHours();
         let t5 = new Date(dataKehadiran[0].waktu).getMinutes();
         let tt = t4 * 100 + t5
-        report.catatan=dataKehadiran[0].catatan;
+        report.catatan = dataKehadiran[0].catatan;
         if (tt < 1200) {
             report.jamMasuk = dataKehadiran[0].waktu;
             report.jamPulang = new Date(t1, t2, t3, 13, t5).getTime();
             report.jrkMasuk = parseFloat(dataKehadiran[0].jarak);
             report.jrkPulang = report.jrkMasuk;
             report.durasi = diff(report.jamPulang, report.jamMasuk);
-            
+
         } else {
             report.jamMasuk = new Date(t1, t2, t3, 11, t5).getTime();
             report.jamPulang = dataKehadiran[0].waktu;
@@ -455,15 +487,47 @@ function laporanHarian(arr, npm, tgl) {
         report.jrkMasuk = parseFloat(dataKehadiran[0].jarak);
         report.jrkPulang = parseFloat(dataKehadiran[1].jarak);
         // console.log(dataKehadiran);
-        report.catatan="<strong>Rencana:</strong> "+dataKehadiran[0].catatan+"<p><br><strong>Realisasi:</strong> "+dataKehadiran[dataKehadiran.length - 1].catatan;
+        report.catatan = "<strong>Rencana:</strong> " + dataKehadiran[0].catatan + "<p><br><strong>Realisasi:</strong> " + dataKehadiran[dataKehadiran.length - 1].catatan;
     }
     return report;
 }
 
 function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, minggu = false, libur = false) {
-    var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2023/4/15','2022/5/2','2022/5/3',
-                    '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
-                    '2022/5/16','2022/10/8','2022/12/25'];
+    var tglLibur = ['2024/2/1', '2024/2/8', '2024/2/10', '2024/3/11', '2024/3/29',
+        '2024/5/1', '2024/5/23', '2024/6/1',
+        '2024/6/17', '2024/7/7', '2024/8/17',
+        '2024/9/16', '2024/12/25'];
+    var tglLibur2025 = [
+        "2025/1/1",  // Tahun Baru Masehi
+        "2025/1/27", // Isra Mi'raj
+        "2025/1/29", // Tahun Baru Imlek
+        "2025/3/29", // Hari Suci Nyepi
+        "2025/3/31", // Hari Raya Idul Fitri
+        "2025/4/1",  // Hari Raya Idul Fitri
+        "2025/4/18", // Jumat Agung
+        "2025/4/20", // Kebangkitan Yesus Kristus (Paskah)
+        "2025/5/1",  // Hari Buruh
+        "2025/5/12", // Hari Waisak
+        "2025/5/29", // Kenaikan Isa Almasih
+        "2025/6/1",  // Hari Lahir Pancasila
+        "2025/6/6",  // Hari Raya Idul Adha
+        "2025/6/27", // Tahun Baru Islam
+        "2025/8/17", // Hari Kemerdekaan Indonesia
+        "2025/9/5",  // Maulid Nabi Muhammad SAW
+        "2025/12/25",// Hari Natal
+        "2025/1/28", // Tahun Baru Imlek (Cuti Bersama)
+        "2025/3/28", // Hari Suci Nyepi (Cuti Bersama)
+        "2025/4/2",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+        "2025/4/3",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+        "2025/4/4",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+        "2025/4/7",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+        "2025/5/13", // Hari Raya Waisak 2569 BE (Cuti Bersama)
+        "2025/5/30", // Kenaikan Yesus Kristus (Cuti Bersama)
+        "2025/6/9",  // Idul Adha 1446 Hijriah (Cuti Bersama)
+        "2025/12/26" // Kelahiran Yesus Kristus (Cuti Bersama)
+    ];
+
+    tglLibur = tglLibur.concat(tglLibur2025);
     let rekap = [];
     let end = null;
     let start = new Date(tglMulai).getTime();

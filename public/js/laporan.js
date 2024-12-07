@@ -6,10 +6,41 @@ var userEmail = [];
 
 var tglMulaiPKL=thisMonth < 5 ? new Date(new Date().getFullYear(),0,1).toString(): new Date(new Date().getFullYear(),5,1).toString();
 var tglSelesaiPKL=new Date().toString();
-var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2022/4/15','2022/5/2','2022/5/3',
-                    '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
-                    '2022/5/16','2022/10/8','2022/12/25'];
+var tglLibur = ['2024/2/1', '2024/2/8', '2024/2/10', '2024/3/11', '2024/3/29',
+    '2024/5/1', '2024/5/23', '2024/6/1',
+    '2024/6/17', '2024/7/7', '2024/8/17',
+    '2024/9/16', '2024/12/25'];
+var tglLibur2025 = [
+    "2025/1/1",  // Tahun Baru Masehi
+    "2025/1/27", // Isra Mi'raj
+    "2025/1/29", // Tahun Baru Imlek
+    "2025/3/29", // Hari Suci Nyepi
+    "2025/3/31", // Hari Raya Idul Fitri
+    "2025/4/1",  // Hari Raya Idul Fitri
+    "2025/4/18", // Jumat Agung
+    "2025/4/20", // Kebangkitan Yesus Kristus (Paskah)
+    "2025/5/1",  // Hari Buruh
+    "2025/5/12", // Hari Waisak
+    "2025/5/29", // Kenaikan Isa Almasih
+    "2025/6/1",  // Hari Lahir Pancasila
+    "2025/6/6",  // Hari Raya Idul Adha
+    "2025/6/27", // Tahun Baru Islam
+    "2025/8/17", // Hari Kemerdekaan Indonesia
+    "2025/9/5",  // Maulid Nabi Muhammad SAW
+    "2025/12/25",// Hari Natal
+    "2025/1/28", // Tahun Baru Imlek (Cuti Bersama)
+    "2025/3/28", // Hari Suci Nyepi (Cuti Bersama)
+    "2025/4/2",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/3",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/4",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/7",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/5/13", // Hari Raya Waisak 2569 BE (Cuti Bersama)
+    "2025/5/30", // Kenaikan Yesus Kristus (Cuti Bersama)
+    "2025/6/9",  // Idul Adha 1446 Hijriah (Cuti Bersama)
+    "2025/12/26" // Kelahiran Yesus Kristus (Cuti Bersama)
+];
 
+tglLibur = tglLibur.concat(tglLibur2025);
 var npm = findGetParameter('npm');
 
 var d = new Date();
@@ -454,9 +485,42 @@ function laporanHarian(arr, npm, tgl) {
 }
 
 function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, minggu = false, libur = false) {
-    var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2023/4/15','2022/5/2','2022/5/3',
-                    '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
-                    '2022/5/16','2022/10/8','2022/12/25'];
+    var tglLibur = ['2024/2/1', '2024/2/8', '2024/2/10', '2024/3/11', '2024/3/29',
+        '2024/5/1', '2024/5/23', '2024/6/1',
+        '2024/6/17', '2024/7/7', '2024/8/17',
+        '2024/9/16', '2024/12/25'];
+    var tglLibur2025 = [
+        "2025/1/1",  // Tahun Baru Masehi
+        "2025/1/27", // Isra Mi'raj
+        "2025/1/29", // Tahun Baru Imlek
+        "2025/3/29", // Hari Suci Nyepi
+        "2025/3/31", // Hari Raya Idul Fitri
+        "2025/4/1",  // Hari Raya Idul Fitri
+        "2025/4/18", // Jumat Agung
+        "2025/4/20", // Kebangkitan Yesus Kristus (Paskah)
+        "2025/5/1",  // Hari Buruh
+        "2025/5/12", // Hari Waisak
+        "2025/5/29", // Kenaikan Isa Almasih
+        "2025/6/1",  // Hari Lahir Pancasila
+        "2025/6/6",  // Hari Raya Idul Adha
+        "2025/6/27", // Tahun Baru Islam
+        "2025/8/17", // Hari Kemerdekaan Indonesia
+        "2025/9/5",  // Maulid Nabi Muhammad SAW
+        "2025/12/25",// Hari Natal
+        "2025/1/28", // Tahun Baru Imlek (Cuti Bersama)
+        "2025/3/28", // Hari Suci Nyepi (Cuti Bersama)
+        "2025/4/2",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+        "2025/4/3",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+        "2025/4/4",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+        "2025/4/7",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+        "2025/5/13", // Hari Raya Waisak 2569 BE (Cuti Bersama)
+        "2025/5/30", // Kenaikan Yesus Kristus (Cuti Bersama)
+        "2025/6/9",  // Idul Adha 1446 Hijriah (Cuti Bersama)
+        "2025/12/26" // Kelahiran Yesus Kristus (Cuti Bersama)
+    ];
+
+    tglLibur = tglLibur.concat(tglLibur2025);
+      
     let rekap = [];
     let end = null;
     let start = new Date(tglMulai).getTime();
