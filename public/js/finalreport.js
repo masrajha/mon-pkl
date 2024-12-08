@@ -3,11 +3,43 @@ var userData = [];
 var userEmail = [];
 // var thisMonth = new Date().getMonth();
 
-var tglMulaiPKL=thisMonth < 5 ? new Date(new Date().getFullYear(),0,1).toString(): new Date(new Date().getFullYear(),5,1).toString();
-var tglSelesaiPKL=new Date().toString();
-var tglLibur = ['2022/2/1','2022/2/28','2022/3/3','2022/4/15','2022/5/2','2022/5/3',
-                    '2022/5/16','2022/5/26','2022/6/1','2022/7/9','2022/7/30','2022/8/17',
-                    '2022/5/16','2022/10/8','2022/12/25'];
+var tglMulaiPKL = thisMonth < 5 ? new Date(new Date().getFullYear(), 0, 1).toString() : new Date(new Date().getFullYear(), 5, 1).toString();
+var tglSelesaiPKL = new Date().toString();
+var tglLibur = ['2024/2/1', '2024/2/8', '2024/2/10', '2024/3/11', '2024/3/29',
+    '2024/5/1', '2024/5/23', '2024/6/1',
+    '2024/6/17', '2024/7/7', '2024/8/17',
+    '2024/9/16', '2024/12/25'];
+var tglLibur2025 = [
+    "2025/1/1",  // Tahun Baru Masehi
+    "2025/1/27", // Isra Mi'raj
+    "2025/1/29", // Tahun Baru Imlek
+    "2025/3/29", // Hari Suci Nyepi
+    "2025/3/31", // Hari Raya Idul Fitri
+    "2025/4/1",  // Hari Raya Idul Fitri
+    "2025/4/18", // Jumat Agung
+    "2025/4/20", // Kebangkitan Yesus Kristus (Paskah)
+    "2025/5/1",  // Hari Buruh
+    "2025/5/12", // Hari Waisak
+    "2025/5/29", // Kenaikan Isa Almasih
+    "2025/6/1",  // Hari Lahir Pancasila
+    "2025/6/6",  // Hari Raya Idul Adha
+    "2025/6/27", // Tahun Baru Islam
+    "2025/8/17", // Hari Kemerdekaan Indonesia
+    "2025/9/5",  // Maulid Nabi Muhammad SAW
+    "2025/12/25",// Hari Natal
+    "2025/1/28", // Tahun Baru Imlek (Cuti Bersama)
+    "2025/3/28", // Hari Suci Nyepi (Cuti Bersama)
+    "2025/4/2",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/3",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/4",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/4/7",  // Idul Fitri 1446 Hijriah (Cuti Bersama)
+    "2025/5/13", // Hari Raya Waisak 2569 BE (Cuti Bersama)
+    "2025/5/30", // Kenaikan Yesus Kristus (Cuti Bersama)
+    "2025/6/9",  // Idul Adha 1446 Hijriah (Cuti Bersama)
+    "2025/12/26" // Kelahiran Yesus Kristus (Cuti Bersama)
+];
+
+tglLibur = tglLibur.concat(tglLibur2025);
 
 var d = new Date();
 var start = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -60,7 +92,7 @@ function gotData(data) {
     // var isPrivate = (currentUser != null && currentUser.email != 'didikunila@gmail.com'); //for admin
     var isPrivate = null; //admin mode off
     if (currentUser != null)
-        data.forEach(function(item) {
+        data.forEach(function (item) {
             // console.log(item.val().geometry, item.val().properties);
             //panggil fungsi pushData disini
             if (isPrivate) {
@@ -91,7 +123,7 @@ function gotData(data) {
 
 function createReportAll(dataEmail, userData, start, end = 'now', sabtu = false, minggu = false, libur = false) {
     var allreport = [];
-    dataEmail.forEach(function(elm) {
+    dataEmail.forEach(function (elm) {
         if (elm) {
             var dataPKL = laporanMhs(userData, elm, start, end, sabtu, minggu, libur);
             var resume = resumeMhs(dataPKL);
@@ -146,7 +178,7 @@ function addRow(divResume, key, val) {
 }
 
 function filterTgl(tgl) {
-    return function(element) {
+    return function (element) {
         var date = new Date(element.data.tanggal);
         var y = date.getFullYear();
         var m = date.getMonth();
@@ -225,7 +257,7 @@ function pushData(item, fitur, userData) {
         userData[i].data.push(data);
         if (userData[i].npm.length !== 10 && item.val().properties.npm.length === 10)
             userData[i].npm = item.val().properties.npm;
-        if (userData[i].instansi !== item.val().properties.instansi && item.val().properties.instansi.length>0)
+        if (userData[i].instansi !== item.val().properties.instansi && item.val().properties.instansi.length > 0)
             userData[i].instansi = item.val().properties.instansi;
     }
     // console.log(item.key);
@@ -245,7 +277,7 @@ function CreateTableFromJSON(data_all) {
     for (var i = 0; i < data_all.length; i++) {
         tr = table.insertRow(-1);
         for (var j = 0; j < arrHead.length; j++) {
-            if (data_all[i].jmlHari<1) continue;
+            if (data_all[i].jmlHari < 1) continue;
             var tabCell = tr.insertCell(-1);
             if (j == 0) {
                 content = '<img src="' + data_all[i].photoURL + '" width=50 height=50>';
@@ -294,23 +326,23 @@ function CreateTableFromJSON(data_all) {
     var divContainer = document.getElementById("data-table");
     divContainer.innerHTML = "";
     divContainer.appendChild(table);
-    jQuery(function($) {
+    jQuery(function ($) {
         $('#table_1').removeAttr('width').DataTable({
             scrollX: false,
             scrollCollapse: true,
             paging: false,
             columnDefs: [{
-                    width: 200,
-                    targets: 9
-                },
-                {
-                    width: 200,
-                    targets: 8
-                },
-                {
-                    width: 20,
-                    targets: 3
-                }
+                width: 200,
+                targets: 9
+            },
+            {
+                width: 200,
+                targets: 8
+            },
+            {
+                width: 20,
+                targets: 3
+            }
             ],
             dom: 'Bfrtip',
             buttons: [
@@ -368,7 +400,7 @@ function diff(start, end) {
 }
 
 function filterUser(cari) {
-    return function(element) {
+    return function (element) {
         return (cari === element.npm || cari === element.email || cari === element.uid);
     }
 }
@@ -386,7 +418,7 @@ function laporanHarian(arr, npm, tgl) {
     report.photoURL = dataUser[0].photoURL;
     report.instansi = dataUser[0].instansi;
     // console.log(data);
-    dataKehadiran = data.filter(function(elm) {
+    dataKehadiran = data.filter(function (elm) {
         return (new Date(elm.tanggal).getTime() == new Date(tgl).getTime());
     });
     if (dataKehadiran.length == 0) {
@@ -442,13 +474,13 @@ function laporanMhs(arr, npm, tglMulai, tglSelesai = 'now', sabtu = false, mingg
             if (d.getDay() == 0)
                 continue;
 
-            // console.log(d);
+        // console.log(d);
         let hari = d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
         if (!libur)
             if (tglLibur.indexOf(hari) > -1)
                 continue;
-            // console.log(npm, hari);
-            // console.log();
+        // console.log(npm, hari);
+        // console.log();
         rekap.push(laporanHarian(arr, npm, hari));
     }
     return rekap;
@@ -484,7 +516,7 @@ function chartMhs(rekapMhs, div, kriteria = 'waktu') {
                 ['0', 0, 0]
             ])
         } else {
-            rekapMhs.forEach(function(elm) {
+            rekapMhs.forEach(function (elm) {
                 if (kriteria == 'waktu') {
                     title = 'Jam Masuk dan Jam Pulang';
                     subtitle = 'Dalam Jam';
@@ -544,7 +576,7 @@ function resumeMhs(data) {
         durasi = 0,
         jarak = 0;
     jml0 = 0;
-    data.forEach(function(elm) {
+    data.forEach(function (elm) {
         if (elm.jamMasuk != 0) {
             var d = new Date(elm.jamMasuk);
             var masuk = d.getHours() * 60 * 60 + d.getMinutes() * 60 + d.getSeconds();
@@ -623,20 +655,20 @@ function printJarak(jarak, format = null) {
     content += '</span>';
     return content;
 }
-function printDropdown(text){
-    let content='<div class="dropdown">';
-    content+='<span>'+text+'</span>';
-    content+='<div class="dropdown-content">';
-    content+=  '<p><a href="laporan.html?npm='+text+'">Laporan</p>';
-    content+=  '<p><a href="catatan-harian.html?npm='+text+'">Catatan Harian</p>';
-    content+='</div>';
-    content+='</div>';
+function printDropdown(text) {
+    let content = '<div class="dropdown">';
+    content += '<span>' + text + '</span>';
+    content += '<div class="dropdown-content">';
+    content += '<p><a href="laporan.html?npm=' + text + '">Laporan</p>';
+    content += '<p><a href="catatan-harian.html?npm=' + text + '">Catatan Harian</p>';
+    content += '</div>';
+    content += '</div>';
     return content;
 }
-Array.prototype.max = function() {
+Array.prototype.max = function () {
     return Math.max.apply(null, this);
 };
 
-Array.prototype.min = function() {
+Array.prototype.min = function () {
     return Math.min.apply(null, this);
 };

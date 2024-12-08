@@ -26,7 +26,7 @@ function login() {
             app(user);
         } else {
             var provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithRedirect(provider);
+            firebase.auth().signInWithPopup(provider);
         }
     }
     firebase.auth().onAuthStateChanged(newLoginHappened);
