@@ -84,7 +84,7 @@ function getData(data) {
             info = 'Data tidak tersedia.';
         }
 
-       
+
         loc = {
             lat: lat,
             lng: lng
@@ -93,7 +93,7 @@ function getData(data) {
         if (datamarker.val().properties.visited == 1)
             img = 'images/placeholder-visited.png';
 
-        console.log(loc,info,img);
+        console.log(loc, info, img);
         markers.push(createMarker(loc, info, img));
     });
     // console.log(fitur[1].geometry);
@@ -171,14 +171,18 @@ function setValue(id, val) {
 }
 
 function sendWhatsapp(number) {
-    var img = '<img src="images/whatsapp.png">';
-    if (number.substring(0, 1) == '0')
-        return '<a href=https://api.whatsapp.com/send?phone=62' + number.substring(1) + '>' + img + '</a>';
-    if (number.substring(0, 1) == '8')
-        return '<a href=https://api.whatsapp.com/send?phone=62' + number.substring(0) + '>' + img + '</a>';
-    if (number.substring(0, 1) == '+')
-        return '<a href=https://api.whatsapp.com/send?phone=' + number.substring(1) + '>' + img + '</a>';
-    return '<a href=https://api.whatsapp.com/send?phone=' + number.substring(0) + '>' + img + '</a>';
+    if (number) {
+        var img = '<img src="images/whatsapp.png">';
+        if (number.substring(0, 1) == '0')
+            return '<a href=https://api.whatsapp.com/send?phone=62' + number.substring(1) + '>' + img + '</a>';
+        if (number.substring(0, 1) == '8')
+            return '<a href=https://api.whatsapp.com/send?phone=62' + number.substring(0) + '>' + img + '</a>';
+        if (number.substring(0, 1) == '+')
+            return '<a href=https://api.whatsapp.com/send?phone=' + number.substring(1) + '>' + img + '</a>';
+        return '<a href=https://api.whatsapp.com/send?phone=' + number.substring(0) + '>' + img + '</a>';
+    }
+    return '<img src="images/whatsapp.png" alt="Not Available" style="filter: grayscale(100%);">';
+
 }
 
 function call(number) {
