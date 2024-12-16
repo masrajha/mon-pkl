@@ -76,7 +76,6 @@ function showError(err) {
     }, 3000);
 }
 
-
 //Map preparing
 var map = null;
 var center = {
