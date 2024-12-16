@@ -233,6 +233,7 @@ function setKabOption() {
         "Kota Malang",
         "Lampung Selatan",
         "Lampung Tengah",
+        "Lampung Timur",
         "Metro",
         "Painan",
         "Palembang",

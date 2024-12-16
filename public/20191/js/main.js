@@ -236,6 +236,7 @@ function setKabOption() {
         "Kotabumi",
         "Lampung Selatan",
         "Lampung Tengah",
+        "Lampung Timur",
         "Metro",
         "Painan",
         "Palembang",
