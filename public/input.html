@@ -11,14 +11,17 @@
     <script src="js/popper.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.css" />
+
+
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="index.html">PKL ILKOM UNILA</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                  <span class="navbar-toggler-icon"></span>
-                </button>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
@@ -38,9 +41,10 @@
                     <a class="nav-link" href="#">Data Monitoring</a>
                 </li> -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Monitoring
-                          </a>
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Monitoring
+                    </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" href="monitoringmap.html">Peta Mahasiswa</a>
                         <a class="dropdown-item" href="monitoring.html">List Data</a>
@@ -68,7 +72,7 @@
                 <div id="client" class="col-md-6">
                     <div class="btn white darken-4 col s10 m4">
                         <a href="#" class="google btn" onclick="login()"> <i class="fa fa-google"></i> Login with Google
-                              </a>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -178,11 +182,13 @@
     </div>
 
 </body>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVwjOtUg2BF4kW4DVb9fHysNXV7UgyRrM&callback=initMap"></script>
+
 <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
-<script src="js/auth.js"></script>
 <script src="js/markerclusterer.js"></script>
+<script src="js/currentlocation.js"></script> <!-- Pastikan ini dimuat sebelum main.js -->
 <script src="js/main.js"></script>
-<script src="js/currentlocation.js"></script>
+<script src="js/auth.js"></script>
+<script defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBVwjOtUg2BF4kW4DVb9fHysNXV7UgyRrM&callback=initMap"></script>
 
 </html>

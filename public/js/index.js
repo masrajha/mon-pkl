@@ -30,23 +30,61 @@ function getData(data) {
         // console.log(datamarker.val());
         lat = parseFloat(datamarker.val().geometry.coordinates[1]);
         lng = parseFloat(datamarker.val().geometry.coordinates[0]);
-        info = '<h3>' + datamarker.val().properties.instansi + '</h3><br>';
-        info += datamarker.val().properties.alamat + '<br>';
-        info += '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z"><img src="images/direction.png"></a><br>'
-        info += 'Pembimbing : ' + datamarker.val().properties.pemb_lap;
-        if (datamarker.val().properties.pemb_hp) {
-            info += ' ' + sendWhatsapp(datamarker.val().properties.pemb_hp) +
-                ' ' + call(datamarker.val().properties.pemb_hp) + '<br>';
-        }
-        if (datamarker.val().properties.mhs) {
-            info += 'Jumlah mhs : ' + datamarker.val().properties.mhs.length + '<br>';
-            if (datamarker.val().properties.mhs[0].nama) {
-                info += 'Contact mhs : ' + datamarker.val().properties.mhs[0].nama +
-                    ' ' + sendWhatsapp(datamarker.val().properties.hp_mhs) +
-                    ' ' + call(datamarker.val().properties.hp_mhs) + '<br>';
+        // info = '<h3>' + datamarker.val().properties.instansi + '</h3><br>';
+        // info += datamarker.val().properties.alamat + '<br>';
+        // info += '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z"><img src="images/direction.png"></a><br>'
+        // info += 'Pembimbing : ' + datamarker.val().properties.pemb_lap;
+        // if (datamarker.val().properties.pemb_hp) {
+        //     info += ' ' + sendWhatsapp(datamarker.val().properties.pemb_hp) +
+        //         ' ' + call(datamarker.val().properties.pemb_hp) + '<br>';
+        // }
+        // if (datamarker.val().properties.mhs) {
+        //     info += 'Jumlah mhs : ' + datamarker.val().properties.mhs.length + '<br>';
+        //     if (datamarker.val().properties.mhs[0].nama) {
+        //         info += 'Contact mhs : ' + datamarker.val().properties.mhs[0].nama +
+        //             ' ' + sendWhatsapp(datamarker.val().properties.hp_mhs) +
+        //             ' ' + call(datamarker.val().properties.hp_mhs) + '<br>';
+        //     }
+        // }
+
+        let info = '';
+        if (datamarker && datamarker.val() && datamarker.val().properties) {
+            let properties = datamarker.val().properties;
+
+            // Pastikan setiap key memiliki nilai default
+            let instansi = properties.instansi || 'Instansi tidak tersedia';
+            let alamat = properties.alamat || 'Alamat tidak tersedia';
+            let pemb_lap = properties.pemb_lap || 'Pembimbing tidak tersedia';
+            let pemb_hp = properties.pemb_hp || null;
+            let mhs = properties.mhs || [];
+            let hp_mhs = properties.hp_mhs || null;
+
+            // Latitude dan longitude juga harus didefinisikan
+            let lat = datamarker.val().lat || '0';
+            let lng = datamarker.val().lng || '0';
+
+            info += '<h3>' + instansi + '</h3><br>';
+            info += alamat + '<br>';
+            info += '<a target="_blank" href="https://www.google.com/maps/place/' + lat + '+' + lng + '/@' + lat + ',' + lng + ',15z"><img src="images/direction.png"></a><br>';
+            info += 'Pembimbing : ' + pemb_lap + '<br>';
+
+            // Tambahkan kontak pembimbing jika ada
+            if (pemb_hp) {
+                info += sendWhatsapp(pemb_hp) + ' ' + call(pemb_hp) + '<br>';
             }
+
+            // Jumlah mahasiswa dan kontak mahasiswa jika ada
+            if (mhs.length > 0) {
+                info += 'Jumlah mhs : ' + mhs.length + '<br>';
+                if (mhs[0].nama) {
+                    info += 'Contact mhs : ' + mhs[0].nama + ' ' + sendWhatsapp(hp_mhs) + ' ' + call(hp_mhs) + '<br>';
+                }
+            }
+        } else {
+            info = 'Data tidak tersedia.';
         }
-        // console.log(datamarker.key);
+
+       
         loc = {
             lat: lat,
             lng: lng
@@ -54,6 +92,8 @@ function getData(data) {
         var img = 'images/placeholder.png';
         if (datamarker.val().properties.visited == 1)
             img = 'images/placeholder-visited.png';
+
+        console.log(loc,info,img);
         markers.push(createMarker(loc, info, img));
     });
     // console.log(fitur[1].geometry);

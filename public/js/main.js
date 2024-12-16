@@ -9,7 +9,7 @@ console.log(geoJSON);
 
 function getData(data) {
     var markers = [];
-    data.forEach(function(datamarker) {
+    data.forEach(function (datamarker) {
         // console.log(datamarker.val().geometry, datamarker.val().properties);
         features.push(datamarker.val());
         // console.log(datamarker.val());
@@ -59,7 +59,7 @@ function showError(err) {
     document.querySelector('.alert').style.display = 'block';
     document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
     document.querySelector('.alert').style.background = 'red';
-    setTimeout(function() {
+    setTimeout(function () {
         document.querySelector('.alert').style.display = 'none';
     }, 3000);
 }
@@ -73,41 +73,42 @@ var center = {
 };
 
 function initMap() {
-    document.getElementById("save").disabled = true;
-    setKabOption();
-    let cl = new CurrentLocation();
-    cl.getLocation();
-    // console.log(coords);
-    map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 17
-    });
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-            map.setCenter(initialLocation);
-            marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
-            marker.setMap(map);
+        console.log('initMap dipanggil');
+        document.getElementById("save").disabled = true;
+        setKabOption();
+        let cl = new CurrentLocation();
+        cl.getLocation();
+        // console.log(coords);
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 17
+        });
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                map.setCenter(initialLocation);
+                marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
+                marker.setMap(map);
+            });
+        }
+        // console.log(map);
+        // marker = createMarker(center, '<h3>Jurusan Ilmu Komputer</h3><hr>' +
+        //     '<p><a href="http://ilkom.unila.ac.id" target="blank">http://ilkom.unila.ac.id</a>');
+        // marker.setMap(map);
+        google.maps.event.addListener(map, "click", function (e) {
+            // //lat and lng is available in e object
+            var latLng = e.latLng;
+            marker.setPosition(latLng);
+            // // console.log(marker.getPosition().lat());
+            setValue('lat', latLng.lat());
+            setValue('lng', latLng.lng());
+            /* -----------PENTING SEKALI ------------- */
+            document.getElementById("save").disabled = false; //dibuat false agar dapat berfungsi
+
+            // createMarker(e.latLng);
+            // coord={lat:latLng.lat(),lng:latLng.lng()};
+            // saveData(coord);
         });
     }
-    // console.log(map);
-    // marker = createMarker(center, '<h3>Jurusan Ilmu Komputer</h3><hr>' +
-    //     '<p><a href="http://ilkom.unila.ac.id" target="blank">http://ilkom.unila.ac.id</a>');
-    // marker.setMap(map);
-    google.maps.event.addListener(map, "click", function(e) {
-        // //lat and lng is available in e object
-        var latLng = e.latLng;
-        marker.setPosition(latLng);
-        // // console.log(marker.getPosition().lat());
-        setValue('lat', latLng.lat());
-        setValue('lng', latLng.lng());
-        /* -----------PENTING SEKALI ------------- */
-            document.getElementById("save").disabled = false; //dibuat false agar dapat berfungsi
-       
-       // createMarker(e.latLng);
-        // coord={lat:latLng.lat(),lng:latLng.lng()};
-        // saveData(coord);
-    });
-}
 
 function createMarker(coords, contentString = null, imageIcon = null) {
     // var marker=new google.maps.Marker({position:coords,map:map});
@@ -118,7 +119,7 @@ function createMarker(coords, contentString = null, imageIcon = null) {
     if (contentString) {
         var infowindow = new google.maps.InfoWindow();
         infowindow.setContent(contentString);
-        marker.addListener('click', function() {
+        marker.addListener('click', function () {
             infowindow.open(map, marker);
         });
     }
@@ -130,7 +131,7 @@ function setValue(id, val) {
     document.getElementById(id).value = val;
 }
 
-document.getElementById("save").addEventListener("click", function() {
+document.getElementById("save").addEventListener("click", function () {
     // console.log("save click");
     lat = parseFloat(document.getElementById('lat').value);
     lng = parseFloat(document.getElementById('lng').value);
@@ -196,19 +197,19 @@ function saveData(coord, info = null, imageIcon = null) {
             type: 'Point'
         },
         properties: info
-    }, function(error) {
+    }, function (error) {
         if (error) {
             document.querySelector('.alert').style.display = 'block';
             document.getElementById("alert").innerHTML = "Gagal Menyimpan Data";
             document.querySelector('.alert').style.background = 'red';
-            setTimeout(function() {
+            setTimeout(function () {
                 document.querySelector('.alert').style.display = 'none';
             }, 3000);
         } else {
             document.getElementById("save").disabled = true;
             document.querySelector('.alert').style.display = 'block';
             document.getElementById("alert").innerHTML = "Data Disimpan ke Firebase";
-            setTimeout(function() {
+            setTimeout(function () {
                 document.querySelector('.alert').style.display = 'none';
             }, 3000);
 

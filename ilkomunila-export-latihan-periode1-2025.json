@@ -1,0 +1,2123 @@
+{
+  "mon_pkl": {
+    "-ODUUySCu11OE7HO6tWl": {
+      "geometry": {
+        "coordinates": [
+          [
+            106.6407,
+            -6.1891
+          ],
+          [
+            105.24149380462235,
+            -5.3627207121202405
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Hari ini sedang mengikuti pembekalan PKL di Gedung Ilmu Komputer ",
+        "device": {
+          "appVersion": "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Windows",
+          "osVersion": 10,
+          "platform": "Win32",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051030_20241207_Pulang%20Cepat_3.png?alt=media&token=a55e34c7-0c9b-43ae-8ad7-bb439533eb71",
+        "instansi": "UPA TIK Universitas Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "M. Abdul Adhim",
+        "npm": "2217051030",
+        "time": 1733547776844,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "MabduL",
+          "email": "madhimsgc@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIb8vRjVxYYjHHjxGUqNDmR9G1A9DxayFFVxEmxhMtwZ2aHz2ZE=s96-c",
+          "uid": "KCuChBAeWPYK7ESPO8wfgNCh68W2"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUUz9ralzHFfxyvKfC": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448285,
+            -5.3672005
+          ],
+          [
+            105.27357369661331,
+            -5.428345757192581
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Hari ini Sedang Mengikuti pembekalan di gedung ilmu komputer",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051055_20241207_Pulang%20Cepat_63.png?alt=media&token=aa718b75-c94d-4ce8-8228-0e7a5ea6af5b",
+        "instansi": "Badan Pusat Statistik Kota Bandar Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "Mukti Prabowo",
+        "npm": "2217051055",
+        "time": 1733547782667,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Mukti Prabowo",
+          "email": "muktiprab65@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKXzZhAoc40dkAJt1Sl0c3ZlfDeu3OPhEZtbTJOUBBt3UGqRKc3=s96-c",
+          "uid": "QHtId53uTreHs511gaU8JoKtT7F3"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUVHBO3DF7Uh1NvQXO": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448989,
+            -5.3671668
+          ],
+          [
+            105.27357369661331,
+            -5.428345757192581
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Hari ini sedang mengikuti pembekalan di gedung ilmu komputer",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051123_20241207_Pulang%20Cepat_68.png?alt=media&token=71a83d96-c5d6-4906-8801-c136599ce98f",
+        "instansi": "UPA TIK Universitas Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "Muhammad Faruq Arkaan",
+        "npm": "2217051123",
+        "time": 1733547860882,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Muhammad Faruq Arkaan",
+          "email": "muhammadfaruqarkaan16@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJhFG_Q6oE5Xbh2TofQGqnsLfZ_QKK9gwBEvctaf-643S5QXv7f=s96-c",
+          "uid": "fyY3M4g9AOcuqjOKyqudXQ3q9wB3"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUVI2BX-W9Hk5wRDSP": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448687,
+            -5.3672387
+          ],
+          [
+            105.24149380462235,
+            -5.3627207121202405
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Mengikuti pembekalan , hari sabtu 7 desember 2024.",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051015_20241207_Pulang%20Cepat_99.png?alt=media&token=aa415b5b-3a5c-4a38-857c-bc414ab00e7f",
+        "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+        "keterangan": "Pulang Cepat",
+        "nama": "Dede juniar putra",
+        "npm": "2217051015",
+        "time": 1733547863790,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Dede juniar putra",
+          "email": "dedejuniarputra99@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKx-yME3Xw3dA3bWSHBqLJYK8TjtMt6oIrBDgX3CYnlsb2AZhE3=s96-c",
+          "uid": "U8HKNbgqI3XIYTxFBTUsIU5g6K22"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUVRJneOp4N1lhJ8LU": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.24487,
+            -5.3671603
+          ],
+          [
+            105.27357369661331,
+            -5.428345757192581
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Hari ini saya datang ke gik untuk menghadiri kerja praktik dan mbkm tahun 2025 jurusan ilmu komputer Fmipa unila. Pada hari ini ada 3 materi dan ketiganya untuk mempersiapkan kami di msib dan kp pkl. Hari ini di gedung ilmu komputer fmipa L1 C. ",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 126,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051014_20241207_Pulang%20Cepat_6.png?alt=media&token=cd41a6b1-aae8-4dd7-aeaf-2afbe07bce68",
+        "instansi": "Badan Pusat Statistik Kota Bandar Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "Moza Surya Putra ",
+        "npm": "2217051014",
+        "time": 1733547902039,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Moza Surya Putra 27",
+          "email": "mozasuryaputra@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLFJv7eZFf-Z1MAq3UABpBvcy_kUNHZHj3v6-1nbmzFfZUWDHs8=s96-c",
+          "uid": "iWrvYtL5Uehe9a0GTY9TP0IWIPR2"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUVj0QXdz1niPF8pq7": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2449119,
+            -5.3671917
+          ],
+          [
+            105.27357369661331,
+            -5.428345757192581
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Sedang mengikuti kegiatan pembekalan KP/PKL Tahun 2025 di gedung ilmu komputer pada tanggal 7 Desember 2024",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051072_20241207_Pulang%20Cepat_56.png?alt=media&token=730f53c3-ff9e-4131-8735-114a12f0fb32",
+        "instansi": "Badan Pusat Statistik Kota Bandar Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "Muhammad Ritski Wira Akbar",
+        "npm": "2217051072",
+        "time": 1733547977180,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Muhammad Ritski Wira Akbar",
+          "email": "kiki.ritsky04@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIkSVJdLPw_oDY-ocIjWDrapyUzWzT4vuhZ0IV6rpMfX1LQguSG=s96-c",
+          "uid": "a8gOw50xSHSyucLvx4PPh2iwyve2"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUVnz737fABZ_9LSgb": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.24473104754594,
+            -5.367196352441573
+          ],
+          [
+            105.2440363,
+            -5.3671403
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "pembekalan kp/pkl dan mbkm tahun 2025.jurusan ilmu komputer fmipa unila.\ndengan tema “mempersiapkan generasi yang kompeten,berkarakter,berintegritas,disiplin dan bertanggung jawab.",
+        "device": {
+          "appVersion": "5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1",
+          "browserName": "Safari",
+          "browserVersion": 17.6,
+          "osName": "iPhone",
+          "osVersion": 17.61,
+          "platform": "iPhone",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1",
+          "vendor": "Apple Computer, Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051045_20241207_Pulang%20Cepat_99.png?alt=media&token=b73ac962-d807-492e-944f-6f2149358761",
+        "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+        "keterangan": "Pulang Cepat",
+        "nama": "Dewi Intan Nabila",
+        "npm": "2217051045",
+        "time": 1733547999223,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "dewi intan nabila",
+          "email": "kimtaehyungintan@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIE5QdO7bcMBsoXb6az0ldNcZ4s3IYqYwWShciARIU59qAbNj0=s96-c",
+          "uid": "6zGfLF4pNncS0CRgfbQPNctxPFM2"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUW1YSwm8NmArpP1oB": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.244892,
+            -5.3672253
+          ],
+          [
+            105.2440363,
+            -5.3671403
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Mengikuti pembekalan kerja praktik di GIK L1C dengan penuh semangat",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2117051093_20241207_Pulang%20Cepat_28.png?alt=media&token=8c5c4cdf-1a81-4f4f-bd3c-1977dc443a48",
+        "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+        "keterangan": "Pulang Cepat",
+        "nama": "Yoel Marcel Siregar",
+        "npm": "2117051093",
+        "time": 1733548058926,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Yoel Marcel Siregar",
+          "email": "siregaryoel36@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJ9epb-yofPpbwRBiqqiwo71eNqNp7f9W9q3RaUqjTrmXd9qA=s96-c",
+          "uid": "3Pxk3I9vQIZaFMKtxA1baI5IlpZ2"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUW3d9Y3pynpO8F2fw": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448493,
+            -5.367214
+          ],
+          [
+            105.25818318128586,
+            -5.433383030849
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Sedang menghadiri kegiatan pembekalan Kerja Praktik dan MBKM tahun 2025 Jurusan Ilmu Komputer FMIPA UNILA",
+        "device": {
+          "appVersion": "5.0 (Linux; U; Android 11; en-gb; RMX2103 Build/RKQ1.201217.002) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.88 Mobile Safari/537.36 HeyTapBrowser/45.11.5.3",
+          "browserName": "Chrome",
+          "browserVersion": 91.0447288,
+          "osName": "Android",
+          "osVersion": 11,
+          "platform": "Linux aarch64",
+          "userAgent": "Mozilla/5.0 (Linux; U; Android 11; en-gb; RMX2103 Build/RKQ1.201217.002) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.88 Mobile Safari/537.36 HeyTapBrowser/45.11.5.3",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051039_20241207_Pulang%20Cepat_66.png?alt=media&token=02a67dde-fb8a-4b34-bf07-24a5d4e72fd4",
+        "instansi": "Dinas Perindustrian dan Perdagangan Provinsi Lampung ",
+        "keterangan": "Pulang Cepat",
+        "nama": "Haris Setiawan",
+        "npm": "2217051039",
+        "time": 1733548067466,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Haris Setiawan",
+          "email": "hs1329154@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocK479Cjz6Ljc9q4Of8iNnfKAVOezJ0isDacPUF__6hWkNaAnQ=s96-c",
+          "uid": "dZNsZYlJG5V3EzvIySbwnVr65ix1"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUW8GGKB2rKRIszLSS": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448487,
+            -5.3672153
+          ],
+          [
+            105.27357369661331,
+            -5.428345757192581
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Mengikuti pembekalan KP hari sabtu, 7 desember 2024",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F_20241207_Masuk_57.png?alt=media&token=e2d5319e-d12a-4445-842b-ffbb50de2b73",
+        "instansi": "Bank Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "David Mel Gibson",
+        "npm": "2217051120",
+        "time": 1733548085934,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "David Mel Gibson",
+          "email": "davidsianturi79@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLSWiWWBoUj4hs2eZhUN-X0HrIgaCyNDk09WhSk1XgrLQILlPN_=s96-c",
+          "uid": "G0aabvOa7xNr1oZrKeOgZEzCopH3"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUWDC_c1hz0XVp_dKI": {
+      "geometry": {
+        "coordinates": [
+          [
+            106.6407,
+            -6.1891
+          ],
+          [
+            105.24149380462235,
+            -5.3627207121202405
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Mengikuti pembekalan KP/PKL Tahun 2025 di Gedung Ilmu Komputer L1C",
+        "device": {
+          "appVersion": "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Windows",
+          "osVersion": 10,
+          "platform": "Win32",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051030_20241207_Pulang%20Cepat_46.png?alt=media&token=b67d2308-6258-425f-a0ec-d23810d1671f",
+        "instansi": "UPA TIK Universitas Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "M. Abdul Adhim",
+        "npm": "2217051030",
+        "time": 1733548103514,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "MabduL",
+          "email": "madhimsgc@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIb8vRjVxYYjHHjxGUqNDmR9G1A9DxayFFVxEmxhMtwZ2aHz2ZE=s96-c",
+          "uid": "KCuChBAeWPYK7ESPO8wfgNCh68W2"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUWDgoEJGrPWZwHurz": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.24493412385682,
+            -5.367080342114973
+          ],
+          [
+            105.2440363,
+            -5.3671403
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Pembekalan kerjaPraktik dan MBKM jurusan ilmu komputer fmipa unila periode 1 ",
+        "device": {
+          "appVersion": "5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1",
+          "browserName": "Safari",
+          "browserVersion": 16.2,
+          "osName": "iPhone",
+          "osVersion": 16.2,
+          "platform": "iPhone",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1",
+          "vendor": "Apple Computer, Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051054_20241207_Pulang%20Cepat_22.png?alt=media&token=80cba327-9507-44a7-bed5-f65e3103b4ae",
+        "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+        "keterangan": "Pulang Cepat",
+        "nama": "Dea Ananta",
+        "npm": "2217051054",
+        "time": 1733548108720,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Dea Ananta",
+          "email": "anantadea03@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIrS8Zlc0l5LkUnYp_ZwkaLlTLQn_x4UsmwVuDYwp3wspV3UUc=s96-c",
+          "uid": "YpD0R5eWKOXso8FB9qgacXgFcms1"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUWNUBhatIuwGD8HbI": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.23653869518357,
+            -5.36936936936937
+          ],
+          [
+            105.2440363,
+            -5.3671403
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Sedang mengikuti pembekalan kerja praktik dan mbkm tahun 2025 ",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2117051091_20241207_Pulang%20Cepat_6.png?alt=media&token=75974a26-5cd9-4515-b1dd-0170658d400e",
+        "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+        "keterangan": "Pulang Cepat",
+        "nama": "Agung Suari",
+        "npm": "2117051091",
+        "time": 1733548148020,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Agung Es",
+          "email": "agungsuari2599@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJW5MEZ5mhNEWXGbHZKV9AyPNdA-MZiCJuy86V8_GbHbmvJmxSu=s96-c",
+          "uid": "bXAzASa7vgZ4kW9Ohdkmny3PRE32"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUWRFXXXjQw6tZu0iY": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448801,
+            -5.3672306
+          ],
+          [
+            105.25524616241455,
+            -5.43662192349441
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Sedang mengikuti Pembekalan KP dalam Gedung Ilmu Komputer",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051063_20241207_Pulang%20Cepat_8.png?alt=media&token=002d3a25-bde3-40b5-b091-8d4d8af4436a",
+        "instansi": "Bank Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "Akmal Adnan Djayasinga",
+        "npm": "2217051063",
+        "time": 1733548162404,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Akmal Adnan Djayasinga",
+          "email": "akmaladnan594@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJsthSozMlmsLJZaovJ42fn2HOl7fV6lzCv01E-3_fY97df62lPWg=s96-c",
+          "uid": "praMxAiEQ1bepmQHHmQW3rNOuhz1"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUXHyJQ6KTtFNpBNym": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448852,
+            -5.3672432
+          ],
+          [
+            105.31359002571664,
+            -5.446474366434433
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Sedang mengikuti dan praktek pembekalan pada hari ini ",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2117051005_20241207_Pulang%20Cepat_63.png?alt=media&token=96db7cd2-fcb8-42be-802a-e808ca088166",
+        "instansi": "PT Alfero Mineral Sejahtera ",
+        "keterangan": "Pulang Cepat",
+        "nama": "Juan Petra Processor",
+        "npm": "2117051005",
+        "time": 1733548387849,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Juan Petra Processor",
+          "email": "juanspetra12@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIe7EPm8DYyA4io2KQDnOW4mDwC-pd2R9Mo6mBVHfmnixtrHTOY=s96-c",
+          "uid": "gAQGDCdb1XQgG2ldL731yxtntzw2"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUX_KbonZvuLeO0OYK": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448648,
+            -5.3672262
+          ],
+          [
+            105.31359002571664,
+            -5.446474366434433
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "pembekalan kerja praktik dan mbkm tahun 2025 jurusan ilmu komputer",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2117051010_20241207_Pulang%20Cepat_43.png?alt=media&token=76e9f9c7-7f0b-4a16-8d23-b63fd5d45183",
+        "instansi": "PT Alfero Mineral Sejahtera ",
+        "keterangan": "Pulang Cepat",
+        "nama": "AL QOLBY ARIEF ENDALAPUTRA",
+        "npm": "2117051010",
+        "time": 1733548463170,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "AL QOLBY ARIEF ENDALAPUTRA",
+          "email": "al.qolby21@students.unila.ac.id",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKhRAnMoZ910ZMocrEy8a-5G9cT2lERZL22XH6F-AjXOG-Z3-0=s96-c",
+          "uid": "ZHoqPrdnDMhgpZzhVS5YAVvJr663"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUXbEUqvjfUpzywRjT": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.2448178,
+            -5.3671777
+          ],
+          [
+            105.25524616241455,
+            -5.43662192349441
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Pembekalan KP PKL dan MSIB di GIK. Serta Belajar menggunakan aplikasi rekap kehadiran saat pkl",
+        "device": {
+          "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "browserName": "Chrome",
+          "browserVersion": 131,
+          "osName": "Android",
+          "osVersion": 10,
+          "platform": "Linux armv81",
+          "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+          "vendor": "Google Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051134_20241207_Pulang%20Cepat_92.png?alt=media&token=3698d881-58f6-424a-8a9e-9bfbd7978145",
+        "instansi": "Bank Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "Rizqi Ghozali",
+        "npm": "2217051134",
+        "time": 1733548470701,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Rizqi Ghozali",
+          "email": "rizqi.ahmad.ghozali@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKfbIg10TBFE3DLA_GquNIv2JQjp-eIAH2Ent11F9Vr104sS-4=s96-c",
+          "uid": "9QwLC7WppHfNGP0l7FZf3Ck427D2"
+        }
+      },
+      "type": "Feature"
+    },
+    "-ODUXcoUwviTxrC8o-Wx": {
+      "geometry": {
+        "coordinates": [
+          [
+            105.24487347212857,
+            -5.36703249519212
+          ],
+          [
+            105.25524616241455,
+            -5.43662192349441
+          ]
+        ],
+        "type": "LineString"
+      },
+      "properties": {
+        "catatan": "Yang saya lakukan hari ini adalah Pembekalan kp/pkl di gik",
+        "device": {
+          "appVersion": "5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/345.2.700885593 Mobile/15E148 Safari/604.1",
+          "browserName": "Safari",
+          "browserVersion": 0,
+          "osName": "iPhone",
+          "osVersion": 17.6,
+          "platform": "iPhone",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/345.2.700885593 Mobile/15E148 Safari/604.1",
+          "vendor": "Apple Computer, Inc."
+        },
+        "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2257051001_20241207_Pulang%20Cepat_22.png?alt=media&token=5c0628fa-6a14-41d2-9435-c9a44e1cf388",
+        "instansi": "Bank Lampung",
+        "keterangan": "Pulang Cepat",
+        "nama": "Imran Sukron Hamid",
+        "npm": "2257051001",
+        "time": 1733548477824,
+        "url": "https://ilkomunila.web.app/check-in.html",
+        "user": {
+          "displayName": "Hamid Imran",
+          "email": "hamidimrann19@gmail.com",
+          "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKeACKmgUl5ab2kDYH9zi2qUWJfkWqTMmGTabZhnDSb9XU8IUc=s96-c",
+          "uid": "8GCYVwhzEISGDEY4hpHKDLGyRYh1"
+        }
+      },
+      "type": "Feature"
+    }
+  },
+  "mon_user": {
+    "2117051005": {
+      "-ODUXHyRteJ7AmXpYhkF": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448852,
+              -5.3672432
+            ],
+            [
+              105.31359002571664,
+              -5.446474366434433
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Sedang mengikuti dan praktek pembekalan pada hari ini ",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2117051005_20241207_Pulang%20Cepat_63.png?alt=media&token=96db7cd2-fcb8-42be-802a-e808ca088166",
+          "instansi": "PT Alfero Mineral Sejahtera ",
+          "keterangan": "Pulang Cepat",
+          "nama": "Juan Petra Processor",
+          "npm": "2117051005",
+          "time": 1733548387849,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Juan Petra Processor",
+            "email": "juanspetra12@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIe7EPm8DYyA4io2KQDnOW4mDwC-pd2R9Mo6mBVHfmnixtrHTOY=s96-c",
+            "uid": "gAQGDCdb1XQgG2ldL731yxtntzw2"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2117051010": {
+      "-ODUX_KdFAdR8R9bnl5F": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448648,
+              -5.3672262
+            ],
+            [
+              105.31359002571664,
+              -5.446474366434433
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "pembekalan kerja praktik dan mbkm tahun 2025 jurusan ilmu komputer",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2117051010_20241207_Pulang%20Cepat_43.png?alt=media&token=76e9f9c7-7f0b-4a16-8d23-b63fd5d45183",
+          "instansi": "PT Alfero Mineral Sejahtera ",
+          "keterangan": "Pulang Cepat",
+          "nama": "AL QOLBY ARIEF ENDALAPUTRA",
+          "npm": "2117051010",
+          "time": 1733548463170,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "AL QOLBY ARIEF ENDALAPUTRA",
+            "email": "al.qolby21@students.unila.ac.id",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKhRAnMoZ910ZMocrEy8a-5G9cT2lERZL22XH6F-AjXOG-Z3-0=s96-c",
+            "uid": "ZHoqPrdnDMhgpZzhVS5YAVvJr663"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2117051091": {
+      "-ODUWNUH1qpsg3w_dWlr": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.23653869518357,
+              -5.36936936936937
+            ],
+            [
+              105.2440363,
+              -5.3671403
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Sedang mengikuti pembekalan kerja praktik dan mbkm tahun 2025 ",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2117051091_20241207_Pulang%20Cepat_6.png?alt=media&token=75974a26-5cd9-4515-b1dd-0170658d400e",
+          "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+          "keterangan": "Pulang Cepat",
+          "nama": "Agung Suari",
+          "npm": "2117051091",
+          "time": 1733548148020,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Agung Es",
+            "email": "agungsuari2599@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJW5MEZ5mhNEWXGbHZKV9AyPNdA-MZiCJuy86V8_GbHbmvJmxSu=s96-c",
+            "uid": "bXAzASa7vgZ4kW9Ohdkmny3PRE32"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2117051093": {
+      "-ODUW1YXuvyw8vQcMLuP": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.244892,
+              -5.3672253
+            ],
+            [
+              105.2440363,
+              -5.3671403
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Mengikuti pembekalan kerja praktik di GIK L1C dengan penuh semangat",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2117051093_20241207_Pulang%20Cepat_28.png?alt=media&token=8c5c4cdf-1a81-4f4f-bd3c-1977dc443a48",
+          "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+          "keterangan": "Pulang Cepat",
+          "nama": "Yoel Marcel Siregar",
+          "npm": "2117051093",
+          "time": 1733548058926,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Yoel Marcel Siregar",
+            "email": "siregaryoel36@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJ9epb-yofPpbwRBiqqiwo71eNqNp7f9W9q3RaUqjTrmXd9qA=s96-c",
+            "uid": "3Pxk3I9vQIZaFMKtxA1baI5IlpZ2"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051014": {
+      "-ODUVRJrU82o0R0XyKTO": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.24487,
+              -5.3671603
+            ],
+            [
+              105.27357369661331,
+              -5.428345757192581
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Hari ini saya datang ke gik untuk menghadiri kerja praktik dan mbkm tahun 2025 jurusan ilmu komputer Fmipa unila. Pada hari ini ada 3 materi dan ketiganya untuk mempersiapkan kami di msib dan kp pkl. Hari ini di gedung ilmu komputer fmipa L1 C. ",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 126,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051014_20241207_Pulang%20Cepat_6.png?alt=media&token=cd41a6b1-aae8-4dd7-aeaf-2afbe07bce68",
+          "instansi": "Badan Pusat Statistik Kota Bandar Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "Moza Surya Putra ",
+          "npm": "2217051014",
+          "time": 1733547902039,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Moza Surya Putra 27",
+            "email": "mozasuryaputra@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLFJv7eZFf-Z1MAq3UABpBvcy_kUNHZHj3v6-1nbmzFfZUWDHs8=s96-c",
+            "uid": "iWrvYtL5Uehe9a0GTY9TP0IWIPR2"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051015": {
+      "-ODUVI2GdL49UsJc62Bx": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448687,
+              -5.3672387
+            ],
+            [
+              105.24149380462235,
+              -5.3627207121202405
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Mengikuti pembekalan , hari sabtu 7 desember 2024.",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051015_20241207_Pulang%20Cepat_99.png?alt=media&token=aa415b5b-3a5c-4a38-857c-bc414ab00e7f",
+          "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+          "keterangan": "Pulang Cepat",
+          "nama": "Dede juniar putra",
+          "npm": "2217051015",
+          "time": 1733547863790,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Dede juniar putra",
+            "email": "dedejuniarputra99@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKx-yME3Xw3dA3bWSHBqLJYK8TjtMt6oIrBDgX3CYnlsb2AZhE3=s96-c",
+            "uid": "U8HKNbgqI3XIYTxFBTUsIU5g6K22"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051030": {
+      "-ODUUySDzxb2-2vTz9vO": {
+        "geometry": {
+          "coordinates": [
+            [
+              106.6407,
+              -6.1891
+            ],
+            [
+              105.24149380462235,
+              -5.3627207121202405
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Hari ini sedang mengikuti pembekalan PKL di Gedung Ilmu Komputer ",
+          "device": {
+            "appVersion": "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Windows",
+            "osVersion": 10,
+            "platform": "Win32",
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051030_20241207_Pulang%20Cepat_3.png?alt=media&token=a55e34c7-0c9b-43ae-8ad7-bb439533eb71",
+          "instansi": "UPA TIK Universitas Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "M. Abdul Adhim",
+          "npm": "2217051030",
+          "time": 1733547776844,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "MabduL",
+            "email": "madhimsgc@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIb8vRjVxYYjHHjxGUqNDmR9G1A9DxayFFVxEmxhMtwZ2aHz2ZE=s96-c",
+            "uid": "KCuChBAeWPYK7ESPO8wfgNCh68W2"
+          }
+        },
+        "type": "Feature"
+      },
+      "-ODUWDCaus9p8Q3J--rp": {
+        "geometry": {
+          "coordinates": [
+            [
+              106.6407,
+              -6.1891
+            ],
+            [
+              105.24149380462235,
+              -5.3627207121202405
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Mengikuti pembekalan KP/PKL Tahun 2025 di Gedung Ilmu Komputer L1C",
+          "device": {
+            "appVersion": "5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Windows",
+            "osVersion": 10,
+            "platform": "Win32",
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051030_20241207_Pulang%20Cepat_46.png?alt=media&token=b67d2308-6258-425f-a0ec-d23810d1671f",
+          "instansi": "UPA TIK Universitas Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "M. Abdul Adhim",
+          "npm": "2217051030",
+          "time": 1733548103514,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "MabduL",
+            "email": "madhimsgc@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIb8vRjVxYYjHHjxGUqNDmR9G1A9DxayFFVxEmxhMtwZ2aHz2ZE=s96-c",
+            "uid": "KCuChBAeWPYK7ESPO8wfgNCh68W2"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051039": {
+      "-ODUW3dHMtvHNyIgIWsE": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448493,
+              -5.367214
+            ],
+            [
+              105.25818318128586,
+              -5.433383030849
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Sedang menghadiri kegiatan pembekalan Kerja Praktik dan MBKM tahun 2025 Jurusan Ilmu Komputer FMIPA UNILA",
+          "device": {
+            "appVersion": "5.0 (Linux; U; Android 11; en-gb; RMX2103 Build/RKQ1.201217.002) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.88 Mobile Safari/537.36 HeyTapBrowser/45.11.5.3",
+            "browserName": "Chrome",
+            "browserVersion": 91.0447288,
+            "osName": "Android",
+            "osVersion": 11,
+            "platform": "Linux aarch64",
+            "userAgent": "Mozilla/5.0 (Linux; U; Android 11; en-gb; RMX2103 Build/RKQ1.201217.002) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.88 Mobile Safari/537.36 HeyTapBrowser/45.11.5.3",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051039_20241207_Pulang%20Cepat_66.png?alt=media&token=02a67dde-fb8a-4b34-bf07-24a5d4e72fd4",
+          "instansi": "Dinas Perindustrian dan Perdagangan Provinsi Lampung ",
+          "keterangan": "Pulang Cepat",
+          "nama": "Haris Setiawan",
+          "npm": "2217051039",
+          "time": 1733548067466,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Haris Setiawan",
+            "email": "hs1329154@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocK479Cjz6Ljc9q4Of8iNnfKAVOezJ0isDacPUF__6hWkNaAnQ=s96-c",
+            "uid": "dZNsZYlJG5V3EzvIySbwnVr65ix1"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051045": {
+      "-ODUVnzACrGDXCgfFvy3": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.24473104754594,
+              -5.367196352441573
+            ],
+            [
+              105.2440363,
+              -5.3671403
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "pembekalan kp/pkl dan mbkm tahun 2025.jurusan ilmu komputer fmipa unila.\ndengan tema “mempersiapkan generasi yang kompeten,berkarakter,berintegritas,disiplin dan bertanggung jawab.",
+          "device": {
+            "appVersion": "5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1",
+            "browserName": "Safari",
+            "browserVersion": 17.6,
+            "osName": "iPhone",
+            "osVersion": 17.61,
+            "platform": "iPhone",
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.6 Mobile/15E148 Safari/604.1",
+            "vendor": "Apple Computer, Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051045_20241207_Pulang%20Cepat_99.png?alt=media&token=b73ac962-d807-492e-944f-6f2149358761",
+          "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+          "keterangan": "Pulang Cepat",
+          "nama": "Dewi Intan Nabila",
+          "npm": "2217051045",
+          "time": 1733547999223,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "dewi intan nabila",
+            "email": "kimtaehyungintan@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIE5QdO7bcMBsoXb6az0ldNcZ4s3IYqYwWShciARIU59qAbNj0=s96-c",
+            "uid": "6zGfLF4pNncS0CRgfbQPNctxPFM2"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051054": {
+      "-ODUWDgqtw-JUm6ELjet": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.24493412385682,
+              -5.367080342114973
+            ],
+            [
+              105.2440363,
+              -5.3671403
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Pembekalan kerjaPraktik dan MBKM jurusan ilmu komputer fmipa unila periode 1 ",
+          "device": {
+            "appVersion": "5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1",
+            "browserName": "Safari",
+            "browserVersion": 16.2,
+            "osName": "iPhone",
+            "osVersion": 16.2,
+            "platform": "iPhone",
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Mobile/15E148 Safari/604.1",
+            "vendor": "Apple Computer, Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051054_20241207_Pulang%20Cepat_22.png?alt=media&token=80cba327-9507-44a7-bed5-f65e3103b4ae",
+          "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+          "keterangan": "Pulang Cepat",
+          "nama": "Dea Ananta",
+          "npm": "2217051054",
+          "time": 1733548108720,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Dea Ananta",
+            "email": "anantadea03@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIrS8Zlc0l5LkUnYp_ZwkaLlTLQn_x4UsmwVuDYwp3wspV3UUc=s96-c",
+            "uid": "YpD0R5eWKOXso8FB9qgacXgFcms1"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051055": {
+      "-ODUUz9tKjNp34d7G28v": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448285,
+              -5.3672005
+            ],
+            [
+              105.27357369661331,
+              -5.428345757192581
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Hari ini Sedang Mengikuti pembekalan di gedung ilmu komputer",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051055_20241207_Pulang%20Cepat_63.png?alt=media&token=aa718b75-c94d-4ce8-8228-0e7a5ea6af5b",
+          "instansi": "Badan Pusat Statistik Kota Bandar Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "Mukti Prabowo",
+          "npm": "2217051055",
+          "time": 1733547782667,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Mukti Prabowo",
+            "email": "muktiprab65@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKXzZhAoc40dkAJt1Sl0c3ZlfDeu3OPhEZtbTJOUBBt3UGqRKc3=s96-c",
+            "uid": "QHtId53uTreHs511gaU8JoKtT7F3"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051063": {
+      "-ODUWRFhyEt_I4lrLBfI": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448801,
+              -5.3672306
+            ],
+            [
+              105.25524616241455,
+              -5.43662192349441
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Sedang mengikuti Pembekalan KP dalam Gedung Ilmu Komputer",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051063_20241207_Pulang%20Cepat_8.png?alt=media&token=002d3a25-bde3-40b5-b091-8d4d8af4436a",
+          "instansi": "Bank Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "Akmal Adnan Djayasinga",
+          "npm": "2217051063",
+          "time": 1733548162404,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Akmal Adnan Djayasinga",
+            "email": "akmaladnan594@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJsthSozMlmsLJZaovJ42fn2HOl7fV6lzCv01E-3_fY97df62lPWg=s96-c",
+            "uid": "praMxAiEQ1bepmQHHmQW3rNOuhz1"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051072": {
+      "-ODUVj0W6d4924OUygm6": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2449119,
+              -5.3671917
+            ],
+            [
+              105.27357369661331,
+              -5.428345757192581
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Sedang mengikuti kegiatan pembekalan KP/PKL Tahun 2025 di gedung ilmu komputer pada tanggal 7 Desember 2024",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051072_20241207_Pulang%20Cepat_56.png?alt=media&token=730f53c3-ff9e-4131-8735-114a12f0fb32",
+          "instansi": "Badan Pusat Statistik Kota Bandar Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "Muhammad Ritski Wira Akbar",
+          "npm": "2217051072",
+          "time": 1733547977180,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Muhammad Ritski Wira Akbar",
+            "email": "kiki.ritsky04@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIkSVJdLPw_oDY-ocIjWDrapyUzWzT4vuhZ0IV6rpMfX1LQguSG=s96-c",
+            "uid": "a8gOw50xSHSyucLvx4PPh2iwyve2"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051120": {
+      "-ODUW8GJMBOZe-jNCaTH": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448487,
+              -5.3672153
+            ],
+            [
+              105.27357369661331,
+              -5.428345757192581
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Mengikuti pembekalan KP hari sabtu, 7 desember 2024",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F_20241207_Masuk_57.png?alt=media&token=e2d5319e-d12a-4445-842b-ffbb50de2b73",
+          "instansi": "Bank Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "David Mel Gibson",
+          "npm": "2217051120",
+          "time": 1733548085934,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "David Mel Gibson",
+            "email": "davidsianturi79@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLSWiWWBoUj4hs2eZhUN-X0HrIgaCyNDk09WhSk1XgrLQILlPN_=s96-c",
+            "uid": "G0aabvOa7xNr1oZrKeOgZEzCopH3"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051123": {
+      "-ODUVHBU_8mALd-NjB4g": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448989,
+              -5.3671668
+            ],
+            [
+              105.27357369661331,
+              -5.428345757192581
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Hari ini sedang mengikuti pembekalan di gedung ilmu komputer",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051123_20241207_Pulang%20Cepat_68.png?alt=media&token=71a83d96-c5d6-4906-8801-c136599ce98f",
+          "instansi": "UPA TIK Universitas Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "Muhammad Faruq Arkaan",
+          "npm": "2217051123",
+          "time": 1733547860882,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Muhammad Faruq Arkaan",
+            "email": "muhammadfaruqarkaan16@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocJhFG_Q6oE5Xbh2TofQGqnsLfZ_QKK9gwBEvctaf-643S5QXv7f=s96-c",
+            "uid": "fyY3M4g9AOcuqjOKyqudXQ3q9wB3"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2217051134": {
+      "-ODUXbEXRYW_ZB_T-grd": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.2448178,
+              -5.3671777
+            ],
+            [
+              105.25524616241455,
+              -5.43662192349441
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Pembekalan KP PKL dan MSIB di GIK. Serta Belajar menggunakan aplikasi rekap kehadiran saat pkl",
+          "device": {
+            "appVersion": "5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "browserName": "Chrome",
+            "browserVersion": 131,
+            "osName": "Android",
+            "osVersion": 10,
+            "platform": "Linux armv81",
+            "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+            "vendor": "Google Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2217051134_20241207_Pulang%20Cepat_92.png?alt=media&token=3698d881-58f6-424a-8a9e-9bfbd7978145",
+          "instansi": "Bank Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "Rizqi Ghozali",
+          "npm": "2217051134",
+          "time": 1733548470701,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Rizqi Ghozali",
+            "email": "rizqi.ahmad.ghozali@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKfbIg10TBFE3DLA_GquNIv2JQjp-eIAH2Ent11F9Vr104sS-4=s96-c",
+            "uid": "9QwLC7WppHfNGP0l7FZf3Ck427D2"
+          }
+        },
+        "type": "Feature"
+      }
+    },
+    "2257051001": {
+      "-ODUXcoWLtGta64TazcS": {
+        "geometry": {
+          "coordinates": [
+            [
+              105.24487347212857,
+              -5.36703249519212
+            ],
+            [
+              105.25524616241455,
+              -5.43662192349441
+            ]
+          ],
+          "type": "LineString"
+        },
+        "properties": {
+          "catatan": "Yang saya lakukan hari ini adalah Pembekalan kp/pkl di gik",
+          "device": {
+            "appVersion": "5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/345.2.700885593 Mobile/15E148 Safari/604.1",
+            "browserName": "Safari",
+            "browserVersion": 0,
+            "osName": "iPhone",
+            "osVersion": 17.6,
+            "platform": "iPhone",
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) GSA/345.2.700885593 Mobile/15E148 Safari/604.1",
+            "vendor": "Apple Computer, Inc."
+          },
+          "imgURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F2257051001_20241207_Pulang%20Cepat_22.png?alt=media&token=5c0628fa-6a14-41d2-9435-c9a44e1cf388",
+          "instansi": "Bank Lampung",
+          "keterangan": "Pulang Cepat",
+          "nama": "Imran Sukron Hamid",
+          "npm": "2257051001",
+          "time": 1733548477824,
+          "url": "https://ilkomunila.web.app/check-in.html",
+          "user": {
+            "displayName": "Hamid Imran",
+            "email": "hamidimrann19@gmail.com",
+            "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocKeACKmgUl5ab2kDYH9zi2qUWJfkWqTMmGTabZhnDSb9XU8IUc=s96-c",
+            "uid": "8GCYVwhzEISGDEY4hpHKDLGyRYh1"
+          }
+        },
+        "type": "Feature"
+      }
+    }
+  },
+  "pkl": {
+    "-MAKwAFmPGD-VpNUWUl3": {
+      "geometry": {
+        "coordinates": [
+          105.2440363,
+          -5.3671403
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl.Prof.Dr.Ir Sumantri BrojoNegoro No.1 Gedung meneng,Kec.Rajabasa",
+        "hp_mhs": "-58",
+        "instansi": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Firman Artha Yudha",
+            "npm": "1807051026"
+          },
+          {
+            "nama": "Ilham Dwi Nugraha",
+            "npm": "1807051029"
+          },
+          {
+            "nama": "Maulana Ikhsan",
+            "npm": "1807051007"
+          }
+        ],
+        "pemb_hp": "082183179777",
+        "pemb_lap": "Anie Rose Irawati",
+        "time": 1592727221956,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-ODUTTPKnCAyABWVGftw": {
+      "geometry": {
+        "coordinates": [
+          105.24149380462235,
+          -5.3627207121202405
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl. Prof. Dr. Ir. Sumantri Brojonegoro No.1\nGedong Meneng\nRajabasa\nBandar Lampung City, Lampung 35142, Indonesia",
+        "hp_mhs": "081271545451",
+        "instansi": "UPA TIK Universitas Lampung",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "M. Abdul Adhim",
+            "npm": "2217051030"
+          },
+          {
+            "nama": "M. Arya Dzaky",
+            "npm": "2217051007"
+          },
+          {
+            "nama": "Sheila Silvera S.",
+            "npm": "2217051150"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "-",
+        "time": 1733547383457,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-ODUUA0syoh6qKhqDmew": {
+      "geometry": {
+        "coordinates": [
+          105.27357369661331,
+          -5.428345757192581
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl. Sultan Syahril No.30, Pahoman, Engal, Kota Bandar Lampung, Lampung",
+        "hp_mhs": "081369365272",
+        "instansi": "Badan Pusat Statistik Kota Bandar Lampung",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Moza Surya Putra",
+            "npm": "2217051014"
+          },
+          {
+            "nama": "Muhammad Ritski Wira Akbar",
+            "npm": "2217051072"
+          },
+          {
+            "nama": "Mukti Prabowo",
+            "npm": "2217051055"
+          },
+          {
+            "nama": "Moza Surya Putra ",
+            "npm": "2217051014"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "-",
+        "time": 1733547568987,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-ODUV-d4re2vc9_Hb11T": {
+      "geometry": {
+        "coordinates": [
+          105.24502563,
+          -5.36705541
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "",
+        "hp_mhs": "083181296513",
+        "instansi": "TIK unila",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Fadillah",
+            "npm": "2217051138"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "anie rose irawati",
+        "time": 1733547788930,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-ODUV6XcAOF9yBI6nLN2": {
+      "geometry": {
+        "coordinates": [
+          105.25818318128586,
+          -5.433383030849
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl. Cut Mutia No.44\nGulak Galik\nKec. Tlk. Betung Utara\nKota Bandar Lampung, Lampung 35124, Indonesia",
+        "hp_mhs": "081279012286",
+        "instansi": "Dinas Perindustrian dan Perdagangan Provinsi Lampung ",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Muhammad Haris Setiawan ",
+            "npm": "2217051039"
+          },
+          {
+            "nama": "Rezan Putra Pratama ",
+            "npm": "2217051155"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": ".",
+        "time": 1733547817498,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-ODUVRn-ZCowwddogYYX": {
+      "geometry": {
+        "coordinates": [
+          105.25524616241455,
+          -5.43662192349441
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl. Wolter Monginsidi No.182, Teluk Betung, Kota Bandar Lampung",
+        "hp_mhs": "082112939377",
+        "instansi": "Bank Lampung",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "David Mel Gibson Sianturi",
+            "npm": "2217051120"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "",
+        "time": 1733547903775,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-ODUW2-ALZBYlRc6Hv3n": {
+      "geometry": {
+        "coordinates": [
+          105.26283151570959,
+          -5.4297708634690585
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "",
+        "hp_mhs": "085279729427",
+        "instansi": "Badan keuangan dan Aset Daerah ",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Imam Ahdy Sabilla ",
+            "npm": "2217051141"
+          },
+          {
+            "nama": "M.Zhafir Al Kamil",
+            "npm": "2217051094"
+          },
+          {
+            "nama": "Rakhmat Herlambang ",
+            "npm": "2217051112"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "Pak ridho",
+        "time": 1733548060553,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-ODUW9VYXel3w30dyhy1": {
+      "geometry": {
+        "coordinates": [
+          105.31359002571664,
+          -5.446474366434433
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl. Hayam Wuruk Blok A No.103 Kota Bandar Lampung ",
+        "hp_mhs": "082279918254",
+        "instansi": "PT Alfero Mineral Sejahtera ",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Keyvin Jourdan",
+            "npm": "2117051076"
+          },
+          {
+            "nama": "Al Qolby Arief Endalaputra",
+            "npm": "2117051010"
+          },
+          {
+            "nama": "Juan Petra Processor",
+            "npm": "2117051005"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "",
+        "time": 1733548091130,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-ODUYiHzxmerhpg7gqF2": {
+      "geometry": {
+        "coordinates": [
+          105.2448146,
+          -5.3671753
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl. Cut Mutia No.44 Gulak Galik Kec. Tlk. Betung Utara Kota Bandar Lampung, Lampung 35124, Indonesia",
+        "hp_mhs": "08979123879",
+        "instansi": "Dinas Perindustrian dan Perdagangan ",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Rezan Putra Pratama ",
+            "npm": "2217051155"
+          },
+          {
+            "nama": "Muhammad Haris Setiawan",
+            "npm": "2217051039"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "",
+        "time": 1733548762401,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-OE98SqnJePkM1tMbheE": {
+      "geometry": {
+        "coordinates": [
+          105.2344065,
+          -5.3737774
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Labuhan Ratu, Kec. Kedaton, Kota Bandar Lampung, Lampung 35132",
+        "hp_mhs": "082278865535",
+        "instansi": "Dinas Perpustakaan dan Kearsipan Provinsi Lampung",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Hanif Ad Daffa",
+            "npm": "2207051031"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "",
+        "time": 1734263300749,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-OE9SolfCzddhX_QUhC9": {
+      "geometry": {
+        "coordinates": [
+          105.31367640942335,
+          -5.385894411478136
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl. Pulau Sebesi, Sukarame, Kec. Sukarame",
+        "hp_mhs": "0895620485478",
+        "instansi": "Kantor PT Bumi Berkah Madani",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Atikah Oktaria",
+            "npm": "2217051035"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": "-",
+        "time": 1734268633669,
+        "visited": 0
+      },
+      "type": "Feature"
+    },
+    "-OE9sBwTvtlrrmmGzBga": {
+      "geometry": {
+        "coordinates": [
+          105.254531,
+          -5.3859281
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "alamat": "Jl. Wolter Monginsidi No.182, Sumur Putri, Kec. Tlk. Betung Utara, Kota Bandar Lampung, Lampung",
+        "hp_mhs": "0895700954395",
+        "instansi": "Bank Lampung",
+        "kota": "Bandar Lampung",
+        "mhs": [
+          {
+            "nama": "Akmal Adnan Djayasinga",
+            "npm": "2217051063"
+          },
+          {
+            "nama": "Rizqi Ahmad Ghozali",
+            "npm": "2217051134"
+          },
+          {
+            "nama": "Imran Sukron Hamid",
+            "npm": "2257051001"
+          }
+        ],
+        "pemb_hp": "",
+        "pemb_lap": ".",
+        "time": 1734275552276,
+        "visited": 0
+      },
+      "type": "Feature"
+    }
+  },
+  "users": {
+    "6zGfLF4pNncS0CRgfbQPNctxPFM2": {
+      "dosen": "pak didik ",
+      "email": "",
+      "instansi": {
+        "lat": "-5.3671403",
+        "lng": "105.2440363",
+        "nama": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)"
+      },
+      "nama": "Dewi Intan Nabila",
+      "npm": "2217051045",
+      "pembimbing": "buk anie",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051045.png?alt=media&token=a13baa22-f2e2-4d58-885d-4182cd295d26"
+    },
+    "8GCYVwhzEISGDEY4hpHKDLGyRYh1": {
+      "dosen": ".",
+      "email": "",
+      "instansi": {
+        "lat": "-5.43662192349441",
+        "lng": "105.25524616241455",
+        "nama": "Bank Lampung"
+      },
+      "nama": "Imran Sukron Hamid",
+      "npm": "2257051001",
+      "pembimbing": ".",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2257051001.png?alt=media&token=a5fa61f0-f23f-4de5-a3ff-dcf327d8098b"
+    },
+    "9QwLC7WppHfNGP0l7FZf3Ck427D2": {
+      "dosen": ".",
+      "email": "",
+      "instansi": {
+        "lat": "-5.43662192349441",
+        "lng": "105.25524616241455",
+        "nama": "Bank Lampung"
+      },
+      "nama": "Rizqi Ghozali",
+      "npm": "2217051134",
+      "pembimbing": ".",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051134.png?alt=media&token=ffed5aae-9d7f-413f-b29e-9daa4d718819"
+    },
+    "KCuChBAeWPYK7ESPO8wfgNCh68W2": {
+      "dosen": "Pak Favorisen",
+      "email": "",
+      "instansi": {
+        "lat": "-5.3627207121202405",
+        "lng": "105.24149380462235",
+        "nama": "UPA TIK Universitas Lampung"
+      },
+      "nama": "M. Abdul Adhim",
+      "npm": "2217051030",
+      "pembimbing": "-",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051030.png?alt=media&token=3754e162-48a4-4a17-9692-31e43a29d3ba"
+    },
+    "QHtId53uTreHs511gaU8JoKtT7F3": {
+      "dosen": "ANIE ROSE IRAWATI, ST., M.Cs.",
+      "email": "",
+      "instansi": {
+        "lat": "-5.428345757192581",
+        "lng": "105.27357369661331",
+        "nama": "Badan Pusat Statistik Kota Bandar Lampung"
+      },
+      "nama": "Mukti Prabowo",
+      "npm": "2217051055",
+      "pembimbing": "-",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051055.png?alt=media&token=696bc65c-4708-49a0-9bdd-f48cfd9ef519"
+    },
+    "YpD0R5eWKOXso8FB9qgacXgFcms1": {
+      "dosen": "Bu Anie",
+      "email": "anantadea03@gmail.com",
+      "instansi": {
+        "lat": "-5.3671403",
+        "lng": "105.2440363",
+        "nama": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)"
+      },
+      "nama": "Dea Ananta",
+      "npm": "2217051054",
+      "pembimbing": "Pak Didik",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051054.png?alt=media&token=fe565d36-e51e-4d7e-9fe9-2202d371e3d5"
+    },
+    "a8gOw50xSHSyucLvx4PPh2iwyve2": {
+      "dosen": "Pak Tristiyanto ",
+      "email": "",
+      "instansi": {
+        "lat": "-5.428345757192581",
+        "lng": "105.27357369661331",
+        "nama": "Badan Pusat Statistik Kota Bandar Lampung"
+      },
+      "nama": "Muhammad Ritski Wira Akbar",
+      "npm": "2217051072",
+      "pembimbing": "-",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051072.png?alt=media&token=6313fc4e-543d-446f-a822-ceaa0b1be1e8"
+    },
+    "bXAzASa7vgZ4kW9Ohdkmny3PRE32": {
+      "dosen": "-",
+      "email": "",
+      "instansi": {
+        "lat": "-5.3671403",
+        "lng": "105.2440363",
+        "nama": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)"
+      },
+      "nama": "Agung Suari",
+      "npm": "2117051091",
+      "pembimbing": "-",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2117051091.png?alt=media&token=4ce8652a-8e02-4c19-b17f-ccbd858fa445"
+    },
+    "dZNsZYlJG5V3EzvIySbwnVr65ix1": {
+      "dosen": "RICO ANDRIAN, S.Si., M.Kom.",
+      "email": "",
+      "instansi": {
+        "lat": "-5.433383030849",
+        "lng": "105.25818318128586",
+        "nama": "Dinas Perindustrian dan Perdagangan Provinsi Lampung "
+      },
+      "nama": "Haris Setiawan",
+      "npm": "2217051039",
+      "pembimbing": ".",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051039.png?alt=media&token=38e8ad00-669c-4eb3-99d8-b279d34628d0"
+    },
+    "fyY3M4g9AOcuqjOKyqudXQ3q9wB3": {
+      "dosen": "Pak Favo",
+      "email": "",
+      "instansi": {
+        "lat": "-5.3671403",
+        "lng": "105.2440363",
+        "nama": "Jurusan Ilmu Komputer (Pemb.Anie Rose Irawati)"
+      },
+      "nama": "Muhammad Faruq Arkaan",
+      "npm": "2217051123",
+      "pembimbing": "Pak Ikhsan",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051123.png?alt=media&token=7565639b-646d-48ea-8a72-b9cdeaad6fbd"
+    },
+    "gAQGDCdb1XQgG2ldL731yxtntzw2": {
+      "dosen": "Dwi Sakethi",
+      "email": "",
+      "instansi": {
+        "lat": "-5.446474366434433",
+        "lng": "105.31359002571664",
+        "nama": "PT Alfero Mineral Sejahtera "
+      },
+      "nama": "Juan Petra Processor",
+      "npm": "2117051005",
+      "pembimbing": "-",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2117051005.png?alt=media&token=d3078bea-fd05-4f4d-b87e-81435e1b2fd9"
+    },
+    "iWrvYtL5Uehe9a0GTY9TP0IWIPR2": {
+      "dosen": "-",
+      "email": "",
+      "instansi": {
+        "lat": "-5.428345757192581",
+        "lng": "105.27357369661331",
+        "nama": "Badan Pusat Statistik Kota Bandar Lampung"
+      },
+      "nama": "Moza Surya Putra ",
+      "npm": "2217051014",
+      "pembimbing": "-",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051014.png?alt=media&token=e6257ac7-ab02-40fd-93de-9927a736abdf"
+    },
+    "praMxAiEQ1bepmQHHmQW3rNOuhz1": {
+      "dosen": "Didik Kurniawan",
+      "email": "akmaladnan594@gmail.com",
+      "instansi": {
+        "lat": "-5.43662192349441",
+        "lng": "105.25524616241455",
+        "nama": "Bank Lampung"
+      },
+      "nama": "Akmal Adnan Djayasinga",
+      "npm": "2217051063",
+      "pembimbing": "-",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051063.png?alt=media&token=ab172c9d-2ea5-4c6c-903e-e8e7d4da0cb6"
+    },
+    "xpBIvLCpaWdzlDATYD6YCcjmJGJ2": {
+      "dosen": "-",
+      "email": "imamahdy345@gmail.com",
+      "instansi": {
+        "lat": "-5.4297708634690585",
+        "lng": "105.26283151570959",
+        "nama": "Badan keuangan dan Aset Daerah "
+      },
+      "nama": "Imam Ahdy sabilla",
+      "npm": "2217051141",
+      "pembimbing": "-",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2217051141.png?alt=media&token=9b7951d0-8d83-4a44-8e25-d29d90aa7e97"
+    },
+    "zTWZ42l9QwXLLJnyhz1vyIzzeRh1": {
+      "dosen": "Anie Rose Irawati S.T.,M.Cs.",
+      "email": "",
+      "instansi": {
+        "lat": "-5.3737774",
+        "lng": "105.2344065",
+        "nama": "Dinas Perpustakaan dan Kearsipan Provinsi Lampung"
+      },
+      "nama": "Hanif Ad daffa",
+      "npm": "2207051031",
+      "pembimbing": "Anie Rose Irawati S.T.,M.Cs.",
+      "photoURL": "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F2207051031.png?alt=media&token=88ad0626-cb44-4248-b6d4-878c65f3f8cb"
+    }
+  }
+}
