@@ -142,42 +142,67 @@ function setValue(id, val) {
     document.getElementById(id).value = val;
 }
 
-function setKabOption() {
-    var kota = ["Bandar Lampung",
-        "Asahan",
-        "Jakarta Barat",
-        "Jakarta Selatan",
-        "Jakarta Timur",
-        "Jakarta Utara",
-        "Jakarta Pusat",
-        "Kotabumi",
-        "Kota Bandung",
-        "Kota Pagar Alam",
-        "Kota Serang",
-        "Kota Malang",
-        "Lampung Selatan",
-        "Lampung Tengah",
-        "Metro",
-        "Painan",
-        "Palembang",
-        "Pesawaran",
-        "Pesisir Barat",
-        "Prabumulih",
-        "Pringsewu",
-        "Tanggamus",
-        "Tulang Bawang",
-        "Tulang Bawang Barat",
-        "Tangerang",
-        "Way Kanan"
-    ];
-    select = document.getElementById('kota');
+// function setKabOption() {
+//     var kota = ["Bandar Lampung",
+//         "Asahan",
+//         "Jakarta Barat",
+//         "Jakarta Selatan",
+//         "Jakarta Timur",
+//         "Jakarta Utara",
+//         "Jakarta Pusat",
+//         "Kotabumi",
+//         "Kota Bandung",
+//         "Kota Pagar Alam",
+//         "Kota Serang",
+//         "Kota Malang",
+//         "Lampung Selatan",
+//         "Lampung Tengah",
+//         "Metro",
+//         "Painan",
+//         "Palembang",
+//         "Pesawaran",
+//         "Pesisir Barat",
+//         "Prabumulih",
+//         "Pringsewu",
+//         "Tanggamus",
+//         "Tulang Bawang",
+//         "Tulang Bawang Barat",
+//         "Tangerang",
+//         "Way Kanan"
+//     ];
+//     select = document.getElementById('kota');
 
-    for (var i = 0; i < kota.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = kota[i];
-        opt.innerHTML = kota[i];
-        select.appendChild(opt);
-    }
+//     for (var i = 0; i < kota.length; i++) {
+//         var opt = document.createElement('option');
+//         opt.value = kota[i];
+//         opt.innerHTML = kota[i];
+//         select.appendChild(opt);
+//     }
+// }
+function setKabOption() {
+    // Referensi database Firebase
+    var kotaRef = firebase.database().ref('master/kota');
+
+    // Ambil elemen select
+    var select = document.getElementById('kota');
+
+    // Hapus semua opsi yang ada sebelumnya (jika ada)
+    select.innerHTML = "";
+
+    // Ambil data dari Firebase
+    kotaRef.once('value', function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {
+            var kota = childSnapshot.val(); // Ambil nilai dari setiap child
+
+            // Buat elemen option
+            var opt = document.createElement('option');
+            opt.value = kota;
+            opt.innerHTML = kota;
+
+            // Tambahkan ke elemen select
+            select.appendChild(opt);
+        });
+    });
 }
 
 function sendWhatsapp(number) {

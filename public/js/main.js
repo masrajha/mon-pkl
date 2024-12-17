@@ -73,42 +73,42 @@ var center = {
 };
 
 function initMap() {
-        console.log('initMap dipanggil');
-        document.getElementById("save").disabled = true;
-        setKabOption();
-        let cl = new CurrentLocation();
-        cl.getLocation();
-        // console.log(coords);
-        map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 17
-        });
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function (position) {
-                initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                map.setCenter(initialLocation);
-                marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
-                marker.setMap(map);
-            });
-        }
-        // console.log(map);
-        // marker = createMarker(center, '<h3>Jurusan Ilmu Komputer</h3><hr>' +
-        //     '<p><a href="http://ilkom.unila.ac.id" target="blank">http://ilkom.unila.ac.id</a>');
-        // marker.setMap(map);
-        google.maps.event.addListener(map, "click", function (e) {
-            // //lat and lng is available in e object
-            var latLng = e.latLng;
-            marker.setPosition(latLng);
-            // // console.log(marker.getPosition().lat());
-            setValue('lat', latLng.lat());
-            setValue('lng', latLng.lng());
-            /* -----------PENTING SEKALI ------------- */
-            document.getElementById("save").disabled = false; //dibuat false agar dapat berfungsi
-
-            // createMarker(e.latLng);
-            // coord={lat:latLng.lat(),lng:latLng.lng()};
-            // saveData(coord);
+    console.log('initMap dipanggil');
+    document.getElementById("save").disabled = true;
+    setKabOption();
+    let cl = new CurrentLocation();
+    cl.getLocation();
+    // console.log(coords);
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 17
+    });
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+            initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+            map.setCenter(initialLocation);
+            marker = createMarker(initialLocation, '<h3>My Location</h3><hr>');
+            marker.setMap(map);
         });
     }
+    // console.log(map);
+    // marker = createMarker(center, '<h3>Jurusan Ilmu Komputer</h3><hr>' +
+    //     '<p><a href="http://ilkom.unila.ac.id" target="blank">http://ilkom.unila.ac.id</a>');
+    // marker.setMap(map);
+    google.maps.event.addListener(map, "click", function (e) {
+        // //lat and lng is available in e object
+        var latLng = e.latLng;
+        marker.setPosition(latLng);
+        // // console.log(marker.getPosition().lat());
+        setValue('lat', latLng.lat());
+        setValue('lng', latLng.lng());
+        /* -----------PENTING SEKALI ------------- */
+        document.getElementById("save").disabled = false; //dibuat false agar dapat berfungsi
+
+        // createMarker(e.latLng);
+        // coord={lat:latLng.lat(),lng:latLng.lng()};
+        // saveData(coord);
+    });
+}
 
 function createMarker(coords, contentString = null, imageIcon = null) {
     // var marker=new google.maps.Marker({position:coords,map:map});
@@ -218,63 +218,96 @@ function saveData(coord, info = null, imageIcon = null) {
     // console.log(newMarkerRef);
 }
 
-function setKabOption() {
-    var kota = ["Bandar Lampung",
-        "Asahan",
-        "Jakarta Barat",
-        "Jakarta Selatan",
-        "Jakarta Timur",
-        "Jakarta Utara",
-        "Jakarta Pusat",
-        "Kotabumi",
-        "Kota Bandung",
-        "Kota Pagar Alam",
-        "Kota Serang",
-        "Kota Malang",
-        "Lampung Selatan",
-        "Lampung Tengah",
-        "Lampung Timur",
-        "Metro",
-        "Painan",
-        "Palembang",
-        "Pesawaran",
-        "Pesisir Barat",
-        "Prabumulih",
-        "Pringsewu",
-        "Tanggamus",
-        "Tulang Bawang",
-        "Tulang Bawang Barat",
-        "Tangerang",
-        "Way Kanan"
-    ];
-    select = document.getElementById('kota');
+// function setKabOption() {
+//     var kota = ["Bandar Lampung",
+//         "Asahan",
+//         "Jakarta Barat",
+//         "Jakarta Selatan",
+//         "Jakarta Timur",
+//         "Jakarta Utara",
+//         "Jakarta Pusat",
+//         "Kotabumi",
+//         "Kota Bandung",
+//         "Kota Pagar Alam",
+//         "Kota Serang",
+//         "Kota Malang",
+//         "Lampung Selatan",
+//         "Lampung Tengah",
+//         "Lampung Timur",
+//         "Metro",
+//         "Painan",
+//         "Palembang",
+//         "Pesawaran",
+//         "Pesisir Barat",
+//         "Prabumulih",
+//         "Pringsewu",
+//         "Tanggamus",
+//         "Tulang Bawang",
+//         "Tulang Bawang Barat",
+//         "Tangerang",
+//         "Way Kanan"
+//     ];
+//     select = document.getElementById('kota');
 
-    for (var i = 0; i < kota.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = kota[i];
-        opt.innerHTML = kota[i];
-        select.appendChild(opt);
-    }
+//     for (var i = 0; i < kota.length; i++) {
+//         var opt = document.createElement('option');
+//         opt.value = kota[i];
+//         opt.innerHTML = kota[i];
+//         select.appendChild(opt);
+//     }
+// }
+
+function setKabOption() {
+    // Referensi database Firebase
+    var kotaRef = firebase.database().ref('master/kota');
+
+    // Ambil elemen select
+    var select = document.getElementById('kota');
+
+    // Hapus semua opsi yang ada sebelumnya (jika ada)
+    select.innerHTML = "";
+
+    // Ambil data dari Firebase
+    kotaRef.once('value', function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {
+            var kota = childSnapshot.val(); // Ambil nilai dari setiap child
+
+            // Buat elemen option
+            var opt = document.createElement('option');
+            opt.value = kota;
+            opt.innerHTML = kota;
+
+            // Tambahkan ke elemen select
+            select.appendChild(opt);
+        });
+    });
 }
 
+
 function sendWhatsapp(number) {
-    var img = '<img src="images/whatsapp.png">';
-    if (number.substring(0, 1) == '0')
-        return '<a href=https://api.whatsapp.com/send?phone=62' + number.substring(1) + '>' + img + '</a>';
-    if (number.substring(0, 1) == '8')
-        return '<a href=https://api.whatsapp.com/send?phone=62' + number.substring(0) + '>' + img + '</a>';
-    if (number.substring(0, 1) == '+')
-        return '<a href=https://api.whatsapp.com/send?phone=' + number.substring(1) + '>' + img + '</a>';
-    return '<a href=https://api.whatsapp.com/send?phone=' + number.substring(0) + '>' + img + '</a>';
+    if (number) {
+        var img = '<img src="images/whatsapp.png">';
+        if (number.substring(0, 1) == '0')
+            return '<a href=https://api.whatsapp.com/send?phone=62' + number.substring(1) + '>' + img + '</a>';
+        if (number.substring(0, 1) == '8')
+            return '<a href=https://api.whatsapp.com/send?phone=62' + number.substring(0) + '>' + img + '</a>';
+        if (number.substring(0, 1) == '+')
+            return '<a href=https://api.whatsapp.com/send?phone=' + number.substring(1) + '>' + img + '</a>';
+        return '<a href=https://api.whatsapp.com/send?phone=' + number.substring(0) + '>' + img + '</a>';
+    }
+    return '<img src="images/whatsapp.png" alt="Not Available" style="filter: grayscale(100%);">';
 }
 
 function call(number) {
-    var img = '<img src="images/call.png">';
-    if (number.substring(0, 1) == '0')
-        return '<a href=tel:+62' + number.substring(1) + '>' + img + '</a>';
-    if (number.substring(0, 1) == '8')
-        return '<a href=tel:+62' + number.substring(0) + '>' + img + '</a>';
-    if (number.substring(0, 1) == '+')
+    if (number) {
+        var img = '<img src="images/call.png">';
+        if (number.substring(0, 1) == '0')
+            return '<a href=tel:+62' + number.substring(1) + '>' + img + '</a>';
+        if (number.substring(0, 1) == '8')
+            return '<a href=tel:+62' + number.substring(0) + '>' + img + '</a>';
+        if (number.substring(0, 1) == '+')
+            return '<a href=tel:' + number.substring(0) + '>' + img + '</a>';
         return '<a href=tel:' + number.substring(0) + '>' + img + '</a>';
-    return '<a href=tel:' + number.substring(0) + '>' + img + '</a>';
+    }
+    return '<img src="images/call.png" alt="Not Available" style="filter: grayscale(100%);">';
 }

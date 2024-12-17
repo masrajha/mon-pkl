@@ -186,12 +186,15 @@ function sendWhatsapp(number) {
 }
 
 function call(number) {
-    var img = '<img src="images/call.png">';
-    if (number.substring(0, 1) == '0')
-        return '<a href=tel:+62' + number.substring(1) + '>' + img + '</a>';
-    if (number.substring(0, 1) == '8')
-        return '<a href=tel:+62' + number.substring(0) + '>' + img + '</a>';
-    if (number.substring(0, 1) == '+')
+    if (number) {
+        var img = '<img src="images/call.png">';
+        if (number.substring(0, 1) == '0')
+            return '<a href=tel:+62' + number.substring(1) + '>' + img + '</a>';
+        if (number.substring(0, 1) == '8')
+            return '<a href=tel:+62' + number.substring(0) + '>' + img + '</a>';
+        if (number.substring(0, 1) == '+')
+            return '<a href=tel:' + number.substring(0) + '>' + img + '</a>';
         return '<a href=tel:' + number.substring(0) + '>' + img + '</a>';
-    return '<a href=tel:' + number.substring(0) + '>' + img + '</a>';
+    }
+    return '<img src="images/call.png" alt="Not Available" style="filter: grayscale(100%);">';
 }
