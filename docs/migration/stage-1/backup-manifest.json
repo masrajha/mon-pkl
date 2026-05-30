@@ -1,0 +1,132 @@
+{
+  "generated_at": "2026-05-30T13:35:05.634Z",
+  "backup_dir": "firebase-freeze/2026-05-30",
+  "files": [
+    {
+      "file": "didik.json",
+      "backup_path": "firebase-freeze/2026-05-30/didik.json",
+      "size_bytes": 219,
+      "modified_at": "2026-05-20T06:48:58.788Z",
+      "sha256": "3baf45dbba56817ed89e36465e037c71bf95132cd08a3b9972edf175f187bccb"
+    },
+    {
+      "file": "ilkomunila-export (20190702).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20190702).json",
+      "size_bytes": 355597,
+      "modified_at": "2026-05-20T06:48:58.799Z",
+      "sha256": "8719146877d35615561684f6c74fcc26e54d89c966a78c3de275fbbdfe973932"
+    },
+    {
+      "file": "ilkomunila-export (20190704).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20190704).json",
+      "size_bytes": 987269,
+      "modified_at": "2026-05-20T06:48:58.804Z",
+      "sha256": "6d160f9d96c9dbed6b40dd224cda344e6d17d2553277f8d5d4c4cbfb5fb99473"
+    },
+    {
+      "file": "ilkomunila-export (20190725) - Edit.json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20190725) - Edit.json",
+      "size_bytes": 6366334,
+      "modified_at": "2026-05-20T06:48:58.845Z",
+      "sha256": "bc4667e3e20df1ac130232a61ef7e276f90c35c1903343760ba60a77ee23b60a"
+    },
+    {
+      "file": "ilkomunila-export (20190725).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20190725).json",
+      "size_bytes": 6366358,
+      "modified_at": "2026-05-20T06:48:58.875Z",
+      "sha256": "00a7608f6fa2f5ece1da913f731f112b33ba424684a7dd956a5edb0dfc6f9c28"
+    },
+    {
+      "file": "ilkomunila-export (20191231).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20191231).json",
+      "size_bytes": 1296644,
+      "modified_at": "2026-05-20T06:48:58.888Z",
+      "sha256": "72a4dca01f5413d2bd5d9a17b0bc3ab2811162c4b748a9a06358813a067e7648"
+    },
+    {
+      "file": "ilkomunila-export (20200620-PKL Periode 1 2020).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20200620-PKL Periode 1 2020).json",
+      "size_bytes": 8823426,
+      "modified_at": "2026-05-20T06:48:58.987Z",
+      "sha256": "cb6b32e2280e11dbfc1f134a9059439fc4b90149a8c81c554726d59d0fdd8488"
+    },
+    {
+      "file": "ilkomunila-export (20200703).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20200703).json",
+      "size_bytes": 3191693,
+      "modified_at": "2026-05-20T06:48:58.999Z",
+      "sha256": "9205f0053590b64848abe38a384cba4967de6672c20f4cc99e6be2a5b96121b7"
+    },
+    {
+      "file": "ilkomunila-export (20210130).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20210130).json",
+      "size_bytes": 10156503,
+      "modified_at": "2026-05-20T06:48:59.033Z",
+      "sha256": "743fd8236c42244abd2aeb44e33e23a30c8417416829d4afd901a7016713a938"
+    },
+    {
+      "file": "ilkomunila-export (20211231-PKL Periode 2 2021).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20211231-PKL Periode 2 2021).json",
+      "size_bytes": 8672007,
+      "modified_at": "2026-05-20T06:48:59.071Z",
+      "sha256": "72845584bfac49cf098eb7eabaa52a89d2c8571748aff8d8c038dcfd2cf01195"
+    },
+    {
+      "file": "ilkomunila-export (20220619-Periode Jan 2022).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export (20220619-Periode Jan 2022).json",
+      "size_bytes": 12989267,
+      "modified_at": "2026-05-20T06:48:59.124Z",
+      "sha256": "e8325516bd18add5cb7d6b13fd01d6508161c701b073e01692d70820116d9dba"
+    },
+    {
+      "file": "ilkomunila-export-latihan-periode1-2025.json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-export-latihan-periode1-2025.json",
+      "size_bytes": 83067,
+      "modified_at": "2026-05-20T06:48:59.125Z",
+      "sha256": "eea70db22d8f75e75e2e654682303fcbf9a4668c81a7046345bd867e4c731ee4"
+    },
+    {
+      "file": "ilkomunila-master-export.json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-master-export.json",
+      "size_bytes": 581,
+      "modified_at": "2026-05-20T06:48:59.125Z",
+      "sha256": "f73fffcaac53f4bfa8ef3a923ca955a504822efdb14da998ab65f85a6be7934c"
+    },
+    {
+      "file": "ilkomunila-mon_pkl-export.json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-mon_pkl-export.json",
+      "size_bytes": 231351,
+      "modified_at": "2026-05-20T06:48:59.127Z",
+      "sha256": "5e52a4299bb64f38abb529c55daa16ced17103225cad803db4e6354496159f5b"
+    },
+    {
+      "file": "ilkomunila-pkl-export.json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-pkl-export.json",
+      "size_bytes": 14530,
+      "modified_at": "2026-05-20T06:48:59.127Z",
+      "sha256": "e30eabf4f421ed176f01e7ccc8f7f3d1ba8ba105b4cbfb411f8565dc829e8904"
+    },
+    {
+      "file": "ilkomunila-users-export (20190723).json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-users-export (20190723).json",
+      "size_bytes": 15455,
+      "modified_at": "2026-05-20T06:48:59.128Z",
+      "sha256": "ce7e41e598518086090c78f2edd0dd52421358daafcd03b63e1e5d2caae86360"
+    },
+    {
+      "file": "ilkomunila-users-export.json",
+      "backup_path": "firebase-freeze/2026-05-30/ilkomunila-users-export.json",
+      "size_bytes": 14946,
+      "modified_at": "2026-05-20T06:48:59.128Z",
+      "sha256": "d7aca0ccffbd6615e495262f87c30838a8065eb0a84a0c01f3c3a993f494ea55"
+    },
+    {
+      "file": "kosong.json",
+      "backup_path": "firebase-freeze/2026-05-30/kosong.json",
+      "size_bytes": 979,
+      "modified_at": "2026-05-20T06:48:59.128Z",
+      "sha256": "8d69e153431e79d1d2995d9ec2a04e681f6eece38fd9417f1d6aed0c02ed8c74"
+    }
+  ]
+}

@@ -1,0 +1,907 @@
+{
+  "generated_at": "2026-05-30T13:35:05.763Z",
+  "selected_source": {
+    "database_export": "ilkomunila-export (20220619-Periode Jan 2022).json",
+    "master_export": "ilkomunila-master-export.json",
+    "rationale": "Export produksi historis paling baru yang berisi path utama pkl, mon_pkl, mon_user, dan users. Export latihan 2025 dicatat sebagai kandidat terpisah, tetapi tidak dipilih sebagai sumber utama karena namanya menunjukkan data latihan."
+  },
+  "export_files": [
+    {
+      "file": "didik.json",
+      "size_bytes": 219,
+      "sha256": "3baf45dbba56817ed89e36465e037c71bf95132cd08a3b9972edf175f187bccb"
+    },
+    {
+      "file": "ilkomunila-export (20190702).json",
+      "size_bytes": 355597,
+      "sha256": "8719146877d35615561684f6c74fcc26e54d89c966a78c3de275fbbdfe973932"
+    },
+    {
+      "file": "ilkomunila-export (20190704).json",
+      "size_bytes": 987269,
+      "sha256": "6d160f9d96c9dbed6b40dd224cda344e6d17d2553277f8d5d4c4cbfb5fb99473"
+    },
+    {
+      "file": "ilkomunila-export (20190725) - Edit.json",
+      "size_bytes": 6366334,
+      "sha256": "bc4667e3e20df1ac130232a61ef7e276f90c35c1903343760ba60a77ee23b60a"
+    },
+    {
+      "file": "ilkomunila-export (20190725).json",
+      "size_bytes": 6366358,
+      "sha256": "00a7608f6fa2f5ece1da913f731f112b33ba424684a7dd956a5edb0dfc6f9c28"
+    },
+    {
+      "file": "ilkomunila-export (20191231).json",
+      "size_bytes": 1296644,
+      "sha256": "72a4dca01f5413d2bd5d9a17b0bc3ab2811162c4b748a9a06358813a067e7648"
+    },
+    {
+      "file": "ilkomunila-export (20200620-PKL Periode 1 2020).json",
+      "size_bytes": 8823426,
+      "sha256": "cb6b32e2280e11dbfc1f134a9059439fc4b90149a8c81c554726d59d0fdd8488"
+    },
+    {
+      "file": "ilkomunila-export (20200703).json",
+      "size_bytes": 3191693,
+      "sha256": "9205f0053590b64848abe38a384cba4967de6672c20f4cc99e6be2a5b96121b7"
+    },
+    {
+      "file": "ilkomunila-export (20210130).json",
+      "size_bytes": 10156503,
+      "sha256": "743fd8236c42244abd2aeb44e33e23a30c8417416829d4afd901a7016713a938"
+    },
+    {
+      "file": "ilkomunila-export (20211231-PKL Periode 2 2021).json",
+      "size_bytes": 8672007,
+      "sha256": "72845584bfac49cf098eb7eabaa52a89d2c8571748aff8d8c038dcfd2cf01195"
+    },
+    {
+      "file": "ilkomunila-export (20220619-Periode Jan 2022).json",
+      "size_bytes": 12989267,
+      "sha256": "e8325516bd18add5cb7d6b13fd01d6508161c701b073e01692d70820116d9dba"
+    },
+    {
+      "file": "ilkomunila-export-latihan-periode1-2025.json",
+      "size_bytes": 83067,
+      "sha256": "eea70db22d8f75e75e2e654682303fcbf9a4668c81a7046345bd867e4c731ee4"
+    },
+    {
+      "file": "ilkomunila-master-export.json",
+      "size_bytes": 581,
+      "sha256": "f73fffcaac53f4bfa8ef3a923ca955a504822efdb14da998ab65f85a6be7934c"
+    },
+    {
+      "file": "ilkomunila-mon_pkl-export.json",
+      "size_bytes": 231351,
+      "sha256": "5e52a4299bb64f38abb529c55daa16ced17103225cad803db4e6354496159f5b"
+    },
+    {
+      "file": "ilkomunila-pkl-export.json",
+      "size_bytes": 14530,
+      "sha256": "e30eabf4f421ed176f01e7ccc8f7f3d1ba8ba105b4cbfb411f8565dc829e8904"
+    },
+    {
+      "file": "ilkomunila-users-export (20190723).json",
+      "size_bytes": 15455,
+      "sha256": "ce7e41e598518086090c78f2edd0dd52421358daafcd03b63e1e5d2caae86360"
+    },
+    {
+      "file": "ilkomunila-users-export.json",
+      "size_bytes": 14946,
+      "sha256": "d7aca0ccffbd6615e495262f87c30838a8065eb0a84a0c01f3c3a993f494ea55"
+    },
+    {
+      "file": "kosong.json",
+      "size_bytes": 979,
+      "sha256": "8d69e153431e79d1d2995d9ec2a04e681f6eece38fd9417f1d6aed0c02ed8c74"
+    }
+  ],
+  "paths": {
+    "pkl": {
+      "records": 54,
+      "fields": {
+        "geometry.coordinates": {
+          "count": 54,
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[105.27756348252296,-5.4226035076147525]",
+            "[105.25864452123642,-5.414873213248253]",
+            "[105.2555419,-5.4340518]"
+          ]
+        },
+        "geometry.type": {
+          "count": 54,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Point",
+            "Point",
+            "Point"
+          ]
+        },
+        "properties.alamat": {
+          "count": 54,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "JL. Bakau, No. 5, Tanjung Gading, Tj. Raya, Kedamaian, Kota Bandar Lampung, Lampung 35227",
+            "Jl. Kamboja No.5\nEnggal\nEngal, Kota Bandar Lampung, Lampung 35213, Indonesia",
+            "Jl. Cut Mutia No. 76 Telukbetung Telp. (0721) 470209 Fax. (0721) 470210 Bandar Lampung - 35215"
+          ]
+        },
+        "properties.hp_mhs": {
+          "count": 54,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "081212559570",
+            "08977736412",
+            "081336341424"
+          ]
+        },
+        "properties.instansi": {
+          "count": 54,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Akademi Keperawatan Bunda Delima",
+            "Bank BRI cabang Tanjung Karang",
+            "Dinas Perhubungan Provinsi Lampung"
+          ]
+        },
+        "properties.kota": {
+          "count": 54,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Bandar Lampung",
+            "Lampung Tengah",
+            "Bandar Lampung"
+          ]
+        },
+        "properties.mhs": {
+          "count": 52,
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[{\"nama\":\"Mohammad Fajar\",\"npm\":\"1917051014\"},{\"nama\":\"Ale Habsyi Arwendi\",\"npm\":\"1917051067\"},{\"nama\":\"Tegar Jayanag...",
+            "[{\"nama\":\"Sendy Hani Pramita\",\"npm\":\"1917051030\"},{\"nama\":\"Devi Ramadhia Fitri\",\"npm\":\"1917051005\"},{\"nama\":\"Vadella ...",
+            "[{\"nama\":\"Salsabilla Qurrota Ayuni\",\"npm\":\"1917051048\"},{\"nama\":\"Revita Setianingsih\",\"npm\":\"1917051058\"},{\"nama\":\"Ta..."
+          ]
+        },
+        "properties.pemb_hp": {
+          "count": 54,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "081379891617",
+            "081272667353",
+            "081379000068"
+          ]
+        },
+        "properties.pemb_lap": {
+          "count": 54,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ns. Agus Waluyo, M.Kep., Sp.Kep.J",
+            "Bapak Rizky Sulaiman",
+            "SUSDEWI KAROMILIYA,S.Sos, M.M"
+          ]
+        },
+        "properties.time": {
+          "count": 54,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "1641174327666",
+            "1641175464310",
+            "1641177079609"
+          ]
+        },
+        "properties.visited": {
+          "count": 54,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "0",
+            "0",
+            "0"
+          ]
+        },
+        "type": {
+          "count": 54,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Feature",
+            "Feature",
+            "Feature"
+          ]
+        }
+      },
+      "target_table": "internship_places"
+    },
+    "mon_pkl": {
+      "records": 3524,
+      "fields": {
+        "geometry.coordinates": {
+          "count": 3524,
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[[105.2435577,-5.3751789],[105.24365097284317,-5.375208175092695]]",
+            "[[105.2437344,-5.3752776],[105.24365097284317,-5.375208175092695]]",
+            "[[105.2450701,-5.3755307],[105.24365097284317,-5.375208175092695]]"
+          ]
+        },
+        "geometry.type": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "LineString",
+            "LineString",
+            "LineString"
+          ]
+        },
+        "properties.catatan": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "pengenalan dan adaptasi lingkungan perusahaan, dan belajar cara kerja ",
+            "Perkenalan dan pengadaptasian lingkungan kerja praktik Goodwood Publishing",
+            "Hari pertama melakukan perkenalan dan pengadaptasian terhadap lingkungan kerja praktik Goodwood Publishing"
+          ]
+        },
+        "properties.device.appVersion": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "5.0 (Linux; Android 11; SM-A125F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.104 Mobile Safari/537.36",
+            "5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36 HeyTapBrowser/15.8.2.1",
+            "5.0 (Linux; Android 8.1.0; SM-J730G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36"
+          ]
+        },
+        "properties.device.browserName": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Chrome",
+            "Safari",
+            "Chrome"
+          ]
+        },
+        "properties.device.browserVersion": {
+          "count": 3524,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "96.04664104",
+            "0",
+            "87.04280141"
+          ]
+        },
+        "properties.device.osName": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Android",
+            "Linux",
+            "Android"
+          ]
+        },
+        "properties.device.osVersion": {
+          "count": 3524,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "11",
+            "0",
+            "8.1"
+          ]
+        },
+        "properties.device.platform": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Linux armv8l",
+            "Linux armv8l",
+            "Linux armv8l"
+          ]
+        },
+        "properties.device.userAgent": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Mozilla/5.0 (Linux; Android 11; SM-A125F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.104 Mobile Safari/5...",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36 HeyTapBrowser/15.8.2.1",
+            "Mozilla/5.0 (Linux; Android 8.1.0; SM-J730G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safar..."
+          ]
+        },
+        "properties.device.vendor": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Google Inc.",
+            "Google Inc.",
+            "Google Inc."
+          ]
+        },
+        "properties.imgURL": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F1917051008_20220103_Datang%20Terl...",
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F1957051002_20220103_Datang%20Terl...",
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F1917051021_20220103_Datang%20Terl..."
+          ]
+        },
+        "properties.instansi": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Goodwood Publishing",
+            "Goodwood Publishing",
+            "Goodwood Publishing"
+          ]
+        },
+        "properties.keterangan": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Datang Terlambat",
+            "Datang Terlambat",
+            "Datang Terlambat"
+          ]
+        },
+        "properties.nama": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ummu Qaltsum",
+            "cindy",
+            "Maghviraturreimadhiney"
+          ]
+        },
+        "properties.npm": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "1917051008",
+            "1957051002",
+            "1917051021"
+          ]
+        },
+        "properties.time": {
+          "count": 3524,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "1641172657536",
+            "1641172782745",
+            "1641172895181"
+          ]
+        },
+        "properties.url": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://ilkomunila.web.app/check-in.html",
+            "https://ilkomunila.web.app/check-in.html",
+            "https://ilkomunila.web.app/check-in.html"
+          ]
+        },
+        "properties.user.displayName": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ummu Qaltsum",
+            "cindy",
+            "maghviraturreimadhiney 102119"
+          ]
+        },
+        "properties.user.email": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "ummuqaltsum11@gmail.com",
+            "cindy.191002@students.unila.ac.id",
+            "maghviraturreimadhiney.102119@students.unila.ac.id"
+          ]
+        },
+        "properties.user.photoURL": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://lh3.googleusercontent.com/a-/AOh14Givj0L4n0nNC8tpLk6wUroEIPe3Y1V_TnCeysLe9w=s96-c",
+            "https://lh3.googleusercontent.com/a-/AOh14GjnRitoCPASjG_pyHAkZ9uE0n-Qo3s3sT_u2VRd=s96-c",
+            "https://lh3.googleusercontent.com/a-/AOh14GjmkNCigXG3VwFZL3eX4N0AbcLLFqp8zpyVaNpY=s96-c"
+          ]
+        },
+        "properties.user.uid": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "xANQ71E1JkU8a9jYWLL5Dkt3aCJ2",
+            "L3gEK8F9Q6UDysM9L4x1yXPxxXt2",
+            "i5jaKLdJYWRieDqNxnYnwyIPcpE2"
+          ]
+        },
+        "type": {
+          "count": 3524,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Feature",
+            "Feature",
+            "Feature"
+          ]
+        }
+      },
+      "target_table": "check_ins",
+      "source_role": "primary check-in source"
+    },
+    "mon_user": {
+      "npm_records": 114,
+      "check_in_records": 3521,
+      "check_ins_by_npm_min": 1,
+      "check_ins_by_npm_max": 76,
+      "fields": {
+        "geometry.coordinates": {
+          "count": 3521,
+          "types": [
+            "array"
+          ],
+          "examples": [
+            "[[105.2357404,-5.3667536],[105.23606300354004,-5.367001936843968]]",
+            "[[105.2357571,-5.366813],[105.23606300354004,-5.367001936843968]]",
+            "[[105.2357863,-5.3668421],[105.23606300354004,-5.367001936843968]]"
+          ]
+        },
+        "geometry.type": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "LineString",
+            "LineString",
+            "LineString"
+          ]
+        },
+        "npm": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "1817051023",
+            "1817051023",
+            "1817051023"
+          ]
+        },
+        "properties.catatan": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Hari ini kami berencana untuk berkenalan ke pihak pihak yang ada di Dinas Perhubungan Kota Bandar Lampung, sekaligus ...",
+            "Berkenalan dengan pihak pihak yang ada di Dinas, dan mendapatkan jobdesk membantu bagian divisi kepegawaian ",
+            "Melanjutkan tugas hari sebelumnya, untuk membantu merapihkan file file Word milik dishub yang belum tersusun rapi"
+          ]
+        },
+        "properties.device.appVersion": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "5.0 (Linux; U; Android 6.0; id-id; Redmi Note 4X Build/MRA58K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chr...",
+            "5.0 (Linux; U; Android 6.0; id-id; Redmi Note 4X Build/MRA58K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chr...",
+            "5.0 (Linux; U; Android 6.0; id-id; Redmi Note 4X Build/MRA58K) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chr..."
+          ]
+        },
+        "properties.device.browserName": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Chrome",
+            "Chrome",
+            "Chrome"
+          ]
+        },
+        "properties.device.browserVersion": {
+          "count": 3521,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "89.04389116",
+            "89.04389116",
+            "89.04389116"
+          ]
+        },
+        "properties.device.osName": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Android",
+            "Android",
+            "Android"
+          ]
+        },
+        "properties.device.osVersion": {
+          "count": 3521,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "6",
+            "6",
+            "6"
+          ]
+        },
+        "properties.device.platform": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Linux armv8l",
+            "Linux armv8l",
+            "Linux armv8l"
+          ]
+        },
+        "properties.device.userAgent": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Mozilla/5.0 (Linux; U; Android 6.0; id-id; Redmi Note 4X Build/MRA58K) AppleWebKit/537.36 (KHTML, like Gecko) Version...",
+            "Mozilla/5.0 (Linux; U; Android 6.0; id-id; Redmi Note 4X Build/MRA58K) AppleWebKit/537.36 (KHTML, like Gecko) Version...",
+            "Mozilla/5.0 (Linux; U; Android 6.0; id-id; Redmi Note 4X Build/MRA58K) AppleWebKit/537.36 (KHTML, like Gecko) Version..."
+          ]
+        },
+        "properties.device.vendor": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Google Inc.",
+            "Google Inc.",
+            "Google Inc."
+          ]
+        },
+        "properties.imgURL": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F1817051023_20220105_Datang%20Terl...",
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F1817051023_20220105_Pulang%20Cepa...",
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fpkl%2F1817051023_20220106_Datang%20Terl..."
+          ]
+        },
+        "properties.instansi": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Dinas Perhubungan Kota Bandar Lampung",
+            "Dinas Perhubungan Kota Bandar Lampung",
+            "Dinas Perhubungan Kota Bandar Lampung"
+          ]
+        },
+        "properties.keterangan": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Datang Terlambat",
+            "Pulang Cepat",
+            "Datang Terlambat"
+          ]
+        },
+        "properties.nama": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Muhammad Rifa'i",
+            "Muhammad Rifa'i",
+            "Muhammad Rifa'i"
+          ]
+        },
+        "properties.npm": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "1817051023",
+            "1817051023",
+            "1817051023"
+          ]
+        },
+        "properties.time": {
+          "count": 3521,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "1641350097866",
+            "1641368595564",
+            "1641431492182"
+          ]
+        },
+        "properties.url": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://ilkomunila.web.app/check-in.html",
+            "https://ilkomunila.web.app/check-in.html",
+            "https://ilkomunila.web.app/check-in.html"
+          ]
+        },
+        "properties.user.displayName": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Muhammad Rifa'i",
+            "Muhammad Rifa'i",
+            "Muhammad Rifa'i"
+          ]
+        },
+        "properties.user.email": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "mrifai2311@gmail.com",
+            "mrifai2311@gmail.com",
+            "mrifai2311@gmail.com"
+          ]
+        },
+        "properties.user.photoURL": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://lh3.googleusercontent.com/a-/AOh14GhOqR3l0SIb_ZrM8K_yJ9SwRv5Rzsf6gsQa7hPhLw=s96-c",
+            "https://lh3.googleusercontent.com/a-/AOh14GhOqR3l0SIb_ZrM8K_yJ9SwRv5Rzsf6gsQa7hPhLw=s96-c",
+            "https://lh3.googleusercontent.com/a-/AOh14GhOqR3l0SIb_ZrM8K_yJ9SwRv5Rzsf6gsQa7hPhLw=s96-c"
+          ]
+        },
+        "properties.user.uid": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "8dkwBxdm27OdUKKGE6PCVga5h7F2",
+            "8dkwBxdm27OdUKKGE6PCVga5h7F2",
+            "8dkwBxdm27OdUKKGE6PCVga5h7F2"
+          ]
+        },
+        "type": {
+          "count": 3521,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Feature",
+            "Feature",
+            "Feature"
+          ]
+        }
+      },
+      "target_table": null,
+      "source_role": "validation/cross-check only"
+    },
+    "users": {
+      "records": 115,
+      "fields": {
+        "dosen": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Anie Rose Irawati, ST, M.Cs.",
+            "Yohana Tri Utami",
+            "Didik Kurniawan"
+          ]
+        },
+        "email": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "diffaddien@gmail.com",
+            "azahraalia9090@gmail.com",
+            "vadellaayumi@gmail.com"
+          ]
+        },
+        "instansi.lat": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "-5.363394377122015",
+            "-5.371229244867682",
+            "-5.448522634878624"
+          ]
+        },
+        "instansi.lng": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "105.24481723888486",
+            "105.04942953586578",
+            "105.2666187286377"
+          ]
+        },
+        "instansi.nama": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Jurusan Administrasi Bisnis, FISIP, Universitas Lampung",
+            "Badan Pusat Statistik Kab. Pringsewu",
+            "PT Nusantara Regas"
+          ]
+        },
+        "nama": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Diffa Addien Aziz",
+            "Viny Silvia",
+            "Aghita Namira Yuliza"
+          ]
+        },
+        "npm": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "1917051015",
+            "1917051010",
+            "1917051019"
+          ]
+        },
+        "pembimbing": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Ghia Subagja S.E., M.M",
+            "Edi",
+            "Syivani"
+          ]
+        },
+        "photoURL": {
+          "count": 115,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F1917051015.png?alt=media&tok...",
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F1917051010.png?alt=media&tok...",
+            "https://firebasestorage.googleapis.com/v0/b/ilkomunila.appspot.com/o/images%2Fprofiles%2F1917051019.png?alt=media&tok..."
+          ]
+        }
+      },
+      "target_table": "users, students"
+    },
+    "master/kota": {
+      "records": 27,
+      "fields": {
+        "legacy_index": {
+          "count": 27,
+          "types": [
+            "number"
+          ],
+          "examples": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "name": {
+          "count": 27,
+          "types": [
+            "string"
+          ],
+          "examples": [
+            "Bandar Lampung",
+            "Asahan",
+            "Jakarta Barat"
+          ]
+        }
+      },
+      "target_table": "cities"
+    }
+  }
+}
