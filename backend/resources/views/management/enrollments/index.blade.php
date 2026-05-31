@@ -8,6 +8,7 @@
         <form class="mb-4 flex flex-wrap gap-3 bg-white p-4 shadow-sm sm:rounded-lg">
             <select name="period_id" class="rounded-md border-gray-300"><option value="">Semua periode</option>@foreach ($periods as $period)<option value="{{ $period->id }}" @selected($selectedPeriod === $period->id)>{{ $period->name }}</option>@endforeach</select>
             <select name="study_program_id" class="rounded-md border-gray-300"><option value="">Semua prodi</option>@foreach ($studyPrograms as $program)<option value="{{ $program->id }}" @selected($selectedStudyProgram === $program->id)>{{ $program->name }}</option>@endforeach</select>
+            <select name="status" class="rounded-md border-gray-300"><option value="">Semua status</option>@foreach (['draft','pending_verification','revision_required','active','inactive','completed','cancelled','rejected'] as $status)<option value="{{ $status }}" @selected($selectedStatus === $status)>{{ $status }}</option>@endforeach</select>
             <x-primary-button>Filter</x-primary-button>
         </form>
 

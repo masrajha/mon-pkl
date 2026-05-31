@@ -2,18 +2,27 @@
 
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\CoordinatorDashboardController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternshipPlaceController;
+use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinatorController;
 use App\Http\Controllers\Management\DashboardController as ManagementDashboardController;
 use App\Http\Controllers\Management\EnrollmentController as ManagementEnrollmentController;
 use App\Http\Controllers\Management\LecturerController as ManagementLecturerController;
 use App\Http\Controllers\Management\PeriodController as ManagementPeriodController;
 use App\Http\Controllers\Management\PlaceController as ManagementPlaceController;
+use App\Http\Controllers\Management\PlaceProposalController as ManagementPlaceProposalController;
 use App\Http\Controllers\Management\StudentController as ManagementStudentController;
 use App\Http\Controllers\Management\StudyProgramController as ManagementStudyProgramController;
 use App\Http\Controllers\Management\UserController as ManagementUserController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\EnrollmentController as StudentEnrollmentController;
+use App\Http\Controllers\Student\PlaceProposalController as StudentPlaceProposalController;
+use App\Http\Controllers\Student\ProfileController as StudentProfileController;
+use App\Http\Controllers\Student\ReportController as StudentReportController;
 use App\Http\Controllers\SystemConfigurationController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,9 +33,7 @@ Route::get('/', function () {
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/maps/places', [MapController::class, 'places'])->name('maps.places');
@@ -36,8 +43,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/monitoring', [ReportController::class, 'monitoring'])->name('reports.monitoring');
 
     Route::middleware('role:mahasiswa')->group(function () {
+        Route::get('/student', StudentDashboardController::class)->name('student.dashboard');
+        Route::get('/student/profile', [StudentProfileController::class, 'edit'])->name('student.profile.edit');
+        Route::patch('/student/profile', [StudentProfileController::class, 'update'])->name('student.profile.update');
+        Route::get('/student/enrollments/create', [StudentEnrollmentController::class, 'create'])->name('student.enrollments.create');
+        Route::post('/student/enrollments', [StudentEnrollmentController::class, 'store'])->name('student.enrollments.store');
+        Route::get('/student/place-proposals/create', [StudentPlaceProposalController::class, 'create'])->name('student.proposals.create');
+        Route::post('/student/place-proposals', [StudentPlaceProposalController::class, 'store'])->name('student.proposals.store');
+        Route::get('/student/reports/{enrollment}', [StudentReportController::class, 'show'])->name('student.reports.show');
+        Route::get('/student/reports/{enrollment}/print', [StudentReportController::class, 'print'])->name('student.reports.print');
         Route::get('/check-ins/create', [CheckInController::class, 'create'])->name('check-ins.create');
         Route::post('/check-ins', [CheckInController::class, 'store'])->name('check-ins.store');
+    });
+
+    Route::middleware('role:koordinator')->group(function () {
+        Route::get('/coordinator', CoordinatorDashboardController::class)->name('coordinator.dashboard');
     });
 
     Route::middleware('role:admin,dosen')->group(function () {
@@ -74,8 +94,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/management/lecturers/{lecturer}/edit', [ManagementLecturerController::class, 'edit'])->name('management.lecturers.edit');
         Route::patch('/management/lecturers/{lecturer}', [ManagementLecturerController::class, 'update'])->name('management.lecturers.update');
 
+        Route::get('/management/coordinators', [ManagementCoordinatorController::class, 'index'])->name('management.coordinators.index');
+        Route::post('/management/coordinators', [ManagementCoordinatorController::class, 'store'])->name('management.coordinators.store');
+        Route::get('/management/coordinators/{coordinator}/edit', [ManagementCoordinatorController::class, 'edit'])->name('management.coordinators.edit');
+        Route::patch('/management/coordinators/{coordinator}', [ManagementCoordinatorController::class, 'update'])->name('management.coordinators.update');
+
         Route::get('/management/places', [ManagementPlaceController::class, 'index'])->name('management.places.index');
         Route::post('/management/places/bulk', [ManagementPlaceController::class, 'bulk'])->name('management.places.bulk');
+        Route::get('/management/place-proposals', [ManagementPlaceProposalController::class, 'index'])->name('management.place-proposals.index');
+        Route::post('/management/place-proposals/{proposal}/approve', [ManagementPlaceProposalController::class, 'approve'])->name('management.place-proposals.approve');
+        Route::post('/management/place-proposals/{proposal}/reject', [ManagementPlaceProposalController::class, 'reject'])->name('management.place-proposals.reject');
 
         Route::get('/management/enrollments', [ManagementEnrollmentController::class, 'index'])->name('management.enrollments.index');
         Route::post('/management/enrollments', [ManagementEnrollmentController::class, 'store'])->name('management.enrollments.store');

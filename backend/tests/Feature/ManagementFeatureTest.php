@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\InternshipPeriod;
+use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlace;
 use App\Models\Lecturer;
@@ -24,6 +25,7 @@ class ManagementFeatureTest extends TestCase
         $this->actingAs($admin)->get(route('management.users.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.students.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.lecturers.index'))->assertOk();
+        $this->actingAs($admin)->get(route('management.coordinators.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.study-programs.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.periods.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.places.index'))->assertOk();
@@ -114,6 +116,40 @@ class ManagementFeatureTest extends TestCase
             'lecturer_supervisor' => $lecturer->name,
             'field_supervisor_phone' => '081111111111',
         ]);
+    }
+
+    public function test_admin_can_assign_lecturer_as_coordinator_without_changing_dosen_role(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $lecturerUser = User::factory()->create(['role' => 'dosen']);
+        $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Koordinator', 'academic_year' => '2026/2027']);
+        $lecturer = Lecturer::query()->create([
+            'user_id' => $lecturerUser->id,
+            'study_program_id' => $program->id,
+            'name' => $lecturerUser->name,
+            'email' => $lecturerUser->email,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('management.coordinators.store'), [
+                'lecturer_id' => $lecturer->id,
+                'internship_period_id' => $period->id,
+                'study_program_id' => $program->id,
+                'status' => 'active',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('internship_coordinators', [
+            'lecturer_id' => $lecturer->id,
+            'internship_period_id' => $period->id,
+            'study_program_id' => $program->id,
+            'status' => 'active',
+        ]);
+        $this->assertTrue($lecturerUser->fresh()->hasRole('dosen'));
+        $this->assertTrue($lecturerUser->fresh()->hasRole('koordinator'));
+        $this->actingAs($lecturerUser)->get(route('coordinator.dashboard'))->assertOk();
     }
 
     public function test_place_bulk_delete_only_allows_places_without_enrollments(): void

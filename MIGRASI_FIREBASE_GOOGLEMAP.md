@@ -97,9 +97,9 @@ Terakhir diperbarui: 31 Mei 2026.
 | Tahap 1 - Inventarisasi dan Freeze Data | Selesai | Artefak tersedia di `docs/migration/stage-1`. Sudah ada mapping field, manifest backup, runbook freeze, inventaris fitur, dan matriks awal periode/prodi. |
 | Tahap 2 - Bangun Backend Baru | Selesai | Backend Laravel 12 dibuat di folder `backend`. PostgreSQL `monpkl` sudah dikonfigurasi, migration inti dan spatial PostGIS sudah berjalan, auth Breeze tersedia, SSO Google Unila sudah dikonfigurasi, SMTP Gmail sudah dikonfigurasi, model/relasi inti dan role middleware sudah dibuat. |
 | Tahap 3 - Migrasi Data Firebase ke Database Baru | Selesai | Command `php artisan import:firebase-json` sudah dibuat dan data historis utama sudah diimport ke PostgreSQL. Report import tersedia di `backend/storage/app/private/import-reports`. |
-| Tahap 4 - Fondasi Manajemen Data | Selesai sebagian | Menu manajemen admin sudah dibuat untuk User, Mahasiswa, Dosen, Prodi, Periode, Master Tempat PKL, dan Peserta Periode/Penempatan PKL. Pemisahan master tempat PKL dan data peserta periode sudah diterapkan lebih rapi, termasuk master dosen dengan NIP/NIDN/status, relasi dosen pembimbing ke master dosen, dan pembimbing lapangan sebagai data bebas per enrollment. |
+| Tahap 4 - Fondasi Manajemen Data | Selesai sebagian | Menu manajemen admin sudah dibuat untuk User, Mahasiswa, Dosen, Koordinator, Prodi, Periode, Master Tempat PKL, dan Peserta Periode/Penempatan PKL. Pemisahan master tempat PKL dan data peserta periode sudah diterapkan lebih rapi, termasuk master dosen dengan NIP/NIDN/status, relasi dosen pembimbing ke master dosen, penugasan koordinator per periode/prodi, dan pembimbing lapangan sebagai data bebas per enrollment. |
 | Tahap 5 - Konfigurasi Sistem Per Periode | Selesai sebagian | Konfigurasi operasional sudah tersedia per `Periode PKL`. Perlu dirapikan bersama menu manajemen periode. |
-| Tahap 6 - Workflow Mahasiswa dan Pendaftaran PKL | Belum dimulai | Mahasiswa perlu dapat melengkapi profil, mendaftar periode, memilih/mengajukan tempat PKL, menunggu validasi admin, melihat laporan individu, dan mencetak laporan. Workflow harus membedakan pembimbing lapangan sebagai input bebas dari instansi dan dosen pembimbing sebagai pilihan dari daftar dosen di database. |
+| Tahap 6 - Workflow Mahasiswa dan Pendaftaran PKL | Selesai sebagian | Mahasiswa sudah dapat melengkapi profil, mendaftar periode PKL, memilih tempat PKL, mengajukan tempat PKL baru, melihat status pendaftaran/usulan, melihat laporan individu, dan mencetak laporan dengan validasi kelengkapan pembimbing. Admin sudah dapat memvalidasi usulan tempat PKL. |
 | Tahap 7 - Migrasi Peta ke Leaflet | Selesai sebagian | Leaflet sudah dipakai untuk peta tempat PKL, peta monitoring, picker lokasi, dan peta check-in. Perlu diselaraskan dengan pemisahan master tempat PKL dan penempatan periode. |
 | Tahap 8 - Migrasi Fitur Check-In | Selesai sebagian | Form dan endpoint check-in backend sudah dibuat. Server menentukan status, menghitung jarak, menyimpan lokasi/foto/catatan, dan membatasi akses berdasarkan role mahasiswa. Export/foto historis Firebase Storage belum dimigrasikan. |
 | Tahap 9 - Migrasi Laporan dan Rekap | Selesai sebagian | Halaman rekapitulasi monitoring PKL sudah dibuat dari data PostgreSQL dengan filter periode, prodi, tanggal, dan hak akses role. Export PDF/Excel dan tabel hari libur database belum dibuat. |
@@ -338,6 +338,15 @@ lecturers
 - created_at
 - updated_at
 
+internship_coordinators
+- id
+- lecturer_id
+- internship_period_id
+- study_program_id
+- status active/inactive
+- created_at
+- updated_at
+
 study_programs
 - id
 - code
@@ -454,6 +463,7 @@ Pembagian yang disarankan:
 | Master User | akun admin, dosen, mahasiswa, role, email, SSO Google | User adalah identitas login, bukan peserta periode. |
 | Master Mahasiswa | NPM, nama, prodi asal, relasi ke user | Mahasiswa dapat ikut lebih dari satu periode. |
 | Master Dosen | nama, email, NIP, NIDN, prodi, akun login, status aktif | Dibuat eksplisit pada tabel `lecturers`; `users` hanya untuk akun login/role. |
+| Koordinator PKL | dosen, periode, prodi, status penugasan | Koordinator adalah penugasan dosen per periode/prodi, bukan pengganti role dosen. |
 | Master Prodi | kode, nama, fakultas, status aktif | Dipakai untuk filter dan penempatan. |
 | Master Tempat PKL | nama instansi, alamat, provinsi, kab/kota, koordinat, kontak umum, status aktif | Tidak menyimpan mahasiswa atau dosen pembimbing periode. |
 | Periode PKL | nama periode, tahun akademik, semester, tanggal mulai/akhir, status aktif/terkunci | Menjadi konteks utama semua operasi. |
@@ -487,6 +497,13 @@ Pembimbing mahasiswa harus dipisah menjadi dua jenis karena sumber datanya berbe
    - Melekat pada `internship_enrollments`, karena dosen pembimbing dapat berbeda untuk mahasiswa yang sama pada periode lain.
    - Ditentukan oleh admin/prodi saat validasi pendaftaran atau saat plotting pembimbing.
 
+3. **Koordinator PKL**
+   - Dipilih dari master dosen.
+   - Melekat pada kombinasi periode PKL dan prodi tertentu.
+   - Satu kombinasi periode dan prodi hanya memiliki satu record koordinator agar kewenangan tidak ambigu.
+   - Dosen yang menjadi koordinator tetap memiliki fungsi dosen biasa, termasuk sebagai dosen pembimbing.
+   - Setelah login, dosen yang memiliki penugasan koordinator mendapat mode/menu koordinator untuk melihat pelaksanaan PKL pada periode dan prodi yang ditugaskan.
+
 Rekomendasi aturan workflow:
 
 1. Mahasiswa boleh mendaftar PKL tanpa dosen pembimbing jika pembagian dosen belum dilakukan.
@@ -515,6 +532,7 @@ Manajemen
   - User
   - Mahasiswa
   - Dosen
+  - Koordinator PKL
   - Prodi
   - Tempat PKL
   - Periode PKL
@@ -778,6 +796,12 @@ Hasil implementasi:
 - Seeder `LecturerSeeder` dibuat untuk mengisi data dosen awal ILKOM/FMIPA, menormalisasi NIP tanpa spasi, membuat/menautkan akun user role `dosen`, dan menandai status dosen sebagai `active`.
 - Dosen pembimbing harus berasal dari master dosen. Relasi `lecturer_supervisor_id` sudah ditambahkan ke enrollment dengan fallback ke `lecturer_supervisor_user_id` dan field legacy `lecturer_supervisor`.
 - Form penempatan peserta sudah memilih dosen pembimbing dari master dosen aktif.
+- Penugasan Koordinator PKL dibuat melalui tabel `internship_coordinators`.
+- Menu manajemen `Koordinator` dibuat untuk menetapkan dosen sebagai koordinator pada kombinasi periode dan prodi tertentu.
+- Database dan validasi form mencegah lebih dari satu koordinator pada kombinasi periode/prodi yang sama.
+- Dosen yang ditugaskan sebagai koordinator tetap role utama `dosen`; sistem mengenali role fungsional `koordinator` dari penugasan aktif.
+- Dashboard dan navigasi menampilkan menu `Koordinator` bagi dosen yang memiliki penugasan aktif.
+- Scope peta dan laporan untuk dosen mencakup mahasiswa bimbingan sendiri serta seluruh peserta pada periode/prodi yang dikoordinasikan.
 - Filter peta dan laporan untuk role dosen sudah memakai relasi dosen pembimbing baru, dengan fallback ke data legacy.
 - Master Tempat PKL dirapikan agar pembimbing lapangan tidak diposisikan sebagai data master permanen; field kontak pada master diperlakukan sebagai kontak umum instansi.
 - Test fitur manajemen dibuat di `backend/tests/Feature/ManagementFeatureTest.php`.
@@ -789,6 +813,7 @@ Prioritas implementasi:
    - User.
    - Mahasiswa.
    - Dosen melalui tabel `lecturers`.
+   - Koordinator PKL melalui tabel `internship_coordinators`.
    - Prodi.
    - Tempat PKL.
 3. Rapikan **Master Tempat PKL** agar hanya berisi data umum instansi:
@@ -867,33 +892,52 @@ Output tahap ini:
 
 ### Tahap 6 - Workflow Mahasiswa dan Pendaftaran PKL
 
-Status: belum dimulai.
+Status: selesai sebagian.
 
 Tujuan tahap ini adalah membuat mahasiswa dapat mendaftar, melengkapi profil, memilih/mengajukan tempat PKL, menjalankan PKL, dan melihat laporan individunya sendiri.
 
+Hasil implementasi:
+
+- Menu mahasiswa `PKL Saya` dibuat.
+- Dashboard mahasiswa dibuat untuk melihat status profil, pendaftaran PKL, usulan tempat, presensi, dan laporan.
+- Form **Profil Mahasiswa** dibuat untuk NPM, nama lengkap, email student, nomor HP, dan prodi.
+- Field `student_email` dan `phone` ditambahkan ke tabel `students`.
+- Form **Pendaftaran PKL** dibuat untuk memilih periode, prodi, tempat PKL dari master, kontak mahasiswa, dan pembimbing lapangan jika sudah diketahui.
+- Pendaftaran mahasiswa masuk ke `internship_enrollments` dengan status awal `pending_verification`.
+- Form **Usulan Tempat PKL Baru** dibuat untuk mahasiswa.
+- Tabel `internship_place_proposals` dibuat untuk menyimpan usulan tempat sebelum masuk master.
+- Admin mendapat menu **Usulan Tempat** untuk menyetujui, menolak, atau merge usulan ke master tempat PKL.
+- Halaman **Laporan Saya** dibuat untuk mahasiswa.
+- Halaman **Cetak Laporan** dibuat dengan validasi kelengkapan:
+  - dosen pembimbing dari master dosen.
+  - pembimbing lapangan.
+  - tempat PKL.
+  - koordinat tempat PKL.
+- Test workflow mahasiswa dibuat di `backend/tests/Feature/StudentWorkflowFeatureTest.php`.
+
 Prioritas implementasi:
 
-1. Buat dashboard mahasiswa yang menampilkan:
+1. Buat dashboard mahasiswa yang menampilkan: **Selesai sebagian.**
    - status profil.
    - status pendaftaran periode aktif.
    - tempat PKL.
    - tombol presensi hari ini.
    - ringkasan hadir/terlambat/pulang cepat.
    - notifikasi revisi dari admin.
-2. Buat form **Profil Saya**:
+2. Buat form **Profil Saya**: **Selesai.**
    - NPM.
    - nama lengkap.
    - email student.
    - nomor HP.
    - prodi.
-3. Tambahkan validasi agar mahasiswa harus melengkapi profil sebelum mendaftar PKL.
-4. Buat form **Pendaftaran PKL**:
+3. Tambahkan validasi agar mahasiswa harus melengkapi profil sebelum mendaftar PKL. **Selesai.**
+4. Buat form **Pendaftaran PKL**: **Selesai.**
    - pilih periode aktif.
    - pilih prodi.
    - pilih tempat PKL dari master.
    - isi kontak mahasiswa.
    - isi pembimbing lapangan jika sudah diketahui.
-5. Tambahkan status enrollment:
+5. Tambahkan status enrollment: **Selesai sebagian.**
    - `draft`.
    - `pending_verification`.
    - `revision_required`.
@@ -901,18 +945,18 @@ Prioritas implementasi:
    - `completed`.
    - `cancelled`.
    - `rejected`.
-6. Buat fitur **Usulan Tempat PKL Baru**:
+6. Buat fitur **Usulan Tempat PKL Baru**: **Selesai.**
    - mahasiswa mengisi nama instansi, alamat, kota, koordinat, dan kontak pembimbing lapangan.
    - data masuk sebagai proposal, bukan langsung master.
    - admin dapat menyetujui, menolak, atau merge dengan master tempat PKL yang sudah ada.
-7. Buat halaman admin untuk validasi pendaftaran mahasiswa:
+7. Buat halaman admin untuk validasi pendaftaran mahasiswa: **Selesai sebagian melalui menu Peserta Periode.**
    - set dosen pembimbing dari daftar user/dosen di database.
    - lengkapi atau koreksi pembimbing lapangan sebagai input bebas.
    - set status enrollment.
    - beri catatan revisi/penolakan.
-8. Ubah akses presensi agar hanya enrollment `active` yang dapat melakukan check-in/check-out resmi.
-9. Buat halaman **Laporan Saya** untuk mahasiswa.
-10. Buat halaman **Cetak Laporan** berbasis backend/Blade print view dengan validasi kelengkapan dosen pembimbing dan pembimbing lapangan.
+8. Ubah akses presensi agar hanya enrollment `active` yang dapat melakukan check-in/check-out resmi. **Selesai.**
+9. Buat halaman **Laporan Saya** untuk mahasiswa. **Selesai sebagian.**
+10. Buat halaman **Cetak Laporan** berbasis backend/Blade print view dengan validasi kelengkapan dosen pembimbing dan pembimbing lapangan. **Selesai sebagian.**
 
 Output tahap ini:
 
@@ -921,6 +965,13 @@ Output tahap ini:
 - Usulan tempat PKL baru tidak mencemari master sebelum disetujui.
 - Dosen pembimbing tersimpan sebagai referensi ke data dosen, sedangkan pembimbing lapangan tersimpan sebagai data bebas per enrollment.
 - Cetak laporan memiliki prasyarat data pembimbing yang jelas sehingga laporan resmi tidak kosong atau salah pembimbing.
+
+Catatan tersisa:
+
+- Halaman validasi pendaftaran peserta bisa dibuat lebih khusus, terpisah dari form edit Peserta Periode.
+- Status `revision_required` dan catatan revisi pendaftaran belum memiliki field khusus.
+- Usulan tempat yang disetujui belum otomatis mengubah enrollment mahasiswa ke tempat tersebut; admin masih dapat menautkannya melalui menu Peserta Periode.
+- Laporan mahasiswa masih berupa print view sederhana; export PDF/Excel resmi belum dibuat.
 
 ### Tahap 7 - Migrasi Peta ke Leaflet
 

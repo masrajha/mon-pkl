@@ -14,6 +14,8 @@ class Student extends Model
         'study_program_id',
         'npm',
         'full_name',
+        'student_email',
+        'phone',
     ];
 
     public function user()
@@ -29,5 +31,10 @@ class Student extends Model
     public function enrollments()
     {
         return $this->hasMany(InternshipEnrollment::class);
+    }
+
+    public function placeProposals()
+    {
+        return $this->hasMany(InternshipPlaceProposal::class);
     }
 }

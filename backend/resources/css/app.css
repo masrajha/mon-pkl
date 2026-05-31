@@ -2,6 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+    .monpkl-page {
+        @apply bg-slate-50;
+    }
+
+    .monpkl-shell {
+        @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+    }
+
+    .monpkl-institution-bar {
+        @apply border-b border-slate-200 bg-white;
+    }
+
+    .monpkl-brand-mark {
+        @apply flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-sm font-bold text-white;
+    }
+
+    .monpkl-brand-title {
+        @apply text-sm font-semibold leading-5 text-slate-900;
+    }
+
+    .monpkl-brand-subtitle {
+        @apply text-xs leading-4 text-slate-500;
+    }
+
+    .monpkl-page-header {
+        @apply border-b border-slate-200 bg-white;
+    }
+
+    .monpkl-section {
+        @apply rounded-md border border-slate-200 bg-white shadow-sm;
+    }
+
+    .monpkl-section-header {
+        @apply flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4;
+    }
+
+    .monpkl-section-title {
+        @apply text-base font-semibold text-slate-950;
+    }
+
+    .monpkl-section-description {
+        @apply mt-1 text-sm text-slate-500;
+    }
+
+    .monpkl-stat-grid {
+        @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-4;
+    }
+
+    .monpkl-stat-card {
+        @apply rounded-md border border-slate-200 bg-white p-4;
+    }
+
+    .monpkl-stat-label {
+        @apply text-xs font-semibold uppercase tracking-wide text-slate-500;
+    }
+
+    .monpkl-stat-value {
+        @apply mt-2 text-2xl font-semibold leading-8 text-slate-950;
+    }
+
+    .monpkl-stat-note {
+        @apply mt-2 text-xs text-slate-500;
+    }
+
+    .monpkl-action-card {
+        @apply rounded-md border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm;
+    }
+
+    .monpkl-primary-link {
+        @apply inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700;
+    }
+
+    .monpkl-secondary-link {
+        @apply inline-flex text-sm font-semibold text-blue-700 hover:text-blue-900;
+    }
+
+    .monpkl-status-pill {
+        @apply inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700;
+    }
+
+    .monpkl-table {
+        @apply min-w-full divide-y divide-slate-200 text-sm;
+    }
+
+    .monpkl-table-head {
+        @apply bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500;
+    }
+
+    .monpkl-table-cell {
+        @apply px-4 py-3;
+    }
+}
+
 .monpkl-map {
     height: min(72vh, 760px);
     min-height: 520px;

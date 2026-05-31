@@ -150,14 +150,27 @@ class ReportController extends Controller
         }
 
         if ($user?->hasRole('dosen')) {
-            return $query->where(function (Builder $query) use ($user): void {
-                if ($user->lecturer?->id) {
-                    $query->where('lecturer_supervisor_id', $user->lecturer->id);
-                }
+            $coordinatorAssignments = $user->lecturer?->coordinatorAssignments()
+                ->where('status', 'active')
+                ->get(['internship_period_id', 'study_program_id']) ?? collect();
 
-                $query->orWhere('lecturer_supervisor_user_id', $user->id)
-                    ->orWhere('lecturer_supervisor', $user->name)
-                    ->orWhere('lecturer_supervisor', $user->email);
+            return $query->where(function (Builder $query) use ($user, $coordinatorAssignments): void {
+                $query->where(function (Builder $query) use ($user): void {
+                    if ($user->lecturer?->id) {
+                        $query->where('lecturer_supervisor_id', $user->lecturer->id);
+                    }
+
+                    $query->orWhere('lecturer_supervisor_user_id', $user->id)
+                        ->orWhere('lecturer_supervisor', $user->name)
+                        ->orWhere('lecturer_supervisor', $user->email);
+                });
+
+                $coordinatorAssignments->each(function ($assignment) use ($query): void {
+                    $query->orWhere(function (Builder $query) use ($assignment): void {
+                        $query->where('internship_period_id', $assignment->internship_period_id)
+                            ->where('study_program_id', $assignment->study_program_id);
+                    });
+                });
             });
         }
 

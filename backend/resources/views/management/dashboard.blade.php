@@ -11,6 +11,7 @@
                     'User' => $counts['users'],
                     'Mahasiswa' => $counts['students'],
                     'Dosen' => $counts['lecturers'],
+                    'Koordinator Aktif' => $counts['coordinators'],
                     'Prodi' => $counts['studyPrograms'],
                     'Periode' => $counts['periods'],
                     'Tempat PKL' => $counts['places'],

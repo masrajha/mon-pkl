@@ -61,8 +61,19 @@ class User extends Authenticatable
         return $this->hasOne(Lecturer::class);
     }
 
+    public function isCoordinator(): bool
+    {
+        return $this->lecturer()
+            ->whereHas('coordinatorAssignments', fn ($query) => $query->where('status', 'active'))
+            ->exists();
+    }
+
     public function hasRole(string|array $roles): bool
     {
+        if (in_array('koordinator', (array) $roles, true) && $this->isCoordinator()) {
+            return true;
+        }
+
         return in_array($this->role, (array) $roles, true);
     }
 }

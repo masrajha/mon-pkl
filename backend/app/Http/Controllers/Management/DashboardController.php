@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
 use App\Models\InternshipEnrollment;
+use App\Models\InternshipCoordinator;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\Lecturer;
@@ -21,6 +22,7 @@ class DashboardController extends Controller
                 'users' => User::query()->count(),
                 'students' => Student::query()->count(),
                 'lecturers' => Lecturer::query()->count(),
+                'coordinators' => InternshipCoordinator::query()->where('status', 'active')->count(),
                 'studyPrograms' => StudyProgram::query()->count(),
                 'periods' => InternshipPeriod::query()->count(),
                 'places' => InternshipPlace::query()->count(),

@@ -33,4 +33,9 @@ class Lecturer extends Model
     {
         return $this->hasMany(InternshipEnrollment::class, 'lecturer_supervisor_id');
     }
+
+    public function coordinatorAssignments()
+    {
+        return $this->hasMany(InternshipCoordinator::class);
+    }
 }

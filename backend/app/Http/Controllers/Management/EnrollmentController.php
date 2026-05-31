@@ -28,10 +28,15 @@ class EnrollmentController extends Controller
             $query->where('study_program_id', $request->integer('study_program_id'));
         }
 
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
         return view('management.enrollments.index', $this->formData() + [
             'enrollments' => $query->latest('id')->paginate(20)->withQueryString(),
             'selectedPeriod' => $request->integer('period_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedStatus' => $request->string('status')->toString(),
         ]);
     }
 
