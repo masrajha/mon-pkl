@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\City;
+use App\Models\InternshipPlace;
+use App\Services\PeriodConfigurationService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class InternshipPlaceController extends Controller
+{
+    public function __construct(private readonly PeriodConfigurationService $configurations)
+    {
+    }
+
+    public function create(): View
+    {
+        return view('internship-places.form', [
+            'place' => new InternshipPlace(),
+            'cities' => $this->cities(),
+            'mapConfig' => $this->configurations->frontendMapConfig(null),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        InternshipPlace::query()->create($this->validated($request));
+
+        return redirect()
+            ->route('maps.places')
+            ->with('status', 'Lokasi tempat PKL berhasil disimpan.');
+    }
+
+    public function edit(InternshipPlace $internshipPlace): View
+    {
+        return view('internship-places.form', [
+            'place' => $internshipPlace,
+            'cities' => $this->cities(),
+            'mapConfig' => $this->configurations->frontendMapConfig(null),
+        ]);
+    }
+
+    public function update(Request $request, InternshipPlace $internshipPlace): RedirectResponse
+    {
+        $internshipPlace->update($this->validated($request));
+
+        return redirect()
+            ->route('maps.places')
+            ->with('status', 'Lokasi tempat PKL berhasil diperbarui.');
+    }
+
+    private function validated(Request $request): array
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:2000'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'city_name' => ['nullable', 'string', 'max:255'],
+            'field_supervisor_name' => ['nullable', 'string', 'max:255'],
+            'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
+            'contact_student_phone' => ['nullable', 'string', 'max:50'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'visited' => ['nullable', 'boolean'],
+        ]) + ['visited' => false];
+
+        if (! empty($validated['city_name'])) {
+            $validated['city_id'] = City::query()->firstOrCreate([
+                'name' => $validated['city_name'],
+            ])->id;
+        }
+
+        unset($validated['city_name']);
+
+        return $validated;
+    }
+
+    private function cities()
+    {
+        return City::query()->orderBy('name')->get();
+    }
+}

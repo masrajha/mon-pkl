@@ -34,4 +34,9 @@ class InternshipPeriod extends Model
     {
         return $this->hasMany(InternshipEnrollment::class);
     }
+
+    public function setting()
+    {
+        return $this->hasOne(InternshipPeriodSetting::class);
+    }
 }

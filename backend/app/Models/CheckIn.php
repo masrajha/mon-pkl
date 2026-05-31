@@ -11,6 +11,8 @@ class CheckIn extends Model
 
     protected $fillable = [
         'internship_enrollment_id',
+        'legacy_firebase_key',
+        'legacy_source_file',
         'type',
         'note',
         'checked_at',

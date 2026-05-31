@@ -23,6 +23,7 @@ class User extends Authenticatable
         'email',
         'password',
         'google_id',
+        'firebase_uid',
         'avatar_url',
         'role',
     ];
@@ -53,6 +54,11 @@ class User extends Authenticatable
     public function student()
     {
         return $this->hasOne(Student::class);
+    }
+
+    public function lecturer()
+    {
+        return $this->hasOne(Lecturer::class);
     }
 
     public function hasRole(string|array $roles): bool

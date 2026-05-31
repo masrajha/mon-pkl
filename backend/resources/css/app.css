@@ -1,3 +1,59 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.monpkl-map {
+    height: min(72vh, 760px);
+    min-height: 520px;
+    width: 100%;
+}
+
+.monpkl-form-map {
+    height: min(62vh, 640px);
+    min-height: 420px;
+}
+
+.monpkl-place-icon span,
+.monpkl-checkin-icon span {
+    display: block;
+    border-radius: 9999px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 8px 18px rgb(15 23 42 / 0.25);
+}
+
+.monpkl-place-icon span {
+    width: 22px;
+    height: 22px;
+    background: #16a34a;
+}
+
+.monpkl-place-icon span.visited {
+    background: #2563eb;
+}
+
+.monpkl-checkin-icon span {
+    width: 18px;
+    height: 18px;
+    background: #0f766e;
+}
+
+.monpkl-checkin-icon span.warning {
+    background: #f59e0b;
+}
+
+.monpkl-popup {
+    display: grid;
+    gap: 3px;
+    min-width: 220px;
+    max-width: 300px;
+    color: #111827;
+}
+
+.monpkl-popup strong {
+    font-size: 14px;
+}
+
+.monpkl-popup span {
+    font-size: 12px;
+    line-height: 1.35;
+}

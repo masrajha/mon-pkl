@@ -14,8 +14,11 @@ class InternshipEnrollment extends Model
         'study_program_id',
         'internship_period_id',
         'internship_place_id',
+        'lecturer_supervisor_id',
+        'lecturer_supervisor_user_id',
         'lecturer_supervisor',
         'field_supervisor',
+        'field_supervisor_phone',
         'contact_student_phone',
         'status',
         'legacy_source_file',
@@ -40,6 +43,16 @@ class InternshipEnrollment extends Model
     public function internshipPlace()
     {
         return $this->belongsTo(InternshipPlace::class);
+    }
+
+    public function lecturer()
+    {
+        return $this->belongsTo(Lecturer::class, 'lecturer_supervisor_id');
+    }
+
+    public function lecturerSupervisor()
+    {
+        return $this->belongsTo(User::class, 'lecturer_supervisor_user_id');
     }
 
     public function checkIns()

@@ -11,6 +11,8 @@ class InternshipPlace extends Model
 
     protected $fillable = [
         'city_id',
+        'legacy_firebase_key',
+        'legacy_source_file',
         'name',
         'address',
         'field_supervisor_name',

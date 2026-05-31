@@ -15,6 +15,30 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('maps.places')" :active="request()->routeIs('maps.places')">
+                        {{ __('Tempat PKL') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('maps.monitoring')" :active="request()->routeIs('maps.monitoring')">
+                        {{ __('Monitoring') }}
+                    </x-nav-link>
+                    @if (Auth::user()->hasRole('mahasiswa'))
+                        <x-nav-link :href="route('check-ins.create')" :active="request()->routeIs('check-ins.*')">
+                            {{ __('Check-In') }}
+                        </x-nav-link>
+                    @endif
+                    @if (Auth::user()->hasRole(['admin', 'dosen']))
+                        <x-nav-link :href="route('internship-places.create')" :active="request()->routeIs('internship-places.*')">
+                            {{ __('Input Lokasi') }}
+                        </x-nav-link>
+                    @endif
+                    <x-nav-link :href="route('reports.monitoring')" :active="request()->routeIs('reports.monitoring')">
+                        {{ __('Rekap') }}
+                    </x-nav-link>
+                    @if (Auth::user()->hasRole('admin'))
+                        <x-nav-link :href="route('management.dashboard')" :active="request()->routeIs('management.*') || request()->routeIs('system-configurations.*')">
+                            {{ __('Manajemen') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -70,6 +94,30 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('maps.places')" :active="request()->routeIs('maps.places')">
+                {{ __('Tempat PKL') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('maps.monitoring')" :active="request()->routeIs('maps.monitoring')">
+                {{ __('Monitoring') }}
+            </x-responsive-nav-link>
+            @if (Auth::user()->hasRole('mahasiswa'))
+                <x-responsive-nav-link :href="route('check-ins.create')" :active="request()->routeIs('check-ins.*')">
+                    {{ __('Check-In') }}
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->hasRole(['admin', 'dosen']))
+                <x-responsive-nav-link :href="route('internship-places.create')" :active="request()->routeIs('internship-places.*')">
+                    {{ __('Input Lokasi') }}
+                </x-responsive-nav-link>
+            @endif
+            <x-responsive-nav-link :href="route('reports.monitoring')" :active="request()->routeIs('reports.monitoring')">
+                {{ __('Rekap') }}
+            </x-responsive-nav-link>
+            @if (Auth::user()->hasRole('admin'))
+                <x-responsive-nav-link :href="route('management.dashboard')" :active="request()->routeIs('management.*') || request()->routeIs('system-configurations.*')">
+                    {{ __('Manajemen') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

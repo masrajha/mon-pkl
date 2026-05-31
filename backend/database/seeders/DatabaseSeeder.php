@@ -39,10 +39,16 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
-        User::factory()->create([
-            'name' => 'Admin Mon PKL',
-            'email' => 'admin@monpkl.local',
-            'role' => 'admin',
-        ]);
+        User::query()->firstOrCreate(
+            ['email' => 'admin@monpkl.local'],
+            [
+                'name' => 'Admin Mon PKL',
+                'password' => 'password',
+                'role' => 'admin',
+            ],
+        );
+
+        $this->call(LecturerSeeder::class);
+        $this->call(PeriodConfigurationSeeder::class);
     }
 }
