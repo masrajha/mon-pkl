@@ -70,3 +70,5 @@ firebase.json
 
 # Local Firebase export freeze snapshots generated for migration stage 1.
 firebase-freeze/
+
+backup/ 
