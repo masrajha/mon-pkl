@@ -46,6 +46,17 @@
         ];
     }
 
+    if ($user->hasRole('dosen')) {
+        $groups[] = [
+            'label' => 'Dosen Pembimbing',
+            'items' => [
+                ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
+                ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
+                ['label' => 'Rekap Bimbingan', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
+            ],
+        ];
+    }
+
     if ($user->hasRole('admin')) {
         $groups[] = [
             'label' => 'Workflow Akademik',
@@ -164,10 +175,7 @@
                     </x-slot>
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">{{ __('Profil') }}</x-dropdown-link>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Keluar') }}</x-dropdown-link>
-                        </form>
+                        <x-dropdown-link :href="route('logout')">{{ __('Keluar') }}</x-dropdown-link>
                     </x-slot>
                 </x-dropdown>
             </div>

@@ -7,6 +7,19 @@
             'Koordinat mitra' => ! $enrollment->internshipPlace?->latitude || ! $enrollment->internshipPlace?->longitude,
         ])->filter()->keys();
         $pendingSupervisorRequest = $enrollment->supervisorChangeRequests->firstWhere('status', 'pending');
+        $progressStatusLabels = [
+            'pending' => 'Menunggu Review',
+            'approved' => 'Disetujui',
+            'revision_required' => 'Perlu Revisi',
+            'revision' => 'Perlu Revisi',
+            'rejected' => 'Ditolak',
+        ];
+        $progressStatusVariants = [
+            'approved' => 'success',
+            'revision_required' => 'warning',
+            'revision' => 'warning',
+            'rejected' => 'danger',
+        ];
     @endphp
 
     <x-slot name="header">
@@ -50,7 +63,7 @@
                     ['label' => 'Total Presensi', 'value' => $enrollment->checkIns->count()],
                     ['label' => 'Status', 'value' => $enrollment->status],
                     ['label' => 'Total Sanksi', 'value' => number_format($enrollment->total_sanctions_points ?? 0, 0, ',', '.').' poin'],
-                    ['label' => 'Progres Laporan', 'value' => $enrollment->submissionProgress->count().' unggahan'],
+                    ['label' => 'Progres Laporan', 'value' => $progressByType->count().' dokumen'],
                 ] as $item)
                     <div class="silat-stat-card"><p class="silat-stat-label">{{ $item['label'] }}</p><p class="mt-2 font-semibold text-gray-900">{{ $item['value'] }}</p></div>
                 @endforeach
@@ -138,32 +151,42 @@
                     <div>
                         <x-input-label for="deadline_type" :value="__('Jenis Dokumen')" />
                         <x-select-input id="deadline_type" name="deadline_type" class="mt-1 block w-full" required>
-                            @foreach ($deadlineLabels as $type => $label)
+                            @foreach ($uploadableDeadlineLabels as $type => $label)
                                 <option value="{{ $type }}">{{ $label }}</option>
                             @endforeach
                         </x-select-input>
                         <x-input-error :messages="$errors->get('deadline_type')" class="mt-2" />
+                        @if (empty($uploadableDeadlineLabels))
+                            <p class="mt-2 text-sm text-gray-500">Semua dokumen sudah disetujui dan terkunci.</p>
+                        @else
+                            <p class="mt-2 text-xs text-gray-500">Dokumen yang diminta revisi dapat diunggah ulang berkali-kali. Sanksi deadline hanya dihitung pada submit pertama.</p>
+                        @endif
                     </div>
                     <div>
                         <x-input-label for="file" :value="__('File PDF/DOC')" />
                         <input id="file" name="file" type="file" accept=".pdf,.doc,.docx" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" required>
                         <x-input-error :messages="$errors->get('file')" class="mt-2" />
                     </div>
-                    <x-primary-button>Unggah</x-primary-button>
+                    <x-primary-button :disabled="empty($uploadableDeadlineLabels)">Unggah / Revisi</x-primary-button>
                 </form>
 
                 <div class="overflow-x-auto">
                     <table class="silat-table">
-                        <thead class="silat-table-head"><tr><th class="silat-table-cell">Dokumen</th><th class="silat-table-cell">Unggah</th><th class="silat-table-cell">Status</th><th class="silat-table-cell">Sanksi</th><th class="silat-table-cell">Catatan</th><th class="silat-table-cell">File</th></tr></thead>
+                        <thead class="silat-table-head"><tr><th class="silat-table-cell">Dokumen</th><th class="silat-table-cell">Unggah Terakhir</th><th class="silat-table-cell">Status</th><th class="silat-table-cell">Sanksi Submit Pertama</th><th class="silat-table-cell">Catatan Reviewer</th><th class="silat-table-cell">File</th></tr></thead>
                         <tbody class="divide-y divide-gray-100">
-                            @forelse ($enrollment->submissionProgress as $progress)
+                            @forelse ($progressByType as $progress)
                                 <tr>
                                     <td class="silat-table-cell">{{ $deadlineLabels[$progress->deadline_type] ?? str($progress->deadline_type)->replace('_', ' ')->title() }}</td>
                                     <td class="silat-table-cell">{{ $progress->uploaded_at?->format('d/m/Y H:i') }}</td>
-                                    <td class="silat-table-cell"><x-badge variant="{{ $progress->status === 'approved' ? 'success' : ($progress->status === 'rejected' ? 'danger' : 'neutral') }}">{{ $progress->status }}</x-badge></td>
+                                    <td class="silat-table-cell">
+                                        <x-badge variant="{{ $progressStatusVariants[$progress->status] ?? 'neutral' }}">{{ $progressStatusLabels[$progress->status] ?? $progress->status }}</x-badge>
+                                        @if ($progress->status === 'approved')
+                                            <div class="mt-1 text-xs text-gray-500">Terkunci</div>
+                                        @endif
+                                    </td>
                                     <td class="silat-table-cell">{{ $progress->sanction_points ?: 0 }} poin</td>
                                     <td class="silat-table-cell">{{ $progress->lecturer_note ?: '-' }}</td>
-                                    <td class="silat-table-cell"><a class="silat-secondary-link" href="{{ asset('storage/'.$progress->file_path) }}" target="_blank">Buka</a></td>
+                                    <td class="silat-table-cell"><a class="silat-secondary-link" href="{{ route('submission-progress.file', $progress) }}" target="_blank">Buka</a></td>
                                 </tr>
                             @empty
                                 <tr><td colspan="6" class="silat-table-cell"><x-empty-state title="Belum ada unggahan laporan" icon="fa-file-arrow-up" /></td></tr>

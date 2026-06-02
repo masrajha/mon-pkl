@@ -520,10 +520,51 @@ class StudentWorkflowFeatureTest extends TestCase
             'points_deducted' => 10,
         ]);
 
+        $this->actingAs($user)
+            ->get(route('submission-progress.file', $progress))
+            ->assertOk();
+
+        $this->actingAs($lecturerUser)
+            ->get(route('submission-progress.file', $progress))
+            ->assertOk();
+
+        $otherStudentUser = User::factory()->create(['role' => 'mahasiswa']);
+        $this->actingAs($otherStudentUser)
+            ->get(route('submission-progress.file', $progress))
+            ->assertForbidden();
+
         $this->actingAs($lecturerUser)
             ->get(route('management.submission-progress.index'))
             ->assertOk()
             ->assertSee('Mahasiswa Progres');
+
+        $this->actingAs($lecturerUser)
+            ->patch(route('management.submission-progress.update', $progress), [
+                'status' => 'revision_required',
+                'lecturer_note' => 'Perbaiki bagian rumusan masalah.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('submission_progress', [
+            'id' => $progress->id,
+            'status' => 'revision_required',
+            'lecturer_note' => 'Perbaiki bagian rumusan masalah.',
+            'reviewed_by' => $lecturerUser->id,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('student.reports.progress.store', $enrollment), [
+                'deadline_type' => 'bab1',
+                'file' => UploadedFile::fake()->create('bab1-revisi.pdf', 128, 'application/pdf'),
+            ])
+            ->assertRedirect();
+
+        $progress->refresh();
+        $this->assertSame('pending', $progress->status);
+        $this->assertSame(10, $progress->sanction_points);
+        $this->assertSame(10, $enrollment->fresh()->total_sanctions_points);
+        $this->assertDatabaseCount('submission_progress', 1);
+        $this->assertDatabaseCount('sanctions', 1);
 
         $this->actingAs($lecturerUser)
             ->patch(route('management.submission-progress.update', $progress), [
@@ -538,6 +579,22 @@ class StudentWorkflowFeatureTest extends TestCase
             'lecturer_note' => 'Sudah sesuai.',
             'reviewed_by' => $lecturerUser->id,
         ]);
+
+        $this->actingAs($user)
+            ->from(route('student.reports.show', $enrollment))
+            ->post(route('student.reports.progress.store', $enrollment), [
+                'deadline_type' => 'bab1',
+                'file' => UploadedFile::fake()->create('bab1-setelah-approve.pdf', 128, 'application/pdf'),
+            ])
+            ->assertRedirect(route('student.reports.show', $enrollment))
+            ->assertSessionHasErrors('deadline_type');
+
+        $this->actingAs($lecturerUser)
+            ->patch(route('management.submission-progress.update', $progress), [
+                'status' => 'revision_required',
+                'lecturer_note' => 'Buka ulang.',
+            ])
+            ->assertForbidden();
     }
 
     public function test_student_can_print_daily_activity_from_check_in_notes(): void

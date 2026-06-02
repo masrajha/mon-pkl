@@ -29,7 +29,8 @@ class SubmissionProgressController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->string('status'));
+            $status = $request->string('status')->toString();
+            $query->where('status', $status === 'revision' ? 'revision_required' : $status);
         }
 
         return view('management.submission-progress.index', [
@@ -38,16 +39,23 @@ class SubmissionProgressController extends Controller
                 ->withQueryString(),
             'selectedStatus' => $request->string('status')->toString(),
             'deadlineLabels' => $this->deadlineLabels(),
+            'statusLabels' => $this->statusLabels(),
         ]);
     }
 
     public function update(Request $request, SubmissionProgress $progress): RedirectResponse
     {
         $this->authorizeProgress($progress, $request);
+        abort_if($progress->status === 'approved', 403, 'Dokumen yang sudah disetujui sudah terkunci.');
 
         $data = $request->validate([
-            'status' => ['required', Rule::in(['approved', 'revision', 'rejected'])],
-            'lecturer_note' => ['nullable', 'string', 'max:3000'],
+            'status' => ['required', Rule::in(['approved', 'revision_required', 'rejected'])],
+            'lecturer_note' => [
+                Rule::requiredIf(fn () => in_array($request->input('status'), ['revision_required', 'rejected'], true)),
+                'nullable',
+                'string',
+                'max:3000',
+            ],
         ]);
 
         $progress->update($data + [
@@ -120,6 +128,17 @@ class SubmissionProgressController extends Controller
             'full_report' => 'Laporan Lengkap',
             'seminar' => 'Seminar',
             'hardcopy' => 'Hardcover',
+        ];
+    }
+
+    private function statusLabels(): array
+    {
+        return [
+            'pending' => 'Menunggu Review',
+            'approved' => 'Disetujui',
+            'revision_required' => 'Perlu Revisi',
+            'revision' => 'Perlu Revisi',
+            'rejected' => 'Ditolak',
         ];
     }
 }

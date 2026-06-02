@@ -20,21 +20,36 @@ class ReportController extends Controller
     {
         $this->authorizeEnrollment($request, $enrollment);
 
+        $enrollment->load([
+            'student.user',
+            'studyProgram',
+            'internshipPeriod.program',
+            'internshipPeriod.deadlines' => fn ($query) => $query->orderBy('deadline_date'),
+            'internshipPlace',
+            'lecturer',
+            'submissionProgress' => fn ($query) => $query->latest('uploaded_at'),
+            'submissionProgress.reviewer',
+            'sanctions' => fn ($query) => $query->latest('date'),
+            'supervisorChangeRequests' => fn ($query) => $query->latest('id'),
+            'checkIns' => fn ($query) => $query->orderBy('checked_at'),
+        ]);
+
+        $deadlineLabels = $this->deadlineLabels();
+        $progressByType = $enrollment->submissionProgress
+            ->groupBy('deadline_type')
+            ->map(fn ($items) => $items->sortByDesc('uploaded_at')->first());
+        $lockedDeadlineTypes = $enrollment->submissionProgress
+            ->where('status', 'approved')
+            ->pluck('deadline_type')
+            ->unique()
+            ->values();
+
         return view('student.reports.show', [
-            'enrollment' => $enrollment->load([
-                'student.user',
-                'studyProgram',
-                'internshipPeriod.program',
-                'internshipPeriod.deadlines' => fn ($query) => $query->orderBy('deadline_date'),
-                'internshipPlace',
-                'lecturer',
-                'submissionProgress' => fn ($query) => $query->latest('uploaded_at'),
-                'submissionProgress.reviewer',
-                'sanctions' => fn ($query) => $query->latest('date'),
-                'supervisorChangeRequests' => fn ($query) => $query->latest('id'),
-                'checkIns' => fn ($query) => $query->orderBy('checked_at'),
-            ]),
-            'deadlineLabels' => $this->deadlineLabels(),
+            'enrollment' => $enrollment,
+            'progressByType' => $progressByType,
+            'lockedDeadlineTypes' => $lockedDeadlineTypes,
+            'uploadableDeadlineLabels' => collect($deadlineLabels)->reject(fn ($label, $type) => $lockedDeadlineTypes->contains($type))->all(),
+            'deadlineLabels' => $deadlineLabels,
             'dailyActivityRows' => $this->dailyActivityRows($enrollment),
         ]);
     }
@@ -49,15 +64,46 @@ class ReportController extends Controller
             'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
 
+        $approvedExists = SubmissionProgress::query()
+            ->where('internship_enrollment_id', $enrollment->id)
+            ->where('deadline_type', $data['deadline_type'])
+            ->where('status', 'approved')
+            ->exists();
+
+        if ($approvedExists) {
+            return back()
+                ->withErrors(['deadline_type' => 'Dokumen yang sudah disetujui tidak dapat direvisi lagi.'])
+                ->withInput();
+        }
+
         $uploadedAt = now();
         $filePath = $request->file('file')->store('submission-progress', 'public');
-        $deadline = PeriodDeadline::query()
-            ->where('internship_period_id', $enrollment->internship_period_id)
-            ->where('deadline_type', $data['deadline_type'])
-            ->first();
-        $sanctionPoints = $this->lateSubmissionPenalty($deadline, $uploadedAt);
 
-        DB::transaction(function () use ($enrollment, $data, $uploadedAt, $filePath, $sanctionPoints, $deadline): void {
+        DB::transaction(function () use ($enrollment, $data, $uploadedAt, $filePath): void {
+            $existingProgress = SubmissionProgress::query()
+                ->where('internship_enrollment_id', $enrollment->id)
+                ->where('deadline_type', $data['deadline_type'])
+                ->latest('uploaded_at')
+                ->first();
+
+            if ($existingProgress) {
+                $existingProgress->update([
+                    'file_path' => $filePath,
+                    'uploaded_at' => $uploadedAt,
+                    'status' => 'pending',
+                    'reviewed_by' => null,
+                    'reviewed_at' => null,
+                ]);
+
+                return;
+            }
+
+            $deadline = PeriodDeadline::query()
+                ->where('internship_period_id', $enrollment->internship_period_id)
+                ->where('deadline_type', $data['deadline_type'])
+                ->first();
+            $sanctionPoints = $this->lateSubmissionPenalty($deadline, $uploadedAt);
+
             $progress = SubmissionProgress::query()->create([
                 'internship_enrollment_id' => $enrollment->id,
                 'deadline_type' => $data['deadline_type'],
@@ -67,18 +113,20 @@ class ReportController extends Controller
                 'sanction_points' => $sanctionPoints,
             ]);
 
-            if ($sanctionPoints > 0) {
-                Sanction::query()->create([
-                    'internship_enrollment_id' => $enrollment->id,
-                    'submission_progress_id' => $progress->id,
-                    'sanction_type' => 'late_submission',
-                    'points_deducted' => $sanctionPoints,
-                    'reason' => 'Unggahan '.$this->deadlineLabels()[$data['deadline_type']].' melewati deadline '.$deadline?->deadline_date?->format('d/m/Y').'.',
-                    'date' => $uploadedAt->toDateString(),
-                ]);
-
-                $enrollment->increment('total_sanctions_points', $sanctionPoints);
+            if ($sanctionPoints <= 0) {
+                return;
             }
+
+            Sanction::query()->create([
+                'internship_enrollment_id' => $enrollment->id,
+                'submission_progress_id' => $progress->id,
+                'sanction_type' => 'late_submission',
+                'points_deducted' => $sanctionPoints,
+                'reason' => 'Unggahan '.$this->deadlineLabels()[$data['deadline_type']].' melewati deadline '.$deadline?->deadline_date?->format('d/m/Y').'.',
+                'date' => $uploadedAt->toDateString(),
+            ]);
+
+            $enrollment->increment('total_sanctions_points', $sanctionPoints);
         });
 
         return back()->with('status', 'Progres laporan berhasil diunggah.');

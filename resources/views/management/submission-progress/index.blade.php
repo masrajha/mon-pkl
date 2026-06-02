@@ -19,7 +19,7 @@
                         <x-input-label for="status" :value="__('Status')" />
                         <x-select-input id="status" name="status" class="mt-1 block w-full">
                             <option value="">Semua</option>
-                            @foreach (['pending' => 'Pending', 'approved' => 'Disetujui', 'revision' => 'Revisi', 'rejected' => 'Ditolak'] as $value => $label)
+                            @foreach (['pending' => 'Menunggu Review', 'approved' => 'Disetujui', 'revision_required' => 'Perlu Revisi', 'rejected' => 'Ditolak'] as $value => $label)
                                 <option value="{{ $value }}" @selected($selectedStatus === $value)>{{ $label }}</option>
                             @endforeach
                         </x-select-input>
@@ -57,25 +57,42 @@
                                     </td>
                                     <td class="silat-table-cell">
                                         <div>{{ $deadlineLabels[$progress->deadline_type] ?? str($progress->deadline_type)->replace('_', ' ')->title() }}</div>
-                                        <a class="silat-secondary-link text-xs" href="{{ asset('storage/'.$progress->file_path) }}" target="_blank">Buka file</a>
+                                        <a class="silat-secondary-link text-xs" href="{{ route('submission-progress.file', $progress) }}" target="_blank">Buka file</a>
                                         @if ($progress->sanction_points)
                                             <div class="text-xs text-rose-600">{{ $progress->sanction_points }} poin sanksi</div>
                                         @endif
                                     </td>
                                     <td class="silat-table-cell">{{ $progress->uploaded_at?->format('d/m/Y H:i') }}</td>
-                                    <td class="silat-table-cell"><x-badge variant="{{ $progress->status === 'approved' ? 'success' : ($progress->status === 'rejected' ? 'danger' : 'neutral') }}">{{ $progress->status }}</x-badge></td>
+                                    <td class="silat-table-cell">
+                                        <x-badge variant="{{ $progress->status === 'approved' ? 'success' : (in_array($progress->status, ['revision_required', 'revision'], true) ? 'warning' : ($progress->status === 'rejected' ? 'danger' : 'neutral')) }}">{{ $statusLabels[$progress->status] ?? $progress->status }}</x-badge>
+                                        @if ($progress->status === 'approved')
+                                            <div class="mt-1 text-xs text-gray-500">Terkunci</div>
+                                        @elseif ($progress->reviewer)
+                                            <div class="mt-1 text-xs text-gray-500">Review oleh {{ $progress->reviewer->name }}</div>
+                                        @endif
+                                    </td>
                                     <td class="silat-table-cell min-w-[320px]">
-                                        <form method="POST" action="{{ route('management.submission-progress.update', $progress) }}" class="space-y-3">
-                                            @csrf
-                                            @method('PATCH')
-                                            <x-select-input name="status" class="block w-full" required>
-                                                @foreach (['approved' => 'Setujui', 'revision' => 'Minta Revisi', 'rejected' => 'Tolak'] as $value => $label)
-                                                    <option value="{{ $value }}" @selected($progress->status === $value)>{{ $label }}</option>
-                                                @endforeach
-                                            </x-select-input>
-                                            <x-textarea-input name="lecturer_note" class="block w-full" rows="2" placeholder="Catatan review">{{ old('lecturer_note', $progress->lecturer_note) }}</x-textarea-input>
-                                            <x-primary-button>Simpan Review</x-primary-button>
-                                        </form>
+                                        @if ($progress->status === 'approved')
+                                            <div class="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-900">
+                                                Dokumen sudah disetujui dan tidak dapat diubah lagi.
+                                                @if ($progress->lecturer_note)
+                                                    <p class="mt-2 text-emerald-800">{{ $progress->lecturer_note }}</p>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <form method="POST" action="{{ route('management.submission-progress.update', $progress) }}" class="space-y-3">
+                                                @csrf
+                                                @method('PATCH')
+                                                <x-select-input name="status" class="block w-full" required>
+                                                    @foreach (['approved' => 'Setujui', 'revision_required' => 'Minta Revisi', 'rejected' => 'Tolak'] as $value => $label)
+                                                        <option value="{{ $value }}" @selected($progress->status === $value)>{{ $label }}</option>
+                                                    @endforeach
+                                                </x-select-input>
+                                                <x-textarea-input name="lecturer_note" class="block w-full" rows="2" placeholder="Catatan review untuk mahasiswa">{{ old('lecturer_note', $progress->lecturer_note) }}</x-textarea-input>
+                                                <p class="text-xs text-gray-500">Catatan wajib diisi jika meminta revisi atau menolak dokumen.</p>
+                                                <x-primary-button>Simpan Review</x-primary-button>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty

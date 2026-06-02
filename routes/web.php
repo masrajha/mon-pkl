@@ -30,6 +30,7 @@ use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Student\ReportController as StudentReportController;
 use App\Http\Controllers\Student\RelocationRequestController as StudentRelocationRequestController;
 use App\Http\Controllers\Student\SupervisorChangeRequestController as StudentSupervisorChangeRequestController;
+use App\Http\Controllers\SubmissionProgressFileController;
 use App\Http\Controllers\SystemConfigurationController;
 use App\Models\CheckIn;
 use App\Models\InternshipPeriod;
@@ -154,6 +155,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/maps/monitoring', [MapController::class, 'monitoring'])->name('maps.monitoring');
     Route::get('/maps/monitoring/data', [MapController::class, 'monitoringData'])->name('maps.monitoring.data');
     Route::get('/reports/monitoring', [ReportController::class, 'monitoring'])->name('reports.monitoring');
+    Route::get('/submission-progress/{progress}/file', SubmissionProgressFileController::class)->name('submission-progress.file');
 
     Route::middleware('role:mahasiswa')->group(function () {
         Route::get('/student', StudentDashboardController::class)->name('student.dashboard');
