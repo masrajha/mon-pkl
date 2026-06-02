@@ -29,7 +29,7 @@ return new class extends Migration
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();
 
-            $table->index(['internship_period_id', 'study_program_id', 'status']);
+            $table->index(['internship_period_id', 'study_program_id', 'status'], 'place_proposals_period_program_status_idx');
         });
     }
 
