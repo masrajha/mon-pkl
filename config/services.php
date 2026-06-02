@@ -1,5 +1,19 @@
 <?php
 
+$googleCaFile = env('SSO_GOOGLE_CAFILE');
+$googleVerify = env('SSO_GOOGLE_VERIFY_SSL', true);
+
+if ($googleCaFile) {
+    $googleCaFile = trim($googleCaFile);
+    $isAbsolutePath = str_starts_with($googleCaFile, '/')
+        || preg_match('/^[A-Za-z]:[\/\\\\]/', $googleCaFile)
+        || str_starts_with($googleCaFile, '\\\\');
+
+    $googleVerify = $isAbsolutePath
+        ? $googleCaFile
+        : storage_path('app/'.ltrim($googleCaFile, '/\\'));
+}
+
 return [
 
     /*
@@ -35,7 +49,7 @@ return [
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
         'guzzle' => [
-            'verify' => env('SSO_GOOGLE_CAFILE') ?: env('SSO_GOOGLE_VERIFY_SSL', true),
+            'verify' => $googleVerify,
         ],
     ],
 

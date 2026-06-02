@@ -75,6 +75,7 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
+        $this->call(InternshipPlaceSeeder::class);
         $this->call(LecturerSeeder::class);
         $this->call(PeriodConfigurationSeeder::class);
     }

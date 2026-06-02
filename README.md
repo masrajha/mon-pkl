@@ -140,7 +140,19 @@ SSO_GOOGLE_CAFILE=
 SSO_GOOGLE_VERIFY_SSL=true
 ```
 
-Jika terjadi masalah sertifikat lokal pada Windows, isi `SSO_GOOGLE_CAFILE` dengan path CA bundle yang valid atau perbaiki konfigurasi CA PHP/cURL.
+Jika terjadi masalah sertifikat lokal pada Windows atau hosting, isi `SSO_GOOGLE_CAFILE` dengan CA bundle. Nilai relatif akan otomatis dibaca dari `storage/app`.
+
+```env
+SSO_GOOGLE_CAFILE=certs/cacert.pem
+```
+
+Dengan konfigurasi tersebut, file CA diletakkan di:
+
+```text
+storage/app/certs/cacert.pem
+```
+
+Path absolut tetap didukung jika benar-benar diperlukan, tetapi path relatif lebih portabel untuk local dan hosting.
 
 ### Presensi dan Peta
 
