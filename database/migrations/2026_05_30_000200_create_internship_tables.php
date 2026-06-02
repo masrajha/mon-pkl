@@ -49,8 +49,8 @@ return new class extends Migration
             $table->string('legacy_period_label')->nullable();
             $table->timestamps();
 
-            $table->unique(['student_id', 'study_program_id', 'internship_period_id']);
-            $table->index(['internship_period_id', 'study_program_id', 'status']);
+            $table->unique(['student_id', 'study_program_id', 'internship_period_id'], 'enrollments_student_program_period_unique');
+            $table->index(['internship_period_id', 'study_program_id', 'status'], 'enrollments_period_program_status_index');
         });
     }
 
