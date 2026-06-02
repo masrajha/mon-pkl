@@ -30,7 +30,7 @@ class InternshipPlaceController extends Controller
 
         return redirect()
             ->route('maps.places')
-            ->with('status', 'Lokasi tempat PKL berhasil disimpan.');
+            ->with('status', 'Lokasi mitra berhasil disimpan.');
     }
 
     public function edit(InternshipPlace $internshipPlace): View
@@ -44,14 +44,14 @@ class InternshipPlaceController extends Controller
 
     public function update(Request $request, InternshipPlace $internshipPlace): RedirectResponse
     {
-        $internshipPlace->update($this->validated($request));
+        $internshipPlace->update($this->validated($request, $internshipPlace));
 
         return redirect()
             ->route('maps.places')
-            ->with('status', 'Lokasi tempat PKL berhasil diperbarui.');
+            ->with('status', 'Lokasi mitra berhasil diperbarui.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?InternshipPlace $place = null): array
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -64,7 +64,11 @@ class InternshipPlaceController extends Controller
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'visited' => ['nullable', 'boolean'],
-        ]) + ['visited' => false];
+            'is_active' => ['nullable', 'boolean'],
+        ]) + ['visited' => false, 'is_active' => false];
+
+        $validated['visited'] = $request->boolean('visited');
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : ! $place;
 
         if (! empty($validated['city_name'])) {
             $validated['city_id'] = City::query()->firstOrCreate([

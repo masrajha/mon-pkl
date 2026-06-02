@@ -8,11 +8,11 @@
 
 <div class="grid gap-3 sm:grid-cols-2">
     <div>
-        <x-input-label for="internship_period_id" value="Periode" />
+        <x-input-label for="internship_period_id" value="Periode Program" />
         <select id="internship_period_id" name="internship_period_id" class="block w-full rounded-md border-gray-300" required>
-            <option value="">Pilih periode</option>
+            <option value="">Pilih periode program</option>
             @foreach ($periods as $period)
-                <option value="{{ $period->id }}" @selected(old('internship_period_id', $enrollment?->internship_period_id) === $period->id)>{{ $period->name }}</option>
+                <option value="{{ $period->id }}" @selected(old('internship_period_id', $enrollment?->internship_period_id) === $period->id)>{{ $period->display_name }}</option>
             @endforeach
         </select>
     </div>
@@ -27,7 +27,7 @@
     </div>
 </div>
 
-<x-input-label for="internship_place_id" value="Master Tempat PKL" />
+<x-input-label for="internship_place_id" value="Mitra / Tempat Kegiatan" />
 <select id="internship_place_id" name="internship_place_id" class="block w-full rounded-md border-gray-300">
     <option value="">Belum ditempatkan</option>
     @foreach ($places as $place)
@@ -60,6 +60,19 @@
     </div>
 </div>
 
+<div class="rounded-md border border-gray-200 bg-gray-50 p-4">
+    <h4 class="text-sm font-semibold text-gray-900">Kelayakan Akademik</h4>
+    <label class="mt-3 flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" name="has_krs_pkl" value="1" @checked(old('has_krs_pkl', $enrollment?->has_krs_pkl)) class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+        <span>Sudah mengambil Kerja Praktik atau program terkait di KRS</span>
+    </label>
+    <div class="mt-3 grid gap-3 sm:grid-cols-3">
+        <div><x-input-label for="total_sks" value="Total SKS" /><x-text-input id="total_sks" name="total_sks" type="number" class="block w-full" :value="old('total_sks', $enrollment?->total_sks)" /></div>
+        <div><x-input-label for="current_semester" value="Semester" /><x-text-input id="current_semester" name="current_semester" type="number" class="block w-full" :value="old('current_semester', $enrollment?->current_semester)" /></div>
+        <div><x-input-label for="gpa" value="IPK" /><x-text-input id="gpa" name="gpa" type="number" step="0.01" class="block w-full" :value="old('gpa', $enrollment?->gpa)" /></div>
+    </div>
+</div>
+
 <x-input-label for="status" value="Status" />
 <select id="status" name="status" class="block w-full rounded-md border-gray-300" required>
     @foreach ([
@@ -75,3 +88,6 @@
         <option value="{{ $value }}" @selected(old('status', $enrollment?->status ?? 'pending_verification') === $value)>{{ $label }}</option>
     @endforeach
 </select>
+
+<x-input-label for="admin_note" value="Catatan Verifikasi / Revisi" />
+<textarea id="admin_note" name="admin_note" rows="3" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('admin_note', $enrollment?->admin_note) }}</textarea>

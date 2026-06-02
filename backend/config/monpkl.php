@@ -8,6 +8,9 @@ return [
         'photo_disk' => env('MONPKL_CHECKIN_PHOTO_DISK', 'public'),
         'photo_directory' => env('MONPKL_CHECKIN_PHOTO_DIRECTORY', 'check-in-photos'),
         'photo_max_kb' => (int) env('MONPKL_CHECKIN_PHOTO_MAX_KB', 4096),
+        'max_distance_meters' => (int) env('MONPKL_CHECKIN_MAX_DISTANCE_METERS', 5000),
+        'min_daily_duration_minutes' => (int) env('MONPKL_CHECKIN_MIN_DAILY_DURATION_MINUTES', 360),
+        'insufficient_duration_penalty_per_hour' => (int) env('MONPKL_CHECKIN_INSUFFICIENT_DURATION_PENALTY_PER_HOUR', 1),
         'inactive_message' => env('MONPKL_CHECKIN_INACTIVE_MESSAGE', 'Check-in hanya dapat dilakukan pada jam kerja 07.00 sampai 19.00.'),
         'schedule' => [
             ['status' => 'Masuk', 'start' => '07:00', 'end' => '08:00'],
@@ -16,6 +19,21 @@ return [
             ['status' => 'Pulang', 'start' => '16:00', 'end' => '19:00'],
         ],
     ],
+
+    'enrollment' => [
+        'min_place_quota' => (int) env('MONPKL_PLACE_MIN_QUOTA', 2),
+        'max_place_quota' => (int) env('MONPKL_PLACE_MAX_QUOTA', 3),
+        'minimum_total_sks' => (int) env('MONPKL_MINIMUM_TOTAL_SKS', 100),
+        'minimum_semester_s1' => (int) env('MONPKL_MINIMUM_SEMESTER_S1', 6),
+        'minimum_semester_d3' => (int) env('MONPKL_MINIMUM_SEMESTER_D3', 4),
+        'minimum_gpa' => (float) env('MONPKL_MINIMUM_GPA', 2.00),
+    ],
+
+    'super_admin_emails' => collect(explode(',', env('MONPKL_SUPER_ADMIN_EMAILS', '')))
+        ->map(fn (string $email) => trim($email))
+        ->filter()
+        ->values()
+        ->all(),
 
     'report' => [
         'single_check_in_cutoff' => env('MONPKL_REPORT_SINGLE_CHECKIN_CUTOFF', '12:00'),

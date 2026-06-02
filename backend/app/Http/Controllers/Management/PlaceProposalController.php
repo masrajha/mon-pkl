@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\City;
 use App\Models\InternshipPlace;
 use App\Models\InternshipPlaceProposal;
@@ -14,16 +15,29 @@ use Illuminate\View\View;
 
 class PlaceProposalController extends Controller
 {
+    use InteractsWithTableControls;
+
     public function index(Request $request): View
     {
-        $query = InternshipPlaceProposal::query()->with(['student', 'internshipPeriod', 'studyProgram', 'approvedPlace']);
+        $query = InternshipPlaceProposal::query()->with(['student', 'internshipPeriod.program', 'studyProgram', 'approvedPlace']);
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->where('name', 'like', '%'.$search.'%')
+                ->orWhere('address', 'like', '%'.$search.'%')
+                ->orWhere('city_name', 'like', '%'.$search.'%')
+                ->orWhereHas('student', fn ($query) => $query->where('full_name', 'like', '%'.$search.'%')->orWhere('npm', 'like', '%'.$search.'%')));
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->string('status'));
         }
 
         return view('management.place-proposals.index', [
-            'proposals' => $query->latest('id')->paginate(20)->withQueryString(),
+            'proposals' => $this->applyTableSort($query, $request, ['id', 'status', 'name'], 'id', 'desc')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
             'places' => InternshipPlace::query()->orderBy('name')->get(),
             'selectedStatus' => $request->string('status')->toString(),
         ]);
@@ -51,7 +65,7 @@ class PlaceProposalController extends Controller
             ]);
         });
 
-        return back()->with('status', 'Usulan tempat PKL berhasil divalidasi.');
+        return back()->with('status', 'Usulan mitra berhasil divalidasi.');
     }
 
     public function reject(Request $request, InternshipPlaceProposal $proposal): RedirectResponse
@@ -67,7 +81,7 @@ class PlaceProposalController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        return back()->with('status', 'Usulan tempat PKL ditolak.');
+        return back()->with('status', 'Usulan mitra ditolak.');
     }
 
     private function createPlace(InternshipPlaceProposal $proposal): InternshipPlace

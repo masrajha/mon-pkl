@@ -21,6 +21,7 @@ class InternshipPlace extends Model
         'latitude',
         'longitude',
         'visited',
+        'is_active',
         'legacy_created_at',
     ];
 
@@ -30,6 +31,7 @@ class InternshipPlace extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'visited' => 'boolean',
+            'is_active' => 'boolean',
             'legacy_created_at' => 'datetime',
         ];
     }

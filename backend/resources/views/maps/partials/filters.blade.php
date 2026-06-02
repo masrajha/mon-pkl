@@ -1,31 +1,50 @@
-<form method="GET" class="flex flex-wrap items-end gap-3">
-    @if (Auth::user()->hasRole(['admin', 'dosen']))
-        <div>
-            <x-input-label for="period_id" :value="__('Periode')" />
-            <select id="period_id" name="period_id" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <option value="">{{ __('Semua periode') }}</option>
-                @foreach ($periods as $period)
-                    <option value="{{ $period->id }}" @selected((string) $selectedPeriod === (string) $period->id)>
-                        {{ $period->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+<form method="GET" class="grid gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-6">
+    <div>
+        <x-input-label for="period_id" :value="__('Periode Program')" />
+        <x-select-input id="period_id" name="period_id" class="mt-1 text-sm">
+            <option value="">{{ __('Semua periode program') }}</option>
+            @foreach ($periods as $period)
+                <option value="{{ $period->id }}" @selected((string) $selectedPeriod === (string) $period->id)>
+                    {{ $period->display_name }}
+                </option>
+            @endforeach
+        </x-select-input>
+    </div>
 
+    @if (Auth::user()->hasRole(['admin', 'dosen', 'koordinator']))
         <div>
             <x-input-label for="study_program_id" :value="__('Prodi')" />
-            <select id="study_program_id" name="study_program_id" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            <x-select-input id="study_program_id" name="study_program_id" class="mt-1 text-sm">
                 <option value="">{{ __('Semua prodi') }}</option>
                 @foreach ($studyPrograms as $studyProgram)
                     <option value="{{ $studyProgram->id }}" @selected((string) $selectedStudyProgram === (string) $studyProgram->id)>
                         {{ $studyProgram->name }}
                     </option>
                 @endforeach
-            </select>
+            </x-select-input>
+        </div>
+    @endif
+
+    @if ($showDateFilters ?? false)
+        <div>
+            <x-input-label for="start_date" :value="__('Dari')" />
+            <x-text-input id="start_date" name="start_date" type="date" class="mt-1 block w-full text-sm" :value="$startDate" />
         </div>
 
-        <x-primary-button>{{ __('Terapkan') }}</x-primary-button>
-    @else
-        <p class="text-sm text-gray-600">{{ __('Data dibatasi untuk penempatan PKL Anda.') }}</p>
+        <div>
+            <x-input-label for="end_date" :value="__('Sampai')" />
+            <x-text-input id="end_date" name="end_date" type="date" class="mt-1 block w-full text-sm" :value="$endDate" />
+        </div>
+
+        <div class="flex items-end">
+            <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                <input type="checkbox" name="today_only" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($todayOnly)>
+                {{ __('Hari Ini') }}
+            </label>
+        </div>
     @endif
+
+    <div class="flex items-end">
+        <x-primary-button><x-icon name="fa-filter" /> {{ __('Terapkan') }}</x-primary-button>
+    </div>
 </form>

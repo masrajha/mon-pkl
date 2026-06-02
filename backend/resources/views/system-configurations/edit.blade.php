@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Konfigurasi Sistem') }}: {{ $period->name }}
+                {{ __('Konfigurasi Sistem') }}: {{ $period->display_name }}
             </h2>
             <a class="text-sm font-medium text-indigo-600 hover:text-indigo-800" href="{{ route('system-configurations.index') }}">
                 {{ __('Kembali') }}
@@ -28,6 +28,12 @@
                 @csrf
                 @method('PATCH')
 
+                @if ($period->is_locked)
+                    <div class="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        {{ __('Periode ini sudah terkunci. Konfigurasi hanya dapat diubah oleh admin khusus.') }}
+                    </div>
+                @endif
+
                 <div class="bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Umum') }}</h3>
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
@@ -39,15 +45,98 @@
                 </div>
 
                 <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('Pendaftaran dan Kuota') }}</h3>
+                    <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <x-input-label for="min_place_quota" :value="__('Kuota minimal per tempat')" />
+                            <x-text-input id="min_place_quota" name="enrollment[min_place_quota]" type="number" class="mt-1 block w-full" :value="old('enrollment.min_place_quota', $settings['enrollment']['min_place_quota'])" required />
+                        </div>
+                        <div>
+                            <x-input-label for="max_place_quota" :value="__('Kuota maksimal per tempat')" />
+                            <x-text-input id="max_place_quota" name="enrollment[max_place_quota]" type="number" class="mt-1 block w-full" :value="old('enrollment.max_place_quota', $settings['enrollment']['max_place_quota'])" required />
+                        </div>
+                        <div>
+                            <x-input-label for="minimum_total_sks" :value="__('Minimal SKS')" />
+                            <x-text-input id="minimum_total_sks" name="enrollment[minimum_total_sks]" type="number" class="mt-1 block w-full" :value="old('enrollment.minimum_total_sks', $settings['enrollment']['minimum_total_sks'])" required />
+                        </div>
+                        <div>
+                            <x-input-label for="minimum_semester_s1" :value="__('Minimal semester S1')" />
+                            <x-text-input id="minimum_semester_s1" name="enrollment[minimum_semester_s1]" type="number" class="mt-1 block w-full" :value="old('enrollment.minimum_semester_s1', $settings['enrollment']['minimum_semester_s1'])" required />
+                        </div>
+                        <div>
+                            <x-input-label for="minimum_semester_d3" :value="__('Minimal semester D3')" />
+                            <x-text-input id="minimum_semester_d3" name="enrollment[minimum_semester_d3]" type="number" class="mt-1 block w-full" :value="old('enrollment.minimum_semester_d3', $settings['enrollment']['minimum_semester_d3'])" required />
+                        </div>
+                        <div>
+                            <x-input-label for="minimum_gpa" :value="__('Minimal IPK')" />
+                            <x-text-input id="minimum_gpa" name="enrollment[minimum_gpa]" type="number" step="0.01" class="mt-1 block w-full" :value="old('enrollment.minimum_gpa', $settings['enrollment']['minimum_gpa'])" required />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('Deadline Periode') }}</h3>
+                    <div class="silat-table-wrap mt-4 rounded-lg border border-gray-100">
+                        <table class="silat-table">
+                            <thead class="silat-table-head">
+                                <tr>
+                                    <th class="silat-table-cell">{{ __('Jenis') }}</th>
+                                    <th class="silat-table-cell">{{ __('Tanggal') }}</th>
+                                    <th class="silat-table-cell">{{ __('Poin Sanksi') }}</th>
+                                    <th class="silat-table-cell">{{ __('Tetap') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($deadlineTypes as $type => $label)
+                                    @php($deadline = $period->deadlines->firstWhere('deadline_type', $type))
+                                    <tr>
+                                        <td class="silat-table-cell">
+                                            <input type="hidden" name="deadlines[{{ $type }}][deadline_type]" value="{{ $type }}">
+                                            <span class="font-medium text-gray-900">{{ $label }}</span>
+                                        </td>
+                                        <td class="silat-table-cell">
+                                            <x-text-input name="deadlines[{{ $type }}][deadline_date]" type="date" class="block w-full" :value="old('deadlines.'.$type.'.deadline_date', $deadline?->deadline_date?->toDateString())" />
+                                        </td>
+                                        <td class="silat-table-cell">
+                                            <x-text-input name="deadlines[{{ $type }}][penalty_points]" type="number" class="block w-full" :value="old('deadlines.'.$type.'.penalty_points', $deadline?->penalty_points ?? 0)" />
+                                        </td>
+                                        <td class="silat-table-cell">
+                                            <label class="flex items-center gap-2">
+                                                <input type="checkbox" name="deadlines[{{ $type }}][is_fixed_penalty]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" @checked(old('deadlines.'.$type.'.is_fixed_penalty', $deadline?->is_fixed_penalty))>
+                                                <span class="text-xs text-gray-500">{{ __('Sekali') }}</span>
+                                            </label>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Check-In') }}</h3>
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
                         <div>
-                            <x-input-label for="recent_limit" :value="__('Check-in terakhir')" />
+                            <x-input-label for="recent_limit" :value="__('Jumlah riwayat check-in ditampilkan')" />
                             <x-text-input id="recent_limit" name="check_in[recent_limit]" type="number" class="mt-1 block w-full" :value="old('check_in.recent_limit', $settings['check_in']['recent_limit'])" required />
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Membatasi jumlah data terbaru pada tabel Check-In Terakhir mahasiswa.') }}</p>
                         </div>
                         <div>
                             <x-input-label for="photo_max_kb" :value="__('Maks. foto KB')" />
                             <x-text-input id="photo_max_kb" name="check_in[photo_max_kb]" type="number" class="mt-1 block w-full" :value="old('check_in.photo_max_kb', $settings['check_in']['photo_max_kb'])" required />
+                        </div>
+                        <div>
+                            <x-input-label for="max_distance_meters" :value="__('Radius maksimum meter')" />
+                            <x-text-input id="max_distance_meters" name="check_in[max_distance_meters]" type="number" class="mt-1 block w-full" :value="old('check_in.max_distance_meters', $settings['check_in']['max_distance_meters'])" required />
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Isi 0 untuk menonaktifkan pembatasan radius.') }}</p>
+                        </div>
+                        <div>
+                            <x-input-label for="min_daily_duration_minutes" :value="__('Durasi minimal harian menit')" />
+                            <x-text-input id="min_daily_duration_minutes" name="check_in[min_daily_duration_minutes]" type="number" class="mt-1 block w-full" :value="old('check_in.min_daily_duration_minutes', $settings['check_in']['min_daily_duration_minutes'])" required />
+                        </div>
+                        <div>
+                            <x-input-label for="insufficient_duration_penalty_per_hour" :value="__('Sanksi per jam kurang')" />
+                            <x-text-input id="insufficient_duration_penalty_per_hour" name="check_in[insufficient_duration_penalty_per_hour]" type="number" class="mt-1 block w-full" :value="old('check_in.insufficient_duration_penalty_per_hour', $settings['check_in']['insufficient_duration_penalty_per_hour'])" required />
                         </div>
                         <div class="sm:col-span-3">
                             <x-input-label for="inactive_message" :value="__('Pesan jam tidak aktif')" />
@@ -55,25 +144,25 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm">
-                            <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    <div class="silat-table-wrap mt-6 rounded-lg border border-gray-100">
+                        <table class="silat-table">
+                            <thead class="silat-table-head">
                                 <tr>
-                                    <th class="px-4 py-3">{{ __('Status') }}</th>
-                                    <th class="px-4 py-3">{{ __('Mulai') }}</th>
-                                    <th class="px-4 py-3">{{ __('Selesai') }}</th>
+                                    <th class="silat-table-cell">{{ __('Status') }}</th>
+                                    <th class="silat-table-cell">{{ __('Mulai') }}</th>
+                                    <th class="silat-table-cell">{{ __('Selesai') }}</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody>
                                 @foreach ($settings['check_in']['schedule'] as $index => $slot)
                                     <tr>
-                                        <td class="px-4 py-3">
+                                        <td class="silat-table-cell">
                                             <x-text-input name="check_in[schedule][{{ $index }}][status]" class="block w-full" :value="old('check_in.schedule.'.$index.'.status', $slot['status'])" required />
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="silat-table-cell">
                                             <x-text-input name="check_in[schedule][{{ $index }}][start]" type="time" class="block w-full" :value="old('check_in.schedule.'.$index.'.start', $slot['start'])" required />
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="silat-table-cell">
                                             <x-text-input name="check_in[schedule][{{ $index }}][end]" type="time" class="block w-full" :value="old('check_in.schedule.'.$index.'.end', $slot['end'])" required />
                                         </td>
                                     </tr>

@@ -11,12 +11,25 @@
                 @include('management.lecturers.partials.fields', ['lecturer' => null])
                 <x-primary-button>Simpan</x-primary-button>
             </form>
-            <div class="bg-white shadow-sm sm:rounded-lg"><div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-500"><tr><th class="px-4 py-3">Dosen</th><th class="px-4 py-3">NIP/NIDN</th><th class="px-4 py-3">Prodi</th><th class="px-4 py-3">Status</th><th></th></tr></thead>
-                    <tbody class="divide-y divide-gray-100">@foreach ($lecturers as $lecturer)<tr><td class="px-4 py-3">{{ $lecturer->name }}<div class="text-xs text-gray-500">{{ $lecturer->email ?: $lecturer->user?->email ?: '-' }}</div></td><td class="px-4 py-3">{{ $lecturer->nip ?: '-' }}<div class="text-xs text-gray-500">{{ $lecturer->nidn ?: '-' }}</div></td><td class="px-4 py-3">{{ $lecturer->studyProgram?->name ?: '-' }}</td><td class="px-4 py-3">{{ $lecturer->status === 'active' ? 'Aktif' : 'Nonaktif' }}</td><td class="px-4 py-3 text-right"><a class="text-indigo-600" href="{{ route('management.lecturers.edit', $lecturer) }}">Edit</a></td></tr>@endforeach</tbody>
+            <div class="silat-card overflow-hidden">
+                <x-table-controls title="Daftar Dosen" description="Cari nama, email, NIP, atau NIDN." search-placeholder="Cari dosen...">
+                    <x-slot name="filters">
+                        <div>
+                            <x-input-label for="filter_study_program_id" value="Prodi" />
+                            <select id="filter_study_program_id" name="study_program_id" class="mt-1 w-full rounded-md border-gray-300 text-sm"><option value="">Semua prodi</option>@foreach ($studyPrograms as $program)<option value="{{ $program->id }}" @selected($selectedStudyProgram === $program->id)>{{ $program->name }}</option>@endforeach</select>
+                        </div>
+                        <div class="mt-3">
+                            <x-input-label for="filter_status" value="Status" />
+                            <select id="filter_status" name="status" class="mt-1 w-full rounded-md border-gray-300 text-sm"><option value="">Semua status</option><option value="active" @selected($selectedStatus === 'active')>Aktif</option><option value="inactive" @selected($selectedStatus === 'inactive')>Nonaktif</option></select>
+                        </div>
+                    </x-slot>
+                </x-table-controls>
+                <div class="silat-table-wrap">
+                <table class="silat-table">
+                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><x-sortable-heading column="name" label="Dosen" /></th><th class="silat-table-cell"><x-sortable-heading column="nip" label="NIP/NIDN" /></th><th class="silat-table-cell">Prodi</th><th class="silat-table-cell"><x-sortable-heading column="status" label="Status" /></th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
+                    <tbody>@foreach ($lecturers as $lecturer)<tr><td class="silat-table-cell"><span class="font-medium text-gray-900">{{ $lecturer->name }}</span><div class="text-xs text-gray-500">{{ $lecturer->email ?: $lecturer->user?->email ?: '-' }}</div></td><td class="silat-table-cell">{{ $lecturer->nip ?: '-' }}<div class="text-xs text-gray-500">{{ $lecturer->nidn ?: '-' }}</div></td><td class="silat-table-cell text-gray-600">{{ $lecturer->studyProgram?->name ?: '-' }}</td><td class="silat-table-cell"><x-badge :variant="$lecturer->status === 'active' ? 'success' : 'neutral'">{{ $lecturer->status === 'active' ? 'Aktif' : 'Nonaktif' }}</x-badge></td><td class="silat-table-cell text-right"><a class="silat-secondary-link justify-end" href="{{ route('management.lecturers.edit', $lecturer) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a></td></tr>@endforeach</tbody>
                 </table>
-            </div><div class="p-4">{{ $lecturers->links() }}</div></div>
+            </div><x-table-pagination :paginator="$lecturers" /></div>
         </div>
     </div></div>
 </x-app-layout>

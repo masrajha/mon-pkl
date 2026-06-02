@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipPeriod;
 use App\Models\Lecturer;
@@ -14,13 +15,40 @@ use Illuminate\View\View;
 
 class CoordinatorController extends Controller
 {
-    public function index(): View
+    use InteractsWithTableControls;
+
+    public function index(Request $request): View
     {
+        $query = InternshipCoordinator::query()
+            ->with(['lecturer', 'internshipPeriod.program', 'studyProgram']);
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->whereHas('lecturer', fn ($query) => $query->where('name', 'like', '%'.$search.'%')->orWhere('nip', 'like', '%'.$search.'%'))
+                ->orWhereHas('internshipPeriod', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
+                ->orWhereHas('studyProgram', fn ($query) => $query->where('name', 'like', '%'.$search.'%')));
+        }
+
+        if ($request->filled('period_id')) {
+            $query->where('internship_period_id', $request->integer('period_id'));
+        }
+
+        if ($request->filled('study_program_id')) {
+            $query->where('study_program_id', $request->integer('study_program_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
         return view('management.coordinators.index', $this->formData() + [
-            'coordinators' => InternshipCoordinator::query()
-                ->with(['lecturer', 'internshipPeriod', 'studyProgram'])
-                ->latest('id')
-                ->paginate(20),
+            'coordinators' => $this->applyTableSort($query, $request, ['id', 'status'], 'id', 'desc')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
+            'selectedPeriod' => $request->integer('period_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedStatus' => $request->string('status')->toString(),
         ]);
     }
 
@@ -28,7 +56,7 @@ class CoordinatorController extends Controller
     {
         InternshipCoordinator::query()->create($this->validated($request));
 
-        return back()->with('status', 'Koordinator PKL berhasil ditambahkan.');
+        return back()->with('status', 'Koordinator program berhasil ditambahkan.');
     }
 
     public function edit(InternshipCoordinator $coordinator): View
@@ -40,7 +68,7 @@ class CoordinatorController extends Controller
     {
         $coordinator->update($this->validated($request, $coordinator));
 
-        return redirect()->route('management.coordinators.index')->with('status', 'Koordinator PKL berhasil diperbarui.');
+        return redirect()->route('management.coordinators.index')->with('status', 'Koordinator program berhasil diperbarui.');
     }
 
     private function validated(Request $request, ?InternshipCoordinator $coordinator = null): array
@@ -67,7 +95,7 @@ class CoordinatorController extends Controller
     {
         return [
             'lecturers' => Lecturer::query()->where('status', 'active')->orderBy('name')->get(),
-            'periods' => InternshipPeriod::query()->orderByDesc('is_active')->orderByDesc('id')->get(),
+            'periods' => InternshipPeriod::query()->with('program')->orderByDesc('is_active')->orderByDesc('id')->get(),
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
         ];
     }

@@ -14,12 +14,25 @@
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" value="1" checked class="rounded border-gray-300"> Aktif</label>
                 <x-primary-button>Simpan</x-primary-button>
             </form>
-            <div class="bg-white shadow-sm sm:rounded-lg"><div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-500"><tr><th class="px-4 py-3">Kode</th><th class="px-4 py-3">Nama</th><th class="px-4 py-3">Fakultas</th><th class="px-4 py-3">Status</th><th></th></tr></thead>
-                    <tbody class="divide-y divide-gray-100">@foreach ($studyPrograms as $program)<tr><td class="px-4 py-3">{{ $program->code }}</td><td class="px-4 py-3">{{ $program->name }}</td><td class="px-4 py-3">{{ $program->faculty ?: '-' }}</td><td class="px-4 py-3">{{ $program->is_active ? 'Aktif' : 'Nonaktif' }}</td><td class="px-4 py-3 text-right"><a class="text-indigo-600" href="{{ route('management.study-programs.edit', $program) }}">Edit</a></td></tr>@endforeach</tbody>
+            <div class="silat-card overflow-hidden">
+                <x-table-controls title="Daftar Prodi" description="Cari kode, nama, atau fakultas." search-placeholder="Cari prodi...">
+                    <x-slot name="filters">
+                        <div>
+                            <x-input-label for="filter_status" value="Status" />
+                            <select id="filter_status" name="status" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                                <option value="">Semua status</option>
+                                <option value="active" @selected($selectedStatus === 'active')>Aktif</option>
+                                <option value="inactive" @selected($selectedStatus === 'inactive')>Nonaktif</option>
+                            </select>
+                        </div>
+                    </x-slot>
+                </x-table-controls>
+                <div class="silat-table-wrap">
+                <table class="silat-table">
+                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><x-sortable-heading column="code" label="Kode" /></th><th class="silat-table-cell"><x-sortable-heading column="name" label="Nama" /></th><th class="silat-table-cell"><x-sortable-heading column="faculty" label="Fakultas" /></th><th class="silat-table-cell"><x-sortable-heading column="is_active" label="Status" /></th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
+                    <tbody>@foreach ($studyPrograms as $program)<tr><td class="silat-table-cell font-medium text-gray-900">{{ $program->code }}</td><td class="silat-table-cell">{{ $program->name }}</td><td class="silat-table-cell text-gray-600">{{ $program->faculty ?: '-' }}</td><td class="silat-table-cell"><x-badge :variant="$program->is_active ? 'success' : 'neutral'">{{ $program->is_active ? 'Aktif' : 'Nonaktif' }}</x-badge></td><td class="silat-table-cell text-right"><a class="silat-secondary-link justify-end" href="{{ route('management.study-programs.edit', $program) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a></td></tr>@endforeach</tbody>
                 </table>
-            </div><div class="p-4">{{ $studyPrograms->links() }}</div></div>
+            </div><x-table-pagination :paginator="$studyPrograms" /></div>
         </div>
     </div></div>
 </x-app-layout>

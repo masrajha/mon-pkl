@@ -1,190 +1,226 @@
 @php
     $user = Auth::user();
-    $navButton = 'inline-flex h-16 items-center border-b-2 border-transparent px-1 text-sm font-semibold leading-5 text-slate-600 transition duration-150 ease-in-out hover:border-amber-500 hover:text-slate-900 focus:border-amber-500 focus:text-slate-900 focus:outline-none';
-    $navButtonActive = 'inline-flex h-16 items-center border-b-2 border-amber-500 px-1 text-sm font-semibold leading-5 text-slate-950 transition duration-150 ease-in-out focus:border-amber-600 focus:outline-none';
+    $groups = [];
+
+    $groups[] = [
+        'label' => 'Utama',
+        'items' => [
+            ['label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'fa-gauge-high', 'active' => ['dashboard']],
+        ],
+    ];
+
+    if ($user->hasRole('mahasiswa')) {
+        $groups[] = [
+            'label' => 'Program Saya',
+            'items' => [
+                ['label' => 'Ringkasan Program', 'route' => 'student.dashboard', 'icon' => 'fa-house-user', 'active' => ['student.dashboard']],
+                ['label' => 'Profil Saya', 'route' => 'student.profile.edit', 'icon' => 'fa-id-card', 'active' => ['student.profile.*']],
+                ['label' => 'Pendaftaran Program', 'route' => 'student.enrollments.create', 'icon' => 'fa-clipboard-list', 'active' => ['student.enrollments.*']],
+                ['label' => 'Usulan Tempat', 'route' => 'student.proposals.create', 'icon' => 'fa-building-circle-arrow-right', 'active' => ['student.proposals.*']],
+                ['label' => 'Pindah Tempat', 'route' => 'student.relocations.create', 'icon' => 'fa-route', 'active' => ['student.relocations.*']],
+                ['label' => 'Perubahan Pembimbing', 'route' => 'student.supervisor-requests.create', 'icon' => 'fa-user-pen', 'active' => ['student.supervisor-requests.*']],
+                ['label' => 'Presensi', 'route' => 'check-ins.create', 'icon' => 'fa-fingerprint', 'active' => ['check-ins.*']],
+                ['label' => 'Laporan & Log', 'route' => 'student.dashboard', 'icon' => 'fa-book-open', 'active' => ['student.reports.*']],
+            ],
+        ];
+
+        $groups[] = [
+            'label' => 'Mitra',
+            'items' => [
+                ['label' => 'Data Mitra', 'route' => 'student.places.index', 'icon' => 'fa-building', 'active' => ['student.places.*']],
+            ],
+        ];
+    }
+
+    if ($user->hasRole('koordinator')) {
+        $groups[] = [
+            'label' => 'Koordinator',
+            'items' => [
+                ['label' => 'Dashboard Koordinator', 'route' => 'coordinator.dashboard', 'icon' => 'fa-user-tie', 'active' => ['coordinator.*']],
+                ['label' => 'Validasi Pendaftaran', 'route' => 'management.enrollment-validations.index', 'icon' => 'fa-user-check', 'active' => ['management.enrollment-validations.*']],
+                ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*']],
+                ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
+                ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
+                ['label' => 'Rekap Prodi', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
+            ],
+        ];
+    }
+
+    if ($user->hasRole('admin')) {
+        $groups[] = [
+            'label' => 'Workflow Akademik',
+            'items' => [
+                ['label' => 'Ringkasan Manajemen', 'route' => 'management.dashboard', 'icon' => 'fa-chart-line', 'active' => ['management.dashboard']],
+                ['label' => 'Program Kegiatan', 'route' => 'management.programs.index', 'icon' => 'fa-layer-group', 'active' => ['management.programs.*']],
+                ['label' => 'Periode Program', 'route' => 'management.periods.index', 'icon' => 'fa-calendar-days', 'active' => ['management.periods.*']],
+                ['label' => 'Koordinator Program', 'route' => 'management.coordinators.index', 'icon' => 'fa-user-gear', 'active' => ['management.coordinators.*']],
+                ['label' => 'Validasi Pendaftaran', 'route' => 'management.enrollment-validations.index', 'icon' => 'fa-user-check', 'active' => ['management.enrollment-validations.*']],
+                ['label' => 'Peserta Periode', 'route' => 'management.enrollments.index', 'icon' => 'fa-users-viewfinder', 'active' => ['management.enrollments.*']],
+                ['label' => 'Usulan Tempat', 'route' => 'management.place-proposals.index', 'icon' => 'fa-building-circle-check', 'active' => ['management.place-proposals.*']],
+                ['label' => 'Pindah Tempat', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*']],
+                ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*']],
+                ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
+            ],
+        ];
+
+        $groups[] = [
+            'label' => 'Master Data',
+            'items' => [
+                ['label' => 'User', 'route' => 'management.users.index', 'icon' => 'fa-users-gear', 'active' => ['management.users.*']],
+                ['label' => 'Mahasiswa', 'route' => 'management.students.index', 'icon' => 'fa-user-graduate', 'active' => ['management.students.*']],
+                ['label' => 'Dosen', 'route' => 'management.lecturers.index', 'icon' => 'fa-chalkboard-user', 'active' => ['management.lecturers.*']],
+                ['label' => 'Prodi', 'route' => 'management.study-programs.index', 'icon' => 'fa-school', 'active' => ['management.study-programs.*']],
+                ['label' => 'Mitra', 'route' => 'management.places.index', 'icon' => 'fa-building', 'active' => ['management.places.*']],
+            ],
+        ];
+    }
+
+    $monitoringItems = [
+        ['label' => 'Peta Mitra', 'route' => 'maps.places', 'icon' => 'fa-map', 'active' => ['maps.places']],
+        ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
+        ['label' => 'Rekap Monitoring', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
+    ];
+
+    if ($user->hasRole(['admin', 'dosen'])) {
+        $monitoringItems[] = ['label' => 'Input Lokasi', 'route' => 'internship-places.create', 'icon' => 'fa-location-crosshairs', 'active' => ['internship-places.*']];
+    }
+
+    $groups[] = [
+        'label' => 'Monitoring',
+        'items' => $monitoringItems,
+    ];
+
+    if ($user->hasRole('admin')) {
+        $groups[] = [
+            'label' => 'Konfigurasi',
+            'items' => [
+                ['label' => 'Konfigurasi Sistem', 'route' => 'system-configurations.index', 'icon' => 'fa-sliders', 'active' => ['system-configurations.*']],
+            ],
+        ];
+    }
+
+    $itemClass = fn (bool $active): string => $active
+        ? 'flex items-center gap-3 rounded-lg bg-white/15 px-3 py-2.5 text-sm font-semibold text-white ring-1 ring-white/10'
+        : 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-blue-100 transition hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white focus:outline-none';
+
+    $mobileItemClass = fn (bool $active): string => $active
+        ? 'flex items-center gap-3 rounded-lg bg-blue-50 px-3 py-2.5 text-sm font-semibold text-blue-800'
+        : 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-950 focus:bg-gray-50 focus:outline-none';
 @endphp
 
-<nav x-data="{ open: false }" class="monpkl-institution-bar">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 justify-between">
-            <div class="flex">
-                <div class="flex shrink-0 items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-                        <span class="monpkl-brand-mark">MP</span>
-                        <span class="hidden leading-none md:block">
-                            <span class="monpkl-brand-title">MonPKL</span>
-                            <span class="monpkl-brand-subtitle block">Universitas Lampung</span>
-                        </span>
-                    </a>
+<div x-data="{ open: false }">
+    <aside class="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-blue-900 text-white shadow-xl lg:flex">
+        <div class="flex h-16 items-center gap-3 border-b border-blue-800 px-5">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
+                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-sm font-bold text-blue-900">SL</span>
+                <span class="leading-none">
+                    <span class="block text-base font-bold">SiLAT</span>
+                    <span class="mt-1 block text-xs text-blue-200">MBKM & Kerja Praktik</span>
+                </span>
+            </a>
+        </div>
+
+        <nav class="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-5">
+            @foreach ($groups as $group)
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wide text-blue-300">{{ $group['label'] }}</p>
+                    <div class="mt-2 space-y-1">
+                        @foreach ($group['items'] as $item)
+                            @php($active = request()->routeIs($item['active']))
+                            <a href="{{ route($item['route']) }}" class="{{ $itemClass($active) }}">
+                                <x-icon :name="$item['icon']" class="w-5 text-center" />
+                                <span>{{ $item['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
+            @endforeach
+        </nav>
+    </aside>
 
-                <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-
-                    @if ($user->hasRole('mahasiswa'))
-                        <x-dropdown align="left" width="48">
-                            <x-slot name="trigger">
-                                <button class="{{ request()->routeIs('student.*') || request()->routeIs('check-ins.*') ? $navButtonActive : $navButton }}">
-                                    {{ __('PKL Saya') }}
-                                </button>
-                            </x-slot>
-                            <x-slot name="content">
-                                <x-dropdown-link :href="route('student.dashboard')">{{ __('Ringkasan PKL') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('student.profile.edit')">{{ __('Profil Saya') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('student.enrollments.create')">{{ __('Pendaftaran PKL') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('student.proposals.create')">{{ __('Usulan Tempat') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('check-ins.create')">{{ __('Presensi') }}</x-dropdown-link>
-                            </x-slot>
-                        </x-dropdown>
-                    @endif
-
-                    <x-dropdown align="left" width="48">
-                        <x-slot name="trigger">
-                            <button class="{{ request()->routeIs('maps.*') || request()->routeIs('reports.monitoring') ? $navButtonActive : $navButton }}">
-                                {{ __('Monitoring') }}
-                            </button>
-                        </x-slot>
-                        <x-slot name="content">
-                            <x-dropdown-link :href="route('maps.places')">{{ __('Peta Tempat PKL') }}</x-dropdown-link>
-                            <x-dropdown-link :href="route('maps.monitoring')">{{ __('Peta Monitoring') }}</x-dropdown-link>
-                            <x-dropdown-link :href="route('reports.monitoring')">{{ __('Rekap Monitoring') }}</x-dropdown-link>
-                            @if ($user->hasRole(['admin', 'dosen']))
-                                <x-dropdown-link :href="route('internship-places.create')">{{ __('Input Lokasi') }}</x-dropdown-link>
-                            @endif
-                        </x-slot>
-                    </x-dropdown>
-
-                    @if ($user->hasRole('koordinator'))
-                        <x-dropdown align="left" width="48">
-                            <x-slot name="trigger">
-                                <button class="{{ request()->routeIs('coordinator.*') ? $navButtonActive : $navButton }}">
-                                    {{ __('Koordinator') }}
-                                </button>
-                            </x-slot>
-                            <x-slot name="content">
-                                <x-dropdown-link :href="route('coordinator.dashboard')">{{ __('Dashboard Koordinator') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('maps.monitoring')">{{ __('Monitoring Prodi') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('reports.monitoring')">{{ __('Rekap Prodi') }}</x-dropdown-link>
-                            </x-slot>
-                        </x-dropdown>
-                    @endif
-
-                    @if ($user->hasRole('admin'))
-                        <x-dropdown align="left" width="64">
-                            <x-slot name="trigger">
-                                <button class="{{ request()->routeIs('management.*') || request()->routeIs('system-configurations.*') ? $navButtonActive : $navButton }}">
-                                    {{ __('Manajemen') }}
-                                </button>
-                            </x-slot>
-                            <x-slot name="content">
-                                <div class="px-4 py-2 text-xs font-semibold uppercase text-gray-400">{{ __('Akademik PKL') }}</div>
-                                <x-dropdown-link :href="route('management.periods.index')">{{ __('Periode PKL') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('management.coordinators.index')">{{ __('Koordinator PKL') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('management.enrollments.index')">{{ __('Peserta Periode') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('management.place-proposals.index')">{{ __('Usulan Tempat') }}</x-dropdown-link>
-                                <div class="border-t border-gray-100 px-4 py-2 text-xs font-semibold uppercase text-gray-400">{{ __('Master Data') }}</div>
-                                <x-dropdown-link :href="route('management.users.index')">{{ __('User') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('management.students.index')">{{ __('Mahasiswa') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('management.lecturers.index')">{{ __('Dosen') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('management.study-programs.index')">{{ __('Prodi') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('management.places.index')">{{ __('Tempat PKL') }}</x-dropdown-link>
-                                <div class="border-t border-gray-100 px-4 py-2 text-xs font-semibold uppercase text-gray-400">{{ __('Konfigurasi') }}</div>
-                                <x-dropdown-link :href="route('system-configurations.index')">{{ __('Konfigurasi Sistem') }}</x-dropdown-link>
-                            </x-slot>
-                        </x-dropdown>
-                    @endif
+    <header class="fixed inset-x-0 top-0 z-30 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur lg:left-64">
+        <div class="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <button type="button" @click="open = true" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 lg:hidden">
+                    <span class="sr-only">Buka menu</span>
+                    <x-icon name="fa-bars" />
+                </button>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">SiLAT</p>
+                    <p class="text-sm text-gray-500">Sistem Laporan Aktivitas Terpadu</p>
                 </div>
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="flex items-center gap-3">
+                <span class="hidden text-right text-sm sm:block">
+                    <span class="block font-semibold text-gray-900">{{ $user->name }}</span>
+                    <span class="block text-xs text-gray-500">{{ ucfirst($user->role) }}</span>
+                </span>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium leading-4 text-slate-600 transition duration-150 ease-in-out hover:border-slate-300 hover:text-slate-900 focus:outline-none">
-                            <div>{{ $user->name }}</div>
-                            <div class="ms-1">
-                                <svg class="h-4 w-4 fill-current text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                        <button class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-sm font-semibold text-blue-800 shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            {{ strtoupper(Str::substr($user->name, 0, 1)) }}
                         </button>
                     </x-slot>
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">{{ __('Profile') }}</x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.edit')">{{ __('Profil') }}</x-dropdown-link>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Log Out') }}</x-dropdown-link>
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Keluar') }}</x-dropdown-link>
                         </form>
                     </x-slot>
                 </x-dropdown>
             </div>
+        </div>
+    </header>
 
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+    <div x-show="open" class="fixed inset-0 z-50 lg:hidden" style="display: none;">
+        <div x-show="open" x-transition.opacity class="absolute inset-0 bg-slate-900/50" @click="open = false"></div>
+        <aside
+            x-show="open"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="-translate-x-full"
+            x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="-translate-x-full"
+            class="relative flex h-full w-80 max-w-[85vw] flex-col bg-white shadow-xl"
+        >
+            <div class="flex h-16 items-center justify-between border-b border-gray-200 px-4">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3" @click="open = false">
+                    <span class="silat-brand-mark">SL</span>
+                    <span class="leading-none">
+                        <span class="silat-brand-title block">SiLAT</span>
+                        <span class="silat-brand-subtitle block">MBKM & Kerja Praktik</span>
+                    </span>
+                </a>
+                <button type="button" @click="open = false" class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100">
+                    <span class="sr-only">Tutup menu</span>
+                    <x-icon name="fa-xmark" />
                 </button>
             </div>
-        </div>
-    </div>
 
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="space-y-1 pb-3 pt-2">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-responsive-nav-link>
+            <nav class="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-5">
+                @foreach ($groups as $group)
+                    <div>
+                        <p class="px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ $group['label'] }}</p>
+                        <div class="mt-2 space-y-1">
+                            @foreach ($group['items'] as $item)
+                                @php($active = request()->routeIs($item['active']))
+                                <a href="{{ route($item['route']) }}" class="{{ $mobileItemClass($active) }}" @click="open = false">
+                                    <x-icon :name="$item['icon']" class="w-5 text-center" />
+                                    <span>{{ $item['label'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </nav>
 
-            @if ($user->hasRole('mahasiswa'))
-                <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase text-gray-400">{{ __('PKL Saya') }}</div>
-                <x-responsive-nav-link :href="route('student.dashboard')" :active="request()->routeIs('student.dashboard')">{{ __('Ringkasan PKL') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('student.profile.edit')" :active="request()->routeIs('student.profile.*')">{{ __('Profil Saya') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('student.enrollments.create')" :active="request()->routeIs('student.enrollments.*')">{{ __('Pendaftaran PKL') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('student.proposals.create')" :active="request()->routeIs('student.proposals.*')">{{ __('Usulan Tempat') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('check-ins.create')" :active="request()->routeIs('check-ins.*')">{{ __('Presensi') }}</x-responsive-nav-link>
-            @endif
-
-            <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase text-gray-400">{{ __('Monitoring') }}</div>
-            <x-responsive-nav-link :href="route('maps.places')" :active="request()->routeIs('maps.places')">{{ __('Peta Tempat PKL') }}</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('maps.monitoring')" :active="request()->routeIs('maps.monitoring')">{{ __('Peta Monitoring') }}</x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('reports.monitoring')" :active="request()->routeIs('reports.monitoring')">{{ __('Rekap Monitoring') }}</x-responsive-nav-link>
-            @if ($user->hasRole(['admin', 'dosen']))
-                <x-responsive-nav-link :href="route('internship-places.create')" :active="request()->routeIs('internship-places.*')">{{ __('Input Lokasi') }}</x-responsive-nav-link>
-            @endif
-
-            @if ($user->hasRole('koordinator'))
-                <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase text-gray-400">{{ __('Koordinator') }}</div>
-                <x-responsive-nav-link :href="route('coordinator.dashboard')" :active="request()->routeIs('coordinator.*')">{{ __('Dashboard Koordinator') }}</x-responsive-nav-link>
-            @endif
-
-            @if ($user->hasRole('admin'))
-                <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase text-gray-400">{{ __('Manajemen') }}</div>
-                <x-responsive-nav-link :href="route('management.dashboard')" :active="request()->routeIs('management.dashboard')">{{ __('Ringkasan Manajemen') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.periods.index')" :active="request()->routeIs('management.periods.*')">{{ __('Periode PKL') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.coordinators.index')" :active="request()->routeIs('management.coordinators.*')">{{ __('Koordinator PKL') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.enrollments.index')" :active="request()->routeIs('management.enrollments.*')">{{ __('Peserta Periode') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.place-proposals.index')" :active="request()->routeIs('management.place-proposals.*')">{{ __('Usulan Tempat') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.users.index')" :active="request()->routeIs('management.users.*')">{{ __('User') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.students.index')" :active="request()->routeIs('management.students.*')">{{ __('Mahasiswa') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.lecturers.index')" :active="request()->routeIs('management.lecturers.*')">{{ __('Dosen') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.study-programs.index')" :active="request()->routeIs('management.study-programs.*')">{{ __('Prodi') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('management.places.index')" :active="request()->routeIs('management.places.*')">{{ __('Tempat PKL') }}</x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('system-configurations.index')" :active="request()->routeIs('system-configurations.*')">{{ __('Konfigurasi Sistem') }}</x-responsive-nav-link>
-            @endif
-        </div>
-
-        <div class="border-t border-gray-200 pb-1 pt-4">
-            <div class="px-4">
-                <div class="text-base font-medium text-gray-800">{{ $user->name }}</div>
-                <div class="text-sm font-medium text-gray-500">{{ $user->email }}</div>
+            <div class="border-t border-gray-200 p-4">
+                <p class="font-semibold text-gray-900">{{ $user->name }}</p>
+                <p class="text-sm text-gray-500">{{ $user->email }}</p>
             </div>
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">{{ __('Profile') }}</x-responsive-nav-link>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Log Out') }}</x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
+        </aside>
     </div>
-</nav>
+</div>

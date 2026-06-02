@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\InternshipEnrollment;
+use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,17 +15,37 @@ use Illuminate\View\View;
 
 class PlaceController extends Controller
 {
+    use InteractsWithTableControls;
+
     public function index(Request $request): View
     {
-        $query = InternshipPlace::query()->with('city')->withCount('enrollments');
+        $selectedPeriod = $request->integer('period_id') ?: null;
+        $query = InternshipPlace::query()
+            ->with('city')
+            ->withCount([
+                'enrollments' => fn ($query) => $query->when($selectedPeriod, fn ($query) => $query->where('internship_period_id', $selectedPeriod)),
+            ]);
 
         if ($request->filled('q')) {
-            $query->where('name', 'like', '%'.$request->string('q')->toString().'%');
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->where('name', 'like', '%'.$search.'%')
+                ->orWhere('address', 'like', '%'.$search.'%')
+                ->orWhereHas('city', fn ($query) => $query->where('name', 'like', '%'.$search.'%')));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->string('status')->toString() === 'active');
         }
 
         return view('management.places.index', [
-            'places' => $query->orderBy('name')->paginate(20)->withQueryString(),
+            'places' => $this->applyTableSort($query, $request, ['name', 'is_active', 'id'], 'name')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
             'allPlaces' => InternshipPlace::query()->orderBy('name')->get(['id', 'name']),
+            'periods' => InternshipPeriod::query()->with('program')->orderByDesc('is_active')->orderByDesc('id')->get(),
+            'selectedPeriod' => $selectedPeriod,
+            'selectedStatus' => $request->string('status')->toString(),
         ]);
     }
 
@@ -55,19 +77,19 @@ class PlaceController extends Controller
 
         if ($blocked->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'place_ids' => 'Tempat PKL hanya dapat dihapus jika jumlah peserta 0. Masih ada peserta pada: '.$blocked->pluck('name')->join(', '),
+                'place_ids' => 'Mitra hanya dapat dihapus jika jumlah peserta 0. Masih ada peserta pada: '.$blocked->pluck('name')->join(', '),
             ]);
         }
 
         $deleted = InternshipPlace::query()->whereIn('id', $placeIds)->delete();
 
-        return back()->with('status', $deleted.' tempat PKL tanpa peserta berhasil dihapus.');
+        return back()->with('status', $deleted.' mitra tanpa peserta berhasil dihapus.');
     }
 
     private function bulkMerge($placeIds, int $targetPlaceId): RedirectResponse
     {
         if (! $targetPlaceId) {
-            throw ValidationException::withMessages(['target_place_id' => 'Pilih tempat PKL tujuan merge.']);
+            throw ValidationException::withMessages(['target_place_id' => 'Pilih mitra tujuan merge.']);
         }
 
         if (! $placeIds->contains($targetPlaceId)) {
@@ -75,7 +97,7 @@ class PlaceController extends Controller
         }
 
         if ($placeIds->count() < 2) {
-            throw ValidationException::withMessages(['place_ids' => 'Pilih minimal dua tempat PKL untuk merge.']);
+            throw ValidationException::withMessages(['place_ids' => 'Pilih minimal dua mitra untuk merge.']);
         }
 
         $sourceIds = $placeIds->reject(fn ($id) => $id === $targetPlaceId)->values();
@@ -90,6 +112,6 @@ class PlaceController extends Controller
                 ->delete();
         });
 
-        return back()->with('status', 'Merge tempat PKL berhasil. Peserta dari '.count($sourceIds).' data sumber sudah dipindahkan.');
+        return back()->with('status', 'Merge mitra berhasil. Peserta dari '.count($sourceIds).' data sumber sudah dipindahkan.');
     }
 }

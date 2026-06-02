@@ -3,22 +3,40 @@
 namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\Lecturer;
+use App\Models\Program;
 use App\Models\Student;
 use App\Models\StudyProgram;
+use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class EnrollmentController extends Controller
 {
+    use InteractsWithTableControls;
+
+    public function __construct(private readonly PeriodConfigurationService $configurations)
+    {
+    }
+
     public function index(Request $request): View
     {
-        $query = InternshipEnrollment::query()->with(['student', 'studyProgram', 'internshipPeriod', 'internshipPlace', 'lecturer', 'lecturerSupervisor']);
+        $query = InternshipEnrollment::query()->with(['student', 'studyProgram', 'internshipPeriod.program', 'internshipPlace', 'lecturer', 'lecturerSupervisor']);
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->whereHas('student', fn ($query) => $query->where('full_name', 'like', '%'.$search.'%')->orWhere('npm', 'like', '%'.$search.'%'))
+                ->orWhereHas('internshipPlace', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
+                ->orWhereHas('lecturer', fn ($query) => $query->where('name', 'like', '%'.$search.'%')));
+        }
 
         if ($request->filled('period_id')) {
             $query->where('internship_period_id', $request->integer('period_id'));
@@ -33,10 +51,51 @@ class EnrollmentController extends Controller
         }
 
         return view('management.enrollments.index', $this->formData() + [
-            'enrollments' => $query->latest('id')->paginate(20)->withQueryString(),
+            'enrollments' => $this->applyTableSort($query, $request, ['id', 'status'], 'id', 'desc')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
             'selectedPeriod' => $request->integer('period_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
             'selectedStatus' => $request->string('status')->toString(),
+        ]);
+    }
+
+    public function validations(Request $request): View
+    {
+        $query = InternshipEnrollment::query()
+            ->with(['student', 'studyProgram', 'internshipPeriod.program', 'internshipPlace', 'lecturer'])
+            ->whereIn('status', ['pending_verification', 'revision_required']);
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->whereHas('student', fn ($query) => $query->where('full_name', 'like', '%'.$search.'%')->orWhere('npm', 'like', '%'.$search.'%'))
+                ->orWhereHas('internshipPlace', fn ($query) => $query->where('name', 'like', '%'.$search.'%')));
+        }
+
+        $this->scopeValidationQuery($query, $request);
+
+        if ($request->filled('period_id')) {
+            $query->where('internship_period_id', $request->integer('period_id'));
+        }
+
+        if ($request->filled('study_program_id')) {
+            $query->where('study_program_id', $request->integer('study_program_id'));
+        }
+
+        if ($request->filled('program_id')) {
+            $query->whereHas('internshipPeriod', fn ($period) => $period->where('program_id', $request->integer('program_id')));
+        }
+
+        return view('management.enrollments.validations', $this->formData() + [
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'enrollments' => $this->applyTableSort($query, $request, ['id', 'status'], 'id', 'desc')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
+            'quotaWarnings' => $this->quotaWarnings(),
+            'selectedPeriod' => $request->integer('period_id') ?: null,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
         ]);
     }
 
@@ -73,6 +132,10 @@ class EnrollmentController extends Controller
             'field_supervisor' => ['nullable', 'string', 'max:255'],
             'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
             'contact_student_phone' => ['nullable', 'string', 'max:50'],
+            'has_krs_pkl' => ['nullable', 'boolean'],
+            'total_sks' => ['nullable', 'integer', 'min:0', 'max:250'],
+            'current_semester' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'gpa' => ['nullable', 'numeric', 'min:0', 'max:4'],
             'status' => ['required', Rule::in([
                 'draft',
                 'pending_verification',
@@ -83,6 +146,7 @@ class EnrollmentController extends Controller
                 'cancelled',
                 'rejected',
             ])],
+            'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $request->validate([
@@ -100,8 +164,32 @@ class EnrollmentController extends Controller
 
         $data['lecturer_supervisor_user_id'] = $lecturer?->user_id;
         $data['lecturer_supervisor'] = $lecturer?->name;
+        $data['has_krs_pkl'] = (bool) ($data['has_krs_pkl'] ?? false);
+        $this->validateQuota($data, $enrollment);
 
         return $data;
+    }
+
+    private function validateQuota(array $data, ?InternshipEnrollment $enrollment = null): void
+    {
+        if (empty($data['internship_place_id'])) {
+            return;
+        }
+
+        $settings = $this->configurations->forPeriod((int) $data['internship_period_id']);
+        $used = InternshipEnrollment::query()
+            ->where('internship_period_id', $data['internship_period_id'])
+            ->where('study_program_id', $data['study_program_id'])
+            ->where('internship_place_id', $data['internship_place_id'])
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->when($enrollment, fn ($query) => $query->whereKeyNot($enrollment->id))
+            ->count();
+
+        if ($used >= (int) $settings['enrollment']['max_place_quota']) {
+            throw ValidationException::withMessages([
+                'internship_place_id' => 'Kuota maksimal mitra ini sudah terpenuhi untuk periode dan prodi yang dipilih.',
+            ]);
+        }
     }
 
     private function formData(): array
@@ -109,9 +197,101 @@ class EnrollmentController extends Controller
         return [
             'students' => Student::query()->orderBy('full_name')->get(),
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
-            'periods' => InternshipPeriod::query()->orderByDesc('is_active')->orderByDesc('id')->get(),
-            'places' => InternshipPlace::query()->orderBy('name')->get(),
+            'periods' => InternshipPeriod::query()->with('program')->orderByDesc('is_active')->orderByDesc('id')->get(),
+            'places' => InternshipPlace::query()->where('is_active', true)->orderBy('name')->get(),
             'lecturers' => Lecturer::query()->where('status', 'active')->orderBy('name')->get(),
         ];
+    }
+
+    public function validateEnrollment(Request $request, InternshipEnrollment $enrollment): RedirectResponse
+    {
+        $this->authorizeValidationScope($enrollment, $request);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['active', 'revision_required', 'rejected'])],
+            'lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
+            'field_supervisor' => ['nullable', 'string', 'max:255'],
+            'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
+            'admin_note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        if ($data['status'] === 'active' && ! $data['lecturer_supervisor_id']) {
+            return back()->withErrors(['lecturer_supervisor_id' => 'Dosen pembimbing wajib dipilih sebelum pendaftaran diaktifkan.'])->withInput();
+        }
+
+        $lecturer = $data['lecturer_supervisor_id']
+            ? Lecturer::query()->where('status', 'active')->find($data['lecturer_supervisor_id'])
+            : null;
+
+        $enrollment->update($data + [
+            'lecturer_supervisor_user_id' => $lecturer?->user_id,
+            'lecturer_supervisor' => $lecturer?->name,
+        ]);
+
+        return back()->with('status', 'Validasi pendaftaran berhasil diproses.');
+    }
+
+    private function quotaWarnings(): array
+    {
+        return InternshipEnrollment::query()
+            ->selectRaw('internship_period_id, study_program_id, internship_place_id, COUNT(*) as total')
+            ->whereNotNull('internship_place_id')
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->groupBy('internship_period_id', 'study_program_id', 'internship_place_id')
+            ->get()
+            ->filter(function ($row): bool {
+                $settings = $this->configurations->forPeriod((int) $row->internship_period_id);
+
+                return $row->total < (int) $settings['enrollment']['min_place_quota'];
+            })
+            ->mapWithKeys(fn ($row) => [
+                $row->internship_period_id.'-'.$row->study_program_id.'-'.$row->internship_place_id => $row->total,
+            ])
+            ->all();
+    }
+
+    private function scopeValidationQuery($query, Request $request): void
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('admin')) {
+            return;
+        }
+
+        $assignments = $user?->lecturer?->coordinatorAssignments()
+            ->where('status', 'active')
+            ->get(['internship_period_id', 'study_program_id']) ?? collect();
+
+        if ($assignments->isEmpty()) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->where(function ($query) use ($assignments): void {
+            foreach ($assignments as $assignment) {
+                $query->orWhere(function ($query) use ($assignment): void {
+                    $query->where('internship_period_id', $assignment->internship_period_id)
+                        ->where('study_program_id', $assignment->study_program_id);
+                });
+            }
+        });
+    }
+
+    private function authorizeValidationScope(InternshipEnrollment $enrollment, Request $request): void
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('admin')) {
+            return;
+        }
+
+        $allowed = $user?->lecturer?->coordinatorAssignments()
+            ->where('status', 'active')
+            ->where('internship_period_id', $enrollment->internship_period_id)
+            ->where('study_program_id', $enrollment->study_program_id)
+            ->exists();
+
+        abort_unless($allowed, 403);
     }
 }

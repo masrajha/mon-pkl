@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,10 +12,29 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function index(): View
+    use InteractsWithTableControls;
+
+    public function index(Request $request): View
     {
+        $query = User::query();
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->where('name', 'like', '%'.$search.'%')
+                ->orWhere('email', 'like', '%'.$search.'%')
+                ->orWhere('role', 'like', '%'.$search.'%'));
+        }
+
+        if ($request->filled('role')) {
+            $query->where('role', $request->string('role'));
+        }
+
         return view('management.users.index', [
-            'users' => User::query()->orderBy('role')->orderBy('name')->paginate(20),
+            'users' => $this->applyTableSort($query, $request, ['name', 'email', 'role'], 'name')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
+            'selectedRole' => $request->string('role')->toString(),
         ]);
     }
 

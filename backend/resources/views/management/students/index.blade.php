@@ -16,12 +16,24 @@
                 <select id="user_id" name="user_id" class="block w-full rounded-md border-gray-300"><option value="">Belum dihubungkan</option>@foreach ($users as $user)<option value="{{ $user->id }}">{{ $user->name }} - {{ $user->email }}</option>@endforeach</select>
                 <x-primary-button>Simpan</x-primary-button>
             </form>
-            <div class="bg-white shadow-sm sm:rounded-lg"><div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50 text-left text-xs font-semibold uppercase text-gray-500"><tr><th class="px-4 py-3">NPM</th><th class="px-4 py-3">Nama</th><th class="px-4 py-3">Prodi</th><th class="px-4 py-3">Akun</th><th></th></tr></thead>
-                    <tbody class="divide-y divide-gray-100">@foreach ($students as $student)<tr><td class="px-4 py-3">{{ $student->npm }}</td><td class="px-4 py-3">{{ $student->full_name }}</td><td class="px-4 py-3">{{ $student->studyProgram?->name ?: '-' }}</td><td class="px-4 py-3">{{ $student->user?->email ?: '-' }}</td><td class="px-4 py-3 text-right"><a class="text-indigo-600" href="{{ route('management.students.edit', $student) }}">Edit</a></td></tr>@endforeach</tbody>
+            <div class="silat-card overflow-hidden">
+                <x-table-controls title="Daftar Mahasiswa" description="Cari, filter, dan urutkan data mahasiswa." search-placeholder="Cari NPM, nama, atau email...">
+                    <x-slot name="filters">
+                        <div>
+                            <x-input-label for="filter_study_program_id" value="Prodi" />
+                            <select id="filter_study_program_id" name="study_program_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                                <option value="">Semua prodi</option>
+                                @foreach ($studyPrograms as $program)<option value="{{ $program->id }}" @selected($selectedStudyProgram === $program->id)>{{ $program->name }}</option>@endforeach
+                            </select>
+                        </div>
+                    </x-slot>
+                </x-table-controls>
+                <div class="silat-table-wrap">
+                <table class="silat-table">
+                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><x-sortable-heading column="npm" label="NPM" /></th><th class="silat-table-cell"><x-sortable-heading column="full_name" label="Nama" /></th><th class="silat-table-cell">Prodi</th><th class="silat-table-cell">Akun</th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
+                    <tbody>@foreach ($students as $student)<tr><td class="silat-table-cell font-medium text-gray-900">{{ $student->npm }}</td><td class="silat-table-cell">{{ $student->full_name }}</td><td class="silat-table-cell text-gray-600">{{ $student->studyProgram?->name ?: '-' }}</td><td class="silat-table-cell text-gray-600">{{ $student->user?->email ?: '-' }}</td><td class="silat-table-cell text-right"><a class="silat-secondary-link justify-end" href="{{ route('management.students.edit', $student) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a></td></tr>@endforeach</tbody>
                 </table>
-            </div><div class="p-4">{{ $students->links() }}</div></div>
+            </div><x-table-pagination :paginator="$students" /></div>
         </div>
     </div></div>
 </x-app-layout>

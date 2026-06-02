@@ -20,10 +20,25 @@ class InternshipEnrollment extends Model
         'field_supervisor',
         'field_supervisor_phone',
         'contact_student_phone',
+        'has_krs_pkl',
+        'total_sks',
+        'current_semester',
+        'gpa',
         'status',
+        'admin_note',
+        'final_report_path',
+        'total_sanctions_points',
         'legacy_source_file',
         'legacy_period_label',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'has_krs_pkl' => 'boolean',
+            'gpa' => 'decimal:2',
+        ];
+    }
 
     public function student()
     {
@@ -58,5 +73,25 @@ class InternshipEnrollment extends Model
     public function checkIns()
     {
         return $this->hasMany(CheckIn::class);
+    }
+
+    public function submissionProgress()
+    {
+        return $this->hasMany(SubmissionProgress::class);
+    }
+
+    public function sanctions()
+    {
+        return $this->hasMany(Sanction::class);
+    }
+
+    public function relocationRequests()
+    {
+        return $this->hasMany(RelocationRequest::class, 'internship_enrollment_id');
+    }
+
+    public function supervisorChangeRequests()
+    {
+        return $this->hasMany(SupervisorChangeRequest::class, 'internship_enrollment_id');
     }
 }

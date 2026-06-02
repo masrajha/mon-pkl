@@ -1,20 +1,133 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="text-xl font-semibold text-gray-800">{{ __('Usulan Tempat PKL Baru') }}</h2></x-slot>
-    <div class="py-10"><div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
-        @if ($errors->any())<div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{{ $errors->first() }}</div>@endif
-        <form method="POST" action="{{ route('student.proposals.store') }}" class="space-y-4 bg-white p-6 shadow-sm sm:rounded-lg">
-            @csrf
-            <div class="grid gap-3 sm:grid-cols-2">
-                <div><x-input-label for="internship_period_id" value="Periode" /><select id="internship_period_id" name="internship_period_id" class="block w-full rounded-md border-gray-300" required><option value="">Pilih periode</option>@foreach ($periods as $period)<option value="{{ $period->id }}" @selected(old('internship_period_id') == $period->id)>{{ $period->name }}</option>@endforeach</select></div>
-                <div><x-input-label for="study_program_id" value="Prodi" /><select id="study_program_id" name="study_program_id" class="block w-full rounded-md border-gray-300" required><option value="">Pilih prodi</option>@foreach ($studyPrograms as $program)<option value="{{ $program->id }}" @selected(old('study_program_id') == $program->id)>{{ $program->name }}</option>@endforeach</select></div>
+    <x-slot name="header">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Workflow Mahasiswa</p>
+            <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Usulan Mitra Baru') }}</h2>
+            <p class="mt-1 text-sm text-gray-500">Tentukan titik lokasi pada peta, lalu lengkapi identitas instansi.</p>
+        </div>
+    </x-slot>
+
+    <div class="py-8">
+        <div class="silat-shell">
+            @if ($errors->any())
+                <x-alert variant="danger" class="mb-6">{{ $errors->first() }}</x-alert>
+            @endif
+
+            <div class="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+                <section class="silat-card overflow-hidden">
+                    <div class="silat-section-header">
+                        <div>
+                            <h3 class="silat-section-title">Titik Lokasi Mitra</h3>
+                            <p class="silat-section-description">Klik peta atau geser marker untuk menentukan koordinat.</p>
+                        </div>
+                    </div>
+                    <div
+                        class="monpkl-map monpkl-form-map"
+                        data-map-type="place-picker"
+                        data-lat-input="latitude"
+                        data-lng-input="longitude"
+                        data-initial-lat="{{ old('latitude') }}"
+                        data-initial-lng="{{ old('longitude') }}"
+                        data-map-config='@json($mapConfig)'
+                    ></div>
+                </section>
+
+                <section class="silat-card overflow-hidden">
+                    <div class="silat-section-header">
+                        <div>
+                            <h3 class="silat-section-title">Data Usulan</h3>
+                            <p class="silat-section-description">Prodi mengikuti profil mahasiswa.</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ route('student.proposals.store') }}" class="space-y-5 p-5">
+                        @csrf
+
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <x-input-label for="internship_period_id" value="Periode Program" />
+                                <x-select-input id="internship_period_id" name="internship_period_id" class="mt-1" required>
+                                    <option value="">Pilih periode program</option>
+                                    @foreach ($periods as $period)
+                                        <option value="{{ $period->id }}" @selected(old('internship_period_id') == $period->id)>{{ $period->display_name }}</option>
+                                    @endforeach
+                                </x-select-input>
+                            </div>
+
+                            <div>
+                                <x-input-label value="Prodi" />
+                                <div class="mt-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700">
+                                    <span class="font-medium text-gray-900">{{ $student->studyProgram?->name ?: 'Belum diisi' }}</span>
+                                    @if ($student->studyProgram?->code)
+                                        <span class="text-gray-500">({{ $student->studyProgram->code }})</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <x-input-label for="name" value="Nama Instansi/Perusahaan" />
+                            <x-text-input id="name" name="name" class="mt-1 block w-full" :value="old('name')" required />
+                        </div>
+
+                        <div>
+                            <x-input-label for="address" value="Alamat Lengkap" />
+                            <textarea id="address" name="address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('address') }}</textarea>
+                        </div>
+
+                        <div
+                            data-region-picker
+                            data-province-select="province_id"
+                            data-regency-select="regency_id"
+                            data-city-name-input="city_name"
+                            data-status-target="region_status"
+                            data-initial-city="{{ old('city_name') }}"
+                        >
+                            <x-input-label for="province_id" value="Provinsi" />
+                            <select id="province_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Memuat provinsi...</option>
+                            </select>
+
+                            <x-input-label for="regency_id" value="Kab/Kota" class="mt-3" />
+                            <select id="regency_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" disabled>
+                                <option value="">Pilih provinsi terlebih dahulu</option>
+                            </select>
+
+                            <input id="city_name" name="city_name" type="hidden" value="{{ old('city_name') }}">
+                            <input name="city_id" type="hidden" value="{{ old('city_id') }}">
+                            <p id="region_status" class="mt-2 text-xs text-gray-500">
+                                Pilih kab/kota atau pilih titik pada peta untuk deteksi otomatis.
+                            </p>
+                        </div>
+
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <x-input-label for="latitude" value="Latitude" />
+                                <x-text-input id="latitude" name="latitude" class="mt-1 block w-full" :value="old('latitude')" required />
+                            </div>
+                            <div>
+                                <x-input-label for="longitude" value="Longitude" />
+                                <x-text-input id="longitude" name="longitude" class="mt-1 block w-full" :value="old('longitude')" required />
+                            </div>
+                        </div>
+
+                        <div>
+                            <x-input-label for="field_supervisor_name" value="Kontak Umum Instansi" />
+                            <x-text-input id="field_supervisor_name" name="field_supervisor_name" class="mt-1 block w-full" :value="old('field_supervisor_name')" />
+                            <p class="mt-1 text-xs text-gray-500">Pembimbing lapangan per mahasiswa akan dikonfirmasi pada data peserta periode.</p>
+                        </div>
+
+                        <div>
+                            <x-input-label for="field_supervisor_phone" value="HP Kontak Instansi" />
+                            <x-text-input id="field_supervisor_phone" name="field_supervisor_phone" class="mt-1 block w-full" :value="old('field_supervisor_phone')" />
+                        </div>
+
+                        <div class="flex justify-end">
+                            <x-primary-button><x-icon name="fa-paper-plane" /> Kirim Usulan</x-primary-button>
+                        </div>
+                    </form>
+                </section>
             </div>
-            <x-input-label for="name" value="Nama Instansi" /><x-text-input id="name" name="name" class="block w-full" :value="old('name')" required />
-            <x-input-label for="address" value="Alamat" /><textarea id="address" name="address" rows="3" class="block w-full rounded-md border-gray-300">{{ old('address') }}</textarea>
-            <x-input-label for="city_name" value="Kab/Kota" /><x-text-input id="city_name" name="city_name" class="block w-full" :value="old('city_name')" />
-            <div class="grid gap-3 sm:grid-cols-2"><div><x-input-label for="latitude" value="Latitude" /><x-text-input id="latitude" name="latitude" class="block w-full" :value="old('latitude')" /></div><div><x-input-label for="longitude" value="Longitude" /><x-text-input id="longitude" name="longitude" class="block w-full" :value="old('longitude')" /></div></div>
-            <x-input-label for="field_supervisor_name" value="Pembimbing Lapangan Jika Sudah Diketahui" /><x-text-input id="field_supervisor_name" name="field_supervisor_name" class="block w-full" :value="old('field_supervisor_name')" />
-            <x-input-label for="field_supervisor_phone" value="HP Pembimbing Lapangan" /><x-text-input id="field_supervisor_phone" name="field_supervisor_phone" class="block w-full" :value="old('field_supervisor_phone')" />
-            <x-primary-button>Kirim Usulan</x-primary-button>
-        </form>
-    </div></div>
+        </div>
+    </div>
 </x-app-layout>

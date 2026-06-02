@@ -84,18 +84,51 @@ async function initPlacesMap(element) {
     const map = baseMap(element);
     const group = L.markerClusterGroup();
     const data = await fetchJson(element.dataset.dataUrl);
+    const markerByPlaceId = new Map();
+    const featureByPlaceId = new Map();
+    const tableBody = element.dataset.tableTarget ? document.getElementById(element.dataset.tableTarget) : null;
+
+    const selectPlace = (placeId, options = {}) => {
+        const marker = markerByPlaceId.get(Number(placeId));
+        const feature = featureByPlaceId.get(Number(placeId));
+
+        if (!marker || !feature) {
+            return;
+        }
+
+        highlightPlaceRow(tableBody, placeId);
+
+        if (options.scroll !== false) {
+            scrollPlaceRowIntoView(tableBody, placeId);
+        }
+
+        if (options.focusMap !== false) {
+            const [lng, lat] = feature.geometry.coordinates;
+            group.zoomToShowLayer(marker, () => {
+                map.setView([lat, lng], Math.max(map.getZoom(), mapConfig(element).officeZoom));
+                marker.openPopup();
+            });
+        }
+    };
 
     data.features.forEach((feature) => {
         const [lng, lat] = feature.geometry.coordinates;
         const props = feature.properties;
 
-        L.marker([lat, lng], { icon: placeIcon(props.visited) })
+        featureByPlaceId.set(Number(props.id), feature);
+
+        const marker = L.marker([lat, lng], { icon: placeIcon(props.visited) })
             .bindPopup(placePopup(props))
+            .on('click', () => selectPlace(props.id, { focusMap: false }))
             .addTo(group);
+
+        markerByPlaceId.set(Number(props.id), marker);
     });
 
     group.addTo(map);
     fitLayer(map, group);
+
+    renderPlacesTable(tableBody, data.features, selectPlace);
 }
 
 async function initMonitoringMap(element) {
@@ -104,15 +137,42 @@ async function initMonitoringMap(element) {
     const officeGroup = L.layerGroup();
     const lineGroup = L.layerGroup();
     const data = await fetchJson(element.dataset.dataUrl);
+    const tableBody = element.dataset.tableTarget ? document.getElementById(element.dataset.tableTarget) : null;
+    const countTarget = element.dataset.countTarget ? document.getElementById(element.dataset.countTarget) : null;
+    const markerByCheckInId = new Map();
+
+    const selectCheckIn = (checkInId, options = {}) => {
+        const marker = markerByCheckInId.get(Number(checkInId));
+
+        if (!marker) {
+            return;
+        }
+
+        highlightMonitoringRow(tableBody, checkInId);
+
+        if (options.scroll !== false) {
+            scrollMonitoringRowIntoView(tableBody, checkInId);
+        }
+
+        if (options.focusMap !== false) {
+            studentGroup.zoomToShowLayer(marker, () => {
+                map.setView(marker.getLatLng(), Math.max(map.getZoom(), mapConfig(element).currentLocationZoom));
+                marker.openPopup();
+            });
+        }
+    };
 
     data.check_ins.forEach((checkIn) => {
         const student = checkIn.student_location;
         const office = checkIn.office;
 
         if (student?.lat && student?.lng) {
-            L.marker([student.lat, student.lng], { icon: checkInIcon(checkIn.type) })
+            const marker = L.marker([student.lat, student.lng], { icon: checkInIcon(checkIn.type) })
                 .bindPopup(checkInPopup(checkIn))
+                .on('click', () => selectCheckIn(checkIn.id, { focusMap: false }))
                 .addTo(studentGroup);
+
+            markerByCheckInId.set(Number(checkIn.id), marker);
         }
 
         if (office?.lat && office?.lng) {
@@ -145,6 +205,11 @@ async function initMonitoringMap(element) {
     }, { collapsed: false }).addTo(map);
 
     fitLayer(map, studentGroup);
+    renderMonitoringTable(tableBody, data.check_ins, selectCheckIn);
+
+    if (countTarget) {
+        countTarget.textContent = Number(data.check_ins.length || 0).toLocaleString('id-ID');
+    }
 }
 
 function initCheckInMap(element) {
@@ -203,18 +268,6 @@ function initCheckInMap(element) {
         maximumAge: Number(config.geolocation?.maximum_age_ms ?? 30000),
     });
 
-    map.on('click', (event) => {
-        const { lat, lng } = event.latlng;
-
-        latInput.value = lat.toFixed(7);
-        lngInput.value = lng.toFixed(7);
-
-        if (studentMarker) {
-            studentMarker.setLatLng(event.latlng);
-        } else {
-            studentMarker = L.marker(event.latlng, { icon: checkInIcon('Masuk') }).addTo(layer);
-        }
-    });
 }
 
 function initPlacePickerMap(element) {
@@ -453,6 +506,119 @@ function fitLayer(map, layer) {
     if (bounds?.isValid()) {
         map.fitBounds(bounds.pad(0.12), { maxZoom: config.fitMaxZoom });
     }
+}
+
+function renderPlacesTable(tableBody, features, onSelect) {
+    if (!tableBody) {
+        return;
+    }
+
+    tableBody.replaceChildren();
+
+    if (features.length === 0) {
+        const row = document.createElement('tr');
+        const colspan = Number(tableBody.dataset.colspan || 3);
+        row.innerHTML = `<td colspan="${colspan}" class="silat-table-cell text-center text-gray-500">Tidak ada tempat PKL pada filter ini.</td>`;
+        tableBody.append(row);
+        return;
+    }
+
+    features.forEach((feature) => {
+        const props = feature.properties;
+        const row = document.createElement('tr');
+
+        row.dataset.placeId = props.id;
+        row.className = 'cursor-pointer transition hover:bg-indigo-50';
+        const actionCell = props.register_url
+            ? `<td class="silat-table-cell text-right"><a href="${escapeHtml(props.register_url)}" class="silat-btn px-3 py-2 text-xs" data-place-action><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Daftar</a></td>`
+            : '';
+
+        row.innerHTML = `
+            <td class="silat-table-cell">
+                <div class="font-medium text-gray-900">${escapeHtml(props.name || '-')}</div>
+                <div class="line-clamp-2 text-xs text-gray-500">${escapeHtml(props.address || '-')}</div>
+            </td>
+            <td class="silat-table-cell text-gray-700">${escapeHtml(props.city || '-')}</td>
+            <td class="silat-table-cell text-gray-700">${Number(props.enrollments_count || 0).toLocaleString('id-ID')}</td>
+            ${actionCell}
+        `;
+        row.querySelector('[data-place-action]')?.addEventListener('click', (event) => event.stopPropagation());
+        row.addEventListener('click', () => onSelect(props.id, { scroll: false }));
+        tableBody.append(row);
+    });
+}
+
+function renderMonitoringTable(tableBody, checkIns, onSelect) {
+    if (!tableBody) {
+        return;
+    }
+
+    tableBody.replaceChildren();
+
+    if (checkIns.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="3" class="silat-table-cell text-center text-gray-500">Tidak ada check-in pada filter ini.</td>`;
+        tableBody.append(row);
+        return;
+    }
+
+    checkIns.forEach((checkIn) => {
+        const row = document.createElement('tr');
+        const distance = checkIn.distance_meters === null ? '-' : `${Number(checkIn.distance_meters).toLocaleString('id-ID')} m`;
+
+        row.dataset.checkInId = checkIn.id;
+        row.className = 'cursor-pointer transition hover:bg-blue-50';
+        row.innerHTML = `
+            <td class="silat-table-cell">
+                <div class="font-medium text-gray-900">${escapeHtml(checkIn.student?.name || '-')}</div>
+                <div class="text-xs text-gray-500">${escapeHtml(checkIn.student?.npm || '-')} &middot; ${escapeHtml(checkIn.place?.name || '-')}</div>
+                <div class="text-xs text-gray-500">${escapeHtml(checkIn.period || '-')}</div>
+            </td>
+            <td class="silat-table-cell">
+                <span class="inline-flex rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">${escapeHtml(checkIn.type || '-')}</span>
+                <div class="mt-1 text-xs text-gray-500">${formatDate(checkIn.checked_at)}</div>
+            </td>
+            <td class="silat-table-cell text-gray-700">${distance}</td>
+        `;
+        row.addEventListener('click', () => onSelect(checkIn.id, { scroll: false }));
+        tableBody.append(row);
+    });
+}
+
+function highlightPlaceRow(tableBody, placeId) {
+    if (!tableBody) {
+        return;
+    }
+
+    tableBody.querySelectorAll('[data-place-id]').forEach((row) => {
+        row.classList.toggle('bg-indigo-50', String(row.dataset.placeId) === String(placeId));
+        row.classList.toggle('ring-1', String(row.dataset.placeId) === String(placeId));
+        row.classList.toggle('ring-inset', String(row.dataset.placeId) === String(placeId));
+        row.classList.toggle('ring-indigo-200', String(row.dataset.placeId) === String(placeId));
+    });
+}
+
+function scrollPlaceRowIntoView(tableBody, placeId) {
+    const row = tableBody?.querySelector(`[data-place-id="${CSS.escape(String(placeId))}"]`);
+    row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function highlightMonitoringRow(tableBody, checkInId) {
+    if (!tableBody) {
+        return;
+    }
+
+    tableBody.querySelectorAll('[data-check-in-id]').forEach((row) => {
+        row.classList.toggle('bg-blue-50', String(row.dataset.checkInId) === String(checkInId));
+        row.classList.toggle('ring-1', String(row.dataset.checkInId) === String(checkInId));
+        row.classList.toggle('ring-inset', String(row.dataset.checkInId) === String(checkInId));
+        row.classList.toggle('ring-blue-200', String(row.dataset.checkInId) === String(checkInId));
+    });
+}
+
+function scrollMonitoringRowIntoView(tableBody, checkInId) {
+    const row = tableBody?.querySelector(`[data-check-in-id="${CSS.escape(String(checkInId))}"]`);
+    row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function placeIcon(visited) {

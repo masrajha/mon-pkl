@@ -7,39 +7,52 @@
 
     <div class="py-10">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white shadow-sm sm:rounded-lg">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <div class="silat-card overflow-hidden">
+                <x-table-controls title="Daftar Konfigurasi Periode" description="Cari periode, program, atau tahun akademik." search-placeholder="Cari konfigurasi...">
+                    <x-slot name="filters">
+                        <div>
+                            <x-input-label for="filter_status" value="Status Periode" />
+                            <select id="filter_status" name="status" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                                <option value="">Semua status</option>
+                                <option value="active" @selected($selectedStatus === 'active')>Aktif</option>
+                                <option value="inactive" @selected($selectedStatus === 'inactive')>Tidak aktif</option>
+                            </select>
+                        </div>
+                    </x-slot>
+                </x-table-controls>
+                <div class="silat-table-wrap">
+                    <table class="silat-table">
+                        <thead class="silat-table-head">
                             <tr>
-                                <th class="px-6 py-3">{{ __('Periode') }}</th>
-                                <th class="px-6 py-3">{{ __('Tahun Akademik') }}</th>
-                                <th class="px-6 py-3">{{ __('Status') }}</th>
-                                <th class="px-6 py-3">{{ __('Konfigurasi') }}</th>
-                                <th class="px-6 py-3"></th>
+                                <th class="silat-table-cell"><x-sortable-heading column="name" :label="__('Periode')" /></th>
+                                <th class="silat-table-cell"><x-sortable-heading column="academic_year" :label="__('Tahun Akademik')" /></th>
+                                <th class="silat-table-cell"><x-sortable-heading column="is_active" :label="__('Status')" /></th>
+                                <th class="silat-table-cell">{{ __('Konfigurasi') }}</th>
+                                <th class="silat-table-cell text-right">{{ __('Aksi') }}</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody>
                             @forelse ($periods as $period)
                                 <tr>
-                                    <td class="px-6 py-4 font-medium text-gray-900">{{ $period->name }}</td>
-                                    <td class="px-6 py-4 text-gray-600">{{ $period->academic_year }} / {{ $period->semester }}</td>
-                                    <td class="px-6 py-4 text-gray-600">{{ $period->is_active ? __('Aktif') : __('Tidak aktif') }}</td>
-                                    <td class="px-6 py-4 text-gray-600">{{ $period->setting ? __('Sudah ada') : __('Memakai default') }}</td>
-                                    <td class="px-6 py-4 text-right">
-                                        <a class="font-medium text-indigo-600 hover:text-indigo-800" href="{{ route('system-configurations.edit', $period) }}">
-                                            {{ __('Atur') }}
+                                    <td class="silat-table-cell font-medium text-gray-900">{{ $period->display_name }}</td>
+                                    <td class="silat-table-cell text-gray-600">{{ $period->academic_year }} / {{ $period->semester }}</td>
+                                    <td class="silat-table-cell"><x-badge :variant="$period->is_active ? 'success' : 'neutral'">{{ $period->is_active ? __('Aktif') : __('Tidak aktif') }}</x-badge></td>
+                                    <td class="silat-table-cell"><x-badge :variant="$period->setting ? 'info' : 'neutral'">{{ $period->setting ? __('Sudah ada') : __('Memakai default') }}</x-badge></td>
+                                    <td class="silat-table-cell text-right">
+                                        <a class="silat-secondary-link justify-end" href="{{ route('system-configurations.edit', $period) }}">
+                                            <x-icon name="fa-sliders" class="mr-1" /> {{ __('Atur') }}
                                         </a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">{{ __('Belum ada periode PKL.') }}</td>
+                                    <td colspan="5" class="silat-table-cell"><x-empty-state :title="__('Belum ada periode program')" icon="fa-calendar-days" /></td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+                <x-table-pagination :paginator="$periods" />
             </div>
         </div>
     </div>

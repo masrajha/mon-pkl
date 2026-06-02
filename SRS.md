@@ -1,6 +1,8 @@
 # **Dokumen Spesifikasi Kebutuhan Perangkat Lunak (SRS) - Revisi 2.0**
 
-## **Sistem Monitoring PKL (MonPKL) – Universitas Lampung**
+> Nama sistem hasil rebranding: **SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik)**.
+
+## **SiLAT - Universitas Lampung**
 
 > Berdasarkan dokumen:
 > - `MIGRASI_FIREBASE_GOOGLEMAP.md` (arsitektur target)
@@ -11,11 +13,13 @@
 ## 1. Pendahuluan
 
 ### 1.1 Tujuan
-Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk pengembangan **MonPKL**, sistem informasi manajemen Praktik Kerja Lapangan (PKL) Fakultas MIPA Universitas Lampung. Sistem menggantikan arsitektur Firebase/Google Maps dengan backend Laravel, database PostgreSQL/PostGIS, dan peta Leaflet.
+Catatan rebranding: nama aplikasi target adalah **SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik)**. Istilah PKL/Kerja Praktik tetap muncul pada bagian aturan karena rule operasional saat ini masih mengikuti Kerja Praktik.
+
+Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk pengembangan **SiLAT**, sistem informasi manajemen aktivitas MBKM dan Kerja Praktik Fakultas MIPA Universitas Lampung. Sistem menggantikan arsitektur Firebase/Google Maps dengan backend Laravel, database PostgreSQL/PostGIS, dan peta Leaflet.
 
 ### 1.2 Ruang Lingkup
 - Autentikasi (Google SSO domain unila.ac.id, email/password)
-- Manajemen master data: prodi, mahasiswa, dosen, tempat PKL, periode
+- Manajemen master data: program kegiatan, prodi, mahasiswa, dosen, tempat PKL/mitra, periode
 - Konfigurasi operasional per periode (jam kerja, deadline, kuota, sanksi)
 - Pendaftaran PKL mahasiswa, usulan tempat baru, validasi admin
 - **Check‑in ganda (masuk & pulang)** dengan perhitungan durasi harian
@@ -31,6 +35,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | Istilah | Definisi |
 |---------|-----------|
 | PKL | Praktik Kerja Lapangan, mata kuliah wajib (3 SKS). |
+| Program Kegiatan | Master nama program pelaksanaan seperti Kerja Praktik, Magang, Riset, Studi Independen, atau program MBKM lain. |
 | Periode PKL | Rentang waktu pelaksanaan PKL dengan jadwal deadline dan aturan sendiri. |
 | Enrollment | Penempatan resmi mahasiswa pada suatu periode PKL. |
 | Check‑in Masuk | Presensi pagi (status *Masuk* atau *Datang Terlambat*). |
@@ -53,6 +58,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | MF-01 | CRUD Program Studi (kode, nama, fakultas, is_active). |
 | MF-02 | CRUD Mahasiswa (NPM, nama, email, no HP, prodi, user_id). |
 | MF-03 | CRUD Dosen (nama, email, NIP, NIDN, prodi, status aktif, user_id). |
+| MF-03A | CRUD Program Kegiatan (kode, nama, deskripsi, rule_key, is_active). Contoh program: Kerja Praktik, Magang, Riset, Studi Independen. |
 | MF-04 | CRUD Periode PKL (nama, tahun akademik, semester, batch, starts_at, ends_at, is_active, is_locked). |
 | MF-05 | CRUD Master Tempat PKL (nama, alamat, kota, provinsi, koordinat, kontak umum, is_active). |
 | MF-06 | Bulk action pada Master Tempat PKL: hapus (jika tidak ada enrollment), merge ke tujuan. |
@@ -67,13 +73,14 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | KS-01 | Setiap Periode PKL memiliki **konfigurasi operasional** (`internship_period_settings`), mencakup: <br> - **Jam kerja & status**: rentang waktu untuk *Masuk*, *Datang Terlambat*, *Pulang Cepat*, *Pulang* **[KONFIG]** <br> - **Durasi minimal harian** (default 6 jam) dan satuan sanksi per jam kurang **[KONFIG]** <br> - **Batas maksimum jarak** (meter) untuk validasi check‑in (opsional) **[KONFIG]** <br> - **Radius bumi** untuk Haversine (default 6371 km) **[KONFIG]** <br> - **Daftar hari libur** (dapat dikelola per periode atau nasional) **[KONFIG]** <br> - **Aturan laporan**: apakah hari Sabtu/Minggu dihitung? **[KONFIG]** <br> - **Parameter peta**: center, zoom, tile URL **[KONFIG]** <br> - **Batas upload foto**: ukuran (MB), dimensi (px) **[KONFIG]**,  <br> - Atur kuota minimal & maksimal mahasiswa per tempat PKL **[KONFIG]**|
 | KS-02 | **Deadline per periode** dikelola dalam tabel `period_deadlines` dengan jenis: <br> - Pendaftaran dibuka/ditutup <br> - Batas Proposal Rencana Kerja <br> - Batas Bab I, II, III, IV, V <br> - Batas Laporan Lengkap <br> - Batas Seminar <br> - Batas penyerahan hardcover <br> Setiap deadline dapat memiliki bobot sanksi poin **[KONFIG]** |
 | KS-03 | Hanya admin yang dapat mengubah konfigurasi periode. Periode terkunci (`is_locked=true`) tidak dapat diubah kecuali oleh admin super. |
+| KS-04 | Setiap program kegiatan memiliki `rule_key`. Pada implementasi awal, semua program selain Kerja Praktik boleh memakai `rule_key='kerja_praktik'` agar workflow saat ini tetap berjalan. Desain konfigurasi harus memungkinkan rule per program didefinisikan ulang di masa datang tanpa mengubah data historis. |
 
 ### 2.3 Workflow Mahasiswa (Pendaftaran & Pelaksanaan)
 
 | ID | Kebutuhan |
 |----|-----------|
 | WM-01 | Mahasiswa melengkapi **Profil Saya** (NPM, nama, email, no HP, prodi). Wajib diisi sebelum pendaftaran PKL. |
-| WM-02 | **Pendaftaran PKL**: pilih periode aktif, pilih tempat PKL (atau usulkan baru), isi kontak mahasiswa, isi pembimbing lapangan (opsional). Sistem memeriksa kelayakan: <br> - Telah mengambil mata kuliah KP/PKL di KRS semester ini (data input admin) <br> - Total SKS ≥ 100 (tidak termasuk KP) <br> - Semester ≥ 6 (S1) atau ≥ 4 (D3) <br> - IPK ≥ 2,00 <br> Jika tidak memenuhi, pendaftaran ditolak dengan pesan. |
+| WM-02 | **Pendaftaran PKL/Program**: pilih program kegiatan, periode aktif, tempat PKL/mitra (atau usulkan baru), isi kontak mahasiswa, isi pembimbing lapangan (opsional). Sistem memeriksa kelayakan berdasarkan rule program. Pada implementasi awal, rule yang dipakai adalah rule Kerja Praktik: <br> - Telah mengambil mata kuliah KP/PKL di KRS semester ini (data input admin) <br> - Total SKS ≥ 100 (tidak termasuk KP) <br> - Semester ≥ 6 (S1) atau ≥ 4 (D3) <br> - IPK ≥ 2,00 <br> Jika tidak memenuhi, pendaftaran ditolak dengan pesan. |
 | WM-03 | **Usulan Tempat PKL Baru** (nama instansi, alamat, kota, koordinat, kontak pembimbing lapangan). Disimpan ke `internship_place_proposals` status `pending`. |
 | WM-04 | Admin/Koordinator **memvalidasi pendaftaran**: memilih dosen pembimbing (dari master dosen), mengisi/mengoreksi pembimbing lapangan, mengubah status enrollment (`pending_verification` → `active`/`revision_required`/`rejected`), memberi catatan. |
 | WM-05 | Status enrollment: `draft`, `pending_verification`, `revision_required`, `active`, `completed`, `cancelled`, `rejected`. |
@@ -118,8 +125,8 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 
 | ID | Kebutuhan |
 |----|-----------|
-| CH-01 | Mahasiswa dapat mengisi **log harian** (tanggal, uraian kegiatan) selama periode PKL berlangsung. |
-| CH-02 | Sistem menyediakan **cetak form bimbingan harian** (tabel 50 baris) yang dapat ditandatangani pembimbing lapangan secara offline. |
+| CH-01 | Catatan harian disusun dari pasangan presensi harian: catatan presensi masuk menjadi **Rencana Aktivitas**, sedangkan catatan presensi pulang menjadi **Realisasi**. |
+| CH-02 | Sistem menyediakan **cetak form bimbingan harian** berisi tanggal, jam masuk/pulang, durasi, jarak, rencana, realisasi, dan kolom paraf pembimbing lapangan. |
 | CH-03 | (Opsional) Jika diimplementasikan role **Pembimbing Lapangan** , ia dapat memverifikasi log harian secara online. Pada fase awal, fitur cetak PDF sudah cukup. |
 
 ### 2.8 Peta (Leaflet) – Sama dengan SRS awal
@@ -175,6 +182,21 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 ### 4.1 Tabel Baru / Kolom Tambahan
 
 ```sql
+-- Tabel master program kegiatan
+CREATE TABLE programs (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    rule_key VARCHAR(50) NOT NULL DEFAULT 'kerja_praktik',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- Tambahan kolom pada internship_periods
+ALTER TABLE internship_periods ADD COLUMN program_id INTEGER NULL REFERENCES programs(id);
+
 -- Tambahan kolom pada internship_enrollments
 ALTER TABLE internship_enrollments ADD COLUMN final_report_path TEXT NULL;
 ALTER TABLE internship_enrollments ADD COLUMN total_sanctions_points INTEGER DEFAULT 0;
@@ -229,17 +251,6 @@ CREATE TABLE assessments (
     letter_grade VARCHAR(2),
     approved_by INTEGER REFERENCES users(id),
     approved_at TIMESTAMP,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
-
--- Tabel untuk catatan harian
-CREATE TABLE daily_logs (
-    id SERIAL PRIMARY KEY,
-    internship_enrollment_id INTEGER NOT NULL REFERENCES internship_enrollments(id) ON DELETE CASCADE,
-    log_date DATE NOT NULL,
-    activity TEXT NOT NULL,
-    field_supervisor_signature BOOLEAN DEFAULT false, -- jika verifikasi online
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
@@ -299,12 +310,30 @@ CREATE TABLE internship_period_settings (
 );
 ```
 
-### 4.2 Perubahan pada tabel `internship_enrollments`
+### 4.2 Tabel `programs`
+
+Tabel `programs` menjadi master nama program kegiatan. Data awal minimal:
+
+| Kode | Nama Program | Rule Default |
+|------|--------------|--------------|
+| KP | Kerja Praktik | `kerja_praktik` |
+| MAGANG | Magang | `kerja_praktik` |
+| RISET | Riset | `kerja_praktik` |
+
+Kolom `rule_key` disiapkan agar setiap program dapat memakai rule berbeda di masa datang. Untuk fase implementasi saat ini, program selain Kerja Praktik dapat memakai rule Kerja Praktik sebagai fallback sementara.
+
+### 4.3 Perubahan pada tabel `internship_periods`
+
+- Tambahkan `program_id INTEGER REFERENCES programs(id)`
+- Setiap periode wajib terhubung ke satu program kegiatan setelah migrasi data selesai.
+- Periode lama dapat dimigrasikan ke program default `Kerja Praktik`.
+
+### 4.4 Perubahan pada tabel `internship_enrollments`
 
 - Tambahkan `final_report_path TEXT`
 - Tambahkan `total_sanctions_points INTEGER DEFAULT 0`
 
-### 4.3 Perubahan pada tabel `check_ins`
+### 4.5 Perubahan pada tabel `check_ins`
 
 - Tambahkan `pair_id INTEGER NULL` (referensi ke check‑in pasangan, atau gunakan logika query grouping per tanggal)
 
@@ -316,6 +345,7 @@ Semua nilai yang bersifat **aturan operasional** dan dapat berbeda antar periode
 
 | Kelompok | Parameter | Lokasi | Default |
 |----------|-----------|--------|---------|
+| **Program kegiatan** | Nama program, kode, status aktif, rule aktif | Tabel `programs` | Kerja Praktik dengan `rule_key=kerja_praktik` |
 | **Jam kerja** | Rentang waktu untuk Masuk, Datang Terlambat, Pulang Cepat, Pulang | `period_settings.checkin_time_ranges` | 07:00-07:59, 08:00-11:59, 12:00-15:59, 16:00-18:59 |
 | **Durasi** | Minimal durasi harian (menit) | `period_settings.min_daily_duration_minutes` | 360 |
 | **Jarak** | Maksimum jarak valid (meter) | `period_settings.max_distance_meters` | 5000 |
@@ -328,7 +358,9 @@ Semua nilai yang bersifat **aturan operasional** dan dapat berbeda antar periode
 | **Kuota tempat PKL** | Minimal & maksimal mahasiswa per tempat | Global config (atau per periode) | min=2, max=3 |
 | **Deadline** | Tanggal dan poin sanksi per jenis | Tabel `period_deadlines` | Ditentukan admin per periode |
 
-> **Cara akses konfigurasi**: Semua parameter dapat diubah melalui halaman admin **Konfigurasi Sistem** (per periode). Nilai global default disimpan di `config/monpkl.php` dan diwariskan saat periode baru dibuat.
+> **Cara akses konfigurasi**: Semua parameter dapat diubah melalui halaman admin **Konfigurasi Sistem** (per periode). Master program kegiatan dikelola melalui menu admin tersendiri. Nilai global default disimpan di `config/monpkl.php` dan diwariskan saat periode baru dibuat.
+
+> **Catatan rule program**: Rule operasional saat ini mengikuti Kerja Praktik. Program seperti Magang, Riset, atau program MBKM lain dapat memakai rule tersebut sementara, tetapi struktur `programs.rule_key` harus dipertahankan agar rule berbeda dapat didefinisikan ulang tanpa migrasi besar di masa datang.
 
 ---
 
@@ -360,7 +392,7 @@ Contoh `period_deadlines` untuk Periode II 2025:
 
 ## 8. Identifikasi Fitur yang Sudah Diimplementasikan
 
-Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend Laravel saat ini. Status ini bersifat implementasi awal dan dapat diperluas pada iterasi berikutnya.
+Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend Laravel saat ini. Status ini bersifat implementasi awal dan dapat diperluas pada iterasi berikutnya. Identifikasi state terakhir dilakukan berdasarkan kode aplikasi saat ini di workspace.
 
 ### 8.1 Backend, Autentikasi, dan Infrastruktur
 
@@ -380,45 +412,68 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | MF-01 | Sudah diimplementasikan | CRUD Prodi tersedia di menu Manajemen. |
 | MF-02 | Sudah diimplementasikan sebagian | CRUD Mahasiswa tersedia; profil mahasiswa juga dapat dilengkapi oleh mahasiswa sendiri. |
 | MF-03 | Sudah diimplementasikan | Tabel dan CRUD Dosen tersedia, termasuk NIP, NIDN, prodi, status, dan relasi user. |
-| MF-04 | Sudah diimplementasikan | CRUD Periode PKL tersedia. |
-| MF-05 | Sudah diimplementasikan sebagian | Master Tempat PKL tersedia dengan input/edit lokasi Leaflet. Field `is_active` khusus belum dipisahkan. |
+| MF-03A | Sudah diimplementasikan | Master Program Kegiatan tersedia dengan `code`, `name`, `description`, `rule_key`, dan `is_active`. Seed awal mencakup Kerja Praktik, Magang, dan Riset dengan fallback rule `kerja_praktik`. |
+| MF-04 | Sudah diimplementasikan | CRUD Periode PKL tersedia dan periode terhubung ke Program Kegiatan. |
+| MF-05 | Sudah diimplementasikan | Master Tempat PKL tersedia dengan input/edit lokasi Leaflet. Field `is_active` sudah tersedia dan tempat aktif dipakai pada pendaftaran serta permohonan pindah tempat. |
 | MF-06 | Sudah diimplementasikan | Bulk hapus dan merge Master Tempat PKL tersedia. |
 | MF-07 | Sudah diimplementasikan | CRUD User tersedia untuk role `admin`, `dosen`, `mahasiswa`. |
 | MF-08 | Sudah diimplementasikan | Penugasan Koordinator PKL per periode/prodi tersedia dan dibatasi satu koordinator per periode-prodi. |
+| MF-09 | Sudah diimplementasikan sebagian | Kuota minimal dan maksimal tersedia di konfigurasi periode. Kuota maksimal sudah divalidasi pada pendaftaran mahasiswa dan input peserta admin; kuota minimal ditampilkan sebagai indikator peringatan pada validasi pendaftaran. |
 
 ### 8.3 Konfigurasi Periode
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui `internship_period_settings`, mencakup jam check-in, peta, upload foto, hari libur laporan, dan aturan laporan dasar. |
-| KS-03 | Sudah diimplementasikan sebagian | Konfigurasi hanya dapat diakses admin. Perlakuan periode terkunci masih perlu diperketat. |
+| KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui `internship_period_settings`, mencakup jam check-in, peta, upload foto, hari libur laporan, aturan laporan dasar, kuota, dan syarat akademik. |
+| KS-02 | Sudah diimplementasikan | Tabel/model `period_deadlines` dan UI konfigurasi deadline per periode sudah tersedia, termasuk tanggal, poin penalti, dan flag penalti tetap. Deadline dipakai untuk menghitung sanksi unggahan progres laporan. |
+| KS-03 | Sudah diimplementasikan | Konfigurasi hanya dapat diakses admin. Periode terkunci tidak dapat diubah melalui konfigurasi kecuali oleh super admin yang tercantum pada konfigurasi. |
+| KS-04 | Sudah diimplementasikan | Program terhubung ke periode dan memiliki `rule_key`. Implementasi saat ini memakai rule `kerja_praktik` sebagai fallback terstruktur, sehingga rule program lain dapat ditambahkan tanpa mengubah data historis. |
 
 ### 8.4 Workflow Mahasiswa
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
 | WM-01 | Sudah diimplementasikan | Mahasiswa dapat melengkapi profil: NPM, nama, email student, no HP, prodi. |
-| WM-02 | Sudah diimplementasikan sebagian | Mahasiswa dapat mendaftar PKL. Validasi akademik seperti KRS, SKS, semester, dan IPK belum tersedia. |
+| WM-02 | Sudah diimplementasikan | Mahasiswa dapat mendaftar program dengan memilih Program Kegiatan, Periode Program, mitra aktif, kontak, pembimbing lapangan, dan syarat akademik. Validasi kelayakan membaca `programs.rule_key`; rule awal yang aktif adalah `kerja_praktik`. |
 | WM-03 | Sudah diimplementasikan | Mahasiswa dapat mengajukan tempat PKL baru melalui `internship_place_proposals`. |
-| WM-04 | Sudah diimplementasikan sebagian | Admin dapat mengelola status enrollment melalui Peserta Periode dan memvalidasi usulan tempat. Halaman validasi pendaftaran khusus belum dibuat. |
-| WM-05 | Sudah diimplementasikan sebagian | Status enrollment sudah mendukung beberapa status workflow. Catatan revisi khusus belum tersedia. |
+| WM-04 | Sudah diimplementasikan | Admin/koordinator memiliki halaman Validasi Pendaftaran khusus untuk menyetujui, meminta revisi, atau menolak pendaftaran, termasuk menetapkan dosen pembimbing, pembimbing lapangan, dan catatan verifikasi. Mahasiswa dapat memperbaiki pendaftaran saat status `revision_required`. |
+| WM-05 | Sudah diimplementasikan | Status enrollment sudah mendukung `draft`, `pending_verification`, `revision_required`, `active`, `inactive`, `completed`, `cancelled`, dan `rejected`, termasuk catatan admin. |
+| WM-06 | Sudah diimplementasikan | Mahasiswa dapat mengajukan pindah tempat PKL, admin dapat menyetujui/menolak, dan tempat enrollment diperbarui saat disetujui. |
 | WM-07 | Sudah diimplementasikan | Check-in hanya memakai enrollment `active`. |
-| WM-08 | Sudah diimplementasikan sebagian | Mahasiswa memiliki halaman Laporan Saya berisi presensi dan data pembimbing. Progres bimbingan, sanksi, dan nilai belum ada. |
+| WM-08 | Sudah diimplementasikan sebagian | Mahasiswa memiliki halaman Laporan Saya berisi presensi, data pembimbing, unggahan progres laporan, catatan harian, ringkasan progres bimbingan, total sanksi, dan status nilai. Modul penilaian numerik penuh masih berada pada backlog PN-01 s.d. PN-04. |
 | WM-09 | Sudah diimplementasikan sebagian | Cetak laporan mahasiswa memvalidasi dosen pembimbing dan pembimbing lapangan. Output PDF resmi belum dibuat. |
 
 ### 8.5 Check-In, Peta, dan Laporan
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
+| CI-01 | Sudah diimplementasikan | Check-in memakai aksi eksplisit `check_in` dan `check_out`, lalu dipasangkan melalui `pair_id` pada hari/enrollment yang sama. |
 | CI-02 | Sudah diimplementasikan sebagian | Server menentukan status berdasarkan jam konfigurasi dan menyimpan lokasi, catatan, foto opsional. |
+| CI-03 | Sudah diimplementasikan | Saat check-out, sistem menghitung durasi harian, menyimpan `duration_minutes`, menghitung poin sanksi jika durasi kurang, dan menambahkan poin ke total sanksi enrollment. |
+| CI-04 | Sudah diimplementasikan | Laporan monitoring dan ringkasan dashboard hanya menghitung hari hadir jika terdapat pasangan check-in masuk dan pulang. |
 | CI-05 | Sudah diimplementasikan | Device info, jarak Haversine, lokasi kantor, lokasi mahasiswa, dan foto disimpan. |
+| CI-06 | Sudah diimplementasikan sebagian | Radius maksimum check-in dapat dikonfigurasi dan route submit check-in dibatasi rate limit 10 request/menit. Validasi anti-spoofing lanjutan masih dapat diperkuat pada fase produksi. |
+| CI-07 | Sudah diimplementasikan | Sistem membatasi satu `check_in` dan satu `check_out` resmi per enrollment per hari. |
 | PM-01 | Sudah diimplementasikan | Peta Tempat PKL memakai Leaflet dan marker cluster. |
 | PM-02 | Sudah diimplementasikan sebagian | Peta Monitoring tersedia dengan filter periode/prodi dan scope role. |
 | PM-03 | Sudah diimplementasikan | Peta picker tersedia pada input/edit tempat PKL. |
 | PM-04 | Sudah diimplementasikan | Peta check-in menampilkan geolocation, marker instansi, dan polyline. |
 | LR-01 | Sudah diimplementasikan sebagian | Rekap Monitoring tersedia dengan filter tanggal, periode, prodi, hari libur, Sabtu, dan Minggu. Status laporan dan sanksi belum tersedia. |
 
-### 8.6 Migrasi Data Historis
+### 8.6 Progres Laporan, Catatan Harian, dan Sanksi
+
+| ID SRS | Status Implementasi | Catatan |
+|--------|---------------------|---------|
+| PG-01 | Sudah diimplementasikan | Mahasiswa dapat mengunggah dokumen progres laporan pada halaman Laporan Saya untuk jenis Proposal, Bab I-V, Laporan Lengkap, Seminar, dan Hardcopy. |
+| PG-02 | Sudah diimplementasikan | Unggahan terhubung ke `period_deadlines` berdasarkan periode enrollment dan mencatat waktu unggah. |
+| PG-03 | Sudah diimplementasikan | Sistem menghitung sanksi keterlambatan unggahan berdasarkan deadline, poin penalti, dan mode penalti tetap/per hari, lalu menambahkan poin ke total sanksi enrollment. |
+| PG-04 | Sudah diimplementasikan | Dosen pembimbing, koordinator sesuai scope, dan admin dapat memberi status `approved`, `revision`, atau `rejected` beserta catatan review. |
+| PG-05 | Sudah diimplementasikan sebagian | Halaman Review Laporan menampilkan rekap unggahan progres untuk admin, dosen pembimbing, dan koordinator sesuai scope periode/prodi. |
+| PG-06 | Sudah diimplementasikan sebagian | Unggahan `full_report` yang disetujui disimpan sebagai `final_report_path`. Perubahan otomatis status enrollment menjadi `completed` belum diaktifkan agar tetap menunggu modul penilaian akhir. |
+| CH-01 | Sudah diimplementasikan | Catatan harian diambil dari pasangan presensi: catatan masuk sebagai rencana aktivitas dan catatan pulang sebagai realisasi. Tidak ada input/tabel log harian terpisah. |
+| CH-02 | Sudah diimplementasikan | Sistem menyediakan cetak form catatan harian dari pasangan presensi dengan kolom tanggal, jam, jarak, rencana, realisasi, dan paraf pembimbing lapangan. |
+
+### 8.7 Migrasi Data Historis
 
 | Area | Status Implementasi | Catatan |
 |------|---------------------|---------|
@@ -436,38 +491,19 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| MF-05 | Tambahkan `is_active` eksplisit pada Master Tempat PKL dan filter hanya tempat aktif pada pendaftaran mahasiswa. | Menengah |
-| MF-09 | Implementasi kuota minimal dan maksimal mahasiswa per tempat PKL, idealnya per periode/prodi. | Tinggi |
-| KS-02 | Buat tabel dan UI `period_deadlines` untuk deadline pendaftaran, proposal, Bab I-V, laporan lengkap, seminar, dan hardcopy. | Tinggi |
-| KS-03 | Kunci perubahan konfigurasi jika periode `is_locked=true`, kecuali admin khusus. | Menengah |
-| WM-02 | Tambahkan data kelayakan akademik: KRS KP/PKL, total SKS, semester, dan IPK. | Tinggi |
-| WM-04 | Buat halaman validasi pendaftaran khusus untuk admin/koordinator, termasuk catatan revisi dan penolakan. | Tinggi |
-| WM-06 | Buat modul permohonan pindah tempat PKL. | Menengah |
-| WM-08 | Lengkapi Laporan Saya dengan progres bimbingan, sanksi, dan nilai. | Tinggi |
+| - | Seluruh item prioritas pada 9.1 sudah dipindahkan ke Bagian 8 sebagai fitur yang sudah/sudah sebagian diimplementasikan. Penyempurnaan lanjutan terkait penilaian numerik penuh tetap berada pada backlog 9.4. | - |
 
 ### 9.2 Check-In Ganda, Durasi, dan Anti-Spoofing
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| CI-01 | Ubah model check-in menjadi aksi eksplisit `check_in` dan `check_out`, lalu pasangkan per tanggal dan enrollment. | Tinggi |
-| CI-03 | Hitung durasi harian setelah check-out dan catat sanksi jika kurang dari durasi minimal. | Tinggi |
-| CI-04 | Hari dengan satu check-in saja tidak dihitung sebagai hari hadir. | Tinggi |
-| CI-06 | Terapkan radius maksimum, rate limit, dan validasi anti-spoofing tambahan. | Menengah |
-| CI-07 | Batasi satu pasang check-in/check-out resmi per hari. | Menengah |
+| - | Item utama CI-01, CI-03, CI-04, CI-06, dan CI-07 sudah dipindahkan ke Bagian 8 sebagai fitur yang sudah/sudah sebagian diimplementasikan. Penguatan anti-spoofing lanjutan tetap dapat ditambahkan pada fase produksi. | - |
 
 ### 9.3 Progres Laporan, Catatan Harian, dan Sanksi
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| PG-01 | Buat modul unggah dokumen progres laporan. | Tinggi |
-| PG-02 | Hubungkan unggahan dengan deadline periode. | Tinggi |
-| PG-03 | Hitung sanksi otomatis untuk keterlambatan unggahan. | Tinggi |
-| PG-04 | Buat review progres laporan oleh dosen pembimbing. | Tinggi |
-| PG-05 | Buat rekap progres untuk koordinator PKL. | Menengah |
-| PG-06 | Buat unggah laporan final dan approval dosen pembimbing. | Tinggi |
-| CH-01 | Buat catatan/log harian mahasiswa. | Menengah |
-| CH-02 | Buat cetak form bimbingan harian 50 baris. | Menengah |
-| CH-03 | Evaluasi kebutuhan role pembimbing lapangan online pada fase lanjut. | Rendah |
+| - | Item utama PG-01 s.d. PG-06 dan CH-01 s.d. CH-02 sudah dipindahkan ke Bagian 8 sebagai fitur yang sudah/sudah sebagian diimplementasikan. CH-03 tetap bersifat opsional untuk fase lanjut jika role pembimbing lapangan online dibutuhkan. | - |
 
 ### 9.4 Penilaian dan Nilai Akhir
 

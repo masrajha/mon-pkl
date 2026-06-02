@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\CheckIn;
+use App\Models\Program;
 use App\Models\StudyProgram;
 use App\Services\PeriodConfigurationService;
 use Carbon\Carbon;
@@ -21,13 +22,14 @@ class ReportController extends Controller
 
     public function monitoring(Request $request): View
     {
-        [$startDate, $endDate] = $this->dateRange($request);
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        [$startDate, $endDate] = $this->dateRange($request, $selectedPeriod);
 
         $query = InternshipEnrollment::query()
             ->with([
                 'student.user',
                 'studyProgram',
-                'internshipPeriod',
+                'internshipPeriod.program',
                 'internshipPlace',
                 'checkIns' => fn ($query) => $query
                     ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
@@ -47,9 +49,11 @@ class ReportController extends Controller
 
         return view('reports.monitoring', [
             'rows' => $rows,
-            'periods' => InternshipPeriod::query()->orderByDesc('is_active')->orderByDesc('id')->get(),
+            'periods' => $periods,
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
-            'selectedPeriod' => $request->integer('period_id') ?: null,
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
             'startDate' => $startDate->toDateString(),
             'endDate' => $endDate->toDateString(),
@@ -64,6 +68,57 @@ class ReportController extends Controller
         ]);
     }
 
+    private function periodOptions(Request $request): array
+    {
+        $user = $request->user();
+
+        if (! $user?->hasRole('mahasiswa')) {
+            $periods = InternshipPeriod::query()
+                ->with('program')
+                ->orderByDesc('is_active')
+                ->orderByDesc('id')
+                ->get();
+            $selectedPeriod = $request->integer('period_id')
+                ? $periods->firstWhere('id', $request->integer('period_id'))
+                : null;
+
+            return [$periods, $selectedPeriod];
+        }
+
+        $enrollments = InternshipEnrollment::query()
+            ->with('internshipPeriod.program')
+            ->whereHas('student', fn (Builder $query) => $query->where('user_id', $user->id))
+            ->get()
+            ->sortByDesc(fn (InternshipEnrollment $enrollment) => (
+                ($enrollment->status === 'active' ? 1_000_000 : 0)
+                + ($enrollment->internshipPeriod?->is_active ? 10_000 : 0)
+                + $enrollment->id
+            ));
+
+        $periods = $enrollments
+            ->pluck('internshipPeriod')
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        $requestedPeriod = $request->integer('period_id');
+        $selectedPeriod = $requestedPeriod
+            ? $periods->firstWhere('id', $requestedPeriod)
+            : null;
+
+        $selectedPeriod ??= $enrollments
+            ->firstWhere('status', 'active')
+            ?->internshipPeriod;
+
+        $selectedPeriod ??= $periods->first();
+
+        if ($selectedPeriod) {
+            $request->merge(['period_id' => $selectedPeriod->id]);
+        }
+
+        return [$periods, $selectedPeriod];
+    }
+
     private function summarizeEnrollment(InternshipEnrollment $enrollment, Request $request, Carbon $startDate, Carbon $endDate): ?array
     {
         $settings = $this->configurations->forPeriod($enrollment->internshipPeriod);
@@ -75,7 +130,8 @@ class ReportController extends Controller
         $daily = $enrollment->checkIns
             ->filter(fn ($checkIn) => isset($allowedDates[$checkIn->checked_at->toDateString()]))
             ->groupBy(fn ($checkIn) => $checkIn->checked_at->toDateString())
-            ->map(fn ($items) => $this->summarizeDay($items->values(), $settings));
+            ->map(fn ($items) => $this->summarizeDay($items->values(), $settings))
+            ->filter();
 
         if ($daily->isEmpty()) {
             return null;
@@ -90,7 +146,7 @@ class ReportController extends Controller
             'npm' => $enrollment->student?->npm,
             'email' => $enrollment->student?->user?->email,
             'study_program' => $enrollment->studyProgram?->name,
-            'period' => $enrollment->internshipPeriod?->name,
+            'period' => $enrollment->internshipPeriod?->display_name,
             'place' => $enrollment->internshipPlace?->name,
             'attendance_days' => $daily->count(),
             'check_ins_count' => $checkIns->count(),
@@ -105,25 +161,20 @@ class ReportController extends Controller
 
     private function summarizeDay($checkIns, array $settings): array
     {
-        $first = $checkIns->first();
-        $last = $checkIns->last();
+        $checkInRow = $checkIns->firstWhere('action', 'check_in');
+        $checkOutRow = $checkIns->firstWhere('action', 'check_out');
 
-        if ($checkIns->count() === 1) {
-            $cutoff = Carbon::createFromFormat('H:i', $settings['report']['single_check_in_cutoff']);
-            $hourMinute = (int) $first->checked_at->format('Hi');
-            $cutoffHourMinute = (int) $cutoff->format('Hi');
-
-            if ($hourMinute < $cutoffHourMinute) {
-                $checkIn = $first->checked_at;
-                $checkOut = $first->checked_at->copy()->setTime((int) $settings['report']['single_morning_checkout_hour'], (int) $first->checked_at->format('i'));
+        if (! $checkInRow || ! $checkOutRow) {
+            if ($checkIns->whereNull('action')->count() >= 2) {
+                $checkInRow = $checkIns->first();
+                $checkOutRow = $checkIns->last();
             } else {
-                $checkIn = $first->checked_at->copy()->setTime((int) $settings['report']['single_afternoon_checkin_hour'], (int) $first->checked_at->format('i'));
-                $checkOut = $first->checked_at;
+                return [];
             }
-        } else {
-            $checkIn = $first->checked_at;
-            $checkOut = $last->checked_at;
         }
+
+        $checkIn = $checkInRow->checked_at;
+        $checkOut = $checkOutRow->checked_at;
 
         return [
             'check_in_seconds' => $this->secondsOfDay($checkIn),
@@ -139,6 +190,10 @@ class ReportController extends Controller
 
         if ($request->filled('period_id')) {
             $query->where('internship_period_id', $request->integer('period_id'));
+        }
+
+        if ($request->filled('program_id')) {
+            $query->whereHas('internshipPeriod', fn (Builder $period) => $period->where('program_id', $request->integer('program_id')));
         }
 
         if ($request->filled('study_program_id')) {
@@ -177,17 +232,25 @@ class ReportController extends Controller
         return $query->whereHas('student', fn (Builder $query) => $query->where('user_id', $user?->id));
     }
 
-    private function dateRange(Request $request): array
+    private function dateRange(Request $request, ?InternshipPeriod $selectedPeriod = null): array
     {
         $start = $request->date('start_date');
         $end = $request->date('end_date');
 
         if (! $start || ! $end) {
-            $firstCheckIn = CheckIn::query()->min('checked_at');
-            $lastCheckIn = CheckIn::query()->max('checked_at');
+            $checkIns = CheckIn::query();
 
-            $start ??= $firstCheckIn ? Carbon::parse($firstCheckIn) : now()->startOfYear();
-            $end ??= $lastCheckIn ? Carbon::parse($lastCheckIn) : now();
+            if ($selectedPeriod) {
+                $checkIns->whereHas('enrollment', fn (Builder $query) => $query->where('internship_period_id', $selectedPeriod->id));
+            }
+
+            $firstCheckIn = (clone $checkIns)->min('checked_at');
+            $lastCheckIn = (clone $checkIns)->max('checked_at');
+
+            $start ??= $selectedPeriod?->starts_at?->copy()
+                ?? ($firstCheckIn ? Carbon::parse($firstCheckIn) : now()->startOfYear());
+            $end ??= $selectedPeriod?->ends_at?->copy()
+                ?? ($lastCheckIn ? Carbon::parse($lastCheckIn) : now());
         }
 
         return [$start->startOfDay(), $end->startOfDay()];

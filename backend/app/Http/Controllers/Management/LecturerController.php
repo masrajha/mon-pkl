@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\Lecturer;
 use App\Models\StudyProgram;
 use App\Models\User;
@@ -13,13 +14,35 @@ use Illuminate\View\View;
 
 class LecturerController extends Controller
 {
-    public function index(): View
+    use InteractsWithTableControls;
+
+    public function index(Request $request): View
     {
+        $query = Lecturer::query()->with(['user', 'studyProgram']);
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->where('name', 'like', '%'.$search.'%')
+                ->orWhere('email', 'like', '%'.$search.'%')
+                ->orWhere('nip', 'like', '%'.$search.'%')
+                ->orWhere('nidn', 'like', '%'.$search.'%'));
+        }
+
+        if ($request->filled('study_program_id')) {
+            $query->where('study_program_id', $request->integer('study_program_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
         return view('management.lecturers.index', $this->formData() + [
-            'lecturers' => Lecturer::query()
-                ->with(['user', 'studyProgram'])
-                ->orderBy('name')
-                ->paginate(20),
+            'lecturers' => $this->applyTableSort($query, $request, ['name', 'nip', 'nidn', 'status'], 'name')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedStatus' => $request->string('status')->toString(),
         ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\StudyProgram;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,10 +12,29 @@ use Illuminate\View\View;
 
 class StudyProgramController extends Controller
 {
-    public function index(): View
+    use InteractsWithTableControls;
+
+    public function index(Request $request): View
     {
+        $query = StudyProgram::query();
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->where('code', 'like', '%'.$search.'%')
+                ->orWhere('name', 'like', '%'.$search.'%')
+                ->orWhere('faculty', 'like', '%'.$search.'%'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->string('status')->toString() === 'active');
+        }
+
         return view('management.study-programs.index', [
-            'studyPrograms' => StudyProgram::query()->orderBy('name')->paginate(20),
+            'studyPrograms' => $this->applyTableSort($query, $request, ['code', 'name', 'faculty', 'is_active'], 'name')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
+            'selectedStatus' => $request->string('status')->toString(),
         ]);
     }
 

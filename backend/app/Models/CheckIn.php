@@ -14,13 +14,17 @@ class CheckIn extends Model
         'legacy_firebase_key',
         'legacy_source_file',
         'type',
+        'action',
         'note',
         'checked_at',
+        'pair_id',
         'student_latitude',
         'student_longitude',
         'office_latitude',
         'office_longitude',
         'distance_meters',
+        'duration_minutes',
+        'sanction_points',
         'device_info',
         'source_url',
         'photo_path',
@@ -43,5 +47,15 @@ class CheckIn extends Model
     public function enrollment()
     {
         return $this->belongsTo(InternshipEnrollment::class, 'internship_enrollment_id');
+    }
+
+    public function pair()
+    {
+        return $this->belongsTo(CheckIn::class, 'pair_id');
+    }
+
+    public function pairedCheckOuts()
+    {
+        return $this->hasMany(CheckIn::class, 'pair_id');
     }
 }

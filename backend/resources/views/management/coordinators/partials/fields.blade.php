@@ -8,11 +8,11 @@
 
 <div class="grid gap-3 sm:grid-cols-2">
     <div>
-        <x-input-label for="internship_period_id" value="Periode PKL" />
+        <x-input-label for="internship_period_id" value="Periode Program" />
         <select id="internship_period_id" name="internship_period_id" class="block w-full rounded-md border-gray-300" required>
-            <option value="">Pilih periode</option>
+            <option value="">Pilih periode program</option>
             @foreach ($periods as $period)
-                <option value="{{ $period->id }}" @selected((string) old('internship_period_id', $coordinator?->internship_period_id) === (string) $period->id)>{{ $period->name }}</option>
+                <option value="{{ $period->id }}" @selected((string) old('internship_period_id', $coordinator?->internship_period_id) === (string) $period->id)>{{ $period->display_name }}</option>
             @endforeach
         </select>
     </div>

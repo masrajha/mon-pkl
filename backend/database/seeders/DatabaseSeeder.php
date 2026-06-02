@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\InternshipPeriod;
+use App\Models\Program;
 use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -17,6 +18,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $activityProgram = Program::firstOrCreate(
+            ['code' => 'KP'],
+            [
+                'name' => 'Kerja Praktik',
+                'description' => 'Program Kerja Praktik dengan rule operasional default.',
+                'rule_key' => 'kerja_praktik',
+                'is_active' => true,
+            ],
+        );
+
+        foreach ([
+            ['code' => 'MAGANG', 'name' => 'Magang'],
+            ['code' => 'RISET', 'name' => 'Riset'],
+        ] as $program) {
+            Program::firstOrCreate(
+                ['code' => $program['code']],
+                [
+                    'name' => $program['name'],
+                    'description' => 'Program MBKM. Sementara memakai rule Kerja Praktik.',
+                    'rule_key' => 'kerja_praktik',
+                    'is_active' => true,
+                ],
+            );
+        }
+
         StudyProgram::firstOrCreate(
             ['code' => 'ILKOM'],
             [
@@ -34,6 +60,7 @@ class DatabaseSeeder extends Seeder
                 'batch' => 'Jan 2022',
             ],
             [
+                'program_id' => $activityProgram->id,
                 'is_active' => true,
                 'is_locked' => false,
             ],

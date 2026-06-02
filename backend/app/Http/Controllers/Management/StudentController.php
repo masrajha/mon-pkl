@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
@@ -13,12 +14,32 @@ use Illuminate\View\View;
 
 class StudentController extends Controller
 {
-    public function index(): View
+    use InteractsWithTableControls;
+
+    public function index(Request $request): View
     {
+        $query = Student::query()->with(['user', 'studyProgram']);
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(function ($query) use ($search): void {
+                $query->where('npm', 'like', '%'.$search.'%')
+                    ->orWhere('full_name', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', fn ($query) => $query->where('email', 'like', '%'.$search.'%'));
+            });
+        }
+
+        if ($request->filled('study_program_id')) {
+            $query->where('study_program_id', $request->integer('study_program_id'));
+        }
+
         return view('management.students.index', [
-            'students' => Student::query()->with(['user', 'studyProgram'])->orderBy('full_name')->paginate(20),
+            'students' => $this->applyTableSort($query, $request, ['npm', 'full_name'], 'full_name')
+                ->paginate($this->tablePerPage($request))
+                ->withQueryString(),
             'users' => User::query()->where('role', 'mahasiswa')->orderBy('name')->get(),
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
         ]);
     }
 

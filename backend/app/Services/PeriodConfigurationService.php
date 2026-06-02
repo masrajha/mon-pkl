@@ -14,6 +14,7 @@ class PeriodConfigurationService
             'check_in' => config('monpkl.check_in'),
             'report' => config('monpkl.report'),
             'calendar' => config('monpkl.calendar'),
+            'enrollment' => config('monpkl.enrollment'),
             'distance' => config('monpkl.distance'),
             'map' => config('monpkl.map'),
         ];

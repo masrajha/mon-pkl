@@ -11,6 +11,7 @@ class InternshipPeriod extends Model
 
     protected $fillable = [
         'name',
+        'program_id',
         'academic_year',
         'semester',
         'batch',
@@ -35,8 +36,23 @@ class InternshipPeriod extends Model
         return $this->hasMany(InternshipEnrollment::class);
     }
 
+    public function program()
+    {
+        return $this->belongsTo(Program::class);
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return trim(($this->program?->name ? $this->program->name.' - ' : '').$this->name);
+    }
+
     public function setting()
     {
         return $this->hasOne(InternshipPeriodSetting::class);
+    }
+
+    public function deadlines()
+    {
+        return $this->hasMany(PeriodDeadline::class);
     }
 }

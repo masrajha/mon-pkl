@@ -21,16 +21,18 @@ class MapController extends Controller
 
     public function places(Request $request): View
     {
-        return view('maps.places', $this->filterData($request));
+        return view('maps.places', $this->filterData($request, false));
     }
 
     public function monitoring(Request $request): View
     {
-        return view('maps.monitoring', $this->filterData($request));
+        return view('maps.monitoring', $this->filterData($request, true));
     }
 
     public function placesData(Request $request): JsonResponse
     {
+        $request = $this->requestWithDefaultPlacesPeriod($request);
+
         $query = InternshipPlace::query()
             ->with('city')
             ->withCount(['enrollments' => fn (Builder $query) => $this->scopeEnrollments($query, $request)])
@@ -69,16 +71,18 @@ class MapController extends Controller
     {
         $settings = $this->configurations->forPeriod($request->integer('period_id') ?: null);
         $limit = min(max((int) $request->integer('limit', $settings['map']['monitoring_limit_default']), 1), (int) $settings['map']['monitoring_limit_max']);
+        [$startDate, $endDate] = $this->monitoringDateRange($request);
 
         $checkIns = CheckIn::query()
             ->with([
                 'enrollment.student',
                 'enrollment.studyProgram',
-                'enrollment.internshipPeriod',
+                'enrollment.internshipPeriod.program',
                 'enrollment.internshipPlace.city',
             ])
             ->whereNotNull('student_latitude')
             ->whereNotNull('student_longitude')
+            ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
             ->whereHas('enrollment', fn (Builder $query) => $this->scopeEnrollments($query, $request))
             ->latest('checked_at')
             ->limit($limit)
@@ -96,7 +100,7 @@ class MapController extends Controller
                     'name' => $checkIn->enrollment?->student?->full_name,
                 ],
                 'study_program' => $checkIn->enrollment?->studyProgram?->name,
-                'period' => $checkIn->enrollment?->internshipPeriod?->name,
+                'period' => $checkIn->enrollment?->internshipPeriod?->display_name,
                 'place' => [
                     'name' => $checkIn->enrollment?->internshipPlace?->name,
                     'city' => $checkIn->enrollment?->internshipPlace?->city?->name,
@@ -113,15 +117,81 @@ class MapController extends Controller
         ]);
     }
 
-    private function filterData(Request $request): array
+    private function filterData(Request $request, bool $forMonitoring): array
     {
+        $periods = $this->periodOptions($request);
+        $selectedPeriod = $this->selectedPeriod($request, $periods, $forMonitoring);
+        [$startDate, $endDate] = $this->monitoringDateRange($request, $selectedPeriod);
+
+        if (($forMonitoring || $this->shouldDefaultPlacesToActivePeriod($request)) && $selectedPeriod && ! $request->filled('period_id')) {
+            $request->merge(['period_id' => $selectedPeriod->id]);
+        }
+
         return [
-            'periods' => InternshipPeriod::query()->orderByDesc('is_active')->orderByDesc('id')->get(),
+            'periods' => $periods,
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
-            'selectedPeriod' => $request->integer('period_id') ?: null,
+            'selectedPeriod' => $selectedPeriod?->id,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
-            'mapConfig' => $this->configurations->frontendMapConfig($request->integer('period_id') ?: null),
+            'startDate' => $startDate->toDateString(),
+            'endDate' => $endDate->toDateString(),
+            'todayOnly' => $request->boolean('today_only'),
+            'mapConfig' => $this->configurations->frontendMapConfig($selectedPeriod ?: null),
         ];
+    }
+
+    private function periodOptions(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('mahasiswa')) {
+            return InternshipEnrollment::query()
+                ->with('internshipPeriod.program')
+                ->whereHas('student', fn (Builder $query) => $query->where('user_id', $user->id))
+                ->get()
+                ->pluck('internshipPeriod')
+                ->filter()
+                ->unique('id')
+                ->sortByDesc(fn (InternshipPeriod $period) => ($period->is_active ? 1_000_000 : 0) + $period->id)
+                ->values();
+        }
+
+        return InternshipPeriod::query()->with('program')->orderByDesc('is_active')->orderByDesc('id')->get();
+    }
+
+    private function selectedPeriod(Request $request, $periods, bool $forMonitoring): ?InternshipPeriod
+    {
+        if ($request->filled('period_id')) {
+            return $periods->firstWhere('id', $request->integer('period_id'));
+        }
+
+        if (! $forMonitoring) {
+            if ($this->shouldDefaultPlacesToActivePeriod($request)) {
+                return $periods->firstWhere('is_active', true) ?? $periods->first();
+            }
+
+            return null;
+        }
+
+        return $periods->firstWhere('is_active', true) ?? $periods->first();
+    }
+
+    private function monitoringDateRange(Request $request, ?InternshipPeriod $selectedPeriod = null): array
+    {
+        if ($request->boolean('today_only')) {
+            return [today(), today()];
+        }
+
+        $start = $request->date('start_date');
+        $end = $request->date('end_date');
+
+        $start ??= $selectedPeriod?->starts_at?->copy() ?? today();
+        $end ??= $selectedPeriod?->ends_at?->copy() ?? today();
+
+        if ($start->gt($end)) {
+            [$start, $end] = [$end, $start];
+        }
+
+        return [$start, $end];
     }
 
     private function scopeEnrollments(Builder $query, Request $request): Builder
@@ -140,7 +210,7 @@ class MapController extends Controller
             return $query;
         }
 
-        if ($user?->hasRole('dosen')) {
+        if ($user?->hasRole(['dosen', 'koordinator'])) {
             $coordinatorAssignments = $user->lecturer?->coordinatorAssignments()
                 ->where('status', 'active')
                 ->get(['internship_period_id', 'study_program_id']) ?? collect();
@@ -166,5 +236,29 @@ class MapController extends Controller
         }
 
         return $query->whereHas('student', fn (Builder $query) => $query->where('user_id', $user?->id));
+    }
+
+    private function requestWithDefaultPlacesPeriod(Request $request): Request
+    {
+        if ($request->filled('period_id') || ! $this->shouldDefaultPlacesToActivePeriod($request)) {
+            return $request;
+        }
+
+        $activePeriod = $this->periodOptions($request)->firstWhere('is_active', true);
+
+        if ($activePeriod) {
+            $request->merge(['period_id' => $activePeriod->id]);
+        }
+
+        return $request;
+    }
+
+    private function shouldDefaultPlacesToActivePeriod(Request $request): bool
+    {
+        $user = $request->user();
+
+        return (bool) $user
+            && ! $user->hasRole('admin')
+            && $user->hasRole(['mahasiswa', 'koordinator']);
     }
 }

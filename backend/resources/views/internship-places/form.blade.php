@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ $place->exists ? __('Edit Tempat PKL') : __('Input Tempat PKL') }}
+            {{ $place->exists ? __('Edit Mitra') : __('Input Mitra') }}
         </h2>
     </x-slot>
 
@@ -97,8 +97,13 @@
                             <span>{{ __('Sudah dikunjungi') }}</span>
                         </label>
 
+                        <label class="flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $place->is_active ?? true)) class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                            <span>{{ __('Aktif untuk pendaftaran mahasiswa') }}</span>
+                        </label>
+
                         <x-primary-button>
-                            {{ $place->exists ? __('Simpan Perubahan') : __('Simpan Tempat PKL') }}
+                            {{ $place->exists ? __('Simpan Perubahan') : __('Simpan Mitra') }}
                         </x-primary-button>
                     </form>
                 </div>
