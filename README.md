@@ -1,59 +1,207 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SiLAT
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik)** adalah sistem informasi untuk mengelola pendaftaran, penempatan, presensi, monitoring lokasi, progres laporan, dan rekap aktivitas mahasiswa pada program MBKM dan Kerja Praktik.
 
-## About Laravel
+Sistem ini merupakan rebranding dan pengembangan dari Mon PKL. Rule operasional awal masih mengikuti Kerja Praktik, tetapi struktur data sudah menyiapkan master **Program Kegiatan** agar program seperti Kerja Praktik, Magang, Riset, dan program MBKM lain dapat memakai aturan yang berbeda di masa datang.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Autentikasi email/password dan Google SSO dengan pembatasan domain Unila.
+- Role `admin`, `dosen`, `mahasiswa`, serta akses `koordinator` berdasarkan penugasan aktif.
+- Master data Program Kegiatan, Periode Program, Prodi, Mahasiswa, Dosen, User, dan Mitra.
+- Workflow pendaftaran program, validasi admin/koordinator, revisi pendaftaran, pindah mitra, dan perubahan pembimbing.
+- Presensi masuk/pulang berbasis lokasi, kamera realtime, jarak Haversine, durasi harian, dan sanksi durasi kurang.
+- Catatan harian berbasis pasangan presensi: catatan masuk sebagai rencana aktivitas, catatan pulang sebagai realisasi.
+- Progres laporan mahasiswa, deadline periode, sanksi keterlambatan unggahan, dan review laporan oleh dosen/admin/koordinator.
+- Peta Leaflet untuk peta mitra, peta monitoring, picker lokasi, dan peta check-in.
+- Rekap monitoring dan halaman print laporan dengan grafik kehadiran, durasi, jarak, dan tabel rekapitulasi.
+- Import data historis dari Firebase JSON.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Stack Teknologi
 
-## Learning Laravel
+- Laravel 12
+- PHP 8.2+
+- PostgreSQL dengan dukungan PostGIS
+- Laravel Breeze dan Socialite
+- Leaflet dan Leaflet MarkerCluster
+- Tailwind CSS, Alpine.js, dan Vite
+- PHPUnit untuk test otomatis
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Struktur Repo
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Repo ini adalah aplikasi Laravel langsung di root project.
 
-## Laravel Sponsors
+```text
+app/                 Controller, model, service, middleware
+database/            Migration, seeder, factory
+resources/views/     Blade template
+resources/js/        JavaScript frontend
+resources/css/       CSS aplikasi
+routes/              Route web dan console
+public/              Asset publik dan build Vite
+storage/             File runtime, upload, report import
+tests/               Unit dan feature test
+docs/                Catatan audit dan tahapan desain UI
+SRS.md               Spesifikasi kebutuhan sistem
+README_MONPKL.md     Catatan teknis lama Mon PKL/PostGIS
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Kebutuhan Lokal
 
-### Premium Partners
+- PHP 8.2 atau lebih baru
+- Composer
+- Node.js dan npm
+- PostgreSQL
+- PostGIS, direkomendasikan untuk fitur spatial
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Default database lokal pada `.env.example`:
 
-## Contributing
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=monpkl
+DB_USERNAME=monpkl
+DB_PASSWORD=123
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Setup Lokal
 
-## Code of Conduct
+1. Install dependency PHP.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+composer install
+```
 
-## Security Vulnerabilities
+2. Siapkan environment.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## License
+3. Sesuaikan konfigurasi database, mail, Google SSO, dan parameter `MONPKL_*` pada `.env`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+4. Aktifkan PostGIS sekali pada database PostgreSQL, jika memakai PostgreSQL/PostGIS.
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+```
+
+5. Jalankan migration dan seeder.
+
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+6. Buat symbolic link storage untuk akses file upload publik.
+
+```bash
+php artisan storage:link
+```
+
+7. Install dependency frontend dan build asset.
+
+```bash
+npm install
+npm run build
+```
+
+8. Jalankan server lokal.
+
+```bash
+php artisan serve
+```
+
+Untuk mode pengembangan frontend:
+
+```bash
+npm run dev
+```
+
+Composer script juga menyediakan mode gabungan:
+
+```bash
+composer run dev
+```
+
+## Konfigurasi Penting
+
+### Google SSO
+
+```env
+SSO_GOOGLE_ENABLED=false
+SSO_GOOGLE_ALLOWED_DOMAINS=unila.ac.id,*.unila.ac.id
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
+SSO_GOOGLE_CAFILE=
+SSO_GOOGLE_VERIFY_SSL=true
+```
+
+Jika terjadi masalah sertifikat lokal pada Windows, isi `SSO_GOOGLE_CAFILE` dengan path CA bundle yang valid atau perbaiki konfigurasi CA PHP/cURL.
+
+### Presensi dan Peta
+
+Parameter utama presensi dan peta berada pada `.env` dengan prefix `MONPKL_*`, antara lain:
+
+```env
+MONPKL_TIMEZONE=Asia/Jakarta
+MONPKL_CHECKIN_PHOTO_MAX_KB=4096
+MONPKL_CHECKIN_MAX_DISTANCE_METERS=5000
+MONPKL_CHECKIN_INACTIVE_MESSAGE="Check-in hanya dapat dilakukan pada jam kerja 07.00 sampai 19.00."
+MONPKL_MAP_CENTER_LAT=-5.3971
+MONPKL_MAP_CENTER_LNG=105.2668
+MONPKL_MAP_TILE_URL="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+```
+
+Konfigurasi per periode dapat diubah melalui menu **Konfigurasi Sistem**, termasuk jadwal presensi, deadline, kuota, peta, dan aturan laporan.
+
+## Import Data Historis
+
+Command import data Firebase JSON tersedia untuk migrasi data lama.
+
+```bash
+php artisan import:firebase-json
+```
+
+Laporan hasil import disimpan di storage aplikasi. Detail migrasi dapat dilihat pada `MIGRASI_FIREBASE_GOOGLEMAP.md`.
+
+## Test dan Build
+
+Jalankan seluruh test:
+
+```bash
+php artisan test
+```
+
+Jalankan build frontend:
+
+```bash
+npm run build
+```
+
+Perintah yang sering dipakai saat pengembangan:
+
+```bash
+php artisan route:list
+php artisan migrate
+php artisan db:seed
+php artisan config:clear
+```
+
+## Dokumen Terkait
+
+- `SRS.md`: spesifikasi kebutuhan sistem SiLAT.
+- `ui-design.md`: rancangan dan tahapan redesain UI.
+- `ui-table-design.md`: pedoman komponen tabel.
+- `MIGRASI_FIREBASE_GOOGLEMAP.md`: catatan migrasi Firebase/Google Maps ke Laravel/PostgreSQL/Leaflet.
+- `README_MONPKL.md`: catatan teknis lama terkait database, PostGIS, mail, dan MariaDB.
+
+## Catatan Produksi
+
+- Simpan kredensial asli hanya di `.env`, bukan di repository.
+- Pastikan storage upload tidak dibuka publik tanpa kontrol akses jika kebijakan produksi mensyaratkan file privat.
+- Siapkan backup database harian dan prosedur restore.
+- Untuk data lokasi skala besar, gunakan PostgreSQL/PostGIS dan index spatial.
