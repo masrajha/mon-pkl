@@ -1,0 +1,37 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Block direct access to sensitive Laravel/project files.
+    <FilesMatch "^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml|vite\.config\.js)$">
+        Require all denied
+    </FilesMatch>
+
+    RedirectMatch 404 /\.git
+    RedirectMatch 404 /storage/(app|framework|logs)
+    RedirectMatch 404 /(app|bootstrap|config|database|resources|routes|tests|vendor)(/.*)?$
+
+    # Preserve Laravel auth and CSRF headers behind Apache/FastCGI.
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Serve Laravel public assets while keeping docroot at the app root.
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -d
+    RewriteRule ^(.+)$ public/$1 [L]
+
+    # Normalize trailing slashes for non-directory URLs.
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send every application request to Laravel's public front controller.
+    RewriteRule ^$ public/index.php [L]
+    RewriteRule ^(.+)$ public/index.php [L,QSA]
+</IfModule>
