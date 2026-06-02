@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('status')->default('active')->index();
             $table->timestamps();
 
-            $table->unique(['lecturer_id', 'internship_period_id', 'study_program_id'], 'internship_coordinators_unique_assignment');
-            $table->index(['internship_period_id', 'study_program_id', 'status'], 'internship_coordinators_scope_index');
+            $table->index(['lecturer_id', 'internship_period_id', 'study_program_id'], 'internship_coordinators_assignment_index');
+            $table->unique(['internship_period_id', 'study_program_id'], 'internship_coordinators_unique_scope');
+            $table->index(['internship_period_id', 'study_program_id', 'status'], 'internship_coordinators_scope_status_index');
         });
     }
 
