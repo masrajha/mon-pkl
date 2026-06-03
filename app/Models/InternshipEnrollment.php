@@ -75,6 +75,11 @@ class InternshipEnrollment extends Model
         return $this->hasMany(CheckIn::class);
     }
 
+    public function orientationAttendances()
+    {
+        return $this->hasMany(OrientationAttendance::class);
+    }
+
     public function submissionProgress()
     {
         return $this->hasMany(SubmissionProgress::class);

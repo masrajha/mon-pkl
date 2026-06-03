@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlaceProposal;
+use App\Models\OrientationEvent;
 use App\Models\RelocationRequest;
 use App\Models\SupervisorChangeRequest;
 use Illuminate\Http\Request;
@@ -23,6 +24,15 @@ class DashboardController extends Controller
                 ->get()
             : collect();
         $activeEnrollment = $enrollments->firstWhere('status', 'active') ?? $enrollments->first();
+        $orientationEvents = $activeEnrollment
+            ? OrientationEvent::query()
+                ->with(['internshipPeriod.program', 'studyProgram'])
+                ->with(['attendances' => fn ($query) => $query->where('student_id', $student->id)])
+                ->forEnrollment($activeEnrollment)
+                ->where('is_active', true)
+                ->orderByDesc('id')
+                ->get()
+            : collect();
         $nearestDeadline = $activeEnrollment?->internshipPeriod?->deadlines
             ?->filter(fn ($deadline) => $deadline->deadline_date?->isFuture() || $deadline->deadline_date?->isToday())
             ->sortBy('deadline_date')
@@ -38,6 +48,7 @@ class DashboardController extends Controller
                 ->count() ?? 0,
             'sanctionsPoints' => (int) ($activeEnrollment?->total_sanctions_points ?? 0),
             'nearestDeadline' => $nearestDeadline,
+            'orientationEvents' => $orientationEvents,
             'reportProgress' => $activeEnrollment?->final_report_path ? 100 : 0,
             'proposals' => $student
                 ? InternshipPlaceProposal::query()

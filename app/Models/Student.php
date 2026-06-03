@@ -33,6 +33,11 @@ class Student extends Model
         return $this->hasMany(InternshipEnrollment::class);
     }
 
+    public function orientationAttendances()
+    {
+        return $this->hasMany(OrientationAttendance::class);
+    }
+
     public function placeProposals()
     {
         return $this->hasMany(InternshipPlaceProposal::class);

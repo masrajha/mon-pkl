@@ -64,6 +64,33 @@
                 </div>
             </section>
 
+            <section class="silat-card">
+                <div class="silat-section-header">
+                    <div>
+                        <h3 class="silat-section-title">Rekap Pembekalan</h3>
+                        <p class="silat-section-description">Ringkasan presensi pembekalan program terbaru.</p>
+                    </div>
+                    <a class="silat-secondary-link" href="{{ route('management.orientation-events.index') }}">Kelola pembekalan</a>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    @forelse ($orientationEvents as $event)
+                        <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ $event->name }}</p>
+                                <p class="text-sm text-gray-500">{{ $event->studyProgram?->name ?: 'Semua prodi' }} · {{ $event->location_name }}</p>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <x-badge variant="success">{{ number_format($event->attendances_count, 0, ',', '.') }} hadir</x-badge>
+                                <x-badge variant="danger">{{ number_format($event->absent_count, 0, ',', '.') }} belum</x-badge>
+                                <a class="silat-secondary-link" href="{{ route('management.orientation-events.show', $event) }}">Detail</a>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="p-5"><x-empty-state title="Belum ada event pembekalan" icon="fa-users-viewfinder" /></div>
+                    @endforelse
+                </div>
+            </section>
+
             <div class="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
                 <section class="silat-card">
                     <div class="silat-section-header">

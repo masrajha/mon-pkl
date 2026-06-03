@@ -36,6 +36,11 @@ class InternshipPeriod extends Model
         return $this->hasMany(InternshipEnrollment::class);
     }
 
+    public function orientationEvents()
+    {
+        return $this->hasMany(OrientationEvent::class);
+    }
+
     public function program()
     {
         return $this->belongsTo(Program::class);

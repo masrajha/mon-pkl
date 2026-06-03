@@ -41,6 +41,39 @@
             </div>
         </div>
 
+        @if ($orientationEvents->isNotEmpty())
+            <section class="silat-card">
+                <div class="silat-section-header">
+                    <div>
+                        <h3 class="silat-section-title">Presensi Pembekalan</h3>
+                        <p class="silat-section-description">Kegiatan pembekalan wajib untuk program periode ini.</p>
+                    </div>
+                </div>
+                <div class="grid gap-4 p-5 md:grid-cols-2">
+                    @foreach ($orientationEvents as $event)
+                        @php($attendance = $event->attendances->first())
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="font-semibold text-gray-900">{{ $event->name }}</p>
+                                    <p class="mt-1 text-sm text-gray-600">{{ $event->location_name }}</p>
+                                    <p class="text-xs text-gray-500">{{ $event->starts_at?->format('d/m/Y H:i') ?: '-' }} s.d. {{ $event->ends_at?->format('d/m/Y H:i') ?: '-' }}</p>
+                                </div>
+                                <x-badge :variant="$attendance ? 'success' : 'warning'">{{ $attendance ? 'Sudah' : 'Wajib' }}</x-badge>
+                            </div>
+                            <div class="mt-4">
+                                @if ($attendance)
+                                    <p class="text-sm text-green-700">Presensi tercatat {{ $attendance->checked_at?->format('d/m/Y H:i') }}.</p>
+                                @else
+                                    <a class="silat-btn" href="{{ route('student.orientation-attendances.create', $event) }}"><x-icon name="fa-fingerprint" /> Presensi Pembekalan</a>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
         <div class="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
             <section class="silat-card">
                 <div class="silat-section-header">

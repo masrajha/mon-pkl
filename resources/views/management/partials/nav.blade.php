@@ -15,6 +15,7 @@
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.relocations.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.relocations.index') }}">Pindah Tempat</a>
     @endif
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.supervisor-requests.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.supervisor-requests.index') }}">Perubahan Pembimbing</a>
+    <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.orientation-events.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.orientation-events.index') }}">Pembekalan</a>
     @if ($isAdmin)
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.enrollments.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.enrollments.index') }}">Peserta Periode</a>
     @endif

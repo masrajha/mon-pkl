@@ -9,6 +9,7 @@ use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinat
 use App\Http\Controllers\Management\DashboardController as ManagementDashboardController;
 use App\Http\Controllers\Management\EnrollmentController as ManagementEnrollmentController;
 use App\Http\Controllers\Management\LecturerController as ManagementLecturerController;
+use App\Http\Controllers\Management\OrientationEventController as ManagementOrientationEventController;
 use App\Http\Controllers\Management\PeriodController as ManagementPeriodController;
 use App\Http\Controllers\Management\PlaceController as ManagementPlaceController;
 use App\Http\Controllers\Management\PlaceProposalController as ManagementPlaceProposalController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\EnrollmentController as StudentEnrollmentController;
+use App\Http\Controllers\Student\OrientationAttendanceController as StudentOrientationAttendanceController;
 use App\Http\Controllers\Student\PlaceController as StudentPlaceController;
 use App\Http\Controllers\Student\PlaceProposalController as StudentPlaceProposalController;
 use App\Http\Controllers\Student\ProfileController as StudentProfileController;
@@ -165,6 +167,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/student/enrollments', [StudentEnrollmentController::class, 'store'])->name('student.enrollments.store');
         Route::get('/student/enrollments/{enrollment}/edit', [StudentEnrollmentController::class, 'edit'])->name('student.enrollments.edit');
         Route::patch('/student/enrollments/{enrollment}', [StudentEnrollmentController::class, 'update'])->name('student.enrollments.update');
+        Route::get('/student/orientation-events/{orientationEvent}/attendance', [StudentOrientationAttendanceController::class, 'create'])->name('student.orientation-attendances.create');
+        Route::post('/student/orientation-events/{orientationEvent}/attendance', [StudentOrientationAttendanceController::class, 'store'])->name('student.orientation-attendances.store');
         Route::get('/student/places', [StudentPlaceController::class, 'index'])->name('student.places.index');
         Route::get('/student/places/data', [StudentPlaceController::class, 'data'])->name('student.places.data');
         Route::get('/student/place-proposals/create', [StudentPlaceProposalController::class, 'create'])->name('student.proposals.create');
@@ -188,6 +192,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,koordinator')->group(function () {
         Route::get('/management/enrollment-validations', [ManagementEnrollmentController::class, 'validations'])->name('management.enrollment-validations.index');
         Route::patch('/management/enrollment-validations/{enrollment}', [ManagementEnrollmentController::class, 'validateEnrollment'])->name('management.enrollment-validations.update');
+        Route::get('/management/orientation-events', [ManagementOrientationEventController::class, 'index'])->name('management.orientation-events.index');
+        Route::post('/management/orientation-events', [ManagementOrientationEventController::class, 'store'])->name('management.orientation-events.store');
+        Route::get('/management/orientation-events/{orientationEvent}', [ManagementOrientationEventController::class, 'show'])->name('management.orientation-events.show');
         Route::get('/management/supervisor-requests', [ManagementSupervisorChangeRequestController::class, 'index'])->name('management.supervisor-requests.index');
         Route::patch('/management/supervisor-requests/{supervisorRequest}', [ManagementSupervisorChangeRequestController::class, 'update'])->name('management.supervisor-requests.update');
     });

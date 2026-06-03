@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CheckIn;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
+use App\Models\OrientationEvent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -60,7 +61,51 @@ class CoordinatorDashboardController extends Controller
             ->orderByDesc('total_sanctions_points')
             ->limit(5)
             ->get();
+        $orientationEvents = OrientationEvent::query()
+            ->with(['internshipPeriod.program', 'studyProgram'])
+            ->withCount('attendances')
+            ->when($assignments->isEmpty(), fn (Builder $query) => $query->whereRaw('1 = 0'))
+            ->when($assignments->isNotEmpty(), function (Builder $query) use ($assignments): void {
+                $query->where(function (Builder $query) use ($assignments): void {
+                    foreach ($assignments as $assignment) {
+                        $query->orWhere(function (Builder $query) use ($assignment): void {
+                            $query->where('internship_period_id', $assignment->internship_period_id)
+                                ->where(function (Builder $query) use ($assignment): void {
+                                    $query->whereNull('study_program_id')
+                                        ->orWhere('study_program_id', $assignment->study_program_id);
+                                });
+                        });
+                    }
+                });
+            })
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(function (OrientationEvent $event) use ($assignments): OrientationEvent {
+                $participantsQuery = InternshipEnrollment::query()
+                    ->where('internship_period_id', $event->internship_period_id)
+                    ->whereNotIn('status', ['cancelled', 'rejected'])
+                    ->when($event->study_program_id, fn ($query) => $query->where('study_program_id', $event->study_program_id));
 
-        return view('coordinator.dashboard', compact('assignments', 'stats', 'recentEnrollments', 'highestSanctions'));
+                if (! $event->study_program_id) {
+                    $programIds = $assignments
+                        ->where('internship_period_id', $event->internship_period_id)
+                        ->pluck('study_program_id');
+                    $participantsQuery->whereIn('study_program_id', $programIds);
+                }
+
+                $participantIds = $participantsQuery->pluck('id');
+                $present = $event->attendances()
+                    ->whereIn('internship_enrollment_id', $participantIds)
+                    ->count();
+
+                $event->participants_count = $participantIds->count();
+                $event->attendances_count = $present;
+                $event->absent_count = max(0, $event->participants_count - $present);
+
+                return $event;
+            });
+
+        return view('coordinator.dashboard', compact('assignments', 'stats', 'recentEnrollments', 'highestSanctions', 'orientationEvents'));
     }
 }
