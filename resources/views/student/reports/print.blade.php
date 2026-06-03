@@ -55,6 +55,7 @@
         <strong>Alamat</strong><span>{{ $enrollment->internshipPlace?->address }}</span>
         <strong>Dosen Pembimbing</strong><span>{{ $enrollment->lecturer?->name }}</span>
         <strong>Pembimbing Lapangan</strong><span>{{ $enrollment->field_supervisor }}</span>
+        <strong>Email Pembimbing Lapangan</strong><span>{{ $enrollment->field_supervisor_email ?: '-' }}</span>
     </div>
     <h2>Grafik Kehadiran</h2>
     @if ($attendanceRows->isNotEmpty())

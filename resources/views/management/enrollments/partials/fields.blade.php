@@ -68,9 +68,14 @@
         <x-text-input id="field_supervisor_phone" name="field_supervisor_phone" class="block w-full" :value="old('field_supervisor_phone', $enrollment?->field_supervisor_phone)" />
     </div>
     <div>
-        <x-input-label for="contact_student_phone" value="HP Kontak Mahasiswa Periode Ini" />
-        <x-text-input id="contact_student_phone" name="contact_student_phone" class="block w-full" :value="old('contact_student_phone', $enrollment?->contact_student_phone)" />
+        <x-input-label for="field_supervisor_email" value="Email Pembimbing Lapangan" />
+        <x-text-input id="field_supervisor_email" name="field_supervisor_email" type="email" class="block w-full" :value="old('field_supervisor_email', $enrollment?->field_supervisor_email)" />
     </div>
+</div>
+
+<div>
+    <x-input-label for="contact_student_phone" value="HP Kontak Mahasiswa Periode Ini" />
+    <x-text-input id="contact_student_phone" name="contact_student_phone" class="block w-full" :value="old('contact_student_phone', $enrollment?->contact_student_phone)" />
 </div>
 
 <div class="rounded-md border border-gray-200 bg-gray-50 p-4">

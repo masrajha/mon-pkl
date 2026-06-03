@@ -12,6 +12,8 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ManagementFeatureTest extends TestCase
@@ -198,6 +200,8 @@ class ManagementFeatureTest extends TestCase
 
     public function test_admin_can_validate_pending_enrollment_from_validation_page(): void
     {
+        Storage::fake('public');
+
         $admin = User::factory()->create(['role' => 'admin']);
         $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
         $period = InternshipPeriod::query()->create(['name' => 'Periode Validasi', 'academic_year' => '2026/2027']);
@@ -208,7 +212,17 @@ class ManagementFeatureTest extends TestCase
             'study_program_id' => $program->id,
             'internship_period_id' => $period->id,
             'status' => 'pending_verification',
+            'registration_document_path' => UploadedFile::fake()->create('bukti.pdf', 128, 'application/pdf')->store('registration-documents', 'public'),
         ]);
+
+        $this->actingAs($admin)
+            ->get(route('management.enrollment-validations.index'))
+            ->assertOk()
+            ->assertSee('Buka dokumen');
+
+        $this->actingAs($admin)
+            ->get(route('management.enrollment-validations.document', $enrollment))
+            ->assertOk();
 
         $this->actingAs($admin)
             ->patch(route('management.enrollment-validations.update', $enrollment), [
@@ -291,6 +305,7 @@ class ManagementFeatureTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $lecturerUser = User::factory()->create(['role' => 'dosen']);
         $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $secondProgram = StudyProgram::query()->create(['code' => 'SI', 'name' => 'Sistem Informasi', 'is_active' => true]);
         $period = InternshipPeriod::query()->create(['name' => 'Periode Koordinator', 'academic_year' => '2026/2027']);
         $lecturer = Lecturer::query()->create([
             'user_id' => $lecturerUser->id,
@@ -304,7 +319,7 @@ class ManagementFeatureTest extends TestCase
             ->post(route('management.coordinators.store'), [
                 'lecturer_id' => $lecturer->id,
                 'internship_period_id' => $period->id,
-                'study_program_id' => $program->id,
+                'study_program_ids' => [$program->id, $secondProgram->id],
                 'status' => 'active',
             ])
             ->assertRedirect();
@@ -313,6 +328,12 @@ class ManagementFeatureTest extends TestCase
             'lecturer_id' => $lecturer->id,
             'internship_period_id' => $period->id,
             'study_program_id' => $program->id,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('internship_coordinators', [
+            'lecturer_id' => $lecturer->id,
+            'internship_period_id' => $period->id,
+            'study_program_id' => $secondProgram->id,
             'status' => 'active',
         ]);
         $this->assertTrue($lecturerUser->fresh()->hasRole('dosen'));

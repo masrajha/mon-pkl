@@ -24,6 +24,8 @@ class StudentWorkflowFeatureTest extends TestCase
 
     public function test_mahasiswa_can_complete_profile_register_and_propose_place(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create(['role' => 'mahasiswa']);
         $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
         $period = InternshipPeriod::query()->create(['name' => 'Periode Aktif', 'academic_year' => '2026/2027', 'is_active' => true]);
@@ -55,6 +57,7 @@ class StudentWorkflowFeatureTest extends TestCase
                 'total_sks' => 120,
                 'current_semester' => 7,
                 'gpa' => 3.25,
+                'registration_document' => UploadedFile::fake()->create('bukti-akademik.pdf', 128, 'application/pdf'),
             ])
             ->assertRedirect(route('student.dashboard'));
 
@@ -64,6 +67,7 @@ class StudentWorkflowFeatureTest extends TestCase
             'study_program_id' => $program->id,
             'status' => 'pending_verification',
         ]);
+        $this->assertNotNull(InternshipEnrollment::query()->firstOrFail()->registration_document_path);
 
         $this->actingAs($user)
             ->post(route('student.proposals.store'), [
@@ -285,6 +289,8 @@ class StudentWorkflowFeatureTest extends TestCase
 
     public function test_student_cannot_register_again_when_period_enrollment_is_not_cancelled_or_rejected(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create(['role' => 'mahasiswa']);
         $program = StudyProgram::query()->create(['code' => 'SI', 'name' => 'Sistem Informasi', 'is_active' => true]);
         $period = InternshipPeriod::query()->create(['name' => 'Periode Aktif Ulang', 'academic_year' => '2026/2027', 'is_active' => true]);
@@ -317,6 +323,8 @@ class StudentWorkflowFeatureTest extends TestCase
 
     public function test_student_can_register_again_when_previous_period_enrollment_was_rejected(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create(['role' => 'mahasiswa']);
         $program = StudyProgram::query()->create(['code' => 'MI', 'name' => 'Manajemen Informatika', 'is_active' => true]);
         $period = InternshipPeriod::query()->create(['name' => 'Periode Ditolak', 'academic_year' => '2026/2027', 'is_active' => true]);
@@ -354,6 +362,8 @@ class StudentWorkflowFeatureTest extends TestCase
 
     public function test_student_enrollment_minimum_sks_follows_study_program_degree_level(): void
     {
+        Storage::fake('public');
+
         $period = InternshipPeriod::query()->create(['name' => 'Periode Syarat Jenjang', 'academic_year' => '2026/2027', 'is_active' => true]);
         $place = InternshipPlace::query()->create(['name' => 'Tempat Syarat Jenjang', 'is_active' => true]);
 
@@ -406,6 +416,8 @@ class StudentWorkflowFeatureTest extends TestCase
 
     public function test_student_can_revise_enrollment_when_revision_is_required(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create(['role' => 'mahasiswa']);
         $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
         $period = InternshipPeriod::query()->create(['name' => 'Periode Revisi', 'academic_year' => '2026/2027', 'is_active' => true]);
@@ -444,6 +456,7 @@ class StudentWorkflowFeatureTest extends TestCase
                 'contact_student_phone' => '081299999999',
                 'field_supervisor' => 'Pembimbing Baru',
                 'field_supervisor_phone' => '081211111111',
+                'registration_document' => UploadedFile::fake()->create('bukti-revisi.pdf', 128, 'application/pdf'),
             ]))
             ->assertRedirect(route('student.dashboard'));
 
@@ -456,6 +469,7 @@ class StudentWorkflowFeatureTest extends TestCase
             'status' => 'pending_verification',
             'admin_note' => null,
         ]);
+        $this->assertNotNull($enrollment->fresh()->registration_document_path);
     }
 
     public function test_student_can_request_supervisor_completion_and_print_after_approval(): void
@@ -649,6 +663,52 @@ class StudentWorkflowFeatureTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_student_must_have_field_supervisor_email_before_uploading_seminar(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Seminar', 'academic_year' => '2026/2027']);
+        $student = Student::query()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $program->id,
+            'npm' => '2217051013',
+            'full_name' => 'Mahasiswa Seminar',
+        ]);
+        $enrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $program->id,
+            'internship_period_id' => $period->id,
+            'field_supervisor' => 'Pembimbing Lapangan',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('student.reports.show', $enrollment))
+            ->post(route('student.reports.progress.store', $enrollment), [
+                'deadline_type' => 'seminar',
+                'file' => UploadedFile::fake()->create('seminar.pdf', 128, 'application/pdf'),
+            ])
+            ->assertRedirect(route('student.reports.show', $enrollment))
+            ->assertSessionHasErrors('deadline_type');
+
+        $enrollment->update(['field_supervisor_email' => 'lapangan@example.test']);
+
+        $this->actingAs($user)
+            ->post(route('student.reports.progress.store', $enrollment), [
+                'deadline_type' => 'seminar',
+                'file' => UploadedFile::fake()->create('seminar.pdf', 128, 'application/pdf'),
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('submission_progress', [
+            'internship_enrollment_id' => $enrollment->id,
+            'deadline_type' => 'seminar',
+            'status' => 'pending',
+        ]);
+    }
+
     public function test_student_can_print_daily_activity_from_check_in_notes(): void
     {
         $user = User::factory()->create(['role' => 'mahasiswa']);
@@ -707,6 +767,7 @@ class StudentWorkflowFeatureTest extends TestCase
             'total_sks' => 120,
             'current_semester' => 7,
             'gpa' => 3.25,
+            'registration_document' => UploadedFile::fake()->create('bukti-akademik.pdf', 128, 'application/pdf'),
         ];
     }
 }

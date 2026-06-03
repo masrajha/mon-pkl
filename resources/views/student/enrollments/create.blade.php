@@ -11,7 +11,7 @@
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Workflow Mahasiswa</p>
             <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ $isRevision ? __('Revisi Pendaftaran Program') : __('Pendaftaran Program') }}</h2>
-            <p class="mt-1 text-sm text-gray-500">{{ $isRevision ? 'Lengkapi atau perbaiki data sesuai catatan koordinator/admin.' : 'Ikuti empat langkah ringkas untuk mengirim pendaftaran MBKM/KP.' }}</p>
+            <p class="mt-1 text-sm text-gray-500">{{ $isRevision ? 'Lengkapi atau perbaiki data sesuai catatan koordinator/admin.' : 'Ikuti tiga langkah ringkas untuk mengirim pendaftaran MBKM/KP.' }}</p>
         </div>
     </x-slot>
 
@@ -26,29 +26,28 @@
             </x-alert>
         @endif
 
-        <form method="POST" action="{{ $formAction }}" class="space-y-6">
+        <form method="POST" action="{{ $formAction }}" class="space-y-6" enctype="multipart/form-data">
             @csrf
             @if ($isRevision)
                 @method('PATCH')
             @endif
 
-            <div class="grid gap-4 md:grid-cols-4">
+            <div class="grid gap-3 md:grid-cols-3" data-enrollment-steps>
                 @foreach ([
                     ['step' => '1', 'title' => 'Program', 'desc' => 'Pilih program dan periode aktif.'],
-                    ['step' => '2', 'title' => 'Mitra', 'desc' => 'Pilih mitra atau ajukan baru.'],
-                    ['step' => '3', 'title' => 'Kontak', 'desc' => 'Isi pembimbing dan kontak.'],
-                    ['step' => '4', 'title' => 'Konfirmasi', 'desc' => 'Pastikan syarat akademik.'],
+                    ['step' => '2', 'title' => 'Mitra', 'desc' => 'Isi mitra dan pembimbing lapangan.'],
+                    ['step' => '3', 'title' => 'Kelayakan', 'desc' => 'Isi syarat akademik dan dokumen.'],
                 ] as $item)
-                    <div class="silat-card p-4">
-                        <div class="flex items-start gap-3">
-                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">{{ $item['step'] }}</span>
-                            <div><p class="font-semibold text-gray-900">{{ $item['title'] }}</p><p class="mt-1 text-sm text-gray-500">{{ $item['desc'] }}</p></div>
+                    <div class="silat-card p-3" data-step-indicator="{{ $item['step'] }}">
+                        <div class="flex items-start gap-2">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white" data-step-number>{{ $item['step'] }}</span>
+                            <div class="min-w-0"><p class="text-sm font-semibold text-gray-900">{{ $item['title'] }}</p><p class="mt-1 text-xs text-gray-500">{{ $item['desc'] }}</p></div>
                         </div>
                     </div>
                 @endforeach
             </div>
 
-            <section class="silat-card">
+            <section class="silat-card" data-enrollment-step="1">
                 <div class="silat-section-header">
                     <div><h3 class="silat-section-title">1. Program dan Periode</h3><p class="silat-section-description">Periode selalu melekat pada Program Kegiatan.</p></div>
                 </div>
@@ -85,9 +84,12 @@
                         <p class="mt-1 text-xs text-gray-500">Mengikuti program studi pada profil mahasiswa.</p>
                     </div>
                 </div>
+                <div class="flex justify-end border-t border-gray-100 p-5">
+                    <button type="button" class="silat-btn" data-enrollment-next>Lanjutkan</button>
+                </div>
             </section>
 
-            <section class="silat-card">
+            <section class="silat-card" data-enrollment-step="2" hidden>
                 <div class="silat-section-header">
                     <div><h3 class="silat-section-title">2. Mitra dan Pembimbing Lapangan</h3><p class="silat-section-description">Pilih mitra jika sudah tersedia, atau lanjutkan tanpa mitra untuk mengajukan baru.</p></div>
                     <a class="silat-secondary-link" href="{{ route('student.proposals.create') }}">Ajukan mitra baru</a>
@@ -114,12 +116,21 @@
                         <x-input-label for="field_supervisor_phone" value="HP Pembimbing Lapangan" />
                         <x-text-input id="field_supervisor_phone" name="field_supervisor_phone" class="mt-1 block w-full" :value="old('field_supervisor_phone', $enrollment?->field_supervisor_phone)" />
                     </div>
+                    <div>
+                        <x-input-label for="field_supervisor_email" value="Email Pembimbing Lapangan" />
+                        <x-text-input id="field_supervisor_email" name="field_supervisor_email" type="email" class="mt-1 block w-full" :value="old('field_supervisor_email', $enrollment?->field_supervisor_email)" />
+                        <p class="mt-1 text-xs text-gray-500">Opsional saat pendaftaran. Wajib dilengkapi sebelum pengajuan seminar.</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-between gap-3 border-t border-gray-100 p-5">
+                    <button type="button" class="silat-btn-secondary" data-enrollment-prev>Kembali</button>
+                    <button type="button" class="silat-btn" data-enrollment-next>Lanjutkan</button>
                 </div>
             </section>
 
-            <section class="silat-card">
+            <section class="silat-card" data-enrollment-step="3" hidden>
                 <div class="silat-section-header">
-                    <div><h3 class="silat-section-title">3. Rule Program dan Kelayakan Akademik</h3><p class="silat-section-description">Untuk fase ini seluruh program memakai Rule Kerja Praktik dan dapat dipisah per program pada fase berikutnya.</p></div>
+                    <div><h3 class="silat-section-title">3. Rule Program, Kelayakan Akademik, dan Dokumen Bukti</h3><p class="silat-section-description">Lengkapi syarat akademik, unggah bukti, lalu kirim pendaftaran.</p></div>
                     <x-badge>Rule Kerja Praktik</x-badge>
                 </div>
                 <div class="space-y-4 p-5">
@@ -133,16 +144,30 @@
                         <div><x-input-label for="current_semester" value="Semester" /><x-text-input id="current_semester" name="current_semester" type="number" class="mt-1 block w-full" :value="old('current_semester', $enrollment?->current_semester)" required /></div>
                         <div><x-input-label for="gpa" value="IPK" /><x-text-input id="gpa" name="gpa" type="number" step="0.01" class="mt-1 block w-full" :value="old('gpa', $enrollment?->gpa)" required /></div>
                     </div>
-                </div>
-            </section>
 
-            <section class="silat-card p-5">
-                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-sm font-semibold text-gray-900">Dokumen Bukti Akademik</p>
+                        <p class="mt-1 text-sm text-gray-600">Transkrip Sementara + KRS Semester saat ini.</p>
+                    </div>
+                    @if ($isRevision && $enrollment?->registration_document_path)
+                        <p class="text-sm text-gray-600">Dokumen sebelumnya sudah tersimpan. Unggah file baru hanya jika perlu mengganti dokumen.</p>
+                    @endif
                     <div>
-                        <h3 class="silat-section-title">4. Kirim Pendaftaran</h3>
+                        <x-input-label for="registration_document" value="File Bukti Akademik" />
+                        <input id="registration_document" name="registration_document" type="file" accept="application/pdf,.pdf" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100" @required(! $isRevision || ! $enrollment?->registration_document_path)>
+                        <p class="mt-1 text-xs text-gray-500">Maksimal 5 MB. Gabungkan transkrip sementara dan KRS semester saat ini dalam satu PDF.</p>
+                        <x-input-error :messages="$errors->get('registration_document')" />
+                    </div>
+                </div>
+                <div class="flex flex-col gap-4 border-t border-gray-100 p-5 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h3 class="silat-section-title">Kirim Pendaftaran</h3>
                         <p class="silat-section-description">Pendaftaran akan masuk ke antrean validasi admin/koordinator.</p>
                     </div>
-                    <x-primary-button><x-icon name="fa-paper-plane" /> {{ $isRevision ? 'Kirim Revisi' : 'Kirim Pendaftaran' }}</x-primary-button>
+                    <div class="flex flex-wrap gap-3">
+                        <button type="button" class="silat-btn-secondary" data-enrollment-prev>Kembali</button>
+                        <x-primary-button><x-icon name="fa-paper-plane" /> {{ $isRevision ? 'Kirim Revisi' : 'Kirim Pendaftaran' }}</x-primary-button>
+                    </div>
                 </div>
             </section>
         </form>
@@ -160,6 +185,55 @@
                 };
                 program.addEventListener('change', syncPeriods);
                 syncPeriods();
+
+                const panels = [...document.querySelectorAll('[data-enrollment-step]')];
+                const indicators = [...document.querySelectorAll('[data-step-indicator]')];
+                let activeStep = 1;
+
+                const showStep = (step) => {
+                    activeStep = step;
+
+                    panels.forEach((panel) => {
+                        panel.hidden = Number(panel.dataset.enrollmentStep) !== activeStep;
+                    });
+
+                    indicators.forEach((indicator) => {
+                        const isActive = Number(indicator.dataset.stepIndicator) === activeStep;
+                        indicator.classList.toggle('ring-2', isActive);
+                        indicator.classList.toggle('ring-blue-200', isActive);
+                        indicator.classList.toggle('bg-blue-50', isActive);
+                        indicator.querySelector('[data-step-number]')?.classList.toggle('bg-blue-700', isActive);
+                    });
+
+                    panels.find((panel) => Number(panel.dataset.enrollmentStep) === activeStep)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                };
+
+                const currentPanelIsValid = () => {
+                    const panel = panels.find((item) => Number(item.dataset.enrollmentStep) === activeStep);
+                    const fields = [...(panel?.querySelectorAll('input, select, textarea') ?? [])];
+                    const invalid = fields.find((field) => ! field.checkValidity());
+
+                    if (invalid) {
+                        invalid.reportValidity();
+                        return false;
+                    }
+
+                    return true;
+                };
+
+                document.querySelectorAll('[data-enrollment-next]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        if (currentPanelIsValid()) {
+                            showStep(Math.min(activeStep + 1, 3));
+                        }
+                    });
+                });
+
+                document.querySelectorAll('[data-enrollment-prev]').forEach((button) => {
+                    button.addEventListener('click', () => showStep(Math.max(activeStep - 1, 1)));
+                });
+
+                showStep({{ $errors->any() ? 3 : 1 }});
             });
         </script>
     </div></div>

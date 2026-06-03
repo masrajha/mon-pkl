@@ -15,6 +15,7 @@ use App\Services\PeriodConfigurationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -143,6 +144,7 @@ class EnrollmentController extends Controller
             'lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
             'field_supervisor' => ['nullable', 'string', 'max:255'],
             'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
+            'field_supervisor_email' => ['nullable', 'email', 'max:255'],
             'contact_student_phone' => ['nullable', 'string', 'max:50'],
             'has_krs_pkl' => ['nullable', 'boolean'],
             'total_sks' => ['nullable', 'integer', 'min:0', 'max:250'],
@@ -266,6 +268,7 @@ class EnrollmentController extends Controller
             'lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
             'field_supervisor' => ['nullable', 'string', 'max:255'],
             'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
+            'field_supervisor_email' => ['nullable', 'email', 'max:255'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -283,6 +286,16 @@ class EnrollmentController extends Controller
         ]);
 
         return back()->with('status', 'Validasi pendaftaran berhasil diproses.');
+    }
+
+    public function registrationDocument(Request $request, InternshipEnrollment $enrollment)
+    {
+        $this->authorizeValidationScope($enrollment, $request);
+
+        abort_unless($enrollment->registration_document_path, 404);
+        abort_unless(Storage::disk('public')->exists($enrollment->registration_document_path), 404);
+
+        return Storage::disk('public')->response($enrollment->registration_document_path);
     }
 
     private function quotaWarnings(): array

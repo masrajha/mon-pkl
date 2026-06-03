@@ -14,6 +14,8 @@ class SupervisorChangeRequest extends Model
         'requested_field_supervisor',
         'current_field_supervisor_phone',
         'requested_field_supervisor_phone',
+        'current_field_supervisor_email',
+        'requested_field_supervisor_email',
         'reason',
         'status',
         'reviewed_by',

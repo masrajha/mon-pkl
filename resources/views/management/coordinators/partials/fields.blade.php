@@ -1,3 +1,8 @@
+@php
+    $isCreate = blank($coordinator ?? null);
+    $selectedStudyProgramIds = collect(old('study_program_ids', []))->map(fn ($id) => (string) $id)->all();
+@endphp
+
 <x-input-label for="lecturer_id" value="Dosen Koordinator" />
 <select id="lecturer_id" name="lecturer_id" class="block w-full rounded-md border-gray-300" required>
     <option value="">Pilih dosen</option>
@@ -17,13 +22,23 @@
         </select>
     </div>
     <div>
-        <x-input-label for="study_program_id" value="Prodi" />
-        <select id="study_program_id" name="study_program_id" class="block w-full rounded-md border-gray-300" required>
-            <option value="">Pilih prodi</option>
-            @foreach ($studyPrograms as $program)
-                <option value="{{ $program->id }}" @selected((string) old('study_program_id', $coordinator?->study_program_id) === (string) $program->id)>{{ $program->name }}</option>
-            @endforeach
-        </select>
+        @if ($isCreate)
+            <x-input-label for="study_program_ids" value="Prodi" />
+            <select id="study_program_ids" name="study_program_ids[]" class="block h-28 w-full rounded-md border-gray-300 text-sm leading-5 focus:border-blue-500 focus:ring-blue-500 [&_option:checked]:bg-blue-600 [&_option:checked]:text-white" multiple required>
+                @foreach ($studyPrograms as $program)
+                    <option class="px-2 py-1 text-sm" value="{{ $program->id }}" @selected(in_array((string) $program->id, $selectedStudyProgramIds, true))>{{ $program->name }}</option>
+                @endforeach
+            </select>
+            <p class="mt-1 text-xs text-gray-500">Tahan Ctrl/Command untuk memilih lebih dari satu prodi.</p>
+        @else
+            <x-input-label for="study_program_id" value="Prodi" />
+            <select id="study_program_id" name="study_program_id" class="block w-full rounded-md border-gray-300" required>
+                <option value="">Pilih prodi</option>
+                @foreach ($studyPrograms as $program)
+                    <option value="{{ $program->id }}" @selected((string) old('study_program_id', $coordinator?->study_program_id) === (string) $program->id)>{{ $program->name }}</option>
+                @endforeach
+            </select>
+        @endif
     </div>
 </div>
 

@@ -47,6 +47,17 @@
                                 <span>Semester: {{ $enrollment->current_semester ?? '-' }}</span>
                                 <span>IPK: {{ $enrollment->gpa ?? '-' }}</span>
                             </div>
+                            <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4 text-sm">
+                                <p class="font-semibold text-gray-900">Dokumen Bukti Akademik</p>
+                                <p class="mt-1 text-gray-500">Transkrip Sementara + KRS Semester saat ini.</p>
+                                @if ($enrollment->registration_document_path)
+                                    <a class="mt-2 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700" href="{{ route('management.enrollment-validations.document', $enrollment) }}" target="_blank">
+                                        <x-icon name="fa-file-pdf" /> Buka dokumen
+                                    </a>
+                                @else
+                                    <p class="mt-2 text-sm text-red-600">Dokumen belum diunggah.</p>
+                                @endif
+                            </div>
                             @if ($quotaCount !== null)
                                 <x-alert variant="warning" class="mt-4">Kuota minimal mitra belum terpenuhi: {{ $quotaCount }}/{{ $settings['enrollment']['min_place_quota'] }} mahasiswa.</x-alert>
                             @endif
@@ -56,6 +67,7 @@
                             <div><x-input-label for="status_{{ $enrollment->id }}" value="Keputusan" /><x-select-input id="status_{{ $enrollment->id }}" name="status" class="mt-1" required><option value="active">Setujui</option><option value="revision_required" @selected($enrollment->status === 'revision_required')>Minta Revisi</option><option value="rejected">Tolak</option></x-select-input></div>
                             <div><x-input-label for="field_supervisor_{{ $enrollment->id }}" value="Pembimbing Lapangan" /><x-text-input id="field_supervisor_{{ $enrollment->id }}" name="field_supervisor" class="mt-1 block w-full" :value="$enrollment->field_supervisor" /></div>
                             <div><x-input-label for="field_supervisor_phone_{{ $enrollment->id }}" value="HP Pembimbing Lapangan" /><x-text-input id="field_supervisor_phone_{{ $enrollment->id }}" name="field_supervisor_phone" class="mt-1 block w-full" :value="$enrollment->field_supervisor_phone" /></div>
+                            <div class="md:col-span-2"><x-input-label for="field_supervisor_email_{{ $enrollment->id }}" value="Email Pembimbing Lapangan" /><x-text-input id="field_supervisor_email_{{ $enrollment->id }}" name="field_supervisor_email" type="email" class="mt-1 block w-full" :value="$enrollment->field_supervisor_email" /><p class="mt-1 text-xs text-gray-500">Opsional saat validasi, wajib sebelum mahasiswa mengajukan Seminar.</p></div>
                             <div class="md:col-span-2"><x-input-label for="admin_note_{{ $enrollment->id }}" value="Catatan Verifikasi" /><x-textarea-input id="admin_note_{{ $enrollment->id }}" name="admin_note" rows="3" class="mt-1">{{ $enrollment->admin_note }}</x-textarea-input></div>
                             <div class="md:col-span-2 flex flex-wrap justify-end gap-2">
                                 <button type="submit" name="status" value="revision_required" class="silat-btn-secondary">Minta Revisi</button>

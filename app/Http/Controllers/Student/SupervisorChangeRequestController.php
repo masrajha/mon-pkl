@@ -31,6 +31,7 @@ class SupervisorChangeRequestController extends Controller
             'requested_lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
             'requested_field_supervisor' => ['nullable', 'string', 'max:255'],
             'requested_field_supervisor_phone' => ['nullable', 'string', 'max:50'],
+            'requested_field_supervisor_email' => ['nullable', 'email', 'max:255'],
             'reason' => ['required', 'string', 'max:2000'],
         ]);
 
@@ -48,6 +49,7 @@ class SupervisorChangeRequestController extends Controller
             empty($data['requested_lecturer_supervisor_id'])
             && blank($data['requested_field_supervisor'])
             && blank($data['requested_field_supervisor_phone'])
+            && blank($data['requested_field_supervisor_email'])
         ) {
             throw ValidationException::withMessages([
                 'requested_field_supervisor' => 'Isi minimal salah satu data pembimbing yang ingin diajukan.',
@@ -58,6 +60,7 @@ class SupervisorChangeRequestController extends Controller
             'current_lecturer_supervisor_id' => $enrollment->lecturer_supervisor_id,
             'current_field_supervisor' => $enrollment->field_supervisor,
             'current_field_supervisor_phone' => $enrollment->field_supervisor_phone,
+            'current_field_supervisor_email' => $enrollment->field_supervisor_email,
             'status' => 'pending',
         ]);
 

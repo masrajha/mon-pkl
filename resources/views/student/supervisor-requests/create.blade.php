@@ -22,6 +22,7 @@
                             value="{{ $enrollment->id }}"
                             data-lecturer="{{ $enrollment->lecturer?->name ?: 'Belum ditentukan' }}"
                             data-field-supervisor="{{ $enrollment->field_supervisor ?: 'Belum diisi' }}"
+                            data-field-supervisor-email="{{ $enrollment->field_supervisor_email ?: 'Email belum diisi' }}"
                             @selected(old('internship_enrollment_id') == $enrollment->id)
                         >
                             {{ $enrollment->internshipPeriod?->display_name }} - {{ $enrollment->studyProgram?->name }} - {{ $enrollment->internshipPlace?->name ?: 'Belum ditempatkan' }}
@@ -41,10 +42,11 @@
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pembimbing Lapangan Saat Ini</p>
                     <p class="mt-1 font-semibold text-gray-900" data-current-field-supervisor>-</p>
+                    <p class="mt-1 text-sm text-gray-500" data-current-field-supervisor-email>-</p>
                 </div>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-2">
                 <div>
                     <x-input-label for="requested_lecturer_supervisor_id" value="Usulan Dosen Pembimbing" />
                     <x-select-input id="requested_lecturer_supervisor_id" name="requested_lecturer_supervisor_id" class="mt-1">
@@ -61,6 +63,11 @@
                 <div>
                     <x-input-label for="requested_field_supervisor_phone" value="HP Pembimbing Lapangan" />
                     <x-text-input id="requested_field_supervisor_phone" name="requested_field_supervisor_phone" class="mt-1 block w-full" :value="old('requested_field_supervisor_phone')" />
+                </div>
+                <div>
+                    <x-input-label for="requested_field_supervisor_email" value="Email Pembimbing Lapangan" />
+                    <x-text-input id="requested_field_supervisor_email" name="requested_field_supervisor_email" type="email" class="mt-1 block w-full" :value="old('requested_field_supervisor_email')" />
+                    <p class="mt-1 text-xs text-gray-500">Wajib tersedia sebelum mahasiswa mengajukan Seminar.</p>
                 </div>
             </div>
 
@@ -80,10 +87,12 @@
             const enrollment = document.getElementById('internship_enrollment_id');
             const lecturer = document.querySelector('[data-current-lecturer]');
             const fieldSupervisor = document.querySelector('[data-current-field-supervisor]');
+            const fieldSupervisorEmail = document.querySelector('[data-current-field-supervisor-email]');
             const sync = () => {
                 const option = enrollment.selectedOptions[0];
                 lecturer.textContent = option?.dataset.lecturer || '-';
                 fieldSupervisor.textContent = option?.dataset.fieldSupervisor || '-';
+                fieldSupervisorEmail.textContent = option?.dataset.fieldSupervisorEmail || '-';
             };
 
             enrollment.addEventListener('change', sync);

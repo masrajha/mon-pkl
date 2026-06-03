@@ -34,6 +34,7 @@ class SupervisorChangeRequestController extends Controller
             $query->where(fn ($query) => $query
                 ->where('reason', 'like', '%'.$search.'%')
                 ->orWhere('requested_field_supervisor', 'like', '%'.$search.'%')
+                ->orWhere('requested_field_supervisor_email', 'like', '%'.$search.'%')
                 ->orWhereHas('enrollment.student', fn ($query) => $query->where('full_name', 'like', '%'.$search.'%')->orWhere('npm', 'like', '%'.$search.'%'))
                 ->orWhereHas('requestedLecturer', fn ($query) => $query->where('name', 'like', '%'.$search.'%')));
         }
@@ -66,6 +67,7 @@ class SupervisorChangeRequestController extends Controller
             'lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
             'field_supervisor' => ['nullable', 'string', 'max:255'],
             'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
+            'field_supervisor_email' => ['nullable', 'email', 'max:255'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
@@ -105,6 +107,7 @@ class SupervisorChangeRequestController extends Controller
                 'lecturer_supervisor' => $lecturer?->name ?? $supervisorRequest->enrollment->lecturer_supervisor,
                 'field_supervisor' => ($data['field_supervisor'] ?? null) ?: $supervisorRequest->enrollment->field_supervisor,
                 'field_supervisor_phone' => ($data['field_supervisor_phone'] ?? null) ?: $supervisorRequest->enrollment->field_supervisor_phone,
+                'field_supervisor_email' => ($data['field_supervisor_email'] ?? null) ?: $supervisorRequest->enrollment->field_supervisor_email,
                 'admin_note' => $data['admin_note'] ?? 'Permohonan perubahan pembimbing disetujui.',
             ]);
         });

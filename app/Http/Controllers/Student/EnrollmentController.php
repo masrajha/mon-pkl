@@ -10,6 +10,7 @@ use App\Models\Program;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -77,7 +78,7 @@ class EnrollmentController extends Controller
 
         $this->validateQuota($data, $settings, $existingEnrollment);
 
-        $this->saveEnrollment($data, $student->id, $existingEnrollment);
+        $this->saveEnrollment($request, $data, $student->id, $existingEnrollment);
 
         return redirect()->route('student.dashboard')->with('status', 'Pendaftaran program dikirim dan menunggu verifikasi admin.');
     }
@@ -89,7 +90,7 @@ class EnrollmentController extends Controller
         abort_unless((int) $enrollment->student_id === (int) $student->id, 403);
         abort_unless($enrollment->status === 'revision_required', 403);
 
-        $data = $this->validated($request);
+        $data = $this->validated($request, $enrollment);
         $period = $this->validatedPeriod($data);
 
         if ((int) $enrollment->internship_period_id !== (int) $period->id) {
@@ -104,12 +105,12 @@ class EnrollmentController extends Controller
         $this->validateEligibilityByRule($data, $settings, $period->program?->rule_key, $student->studyProgram?->degree_level);
         $this->validateQuota($data, $settings, $enrollment);
 
-        $this->saveEnrollment($data, $student->id, $enrollment);
+        $this->saveEnrollment($request, $data, $student->id, $enrollment);
 
         return redirect()->route('student.dashboard')->with('status', 'Revisi pendaftaran dikirim kembali dan menunggu verifikasi admin.');
     }
 
-    private function validated(Request $request): array
+    private function validated(Request $request, ?InternshipEnrollment $enrollment = null): array
     {
         $data = $request->validate([
             'internship_period_id' => ['required', 'exists:internship_periods,id'],
@@ -118,10 +119,17 @@ class EnrollmentController extends Controller
             'contact_student_phone' => ['required', 'string', 'max:50'],
             'field_supervisor' => ['nullable', 'string', 'max:255'],
             'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
+            'field_supervisor_email' => ['nullable', 'email', 'max:255'],
             'has_krs_pkl' => ['accepted'],
             'total_sks' => ['required', 'integer', 'min:0', 'max:250'],
             'current_semester' => ['required', 'integer', 'min:1', 'max:20'],
             'gpa' => ['required', 'numeric', 'min:0', 'max:4'],
+            'registration_document' => [
+                $enrollment?->registration_document_path ? 'nullable' : 'required',
+                'file',
+                'mimes:pdf',
+                'max:5120',
+            ],
         ]);
 
         return $data;
@@ -142,9 +150,10 @@ class EnrollmentController extends Controller
         return $period;
     }
 
-    private function saveEnrollment(array $data, int $studentId, ?InternshipEnrollment $enrollment = null): void
+    private function saveEnrollment(Request $request, array $data, int $studentId, ?InternshipEnrollment $enrollment = null): void
     {
         unset($data['program_id']);
+        unset($data['registration_document']);
 
         $payload = $data + [
             'student_id' => $studentId,
@@ -152,6 +161,15 @@ class EnrollmentController extends Controller
             'status' => 'pending_verification',
             'admin_note' => null,
         ];
+
+        if ($request->hasFile('registration_document')) {
+            $payload['registration_document_path'] = $request->file('registration_document')
+                ->store('registration-documents', 'public');
+
+            if ($enrollment?->registration_document_path) {
+                Storage::disk('public')->delete($enrollment->registration_document_path);
+            }
+        }
 
         if ($enrollment) {
             $enrollment->update($payload);

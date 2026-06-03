@@ -68,6 +68,12 @@ class ReportController extends Controller
             'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
 
+        if ($data['deadline_type'] === 'seminar' && blank($enrollment->field_supervisor_email)) {
+            return back()
+                ->withErrors(['deadline_type' => 'Email pembimbing lapangan wajib dilengkapi sebelum mengajukan Seminar.'])
+                ->withInput();
+        }
+
         $approvedExists = SubmissionProgress::query()
             ->where('internship_enrollment_id', $enrollment->id)
             ->where('deadline_type', $data['deadline_type'])

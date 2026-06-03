@@ -40,6 +40,7 @@
                                 $defaultLecturerId = old('lecturer_supervisor_id', $request->requested_lecturer_supervisor_id ?: $request->enrollment?->lecturer_supervisor_id);
                                 $defaultFieldSupervisor = old('field_supervisor', $request->requested_field_supervisor ?: $request->enrollment?->field_supervisor);
                                 $defaultFieldSupervisorPhone = old('field_supervisor_phone', $request->requested_field_supervisor_phone ?: $request->enrollment?->field_supervisor_phone);
+                                $defaultFieldSupervisorEmail = old('field_supervisor_email', $request->requested_field_supervisor_email ?: $request->enrollment?->field_supervisor_email);
                             @endphp
                             <tr>
                                 <td class="silat-table-cell">
@@ -59,8 +60,10 @@
                                 <td class="silat-table-cell">
                                     <div class="text-xs text-gray-500">Saat ini</div>
                                     <div class="font-medium text-gray-900">{{ $request->current_field_supervisor ?: '-' }}</div>
+                                    <div class="text-xs text-gray-500">{{ $request->current_field_supervisor_email ?: '-' }}</div>
                                     <div class="mt-1 text-xs text-gray-500">Usulan</div>
                                     <div class="text-gray-700">{{ $request->requested_field_supervisor ?: '-' }}{{ $request->requested_field_supervisor_phone ? ' - '.$request->requested_field_supervisor_phone : '' }}</div>
+                                    <div class="text-xs text-gray-500">{{ $request->requested_field_supervisor_email ?: '-' }}</div>
                                 </td>
                                 <td class="silat-table-cell text-gray-600">{{ Str::limit($request->reason, 80) }}</td>
                                 <td class="silat-table-cell">
@@ -79,6 +82,7 @@
                                             </select>
                                             <input name="field_supervisor" value="{{ $defaultFieldSupervisor }}" class="w-full rounded-md border-gray-300 text-xs" placeholder="Pembimbing lapangan">
                                             <input name="field_supervisor_phone" value="{{ $defaultFieldSupervisorPhone }}" class="w-full rounded-md border-gray-300 text-xs" placeholder="HP pembimbing lapangan">
+                                            <input name="field_supervisor_email" value="{{ $defaultFieldSupervisorEmail }}" type="email" class="w-full rounded-md border-gray-300 text-xs" placeholder="Email pembimbing lapangan">
                                             <textarea name="admin_note" rows="2" class="w-full rounded-md border-gray-300 text-xs" placeholder="Catatan reviewer"></textarea>
                                             <div class="flex gap-2">
                                                 <button name="status" value="approved" class="rounded-md bg-green-700 px-3 py-1 text-xs font-semibold text-white">Setujui</button>

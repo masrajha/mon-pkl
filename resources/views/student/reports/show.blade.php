@@ -60,6 +60,7 @@
                 @foreach ([
                     ['label' => 'Dosen Pembimbing', 'value' => $enrollment->lecturer?->name ?: 'Belum ditentukan'],
                     ['label' => 'Pembimbing Lapangan', 'value' => $enrollment->field_supervisor ?: 'Belum diisi'],
+                    ['label' => 'Email Pembimbing Lapangan', 'value' => $enrollment->field_supervisor_email ?: 'Belum diisi'],
                     ['label' => 'Total Presensi', 'value' => $enrollment->checkIns->count()],
                     ['label' => 'Status', 'value' => $enrollment->status],
                     ['label' => 'Total Sanksi', 'value' => number_format($enrollment->total_sanctions_points ?? 0, 0, ',', '.').' poin'],
