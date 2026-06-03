@@ -7,14 +7,17 @@ use App\Models\City;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlaceProposal;
 use App\Services\PeriodConfigurationService;
+use App\Services\PlaceProposalEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PlaceProposalController extends Controller
 {
-    public function __construct(private readonly PeriodConfigurationService $configurations)
-    {
+    public function __construct(
+        private readonly PeriodConfigurationService $configurations,
+        private readonly PlaceProposalEmailNotificationService $proposalEmails,
+    ) {
     }
 
     public function create(Request $request): View
@@ -49,12 +52,13 @@ class PlaceProposalController extends Controller
             'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
         ]);
 
-        InternshipPlaceProposal::query()->create($data + [
+        $proposal = InternshipPlaceProposal::query()->create($data + [
             'student_id' => $student->id,
             'study_program_id' => $student->study_program_id,
             'proposed_by' => $request->user()->id,
             'status' => 'pending',
         ]);
+        $this->proposalEmails->submitted($proposal);
 
         return redirect()->route('student.dashboard')->with('status', 'Usulan mitra dikirim dan menunggu validasi admin.');
     }

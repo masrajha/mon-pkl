@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\InternshipEnrollment;
 use App\Models\Lecturer;
 use App\Models\SupervisorChangeRequest;
+use App\Services\SupervisorChangeEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,6 +15,10 @@ use Illuminate\View\View;
 
 class SupervisorChangeRequestController extends Controller
 {
+    public function __construct(private readonly SupervisorChangeEmailNotificationService $supervisorEmails)
+    {
+    }
+
     public function create(Request $request): View
     {
         return view('student.supervisor-requests.create', [
@@ -56,13 +61,14 @@ class SupervisorChangeRequestController extends Controller
             ]);
         }
 
-        SupervisorChangeRequest::query()->create($data + [
+        $supervisorRequest = SupervisorChangeRequest::query()->create($data + [
             'current_lecturer_supervisor_id' => $enrollment->lecturer_supervisor_id,
             'current_field_supervisor' => $enrollment->field_supervisor,
             'current_field_supervisor_phone' => $enrollment->field_supervisor_phone,
             'current_field_supervisor_email' => $enrollment->field_supervisor_email,
             'status' => 'pending',
         ]);
+        $this->supervisorEmails->submitted($supervisorRequest);
 
         return redirect()->route('student.dashboard')->with('status', 'Permohonan perubahan pembimbing berhasil dikirim.');
     }

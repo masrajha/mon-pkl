@@ -490,6 +490,13 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | Data historis utama | Sudah diimport | Data `cities`, `internship_places`, `users`, `students`, `internship_enrollments`, dan `check_ins` sudah masuk database. |
 | Laporan import | Sudah diimplementasikan | Report import tersedia di storage aplikasi. |
 
+### 8.9 Email Notifikasi
+
+| ID SRS | Status Implementasi | Catatan |
+|--------|---------------------|---------|
+| EN-07 | Sudah diimplementasikan | Email perubahan pembimbing dikirim kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Admin dan koordinator sesuai scope periode/prodi menerima email saat ada permohonan baru serta reminder untuk permohonan pending minimal 48 jam. Saat permohonan disetujui dan dosen berubah, dosen pembimbing baru menerima notifikasi penugasan, sedangkan dosen pembimbing lama menerima notifikasi bahwa mahasiswa tidak lagi menjadi bimbingannya. |
+| EN-08 | Sudah diimplementasikan | Email pindah tempat dikirim kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Admin dan koordinator sesuai scope periode/prodi menerima email saat ada permohonan baru serta reminder untuk permohonan pending minimal 48 jam. Saat permohonan disetujui, dosen pembimbing mahasiswa menerima notifikasi bahwa mahasiswa bimbingannya pindah mitra/tempat kegiatan. Modul pindah tempat juga dapat diakses koordinator dengan pembatasan data sesuai penugasan aktif. |
+
 ---
 
 ## 9. Identifikasi Fitur yang Akan Diimplementasikan
@@ -533,8 +540,6 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 | EN-04 | Kirim email pembekalan kepada mahasiswa saat event dibuka, reminder H-1 atau beberapa jam sebelum kegiatan, presensi berhasil dicatat, dan belum presensi mendekati waktu tutup. Kirim email kepada admin/koordinator berisi rekap setelah event ditutup, termasuk jumlah hadir dan tidak hadir. | Tinggi |
 | EN-05 | Kirim digest presensi, bukan email untuk setiap check-in/check-out. Digest dikirim mingguan kepada mahasiswa berisi ringkasan presensi, durasi, jarak, dan sanksi. Digest kepada dosen pembimbing/koordinator berisi mahasiswa dengan pola bermasalah seperti durasi kurang, sering terlambat, atau jarak presensi tidak wajar. | Menengah |
 | EN-06 | Kirim email laporan dan deadline kepada mahasiswa untuk reminder H-7, H-3, H-1, dan hari H; upload berhasil; laporan disetujui; laporan diminta revisi; laporan ditolak; dan sanksi keterlambatan. Kirim email kepada dosen pembimbing saat ada laporan baru menunggu review atau laporan pending review melewati batas waktu. Kirim email rekap kepada admin/koordinator untuk laporan belum diunggah, pending review, dan sanksi tertinggi. | Tinggi |
-| EN-07 | Kirim email perubahan pembimbing kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Kirim email kepada admin/koordinator saat ada permohonan baru atau pending. Kirim email kepada dosen pembimbing saat mahasiswa ditetapkan sebagai bimbingannya atau dikeluarkan dari daftar bimbingannya. | Tinggi |
-| EN-08 | Kirim email pindah tempat kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Kirim email kepada admin/koordinator saat ada permohonan pindah tempat baru atau pending. Kirim email kepada dosen pembimbing saat mahasiswa bimbingannya pindah mitra/tempat kegiatan. | Menengah |
 | EN-09 | Kirim email kepada pembimbing lapangan untuk akses URL + token, token baru jika token lama kedaluwarsa, reminder validasi catatan harian, reminder pemberian nilai kegiatan, dan konfirmasi nilai berhasil dikirim. Kirim email kepada admin/koordinator jika pembimbing lapangan belum mengisi nilai mendekati deadline atau token gagal/expired berulang. | Tinggi |
 | EN-10 | Kirim email penilaian kepada dosen pembimbing saat mahasiswa sudah memenuhi syarat untuk dinilai, reminder pengisian nilai laporan/seminar, dan konfirmasi nilai tersimpan. Kirim email kepada admin saat semua komponen nilai sudah lengkap dan siap disahkan atau ada nilai belum lengkap mendekati penutupan periode. | Tinggi |
 | EN-11 | Kirim email operasional kepada admin/super admin saat periode baru dibuat, periode dikunci/diselesaikan, konfigurasi penting berubah, import data selesai/gagal, atau terjadi error penting pada pengiriman email, storage, dan integrasi. | Menengah |

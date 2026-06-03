@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\ImportFirebaseJson::class,
         \App\Console\Commands\ProcessEmailNotifications::class,
         \App\Console\Commands\QueuePendingEnrollmentReminders::class,
+        \App\Console\Commands\QueuePendingPlaceProposalReminders::class,
+        \App\Console\Commands\QueuePendingSupervisorChangeReminders::class,
+        \App\Console\Commands\QueuePendingRelocationReminders::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

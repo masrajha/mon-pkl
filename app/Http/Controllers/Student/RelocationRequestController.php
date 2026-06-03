@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlace;
 use App\Models\RelocationRequest;
+use App\Services\RelocationEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,6 +15,10 @@ use Illuminate\View\View;
 
 class RelocationRequestController extends Controller
 {
+    public function __construct(private readonly RelocationEmailNotificationService $relocationEmails)
+    {
+    }
+
     public function create(Request $request): View
     {
         return view('student.relocations.create', [
@@ -38,10 +43,11 @@ class RelocationRequestController extends Controller
             throw ValidationException::withMessages(['new_internship_place_id' => 'Tempat tujuan harus berbeda dari tempat saat ini.']);
         }
 
-        RelocationRequest::query()->create($data + [
+        $relocation = RelocationRequest::query()->create($data + [
             'current_internship_place_id' => $enrollment->internship_place_id,
             'status' => 'pending',
         ]);
+        $this->relocationEmails->submitted($relocation);
 
         return redirect()->route('student.dashboard')->with('status', 'Permohonan pindah mitra berhasil dikirim.');
     }

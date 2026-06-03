@@ -205,6 +205,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/management/orientation-events/{orientationEvent}', [ManagementOrientationEventController::class, 'show'])->name('management.orientation-events.show');
         Route::get('/management/supervisor-requests', [ManagementSupervisorChangeRequestController::class, 'index'])->name('management.supervisor-requests.index');
         Route::patch('/management/supervisor-requests/{supervisorRequest}', [ManagementSupervisorChangeRequestController::class, 'update'])->name('management.supervisor-requests.update');
+        Route::get('/management/relocations', [ManagementRelocationRequestController::class, 'index'])->name('management.relocations.index');
+        Route::patch('/management/relocations/{relocation}', [ManagementRelocationRequestController::class, 'update'])->name('management.relocations.update');
     });
 
     Route::middleware('role:admin,dosen,koordinator')->group(function () {
@@ -262,9 +264,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/management/place-proposals', [ManagementPlaceProposalController::class, 'index'])->name('management.place-proposals.index');
         Route::post('/management/place-proposals/{proposal}/approve', [ManagementPlaceProposalController::class, 'approve'])->name('management.place-proposals.approve');
         Route::post('/management/place-proposals/{proposal}/reject', [ManagementPlaceProposalController::class, 'reject'])->name('management.place-proposals.reject');
-        Route::get('/management/relocations', [ManagementRelocationRequestController::class, 'index'])->name('management.relocations.index');
-        Route::patch('/management/relocations/{relocation}', [ManagementRelocationRequestController::class, 'update'])->name('management.relocations.update');
-
         Route::get('/management/enrollments', [ManagementEnrollmentController::class, 'index'])->name('management.enrollments.index');
         Route::get('/management/enrollments/students/search', [ManagementEnrollmentController::class, 'studentSearch'])->name('management.enrollments.students.search');
         Route::post('/management/enrollments', [ManagementEnrollmentController::class, 'store'])->name('management.enrollments.store');

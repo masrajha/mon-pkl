@@ -44,4 +44,9 @@ class RelocationRequest extends Model
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
+
+    public function emailNotifications()
+    {
+        return $this->morphMany(EmailNotification::class, 'notifiable');
+    }
 }

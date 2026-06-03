@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\Lecturer;
 use App\Models\SupervisorChangeRequest;
+use App\Services\SupervisorChangeEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,10 @@ use Illuminate\View\View;
 class SupervisorChangeRequestController extends Controller
 {
     use InteractsWithTableControls;
+
+    public function __construct(private readonly SupervisorChangeEmailNotificationService $supervisorEmails)
+    {
+    }
 
     public function index(Request $request): View
     {
@@ -111,6 +116,7 @@ class SupervisorChangeRequestController extends Controller
                 'admin_note' => $data['admin_note'] ?? 'Permohonan perubahan pembimbing disetujui.',
             ]);
         });
+        $this->supervisorEmails->reviewed($supervisorRequest->refresh());
 
         return back()->with('status', 'Permohonan perubahan pembimbing berhasil diproses.');
     }

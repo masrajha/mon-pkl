@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\City;
 use App\Models\InternshipPlace;
 use App\Models\InternshipPlaceProposal;
+use App\Services\PlaceProposalEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,10 @@ use Illuminate\View\View;
 class PlaceProposalController extends Controller
 {
     use InteractsWithTableControls;
+
+    public function __construct(private readonly PlaceProposalEmailNotificationService $proposalEmails)
+    {
+    }
 
     public function index(Request $request): View
     {
@@ -64,6 +69,7 @@ class PlaceProposalController extends Controller
                 'reviewed_at' => now(),
             ]);
         });
+        $this->proposalEmails->reviewed($proposal->refresh(), $proposal->status);
 
         return back()->with('status', 'Usulan mitra berhasil divalidasi.');
     }
@@ -80,6 +86,7 @@ class PlaceProposalController extends Controller
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
         ]);
+        $this->proposalEmails->reviewed($proposal->refresh(), 'rejected');
 
         return back()->with('status', 'Usulan mitra ditolak.');
     }

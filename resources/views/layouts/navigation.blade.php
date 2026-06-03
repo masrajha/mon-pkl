@@ -38,6 +38,7 @@
             'items' => [
                 ['label' => 'Dashboard Koordinator', 'route' => 'coordinator.dashboard', 'icon' => 'fa-user-tie', 'active' => ['coordinator.*']],
                 ['label' => 'Validasi Pendaftaran', 'route' => 'management.enrollment-validations.index', 'icon' => 'fa-user-check', 'active' => ['management.enrollment-validations.*']],
+                ['label' => 'Pindah Tempat', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*']],
                 ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*']],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],

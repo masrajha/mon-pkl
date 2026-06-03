@@ -15,3 +15,15 @@ Schedule::command('silat:email-notifications:process --limit=100')
 Schedule::command('silat:enrollment-notifications:queue-pending-reminders --days=3')
     ->hourly()
     ->withoutOverlapping();
+
+Schedule::command('silat:place-proposal-notifications:queue-pending-reminders --hours=48')
+    ->hourly()
+    ->withoutOverlapping();
+
+Schedule::command('silat:supervisor-change-notifications:queue-pending-reminders --hours=48')
+    ->hourly()
+    ->withoutOverlapping();
+
+Schedule::command('silat:relocation-notifications:queue-pending-reminders --hours=48')
+    ->hourly()
+    ->withoutOverlapping();
