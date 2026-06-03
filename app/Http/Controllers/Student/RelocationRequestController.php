@@ -19,11 +19,23 @@ class RelocationRequestController extends Controller
     {
     }
 
+    public function index(Request $request): View
+    {
+        return view('student.relocations.index', [
+            'requests' => $this->studentRequests($request),
+            'hasPendingRequest' => $this->hasPendingRequest($request),
+        ]);
+    }
+
     public function create(Request $request): View
     {
+        $selectedEnrollmentId = (int) $request->integer('enrollment_id');
+
         return view('student.relocations.create', [
             'enrollments' => $this->activeEnrollments($request),
             'places' => InternshipPlace::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedEnrollmentId' => $selectedEnrollmentId,
+            'hasPendingRequest' => $this->hasPendingRequest($request),
         ]);
     }
 
@@ -39,6 +51,12 @@ class RelocationRequestController extends Controller
 
         $enrollment = InternshipEnrollment::query()->findOrFail($data['internship_enrollment_id']);
 
+        if ($this->hasPendingRequest($request)) {
+            throw ValidationException::withMessages([
+                'internship_enrollment_id' => 'Masih ada permohonan pindah tempat yang menunggu persetujuan. Batalkan atau tunggu keputusan terlebih dahulu.',
+            ]);
+        }
+
         if ((int) $enrollment->internship_place_id === (int) $data['new_internship_place_id']) {
             throw ValidationException::withMessages(['new_internship_place_id' => 'Tempat tujuan harus berbeda dari tempat saat ini.']);
         }
@@ -52,6 +70,22 @@ class RelocationRequestController extends Controller
         return redirect()->route('student.dashboard')->with('status', 'Permohonan pindah mitra berhasil dikirim.');
     }
 
+    public function cancel(Request $request, RelocationRequest $relocation): RedirectResponse
+    {
+        $this->authorizeStudentRequest($request, $relocation);
+
+        if ($relocation->status !== 'pending') {
+            throw ValidationException::withMessages(['status' => 'Permohonan hanya dapat dibatalkan saat masih menunggu.']);
+        }
+
+        $relocation->update([
+            'status' => 'cancelled',
+            'admin_note' => 'Dibatalkan oleh mahasiswa.',
+        ]);
+
+        return redirect()->route('student.relocations.index')->with('status', 'Permohonan pindah tempat dibatalkan.');
+    }
+
     private function activeEnrollments(Request $request)
     {
         return InternshipEnrollment::query()
@@ -60,5 +94,32 @@ class RelocationRequestController extends Controller
             ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id))
             ->latest('id')
             ->get();
+    }
+
+    private function studentRequests(Request $request)
+    {
+        return RelocationRequest::query()
+            ->with(['enrollment.internshipPeriod.program', 'enrollment.studyProgram', 'currentPlace', 'newPlace', 'reviewer'])
+            ->whereHas('enrollment.student', fn ($query) => $query->where('user_id', $request->user()?->id))
+            ->latest('id')
+            ->get();
+    }
+
+    private function hasPendingRequest(Request $request): bool
+    {
+        return RelocationRequest::query()
+            ->where('status', 'pending')
+            ->whereHas('enrollment.student', fn ($query) => $query->where('user_id', $request->user()?->id))
+            ->exists();
+    }
+
+    private function authorizeStudentRequest(Request $request, RelocationRequest $relocation): void
+    {
+        abort_unless(
+            $relocation->enrollment()
+                ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id))
+                ->exists(),
+            403,
+        );
     }
 }

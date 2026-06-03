@@ -38,6 +38,21 @@ class DashboardController extends Controller
             ->sortBy('deadline_date')
             ->first();
 
+        $relocationRequests = $student
+            ? RelocationRequest::query()
+                ->with(['enrollment.internshipPeriod.program', 'currentPlace', 'newPlace'])
+                ->whereHas('enrollment', fn ($query) => $query->where('student_id', $student->id))
+                ->latest('id')
+                ->get()
+            : collect();
+        $supervisorChangeRequests = $student
+            ? SupervisorChangeRequest::query()
+                ->with(['enrollment.internshipPeriod.program', 'currentLecturer', 'requestedLecturer'])
+                ->whereHas('enrollment', fn ($query) => $query->where('student_id', $student->id))
+                ->latest('id')
+                ->get()
+            : collect();
+
         return view('student.dashboard', [
             'student' => $student,
             'enrollments' => $enrollments,
@@ -57,20 +72,10 @@ class DashboardController extends Controller
                     ->latest('id')
                     ->get()
                 : collect(),
-            'relocationRequests' => $student
-                ? RelocationRequest::query()
-                    ->with(['enrollment.internshipPeriod.program', 'currentPlace', 'newPlace'])
-                    ->whereHas('enrollment', fn ($query) => $query->where('student_id', $student->id))
-                    ->latest('id')
-                    ->get()
-                : collect(),
-            'supervisorChangeRequests' => $student
-                ? SupervisorChangeRequest::query()
-                    ->with(['enrollment.internshipPeriod.program', 'currentLecturer', 'requestedLecturer'])
-                    ->whereHas('enrollment', fn ($query) => $query->where('student_id', $student->id))
-                    ->latest('id')
-                    ->get()
-                : collect(),
+            'relocationRequests' => $relocationRequests,
+            'supervisorChangeRequests' => $supervisorChangeRequests,
+            'hasPendingRelocationRequest' => $relocationRequests->contains('status', 'pending'),
+            'hasPendingSupervisorChangeRequest' => $supervisorChangeRequests->contains('status', 'pending'),
         ]);
     }
 }

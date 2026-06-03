@@ -12,7 +12,7 @@
                         <x-input-label for="filter_status" value="Status" />
                         <select id="filter_status" name="status" class="mt-1 w-full rounded-md border-gray-300 text-sm">
                             <option value="">Semua status</option>
-                            @foreach (['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'] as $value => $label)
+                            @foreach (['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan'] as $value => $label)
                                 <option value="{{ $value }}" @selected($selectedStatus === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
@@ -36,7 +36,7 @@
                     <tbody>
                         @forelse ($requests as $request)
                             @php
-                                $statusVariant = match($request->status) {'pending' => 'warning', 'approved' => 'success', 'rejected' => 'danger', default => 'neutral'};
+                                $statusVariant = match($request->status) {'pending' => 'warning', 'approved' => 'success', 'rejected' => 'danger', 'cancelled' => 'neutral', default => 'neutral'};
                                 $defaultLecturerId = old('lecturer_supervisor_id', $request->requested_lecturer_supervisor_id ?: $request->enrollment?->lecturer_supervisor_id);
                                 $defaultFieldSupervisor = old('field_supervisor', $request->requested_field_supervisor ?: $request->enrollment?->field_supervisor);
                                 $defaultFieldSupervisorPhone = old('field_supervisor_phone', $request->requested_field_supervisor_phone ?: $request->enrollment?->field_supervisor_phone);
@@ -67,7 +67,7 @@
                                 </td>
                                 <td class="silat-table-cell text-gray-600">{{ Str::limit($request->reason, 80) }}</td>
                                 <td class="silat-table-cell">
-                                    <x-badge :variant="$statusVariant">{{ ['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$request->status] ?? Str::headline($request->status) }}</x-badge>
+                                    <x-badge :variant="$statusVariant">{{ ['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan'][$request->status] ?? Str::headline($request->status) }}</x-badge>
                                     @if($request->admin_note)<div class="mt-1 text-xs text-gray-500">{{ $request->admin_note }}</div>@endif
                                 </td>
                                 <td class="silat-table-cell">

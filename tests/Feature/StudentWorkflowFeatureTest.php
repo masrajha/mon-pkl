@@ -274,6 +274,24 @@ class StudentWorkflowFeatureTest extends TestCase
 
         $request = \App\Models\RelocationRequest::query()->firstOrFail();
 
+        $this->actingAs($user)
+            ->get(route('student.relocations.index'))
+            ->assertOk()
+            ->assertSee('Tempat Lama')
+            ->assertSee('Tempat Baru')
+            ->assertSee('Menunggu')
+            ->assertSee('Batalkan');
+
+        $this->actingAs($user)
+            ->from(route('student.relocations.create'))
+            ->post(route('student.relocations.store'), [
+                'internship_enrollment_id' => $enrollment->id,
+                'new_internship_place_id' => $newPlace->id,
+                'reason' => 'Mencoba mengirim permohonan kedua.',
+            ])
+            ->assertRedirect(route('student.relocations.create'))
+            ->assertSessionHasErrors('internship_enrollment_id');
+
         $this->actingAs($admin)
             ->patch(route('management.relocations.update', $request), [
                 'status' => 'approved',
@@ -284,6 +302,67 @@ class StudentWorkflowFeatureTest extends TestCase
         $this->assertDatabaseHas('internship_enrollments', [
             'id' => $enrollment->id,
             'internship_place_id' => $newPlace->id,
+        ]);
+    }
+
+    public function test_student_can_cancel_pending_relocation_and_submit_again(): void
+    {
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        $program = StudyProgram::query()->create(['code' => 'PDR', 'name' => 'Pindah Dibatalkan', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Batal Pindah', 'academic_year' => '2026/2027']);
+        $oldPlace = InternshipPlace::query()->create(['name' => 'Tempat Awal Batal', 'is_active' => true]);
+        $firstPlace = InternshipPlace::query()->create(['name' => 'Tempat Tujuan Batal', 'is_active' => true]);
+        $secondPlace = InternshipPlace::query()->create(['name' => 'Tempat Tujuan Baru', 'is_active' => true]);
+        $student = Student::query()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $program->id,
+            'npm' => '2217051014',
+            'full_name' => 'Mahasiswa Batal Pindah',
+            'student_email' => '2217051014@student.unila.ac.id',
+        ]);
+        $enrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $program->id,
+            'internship_period_id' => $period->id,
+            'internship_place_id' => $oldPlace->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('student.relocations.create', ['enrollment_id' => $enrollment->id]))
+            ->assertOk()
+            ->assertSee('selected', false);
+
+        $this->actingAs($user)
+            ->post(route('student.relocations.store'), [
+                'internship_enrollment_id' => $enrollment->id,
+                'new_internship_place_id' => $firstPlace->id,
+                'reason' => 'Permohonan pertama.',
+            ])
+            ->assertRedirect(route('student.dashboard'));
+
+        $request = \App\Models\RelocationRequest::query()->firstOrFail();
+
+        $this->actingAs($user)
+            ->patch(route('student.relocations.cancel', $request))
+            ->assertRedirect(route('student.relocations.index'));
+
+        $this->assertDatabaseHas('relocation_requests', [
+            'id' => $request->id,
+            'status' => 'cancelled',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('student.relocations.store'), [
+                'internship_enrollment_id' => $enrollment->id,
+                'new_internship_place_id' => $secondPlace->id,
+                'reason' => 'Permohonan setelah pembatalan.',
+            ])
+            ->assertRedirect(route('student.dashboard'));
+
+        $this->assertDatabaseHas('relocation_requests', [
+            'new_internship_place_id' => $secondPlace->id,
+            'status' => 'pending',
         ]);
     }
 
@@ -514,6 +593,23 @@ class StudentWorkflowFeatureTest extends TestCase
 
         $request = \App\Models\SupervisorChangeRequest::query()->firstOrFail();
 
+        $this->actingAs($user)
+            ->get(route('student.supervisor-requests.index'))
+            ->assertOk()
+            ->assertSee('Dosen Baru')
+            ->assertSee('Menunggu')
+            ->assertSee('Batalkan');
+
+        $this->actingAs($user)
+            ->from(route('student.supervisor-requests.create'))
+            ->post(route('student.supervisor-requests.store'), [
+                'internship_enrollment_id' => $enrollment->id,
+                'requested_lecturer_supervisor_id' => $lecturer->id,
+                'reason' => 'Mencoba mengirim permohonan kedua.',
+            ])
+            ->assertRedirect(route('student.supervisor-requests.create'))
+            ->assertSessionHasErrors('internship_enrollment_id');
+
         $this->actingAs($admin)
             ->patch(route('management.supervisor-requests.update', $request), [
                 'status' => 'approved',
@@ -536,6 +632,67 @@ class StudentWorkflowFeatureTest extends TestCase
         $this->actingAs($user)
             ->get(route('student.reports.print', $enrollment))
             ->assertOk();
+    }
+
+    public function test_student_can_cancel_pending_supervisor_change_and_submit_again(): void
+    {
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        $program = StudyProgram::query()->create(['code' => 'PSP', 'name' => 'Pembimbing Dibatalkan', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Batal Pembimbing', 'academic_year' => '2026/2027']);
+        $place = InternshipPlace::query()->create(['name' => 'PT Batal Pembimbing', 'is_active' => true]);
+        $lecturer = Lecturer::query()->create(['name' => 'Dosen Tujuan Batal', 'status' => 'active']);
+        $student = Student::query()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $program->id,
+            'npm' => '2217051015',
+            'full_name' => 'Mahasiswa Batal Pembimbing',
+            'student_email' => '2217051015@student.unila.ac.id',
+        ]);
+        $enrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $program->id,
+            'internship_period_id' => $period->id,
+            'internship_place_id' => $place->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('student.supervisor-requests.create', ['enrollment_id' => $enrollment->id]))
+            ->assertOk()
+            ->assertSee('selected', false);
+
+        $this->actingAs($user)
+            ->post(route('student.supervisor-requests.store'), [
+                'internship_enrollment_id' => $enrollment->id,
+                'requested_lecturer_supervisor_id' => $lecturer->id,
+                'requested_field_supervisor' => 'Pembimbing Batal',
+                'reason' => 'Permohonan pertama.',
+            ])
+            ->assertRedirect(route('student.dashboard'));
+
+        $request = \App\Models\SupervisorChangeRequest::query()->firstOrFail();
+
+        $this->actingAs($user)
+            ->patch(route('student.supervisor-requests.cancel', $request))
+            ->assertRedirect(route('student.supervisor-requests.index'));
+
+        $this->assertDatabaseHas('supervisor_change_requests', [
+            'id' => $request->id,
+            'status' => 'cancelled',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('student.supervisor-requests.store'), [
+                'internship_enrollment_id' => $enrollment->id,
+                'requested_field_supervisor' => 'Pembimbing Baru Setelah Batal',
+                'reason' => 'Permohonan setelah pembatalan.',
+            ])
+            ->assertRedirect(route('student.dashboard'));
+
+        $this->assertDatabaseHas('supervisor_change_requests', [
+            'requested_field_supervisor' => 'Pembimbing Baru Setelah Batal',
+            'status' => 'pending',
+        ]);
     }
 
     public function test_student_can_upload_progress_with_late_sanction_and_lecturer_can_review(): void

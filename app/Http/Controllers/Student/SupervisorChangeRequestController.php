@@ -19,11 +19,23 @@ class SupervisorChangeRequestController extends Controller
     {
     }
 
+    public function index(Request $request): View
+    {
+        return view('student.supervisor-requests.index', [
+            'requests' => $this->studentRequests($request),
+            'hasPendingRequest' => $this->hasPendingRequest($request),
+        ]);
+    }
+
     public function create(Request $request): View
     {
+        $selectedEnrollmentId = (int) $request->integer('enrollment_id');
+
         return view('student.supervisor-requests.create', [
             'enrollments' => $this->activeEnrollments($request),
             'lecturers' => Lecturer::query()->where('status', 'active')->orderBy('name')->get(),
+            'selectedEnrollmentId' => $selectedEnrollmentId,
+            'hasPendingRequest' => $this->hasPendingRequest($request),
         ]);
     }
 
@@ -44,9 +56,9 @@ class SupervisorChangeRequestController extends Controller
             ->with(['supervisorChangeRequests' => fn ($query) => $query->where('status', 'pending')])
             ->findOrFail($data['internship_enrollment_id']);
 
-        if ($enrollment->supervisorChangeRequests->isNotEmpty()) {
+        if ($enrollment->supervisorChangeRequests->isNotEmpty() || $this->hasPendingRequest($request)) {
             throw ValidationException::withMessages([
-                'internship_enrollment_id' => 'Masih ada permohonan perubahan pembimbing yang menunggu persetujuan.',
+                'internship_enrollment_id' => 'Masih ada permohonan perubahan pembimbing yang menunggu persetujuan. Batalkan atau tunggu keputusan terlebih dahulu.',
             ]);
         }
 
@@ -73,6 +85,22 @@ class SupervisorChangeRequestController extends Controller
         return redirect()->route('student.dashboard')->with('status', 'Permohonan perubahan pembimbing berhasil dikirim.');
     }
 
+    public function cancel(Request $request, SupervisorChangeRequest $supervisorRequest): RedirectResponse
+    {
+        $this->authorizeStudentRequest($request, $supervisorRequest);
+
+        if ($supervisorRequest->status !== 'pending') {
+            throw ValidationException::withMessages(['status' => 'Permohonan hanya dapat dibatalkan saat masih menunggu.']);
+        }
+
+        $supervisorRequest->update([
+            'status' => 'cancelled',
+            'admin_note' => 'Dibatalkan oleh mahasiswa.',
+        ]);
+
+        return redirect()->route('student.supervisor-requests.index')->with('status', 'Permohonan perubahan pembimbing dibatalkan.');
+    }
+
     private function activeEnrollments(Request $request)
     {
         return InternshipEnrollment::query()
@@ -81,5 +109,32 @@ class SupervisorChangeRequestController extends Controller
             ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id))
             ->latest('id')
             ->get();
+    }
+
+    private function studentRequests(Request $request)
+    {
+        return SupervisorChangeRequest::query()
+            ->with(['enrollment.internshipPeriod.program', 'enrollment.studyProgram', 'enrollment.internshipPlace', 'currentLecturer', 'requestedLecturer', 'reviewer'])
+            ->whereHas('enrollment.student', fn ($query) => $query->where('user_id', $request->user()?->id))
+            ->latest('id')
+            ->get();
+    }
+
+    private function hasPendingRequest(Request $request): bool
+    {
+        return SupervisorChangeRequest::query()
+            ->where('status', 'pending')
+            ->whereHas('enrollment.student', fn ($query) => $query->where('user_id', $request->user()?->id))
+            ->exists();
+    }
+
+    private function authorizeStudentRequest(Request $request, SupervisorChangeRequest $supervisorRequest): void
+    {
+        abort_unless(
+            $supervisorRequest->enrollment()
+                ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id))
+                ->exists(),
+            403,
+        );
     }
 }

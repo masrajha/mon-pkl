@@ -9,6 +9,9 @@
 
     <div class="py-8"><div class="silat-shell max-w-4xl">
         @if ($errors->any())<x-alert variant="danger" class="mb-6">{{ $errors->first() }}</x-alert>@endif
+        @if ($hasPendingRequest)
+            <x-alert variant="warning" class="mb-6">Masih ada permohonan perubahan pembimbing berstatus Menunggu. Batalkan permohonan tersebut atau tunggu keputusan admin/koordinator sebelum mengajukan yang baru.</x-alert>
+        @endif
 
         <form method="POST" action="{{ route('student.supervisor-requests.store') }}" class="silat-card space-y-5 p-6">
             @csrf
@@ -23,7 +26,7 @@
                             data-lecturer="{{ $enrollment->lecturer?->name ?: 'Belum ditentukan' }}"
                             data-field-supervisor="{{ $enrollment->field_supervisor ?: 'Belum diisi' }}"
                             data-field-supervisor-email="{{ $enrollment->field_supervisor_email ?: 'Email belum diisi' }}"
-                            @selected(old('internship_enrollment_id') == $enrollment->id)
+                            @selected((string) old('internship_enrollment_id', $selectedEnrollmentId) === (string) $enrollment->id)
                         >
                             {{ $enrollment->internshipPeriod?->display_name }} - {{ $enrollment->studyProgram?->name }} - {{ $enrollment->internshipPlace?->name ?: 'Belum ditempatkan' }}
                         </option>
@@ -77,7 +80,10 @@
             </div>
 
             <div class="flex justify-end">
-                <x-primary-button><x-icon name="fa-paper-plane" /> Kirim Permohonan</x-primary-button>
+                <div class="flex items-center gap-4">
+                    <a class="silat-secondary-link" href="{{ route('student.supervisor-requests.index') }}">Lihat histori</a>
+                    <x-primary-button :disabled="$hasPendingRequest || $enrollments->isEmpty()"><x-icon name="fa-paper-plane" /> Kirim Permohonan</x-primary-button>
+                </div>
             </div>
         </form>
     </div></div>

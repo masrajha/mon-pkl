@@ -2,6 +2,9 @@
     <x-slot name="header"><h2 class="text-xl font-semibold text-gray-800">{{ __('Permohonan Pindah Mitra') }}</h2></x-slot>
     <div class="py-10"><div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
         @if ($errors->any())<div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{{ $errors->first() }}</div>@endif
+        @if ($hasPendingRequest)
+            <x-alert variant="warning" class="mb-4">Masih ada permohonan pindah tempat berstatus Menunggu. Batalkan permohonan tersebut atau tunggu keputusan admin/koordinator sebelum mengajukan yang baru.</x-alert>
+        @endif
         <form method="POST" action="{{ route('student.relocations.store') }}" class="space-y-4 bg-white p-6 shadow-sm sm:rounded-lg">
             @csrf
             <div>
@@ -9,11 +12,14 @@
                 <select id="internship_enrollment_id" name="internship_enrollment_id" class="mt-1 block w-full rounded-md border-gray-300" required>
                     <option value="">Pilih enrollment</option>
                     @foreach ($enrollments as $enrollment)
-                        <option value="{{ $enrollment->id }}" @selected(old('internship_enrollment_id') == $enrollment->id)>
+                        <option value="{{ $enrollment->id }}" @selected((string) old('internship_enrollment_id', $selectedEnrollmentId) === (string) $enrollment->id)>
                             {{ $enrollment->internshipPeriod?->display_name }} - {{ $enrollment->studyProgram?->name }} - {{ $enrollment->internshipPlace?->name ?: 'Belum ditempatkan' }}
                         </option>
                     @endforeach
                 </select>
+                @if ($enrollments->isEmpty())
+                    <p class="mt-2 text-sm text-amber-700">Belum ada enrollment aktif yang dapat diajukan pindah tempat.</p>
+                @endif
             </div>
             <div>
                 <x-input-label for="new_internship_place_id" value="Mitra Tujuan" />
@@ -28,7 +34,10 @@
                 <x-input-label for="reason" value="Alasan Pindah" />
                 <textarea id="reason" name="reason" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ old('reason') }}</textarea>
             </div>
-            <x-primary-button>Kirim Permohonan</x-primary-button>
+            <div class="flex items-center justify-between gap-3">
+                <a class="silat-secondary-link" href="{{ route('student.relocations.index') }}">Lihat histori</a>
+                <x-primary-button :disabled="$hasPendingRequest || $enrollments->isEmpty()">Kirim Permohonan</x-primary-button>
+            </div>
         </form>
     </div></div>
 </x-app-layout>

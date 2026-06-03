@@ -179,10 +179,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/student/places/data', [StudentPlaceController::class, 'data'])->name('student.places.data');
         Route::get('/student/place-proposals/create', [StudentPlaceProposalController::class, 'create'])->name('student.proposals.create');
         Route::post('/student/place-proposals', [StudentPlaceProposalController::class, 'store'])->name('student.proposals.store');
+        Route::get('/student/relocations', [StudentRelocationRequestController::class, 'index'])->name('student.relocations.index');
         Route::get('/student/relocations/create', [StudentRelocationRequestController::class, 'create'])->name('student.relocations.create');
         Route::post('/student/relocations', [StudentRelocationRequestController::class, 'store'])->name('student.relocations.store');
+        Route::patch('/student/relocations/{relocation}/cancel', [StudentRelocationRequestController::class, 'cancel'])->name('student.relocations.cancel');
+        Route::get('/student/supervisor-requests', [StudentSupervisorChangeRequestController::class, 'index'])->name('student.supervisor-requests.index');
         Route::get('/student/supervisor-requests/create', [StudentSupervisorChangeRequestController::class, 'create'])->name('student.supervisor-requests.create');
         Route::post('/student/supervisor-requests', [StudentSupervisorChangeRequestController::class, 'store'])->name('student.supervisor-requests.store');
+        Route::patch('/student/supervisor-requests/{supervisorRequest}/cancel', [StudentSupervisorChangeRequestController::class, 'cancel'])->name('student.supervisor-requests.cancel');
         Route::get('/student/reports/{enrollment}', [StudentReportController::class, 'show'])->name('student.reports.show');
         Route::post('/student/reports/{enrollment}/progress', [StudentReportController::class, 'storeProgress'])->name('student.reports.progress.store');
         Route::get('/student/reports/{enrollment}/daily-logs/print', [StudentReportController::class, 'printDailyLogs'])->name('student.reports.daily-logs.print');
