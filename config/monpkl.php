@@ -41,6 +41,38 @@ return [
         'single_afternoon_checkin_hour' => (int) env('MONPKL_REPORT_SINGLE_AFTERNOON_CHECKIN_HOUR', 11),
     ],
 
+    'deadline_types' => [
+        'registration_start' => 'Pendaftaran Dibuka',
+        'registration_end' => 'Pendaftaran Ditutup',
+        'proposal' => 'Proposal Rencana Kerja',
+        'bab1' => 'Pelaporan Tahap 1: Bab 1',
+        'bab2' => 'Pelaporan Tahap 2: Bab 1 dan 2.',
+        'bab3' => 'Pelaporan Tahap 3: Bab 1, 2 dan 3.',
+        'full_report' => 'Pelaporan Tahap 4 (Laporan Lengkap): Bab 1 s.d 5',
+        'seminar' => 'Seminar',
+        'hardcopy' => 'Hardcover',
+    ],
+
+    'report_submission_types' => [
+        'proposal' => 'Proposal Rencana Kerja',
+        'bab1' => 'Pelaporan Tahap 1: Bab 1',
+        'bab2' => 'Pelaporan Tahap 2: Bab 1 dan 2.',
+        'bab3' => 'Pelaporan Tahap 3: Bab 1, 2 dan 3.',
+        'full_report' => 'Pelaporan Tahap 4 (Laporan Lengkap): Bab 1 s.d 5',
+        'seminar' => 'Seminar',
+        'hardcopy' => 'Hardcover',
+    ],
+
+    'report_submission_notes' => [
+        'proposal' => 'Cantumkan data mahasiswa (nama, NPM, kontak, email), data instansi (pimpinan, kontak), minimal 4 rencana jenis pekerjaan, jadwal mulai-selesai, serta rencana kegiatan singkat yang spesifik.',
+        'bab1' => 'Fokus pada latar belakang pemilihan instansi, tujuan proyek (bukan tujuan umum PKL), manfaat bagi mahasiswa dan instansi, serta lingkup waktu, tempat, dan substansi. Hindari mencampur isi bab lain.',
+        'bab2' => 'Bab 1 harus sudah lengkap dan direvisi. Bab 2 wajib memuat gambaran umum perusahaan (sejarah, struktur, produk, peralatan, mitra), landasan teori relevan, serta analisis proses bisnis berjalan (permasalahan & kebutuhan informasi).',
+        'bab3' => 'Bab 3 (Rencana Kegiatan) harus berisi deskripsi kegiatan solusi alternatif, sumber data, metode pengumpulan data, dan metode penyelesaian masalah bertahap. Pastikan konsistensi alur ketiga bab.',
+        'full_report' => 'Lengkapi dengan Bab IV (Pembahasan) yang berisi analisis kelemahan & keunggulan serta pengajuan solusi alternatif (minimal rancangan, lebih baik implementasi). Bab V (Kesimpulan & Rekomendasi) harus sesuai analisis. Perhatikan format: A4, bahasa Indonesia, sampul buffalo.',
+        'seminar' => 'Upload form pendaftaran seminar sebagai bukti pendaftaran dan kesiapan mengikuti seminar hasil PKL.',
+        'hardcopy' => 'Upload tanda terima hardcover dari jurusan sebagai bukti penyerahan laporan final dalam bentuk cetak hardcover.',
+    ],
+
     'calendar' => [
         'holidays' => [
             '2024-02-01', '2024-02-08', '2024-02-10', '2024-03-11', '2024-03-29',

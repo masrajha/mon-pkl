@@ -10,6 +10,7 @@ use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class SystemConfigurationController extends Controller
@@ -94,7 +95,7 @@ class SystemConfigurationController extends Controller
             'map.monitoring_limit_default' => ['required', 'integer', 'min:1', 'max:10000'],
             'map.monitoring_limit_max' => ['required', 'integer', 'min:1', 'max:20000'],
             'deadlines' => ['nullable', 'array'],
-            'deadlines.*.deadline_type' => ['required_with:deadlines', 'string', 'max:50'],
+            'deadlines.*.deadline_type' => ['required_with:deadlines', 'string', 'max:50', Rule::in(array_keys($this->deadlineTypes()))],
             'deadlines.*.deadline_date' => ['nullable', 'date'],
             'deadlines.*.penalty_points' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'deadlines.*.is_fixed_penalty' => ['nullable', 'boolean'],
@@ -157,19 +158,7 @@ class SystemConfigurationController extends Controller
 
     private function deadlineTypes(): array
     {
-        return [
-            'registration_start' => 'Pendaftaran Dibuka',
-            'registration_end' => 'Pendaftaran Ditutup',
-            'proposal' => 'Proposal Rencana Kerja',
-            'bab1' => 'Bab I',
-            'bab2' => 'Bab II',
-            'bab3' => 'Bab III',
-            'bab4' => 'Bab IV',
-            'bab5' => 'Bab V',
-            'full_report' => 'Laporan Lengkap',
-            'seminar' => 'Seminar',
-            'hardcopy' => 'Hardcover',
-        ];
+        return config('monpkl.deadline_types');
     }
 
     private function isSuperAdmin(Request $request): bool

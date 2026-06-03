@@ -118,17 +118,7 @@ class SubmissionProgressController extends Controller
 
     private function deadlineLabels(): array
     {
-        return [
-            'proposal' => 'Proposal Rencana Kerja',
-            'bab1' => 'Bab I',
-            'bab2' => 'Bab II',
-            'bab3' => 'Bab III',
-            'bab4' => 'Bab IV',
-            'bab5' => 'Bab V',
-            'full_report' => 'Laporan Lengkap',
-            'seminar' => 'Seminar',
-            'hardcopy' => 'Hardcover',
-        ];
+        return config('monpkl.report_submission_types');
     }
 
     private function statusLabels(): array

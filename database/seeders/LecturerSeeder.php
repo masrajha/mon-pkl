@@ -15,7 +15,7 @@ class LecturerSeeder extends Seeder
         $studyProgram = StudyProgram::query()->firstOrCreate(
             ['code' => 'ILKOM'],
             [
-                'name' => 'Ilmu Komputer',
+                'name' => 'S1 Ilmu Komputer',
                 'faculty' => 'FMIPA',
                 'is_active' => true,
             ],

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\InternshipPeriod;
 use App\Models\Program;
-use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -43,14 +42,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        StudyProgram::firstOrCreate(
-            ['code' => 'ILKOM'],
-            [
-                'name' => 'Ilmu Komputer',
-                'faculty' => 'FMIPA',
-                'is_active' => true,
-            ],
-        );
+        $this->call(StudyProgramSeeder::class);
 
         InternshipPeriod::firstOrCreate(
             [

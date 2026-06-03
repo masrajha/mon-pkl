@@ -24,7 +24,9 @@ class ReportController extends Controller
             'student.user',
             'studyProgram',
             'internshipPeriod.program',
-            'internshipPeriod.deadlines' => fn ($query) => $query->orderBy('deadline_date'),
+            'internshipPeriod.deadlines' => fn ($query) => $query
+                ->whereIn('deadline_type', array_keys(config('monpkl.deadline_types')))
+                ->orderBy('deadline_date'),
             'internshipPlace',
             'lecturer',
             'submissionProgress' => fn ($query) => $query->latest('uploaded_at'),
@@ -50,6 +52,8 @@ class ReportController extends Controller
             'lockedDeadlineTypes' => $lockedDeadlineTypes,
             'uploadableDeadlineLabels' => collect($deadlineLabels)->reject(fn ($label, $type) => $lockedDeadlineTypes->contains($type))->all(),
             'deadlineLabels' => $deadlineLabels,
+            'deadlineTypeLabels' => config('monpkl.deadline_types'),
+            'submissionNotes' => config('monpkl.report_submission_notes'),
             'dailyActivityRows' => $this->dailyActivityRows($enrollment),
         ]);
     }
@@ -250,16 +254,6 @@ class ReportController extends Controller
 
     private function deadlineLabels(): array
     {
-        return [
-            'proposal' => 'Proposal Rencana Kerja',
-            'bab1' => 'Bab I',
-            'bab2' => 'Bab II',
-            'bab3' => 'Bab III',
-            'bab4' => 'Bab IV',
-            'bab5' => 'Bab V',
-            'full_report' => 'Laporan Lengkap',
-            'seminar' => 'Seminar',
-            'hardcopy' => 'Hardcover',
-        ];
+        return config('monpkl.report_submission_types');
     }
 }

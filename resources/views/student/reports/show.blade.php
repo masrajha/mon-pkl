@@ -129,7 +129,7 @@
                     <thead class="silat-table-head"><tr><th class="silat-table-cell">Jenis</th><th class="silat-table-cell">Tanggal</th><th class="silat-table-cell">Sanksi</th></tr></thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse ($enrollment->internshipPeriod?->deadlines ?? [] as $deadline)
-                            <tr><td class="silat-table-cell">{{ str($deadline->deadline_type)->replace('_', ' ')->title() }}</td><td class="silat-table-cell">{{ $deadline->deadline_date?->format('d/m/Y') }}</td><td class="silat-table-cell">{{ $deadline->penalty_points }} poin {{ $deadline->is_fixed_penalty ? 'tetap' : 'per hari' }}</td></tr>
+                            <tr><td class="silat-table-cell">{{ $deadlineTypeLabels[$deadline->deadline_type] ?? str($deadline->deadline_type)->replace('_', ' ')->title() }}</td><td class="silat-table-cell">{{ $deadline->deadline_date?->format('d/m/Y') }}</td><td class="silat-table-cell">{{ $deadline->penalty_points }} poin {{ $deadline->is_fixed_penalty ? 'tetap' : 'per hari' }}</td></tr>
                         @empty
                             <tr><td colspan="3" class="silat-table-cell"><x-empty-state title="Belum ada deadline periode" icon="fa-hourglass-start" /></td></tr>
                         @endforelse
@@ -146,11 +146,11 @@
                 </div>
             </div>
             <div class="grid gap-5 p-5 lg:grid-cols-[360px_1fr]">
-                <form method="POST" action="{{ route('student.reports.progress.store', $enrollment) }}" enctype="multipart/form-data" class="space-y-4">
+                <form method="POST" action="{{ route('student.reports.progress.store', $enrollment) }}" enctype="multipart/form-data" class="space-y-4" x-data='{ selectedType: @json(array_key_first($uploadableDeadlineLabels)), notes: @json($submissionNotes) }'>
                     @csrf
                     <div>
                         <x-input-label for="deadline_type" :value="__('Jenis Dokumen')" />
-                        <x-select-input id="deadline_type" name="deadline_type" class="mt-1 block w-full" required>
+                        <x-select-input id="deadline_type" name="deadline_type" class="mt-1 block w-full" x-model="selectedType" required>
                             @foreach ($uploadableDeadlineLabels as $type => $label)
                                 <option value="{{ $type }}">{{ $label }}</option>
                             @endforeach
@@ -160,6 +160,10 @@
                             <p class="mt-2 text-sm text-gray-500">Semua dokumen sudah disetujui dan terkunci.</p>
                         @else
                             <p class="mt-2 text-xs text-gray-500">Dokumen yang diminta revisi dapat diunggah ulang berkali-kali. Sanksi deadline hanya dihitung pada submit pertama.</p>
+                            <div class="mt-3 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-950" x-show="notes[selectedType]" x-cloak>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Catatan Jenis Pelaporan</p>
+                                <p class="mt-1" x-text="notes[selectedType]"></p>
+                            </div>
                         @endif
                     </div>
                     <div>

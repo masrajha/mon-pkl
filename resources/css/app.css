@@ -34,6 +34,10 @@
     [role="button"]:not(:disabled) {
         cursor: pointer;
     }
+
+    [x-cloak] {
+        display: none !important;
+    }
 }
 
 @layer components {
