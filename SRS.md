@@ -409,7 +409,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| MF-01 | Sudah diimplementasikan | CRUD Prodi tersedia di menu Manajemen. |
+| MF-01 | Sudah diimplementasikan | CRUD Prodi tersedia di menu Manajemen. Prodi memiliki `degree_level` seperti D3, S1, S2, dan dipakai untuk membedakan aturan akademik. |
 | MF-02 | Sudah diimplementasikan sebagian | CRUD Mahasiswa tersedia; profil mahasiswa juga dapat dilengkapi oleh mahasiswa sendiri. |
 | MF-03 | Sudah diimplementasikan | Tabel dan CRUD Dosen tersedia, termasuk NIP, NIDN, prodi, status, dan relasi user. |
 | MF-03A | Sudah diimplementasikan | Master Program Kegiatan tersedia dengan `code`, `name`, `description`, `rule_key`, dan `is_active`. Seed awal mencakup Kerja Praktik, Magang, dan Riset dengan fallback rule `kerja_praktik`. |
@@ -417,14 +417,14 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | MF-05 | Sudah diimplementasikan | Master Tempat PKL tersedia dengan input/edit lokasi Leaflet. Field `is_active` sudah tersedia dan tempat aktif dipakai pada pendaftaran serta permohonan pindah tempat. |
 | MF-06 | Sudah diimplementasikan | Bulk hapus dan merge Master Tempat PKL tersedia. |
 | MF-07 | Sudah diimplementasikan | CRUD User tersedia untuk role `admin`, `dosen`, `mahasiswa`. |
-| MF-08 | Sudah diimplementasikan | Penugasan Koordinator PKL per periode/prodi tersedia dan dibatasi satu koordinator per periode-prodi. |
+| MF-08 | Sudah diimplementasikan | Penugasan Koordinator PKL per periode/prodi tersedia dan dibatasi satu koordinator per periode-prodi. Form tambah koordinator mendukung multi-select prodi untuk membuat beberapa penugasan sekaligus pada periode yang sama. |
 | MF-09 | Sudah diimplementasikan sebagian | Kuota minimal dan maksimal tersedia di konfigurasi periode. Kuota maksimal sudah divalidasi pada pendaftaran mahasiswa dan input peserta admin; kuota minimal ditampilkan sebagai indikator peringatan pada validasi pendaftaran. |
 
 ### 8.3 Konfigurasi Periode
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui `internship_period_settings`, mencakup jam check-in, peta, upload foto, hari libur laporan, aturan laporan dasar, kuota, dan syarat akademik. |
+| KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui `internship_period_settings`, mencakup jam check-in, peta, upload foto, hari libur laporan, aturan laporan dasar, kuota, dan syarat akademik. Syarat minimal SKS sudah dibedakan per jenjang, misalnya D3=80 dan S1=100. |
 | KS-02 | Sudah diimplementasikan | Tabel/model `period_deadlines` dan UI konfigurasi deadline per periode sudah tersedia, termasuk tanggal, poin penalti, dan flag penalti tetap. Deadline dipakai untuk menghitung sanksi unggahan progres laporan. |
 | KS-03 | Sudah diimplementasikan | Konfigurasi hanya dapat diakses admin. Periode terkunci tidak dapat diubah melalui konfigurasi kecuali oleh super admin yang tercantum pada konfigurasi. |
 | KS-04 | Sudah diimplementasikan | Program terhubung ke periode dan memiliki `rule_key`. Implementasi saat ini memakai rule `kerja_praktik` sebagai fallback terstruktur, sehingga rule program lain dapat ditambahkan tanpa mengubah data historis. |
@@ -434,9 +434,9 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
 | WM-01 | Sudah diimplementasikan | Mahasiswa dapat melengkapi profil: NPM, nama, email student, no HP, prodi. |
-| WM-02 | Sudah diimplementasikan | Mahasiswa dapat mendaftar program dengan memilih Program Kegiatan, Periode Program, mitra aktif, kontak, pembimbing lapangan, dan syarat akademik. Validasi kelayakan membaca `programs.rule_key`; rule awal yang aktif adalah `kerja_praktik`. |
+| WM-02 | Sudah diimplementasikan | Mahasiswa dapat mendaftar program melalui workflow 3 halaman: Program dan Periode, Mitra dan Pembimbing Lapangan, lalu Rule Program/Kelayakan Akademik/Dokumen. Mahasiswa memilih mitra aktif atau mengajukan mitra baru, mengisi kontak dan pembimbing lapangan, serta mengunggah satu PDF bukti akademik berisi Transkrip Sementara + KRS semester saat ini. Validasi kelayakan membaca `programs.rule_key`, `degree_level` prodi, dan konfigurasi akademik jenjang. |
 | WM-03 | Sudah diimplementasikan | Mahasiswa dapat mengajukan tempat PKL baru melalui `internship_place_proposals`. |
-| WM-04 | Sudah diimplementasikan | Admin/koordinator memiliki halaman Validasi Pendaftaran khusus untuk menyetujui, meminta revisi, atau menolak pendaftaran, termasuk menetapkan dosen pembimbing, pembimbing lapangan, dan catatan verifikasi. Mahasiswa dapat memperbaiki pendaftaran saat status `revision_required`. |
+| WM-04 | Sudah diimplementasikan | Admin/koordinator memiliki halaman Validasi Pendaftaran khusus untuk menyetujui, meminta revisi, atau menolak pendaftaran, termasuk menetapkan dosen pembimbing, pembimbing lapangan, email pembimbing lapangan, catatan verifikasi, dan review dokumen bukti akademik. Mahasiswa dapat memperbaiki pendaftaran saat status `revision_required`. |
 | WM-05 | Sudah diimplementasikan | Status enrollment sudah mendukung `draft`, `pending_verification`, `revision_required`, `active`, `inactive`, `completed`, `cancelled`, dan `rejected`, termasuk catatan admin. |
 | WM-06 | Sudah diimplementasikan | Mahasiswa dapat mengajukan pindah tempat PKL, admin dapat menyetujui/menolak, dan tempat enrollment diperbarui saat disetujui. |
 | WM-07 | Sudah diimplementasikan | Check-in hanya memakai enrollment `active`. |
@@ -458,6 +458,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | PM-02 | Sudah diimplementasikan sebagian | Peta Monitoring tersedia dengan filter periode/prodi dan scope role. |
 | PM-03 | Sudah diimplementasikan | Peta picker tersedia pada input/edit tempat PKL. |
 | PM-04 | Sudah diimplementasikan | Peta check-in menampilkan geolocation, marker instansi, dan polyline. |
+| PM-05 | Sudah diimplementasikan | Input lokasi pada event pembekalan, master mitra, dan pengajuan mitra mahasiswa memiliki sugest lokasi dari riwayat internal, lalu fallback eksternal jika tidak ditemukan. |
 | LR-01 | Sudah diimplementasikan sebagian | Rekap Monitoring tersedia dengan filter tanggal, periode, prodi, hari libur, Sabtu, dan Minggu. Status laporan dan sanksi belum tersedia. |
 
 ### 8.6 Progres Laporan, Catatan Harian, dan Sanksi
@@ -473,7 +474,15 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | CH-01 | Sudah diimplementasikan | Catatan harian diambil dari pasangan presensi: catatan masuk sebagai rencana aktivitas dan catatan pulang sebagai realisasi. Tidak ada input/tabel log harian terpisah. |
 | CH-02 | Sudah diimplementasikan | Sistem menyediakan cetak form catatan harian dari pasangan presensi dengan kolom tanggal, jam, jarak, rencana, realisasi, dan paraf pembimbing lapangan. |
 
-### 8.7 Migrasi Data Historis
+### 8.7 Pembekalan Program
+
+| Area | Status Implementasi | Catatan |
+|------|---------------------|---------|
+| Event Pembekalan | Sudah diimplementasikan | Admin/koordinator dapat membuat event pembekalan per periode program dan prodi. Nama kegiatan otomatis mengikuti program dan periode, lokasi dapat dipilih dari peta, dan radius presensi dapat memakai konfigurasi periode. |
+| Presensi Pembekalan Mahasiswa | Sudah diimplementasikan | Mahasiswa melihat link presensi pembekalan pada dashboard dan melakukan presensi satu kali dengan komponen presensi yang sama, termasuk kamera, geolocation, peta, jarak Haversine, dan validasi radius lokasi pembekalan. Pada role mahasiswa, marker dan field koordinat lokasi pembekalan bersifat readonly. |
+| Rekap Pembekalan | Sudah diimplementasikan | Admin/koordinator dapat melihat rekap peserta yang hadir dan belum hadir, termasuk jarak mahasiswa dari lokasi pembekalan. |
+
+### 8.8 Migrasi Data Historis
 
 | Area | Status Implementasi | Catatan |
 |------|---------------------|---------|
@@ -503,7 +512,7 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| - | Item utama PG-01 s.d. PG-06 dan CH-01 s.d. CH-02 sudah dipindahkan ke Bagian 8 sebagai fitur yang sudah/sudah sebagian diimplementasikan. CH-03 tetap bersifat opsional untuk fase lanjut jika role pembimbing lapangan online dibutuhkan. | - |
+| - | Item utama PG-01 s.d. PG-06 dan CH-01 s.d. CH-02 sudah dipindahkan ke Bagian 8 sebagai fitur yang sudah/sudah sebagian diimplementasikan. Pengembangan CH-03 dipindahkan ke backlog role Pembimbing Lapangan pada 9.5. | - |
 
 ### 9.4 Penilaian dan Nilai Akhir
 
@@ -514,7 +523,16 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 | PN-03 | Hitung nilai akhir dan konversi huruf mutu berdasarkan aturan Unila. | Tinggi |
 | PN-04 | Buat proses pengesahan nilai akhir oleh admin. | Tinggi |
 
-### 9.5 Laporan, Export, dan Operasional Produksi
+### 9.5 Role Pembimbing Lapangan
+
+| ID SRS | Rencana Implementasi | Prioritas |
+|--------|----------------------|-----------|
+| PL-01 | Membuat halaman khusus role Pembimbing Lapangan. Akses dapat dilakukan melalui link URL + token yang dikirim ke email pembimbing lapangan. Token harus unik, memiliki masa berlaku, dapat dicabut, dan hanya membuka data mahasiswa/enrollment yang terkait dengan email pembimbing tersebut. | Tinggi |
+| PL-02 | Menyediakan opsi login dengan email untuk Pembimbing Lapangan. Jika domain `gmail.com` diizinkan, pembimbing dapat menggunakan login email/Google sesuai kebijakan autentikasi yang ditetapkan. Sistem tetap membatasi akses berdasarkan email pembimbing lapangan yang tersimpan pada enrollment. | Menengah |
+| PL-03 | Pembimbing Lapangan dapat memvalidasi catatan harian mahasiswa secara online, termasuk melihat tanggal, jam masuk/pulang, durasi, rencana aktivitas, realisasi, jarak presensi, dan foto presensi bila tersedia. | Tinggi |
+| PL-04 | Pembimbing Lapangan dapat memberikan nilai kegiatan melalui form nilai lapangan PN-01. Nilai tersimpan sebagai bagian dari komponen penilaian akhir dan dapat direview/dikunci oleh admin sesuai alur pengesahan nilai. | Tinggi |
+
+### 9.6 Laporan, Export, dan Operasional Produksi
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
@@ -529,7 +547,7 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 | NF-12 | Uji dan rapikan responsif untuk tablet/desktop pada semua halaman baru. | Menengah |
 | NF-13 | Standarkan semua pesan validasi dalam Bahasa Indonesia. | Menengah |
 
-### 9.6 Cutover dan Penghapusan Ketergantungan Lama
+### 9.7 Cutover dan Penghapusan Ketergantungan Lama
 
 | Area | Rencana Implementasi | Prioritas |
 |------|----------------------|-----------|
