@@ -12,6 +12,7 @@ use App\Models\Program;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Services\PeriodConfigurationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -50,7 +51,7 @@ class EnrollmentController extends Controller
             $query->where('status', $request->string('status'));
         }
 
-        return view('management.enrollments.index', $this->formData() + [
+        return view('management.enrollments.index', $this->formData($request) + [
             'enrollments' => $this->applyTableSort($query, $request, ['id', 'status'], 'id', 'desc')
                 ->paginate($this->tablePerPage($request))
                 ->withQueryString(),
@@ -106,9 +107,11 @@ class EnrollmentController extends Controller
         return back()->with('status', 'Peserta periode berhasil ditambahkan.');
     }
 
-    public function edit(InternshipEnrollment $enrollment): View
+    public function edit(Request $request, InternshipEnrollment $enrollment): View
     {
-        return view('management.enrollments.edit', $this->formData() + compact('enrollment'));
+        $enrollment->loadMissing(['student.studyProgram', 'studyProgram', 'internshipPeriod.program']);
+
+        return view('management.enrollments.edit', $this->formData($request) + compact('enrollment'));
     }
 
     public function update(Request $request, InternshipEnrollment $enrollment): RedirectResponse
@@ -123,9 +126,18 @@ class EnrollmentController extends Controller
 
     private function validated(Request $request, ?InternshipEnrollment $enrollment = null): array
     {
+        $studentId = $enrollment?->student_id ?: $request->integer('student_id');
+        $student = Student::query()->with('studyProgram')->find($studentId);
+
+        if (! $student) {
+            throw ValidationException::withMessages(['student_id' => 'Mahasiswa wajib dipilih.']);
+        }
+
+        if (! $student->study_program_id) {
+            throw ValidationException::withMessages(['student_id' => 'Prodi mahasiswa belum diisi. Lengkapi data mahasiswa terlebih dahulu.']);
+        }
+
         $data = $request->validate([
-            'student_id' => ['required', 'exists:students,id'],
-            'study_program_id' => ['required', 'exists:study_programs,id'],
             'internship_period_id' => ['required', 'exists:internship_periods,id'],
             'internship_place_id' => ['nullable', 'exists:internship_places,id'],
             'lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
@@ -149,19 +161,28 @@ class EnrollmentController extends Controller
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $request->validate([
-            'student_id' => [
-                Rule::unique('internship_enrollments')
-                    ->where('study_program_id', $data['study_program_id'])
-                    ->where('internship_period_id', $data['internship_period_id'])
-                    ->ignore($enrollment?->id),
-            ],
-        ]);
+        $data['student_id'] = $student->id;
+        $data['study_program_id'] = $student->study_program_id;
 
-        $lecturer = $data['lecturer_supervisor_id']
-            ? Lecturer::query()->where('status', 'active')->find($data['lecturer_supervisor_id'])
+        $duplicate = InternshipEnrollment::query()
+            ->where('student_id', $data['student_id'])
+            ->where('study_program_id', $data['study_program_id'])
+            ->where('internship_period_id', $data['internship_period_id'])
+            ->when($enrollment, fn ($query) => $query->whereKeyNot($enrollment->id))
+            ->exists();
+
+        if ($duplicate) {
+            throw ValidationException::withMessages([
+                'student_id' => 'Mahasiswa sudah terdaftar pada periode dan prodi ini.',
+            ]);
+        }
+
+        $lecturerId = $data['lecturer_supervisor_id'] ?? null;
+        $lecturer = $lecturerId
+            ? Lecturer::query()->where('status', 'active')->find($lecturerId)
             : null;
 
+        $data['lecturer_supervisor_id'] = $lecturer?->id;
         $data['lecturer_supervisor_user_id'] = $lecturer?->user_id;
         $data['lecturer_supervisor'] = $lecturer?->name;
         $data['has_krs_pkl'] = (bool) ($data['has_krs_pkl'] ?? false);
@@ -192,10 +213,43 @@ class EnrollmentController extends Controller
         }
     }
 
-    private function formData(): array
+    public function studentSearch(Request $request): JsonResponse
     {
+        $search = trim($request->string('q')->toString());
+
+        if (strlen($search) < 2) {
+            return response()->json([]);
+        }
+
+        $students = Student::query()
+            ->with('studyProgram:id,code,name')
+            ->where(function ($query) use ($search): void {
+                $query->where('full_name', 'like', '%'.$search.'%')
+                    ->orWhere('npm', 'like', '%'.$search.'%');
+            })
+            ->orderBy('full_name')
+            ->limit(10)
+            ->get(['id', 'study_program_id', 'npm', 'full_name']);
+
+        return response()->json($students->map(fn (Student $student) => [
+            'id' => $student->id,
+            'full_name' => $student->full_name,
+            'npm' => $student->npm,
+            'study_program_id' => $student->study_program_id,
+            'study_program_name' => $student->studyProgram?->name,
+            'study_program_code' => $student->studyProgram?->code,
+            'label' => trim($student->full_name.' - '.$student->npm),
+        ]));
+    }
+
+    private function formData(?Request $request = null): array
+    {
+        $selectedStudentId = old('student_id', $request?->integer('student_id') ?: null);
+
         return [
-            'students' => Student::query()->orderBy('full_name')->get(),
+            'selectedStudent' => $selectedStudentId
+                ? Student::query()->with('studyProgram:id,code,name')->find($selectedStudentId)
+                : null,
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
             'periods' => InternshipPeriod::query()->with('program')->orderByDesc('is_active')->orderByDesc('id')->get(),
             'places' => InternshipPlace::query()->where('is_active', true)->orderBy('name')->get(),

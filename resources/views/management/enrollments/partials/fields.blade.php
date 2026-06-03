@@ -1,10 +1,26 @@
-<x-input-label for="student_id" value="Mahasiswa" />
-<select id="student_id" name="student_id" class="block w-full rounded-md border-gray-300" required>
-    <option value="">Pilih mahasiswa</option>
-    @foreach ($students as $student)
-        <option value="{{ $student->id }}" @selected(old('student_id', $enrollment?->student_id) === $student->id)>{{ $student->full_name }} - {{ $student->npm }}</option>
-    @endforeach
-</select>
+@php
+    $isEdit = filled($enrollment);
+    $currentStudent = $enrollment?->student ?? $selectedStudent;
+    $currentStudyProgram = $currentStudent?->studyProgram ?? $enrollment?->studyProgram;
+    $studentLabel = $currentStudent ? trim($currentStudent->full_name.' - '.$currentStudent->npm) : '';
+    $periodValue = old('internship_period_id', $enrollment?->internship_period_id ?? request('period_id'));
+@endphp
+
+<div>
+    <x-input-label for="student_search" value="Mahasiswa" />
+    @if ($isEdit)
+        <input type="hidden" name="student_id" value="{{ $enrollment->student_id }}">
+        <div class="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-800">
+            <span class="font-medium">{{ $studentLabel ?: '-' }}</span>
+        </div>
+    @else
+        <input id="student_id" type="hidden" name="student_id" value="{{ old('student_id', $currentStudent?->id) }}" required>
+        <div class="relative mt-1" data-student-search data-search-url="{{ route('management.enrollments.students.search') }}">
+            <x-text-input id="student_search" type="search" class="block w-full" value="{{ $studentLabel }}" autocomplete="off" placeholder="Cari nama atau NPM mahasiswa" required />
+            <div data-student-suggestions class="absolute z-20 mt-1 hidden max-h-64 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"></div>
+        </div>
+    @endif
+</div>
 
 <div class="grid gap-3 sm:grid-cols-2">
     <div>
@@ -12,18 +28,15 @@
         <select id="internship_period_id" name="internship_period_id" class="block w-full rounded-md border-gray-300" required>
             <option value="">Pilih periode program</option>
             @foreach ($periods as $period)
-                <option value="{{ $period->id }}" @selected(old('internship_period_id', $enrollment?->internship_period_id) === $period->id)>{{ $period->display_name }}</option>
+                <option value="{{ $period->id }}" @selected((string) $periodValue === (string) $period->id)>{{ $period->display_name }}</option>
             @endforeach
         </select>
     </div>
     <div>
-        <x-input-label for="study_program_id" value="Prodi" />
-        <select id="study_program_id" name="study_program_id" class="block w-full rounded-md border-gray-300" required>
-            <option value="">Pilih prodi</option>
-            @foreach ($studyPrograms as $program)
-                <option value="{{ $program->id }}" @selected(old('study_program_id', $enrollment?->study_program_id) === $program->id)>{{ $program->name }}</option>
-            @endforeach
-        </select>
+        <x-input-label value="Prodi" />
+        <div data-student-study-program class="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-800">
+            {{ $currentStudyProgram?->name ?: 'Ikut prodi mahasiswa' }}
+        </div>
     </div>
 </div>
 
@@ -31,7 +44,7 @@
 <select id="internship_place_id" name="internship_place_id" class="block w-full rounded-md border-gray-300">
     <option value="">Belum ditempatkan</option>
     @foreach ($places as $place)
-        <option value="{{ $place->id }}" @selected(old('internship_place_id', $enrollment?->internship_place_id) === $place->id)>{{ $place->name }}</option>
+        <option value="{{ $place->id }}" @selected((string) old('internship_place_id', $enrollment?->internship_place_id) === (string) $place->id)>{{ $place->name }}</option>
     @endforeach
 </select>
 
@@ -91,3 +104,78 @@
 
 <x-input-label for="admin_note" value="Catatan Verifikasi / Revisi" />
 <textarea id="admin_note" name="admin_note" rows="3" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('admin_note', $enrollment?->admin_note) }}</textarea>
+
+@once
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-student-search]').forEach((root) => {
+                const input = root.querySelector('#student_search');
+                const hidden = document.getElementById('student_id');
+                const suggestions = root.querySelector('[data-student-suggestions]');
+                const studyProgram = document.querySelector('[data-student-study-program]');
+                let timeout;
+
+                const clearPick = () => {
+                    hidden.value = '';
+                    studyProgram.textContent = 'Ikut prodi mahasiswa';
+                };
+
+                const render = (students) => {
+                    suggestions.innerHTML = '';
+                    if (! students.length) {
+                        suggestions.classList.add('hidden');
+                        return;
+                    }
+
+                    students.forEach((student) => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50';
+                        const name = document.createElement('span');
+                        name.className = 'font-medium text-gray-900';
+                        name.textContent = student.full_name;
+                        const npm = document.createElement('span');
+                        npm.className = 'ml-2 text-gray-500';
+                        npm.textContent = student.npm;
+                        const program = document.createElement('div');
+                        program.className = 'text-xs text-gray-500';
+                        program.textContent = student.study_program_name || 'Prodi belum diisi';
+                        button.append(name, npm, program);
+                        button.addEventListener('click', () => {
+                            hidden.value = student.id;
+                            input.value = student.label;
+                            studyProgram.textContent = student.study_program_name || 'Prodi belum diisi';
+                            suggestions.classList.add('hidden');
+                        });
+                        suggestions.appendChild(button);
+                    });
+                    suggestions.classList.remove('hidden');
+                };
+
+                input.addEventListener('input', () => {
+                    clearTimeout(timeout);
+                    clearPick();
+                    const query = input.value.trim();
+
+                    if (query.length < 2) {
+                        suggestions.classList.add('hidden');
+                        return;
+                    }
+
+                    timeout = setTimeout(async () => {
+                        const response = await fetch(`${root.dataset.searchUrl}?q=${encodeURIComponent(query)}`, {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        render(response.ok ? await response.json() : []);
+                    }, 250);
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (! root.contains(event.target)) {
+                        suggestions.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+@endonce

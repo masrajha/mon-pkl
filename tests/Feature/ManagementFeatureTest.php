@@ -55,6 +55,7 @@ class ManagementFeatureTest extends TestCase
             ->post(route('management.study-programs.store'), [
                 'code' => 'TIF',
                 'name' => 'Teknik Informatika',
+                'degree_level' => 'S1',
                 'faculty' => 'FT',
                 'is_active' => 1,
             ])
@@ -103,7 +104,6 @@ class ManagementFeatureTest extends TestCase
         $this->actingAs($admin)
             ->post(route('management.enrollments.store'), [
                 'student_id' => $student->id,
-                'study_program_id' => $program->id,
                 'internship_period_id' => $period->id,
                 'internship_place_id' => $place->id,
                 'lecturer_supervisor_id' => $lecturer->id,
@@ -122,6 +122,44 @@ class ManagementFeatureTest extends TestCase
             'lecturer_supervisor_user_id' => $lecturerUser->id,
             'lecturer_supervisor' => $lecturer->name,
             'field_supervisor_phone' => '081111111111',
+        ]);
+    }
+
+    public function test_admin_enrollment_student_search_and_store_use_student_study_program(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $studentProgram = StudyProgram::query()->create(['code' => 'IK', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $otherProgram = StudyProgram::query()->create(['code' => 'SI', 'name' => 'Sistem Informasi', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Search', 'academic_year' => '2026/2027']);
+        $student = Student::query()->create([
+            'npm' => '2217051771',
+            'full_name' => 'Mahasiswa Search',
+            'study_program_id' => $studentProgram->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson(route('management.enrollments.students.search', ['q' => '1771']))
+            ->assertOk()
+            ->assertJsonFragment([
+                'id' => $student->id,
+                'npm' => '2217051771',
+                'study_program_name' => 'Ilmu Komputer',
+            ]);
+
+        $this->actingAs($admin)
+            ->post(route('management.enrollments.store'), [
+                'student_id' => $student->id,
+                'study_program_id' => $otherProgram->id,
+                'internship_period_id' => $period->id,
+                'status' => 'active',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('internship_enrollments', [
+            'student_id' => $student->id,
+            'study_program_id' => $studentProgram->id,
+            'internship_period_id' => $period->id,
+            'status' => 'active',
         ]);
     }
 
