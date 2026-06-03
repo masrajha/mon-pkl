@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CoordinatorDashboardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\InternshipPlaceController;
 use App\Http\Controllers\LocationSuggestionController;
 use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinatorController;
@@ -149,6 +150,9 @@ Route::get('/', function () {
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+Route::get('/docs', [DocumentationController::class, 'index'])->name('docs.index');
+Route::get('/docs/{role}', [DocumentationController::class, 'show'])->name('docs.show');
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
