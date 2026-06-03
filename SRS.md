@@ -512,7 +512,7 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| - | Item utama PG-01 s.d. PG-06 dan CH-01 s.d. CH-02 sudah dipindahkan ke Bagian 8 sebagai fitur yang sudah/sudah sebagian diimplementasikan. Pengembangan CH-03 dipindahkan ke backlog role Pembimbing Lapangan pada 9.5. | - |
+| - | Item utama PG-01 s.d. PG-06 dan CH-01 s.d. CH-02 sudah dipindahkan ke Bagian 8 sebagai fitur yang sudah/sudah sebagian diimplementasikan. Pengembangan CH-03 dipindahkan ke backlog role Pembimbing Lapangan pada 9.6. | - |
 
 ### 9.4 Penilaian dan Nilai Akhir
 
@@ -523,7 +523,24 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 | PN-03 | Hitung nilai akhir dan konversi huruf mutu berdasarkan aturan Unila. | Tinggi |
 | PN-04 | Buat proses pengesahan nilai akhir oleh admin. | Tinggi |
 
-### 9.5 Role Pembimbing Lapangan
+### 9.5 Email Notifikasi
+
+| ID SRS | Rencana Implementasi | Prioritas |
+|--------|----------------------|-----------|
+| EN-01 | Buat sistem notifikasi email berbasis event untuk proses yang membutuhkan aksi, keputusan akademik, reminder deadline, atau akses pihak luar. Setiap email minimal memuat subjek jelas, nama mahasiswa/NPM bila relevan, program, periode, prodi, status terbaru, catatan reviewer/admin jika ada, tenggat waktu jika ada, serta tombol/link aksi. | Tinggi |
+| EN-02 | Kirim email pendaftaran program kepada mahasiswa saat pendaftaran dikirim, disetujui, diminta revisi, ditolak, atau enrollment diubah admin. Kirim email kepada admin/koordinator saat ada pendaftaran baru, revisi pendaftaran dikirim ulang, atau pendaftaran belum diproses mendekati batas pendaftaran. | Tinggi |
+| EN-03 | Kirim email usulan mitra kepada mahasiswa saat usulan dikirim, disetujui sebagai master baru, digabung ke master mitra, atau ditolak. Kirim email kepada admin saat ada usulan mitra baru atau usulan pending belum diproses dalam batas waktu tertentu. | Menengah |
+| EN-04 | Kirim email pembekalan kepada mahasiswa saat event dibuka, reminder H-1 atau beberapa jam sebelum kegiatan, presensi berhasil dicatat, dan belum presensi mendekati waktu tutup. Kirim email kepada admin/koordinator berisi rekap setelah event ditutup, termasuk jumlah hadir dan tidak hadir. | Tinggi |
+| EN-05 | Kirim digest presensi, bukan email untuk setiap check-in/check-out. Digest dikirim mingguan kepada mahasiswa berisi ringkasan presensi, durasi, jarak, dan sanksi. Digest kepada dosen pembimbing/koordinator berisi mahasiswa dengan pola bermasalah seperti durasi kurang, sering terlambat, atau jarak presensi tidak wajar. | Menengah |
+| EN-06 | Kirim email laporan dan deadline kepada mahasiswa untuk reminder H-7, H-3, H-1, dan hari H; upload berhasil; laporan disetujui; laporan diminta revisi; laporan ditolak; dan sanksi keterlambatan. Kirim email kepada dosen pembimbing saat ada laporan baru menunggu review atau laporan pending review melewati batas waktu. Kirim email rekap kepada admin/koordinator untuk laporan belum diunggah, pending review, dan sanksi tertinggi. | Tinggi |
+| EN-07 | Kirim email perubahan pembimbing kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Kirim email kepada admin/koordinator saat ada permohonan baru atau pending. Kirim email kepada dosen pembimbing saat mahasiswa ditetapkan sebagai bimbingannya atau dikeluarkan dari daftar bimbingannya. | Tinggi |
+| EN-08 | Kirim email pindah tempat kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Kirim email kepada admin/koordinator saat ada permohonan pindah tempat baru atau pending. Kirim email kepada dosen pembimbing saat mahasiswa bimbingannya pindah mitra/tempat kegiatan. | Menengah |
+| EN-09 | Kirim email kepada pembimbing lapangan untuk akses URL + token, token baru jika token lama kedaluwarsa, reminder validasi catatan harian, reminder pemberian nilai kegiatan, dan konfirmasi nilai berhasil dikirim. Kirim email kepada admin/koordinator jika pembimbing lapangan belum mengisi nilai mendekati deadline atau token gagal/expired berulang. | Tinggi |
+| EN-10 | Kirim email penilaian kepada dosen pembimbing saat mahasiswa sudah memenuhi syarat untuk dinilai, reminder pengisian nilai laporan/seminar, dan konfirmasi nilai tersimpan. Kirim email kepada admin saat semua komponen nilai sudah lengkap dan siap disahkan atau ada nilai belum lengkap mendekati penutupan periode. | Tinggi |
+| EN-11 | Kirim email operasional kepada admin/super admin saat periode baru dibuat, periode dikunci/diselesaikan, konfigurasi penting berubah, import data selesai/gagal, atau terjadi error penting pada pengiriman email, storage, dan integrasi. | Menengah |
+| EN-12 | Implementasi bertahap diprioritaskan berurutan: pendaftaran; deadline dan review laporan; pembekalan; perubahan pembimbing dan pindah tempat; token akses pembimbing lapangan; reminder validasi catatan harian dan nilai; lalu digest mingguan presensi/sanksi. | Tinggi |
+
+### 9.6 Role Pembimbing Lapangan
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
@@ -532,7 +549,7 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 | PL-03 | Pembimbing Lapangan dapat memvalidasi catatan harian mahasiswa secara online, termasuk melihat tanggal, jam masuk/pulang, durasi, rencana aktivitas, realisasi, jarak presensi, dan foto presensi bila tersedia. | Tinggi |
 | PL-04 | Pembimbing Lapangan dapat memberikan nilai kegiatan melalui form nilai lapangan PN-01. Nilai tersimpan sebagai bagian dari komponen penilaian akhir dan dapat direview/dikunci oleh admin sesuai alur pengesahan nilai. | Tinggi |
 
-### 9.6 Laporan, Export, dan Operasional Produksi
+### 9.7 Laporan, Export, dan Operasional Produksi
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
@@ -547,7 +564,7 @@ Bagian ini mencatat kebutuhan SRS yang belum tersedia atau masih perlu disempurn
 | NF-12 | Uji dan rapikan responsif untuk tablet/desktop pada semua halaman baru. | Menengah |
 | NF-13 | Standarkan semua pesan validasi dalam Bahasa Indonesia. | Menengah |
 
-### 9.7 Cutover dan Penghapusan Ketergantungan Lama
+### 9.8 Cutover dan Penghapusan Ketergantungan Lama
 
 | Area | Rencana Implementasi | Prioritas |
 |------|----------------------|-----------|

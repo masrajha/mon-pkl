@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         \App\Console\Commands\ImportFirebaseJson::class,
+        \App\Console\Commands\ProcessEmailNotifications::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
