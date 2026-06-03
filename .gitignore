@@ -72,5 +72,5 @@ firebase.json
 firebase-freeze/
 
 backup/ 
-vendor/*
+vendor/
 *.cache
