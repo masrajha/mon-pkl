@@ -78,6 +78,11 @@ class OrientationEventFeatureTest extends TestCase
             ->assertSee('Presensi Pembekalan');
 
         $this->actingAs($studentUser)
+            ->get(route('student.orientation-attendances.create', $event))
+            ->assertOk()
+            ->assertSee('Peta Lokasi Pembekalan');
+
+        $this->actingAs($studentUser)
             ->post(route('student.orientation-attendances.store', $event), [
                 'student_latitude' => -5.3640000,
                 'student_longitude' => 105.2430000,

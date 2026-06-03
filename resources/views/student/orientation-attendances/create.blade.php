@@ -8,8 +8,13 @@
     </x-slot>
 
     <div class="py-8"><div class="silat-shell space-y-6">
-        @if ($errors->any())<x-alert variant="danger">{{ $errors->first() }}</x-alert>@endif
-        @if ($attendance)<x-alert variant="success">Presensi pembekalan sudah tercatat pada {{ $attendance->checked_at?->format('d/m/Y H:i') }}.</x-alert>@endif
+        @if ($errors->any())
+            <div class="silat-alert silat-alert-danger">{{ $errors->first() }}</div>
+        @endif
+
+        @if ($attendance)
+            <div class="silat-alert silat-alert-success">Presensi pembekalan sudah tercatat pada {{ $attendance->checked_at?->format('d/m/Y H:i') }}.</div>
+        @endif
 
         <div class="grid gap-6 xl:grid-cols-[1.6fr_0.9fr]">
             <section class="silat-card overflow-hidden">
@@ -68,7 +73,9 @@
                         </div>
                         <x-input-error :messages="$errors->get('photo_capture')" />
                     </div>
-                    <x-primary-button id="orientation-submit" disabled @disabled($attendance)><x-icon name="fa-fingerprint" /> Simpan Presensi</x-primary-button>
+                    <button id="orientation-submit" type="submit" class="silat-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" disabled @disabled($attendance)>
+                        <x-icon name="fa-fingerprint" /> Simpan Presensi
+                    </button>
                 </form>
             </section>
         </div>
