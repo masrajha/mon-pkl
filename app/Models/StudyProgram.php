@@ -12,6 +12,7 @@ class StudyProgram extends Model
     protected $fillable = [
         'code',
         'name',
+        'degree_level',
         'faculty',
         'is_active',
     ];

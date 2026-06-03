@@ -7,6 +7,12 @@
             @csrf @method('PATCH')
             <x-input-label for="code" value="Kode" /><x-text-input id="code" name="code" class="block w-full" :value="$studyProgram->code" required />
             <x-input-label for="name" value="Nama" /><x-text-input id="name" name="name" class="block w-full" :value="$studyProgram->name" required />
+            <x-input-label for="degree_level" value="Jenjang" />
+            <select id="degree_level" name="degree_level" class="block w-full rounded-md border-gray-300" required>
+                @foreach (['D3', 'S1', 'S2'] as $degreeLevel)
+                    <option value="{{ $degreeLevel }}" @selected(old('degree_level', $studyProgram->degree_level) === $degreeLevel)>{{ $degreeLevel }}</option>
+                @endforeach
+            </select>
             <x-input-label for="faculty" value="Fakultas" /><x-text-input id="faculty" name="faculty" class="block w-full" :value="$studyProgram->faculty" />
             <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" value="1" @checked($studyProgram->is_active) class="rounded border-gray-300"> Aktif</label>
             <x-primary-button>Simpan Perubahan</x-primary-button>

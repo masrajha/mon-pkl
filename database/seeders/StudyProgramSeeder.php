@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\DB;
 class StudyProgramSeeder extends Seeder
 {
     private const PROGRAMS = [
-        1 => ['code' => 'ILKOM', 'name' => 'S1 Ilmu Komputer'],
-        2 => ['code' => 'SI', 'name' => 'S1 Sistem Informasi'],
-        3 => ['code' => 'D3MI', 'name' => 'D3 Manajemen Informatika'],
+        1 => ['code' => 'ILKOM', 'name' => 'S1 Ilmu Komputer', 'degree_level' => 'S1'],
+        2 => ['code' => 'SI', 'name' => 'S1 Sistem Informasi', 'degree_level' => 'S1'],
+        3 => ['code' => 'D3MI', 'name' => 'D3 Manajemen Informatika', 'degree_level' => 'D3'],
     ];
 
     public function run(): void
@@ -23,6 +23,7 @@ class StudyProgramSeeder extends Seeder
                 $values = [
                     'code' => $program['code'],
                     'name' => $program['name'],
+                    'degree_level' => $program['degree_level'],
                     'faculty' => 'FMIPA',
                     'is_active' => true,
                     'updated_at' => now(),

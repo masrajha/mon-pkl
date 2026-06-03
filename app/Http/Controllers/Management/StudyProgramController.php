@@ -23,6 +23,7 @@ class StudyProgramController extends Controller
             $query->where(fn ($query) => $query
                 ->where('code', 'like', '%'.$search.'%')
                 ->orWhere('name', 'like', '%'.$search.'%')
+                ->orWhere('degree_level', 'like', '%'.$search.'%')
                 ->orWhere('faculty', 'like', '%'.$search.'%'));
         }
 
@@ -31,7 +32,7 @@ class StudyProgramController extends Controller
         }
 
         return view('management.study-programs.index', [
-            'studyPrograms' => $this->applyTableSort($query, $request, ['code', 'name', 'faculty', 'is_active'], 'name')
+            'studyPrograms' => $this->applyTableSort($query, $request, ['code', 'name', 'degree_level', 'faculty', 'is_active'], 'name')
                 ->paginate($this->tablePerPage($request))
                 ->withQueryString(),
             'selectedStatus' => $request->string('status')->toString(),
@@ -62,8 +63,9 @@ class StudyProgramController extends Controller
         return $request->validate([
             'code' => ['required', 'string', 'max:30', Rule::unique('study_programs')->ignore($studyProgram)],
             'name' => ['required', 'string', 'max:255', Rule::unique('study_programs')->ignore($studyProgram)],
+            'degree_level' => ['required', 'string', 'max:10'],
             'faculty' => ['nullable', 'string', 'max:255'],
             'is_active' => ['nullable', 'boolean'],
-        ]) + ['is_active' => false];
+        ]) + ['degree_level' => 'S1', 'is_active' => false];
     }
 }

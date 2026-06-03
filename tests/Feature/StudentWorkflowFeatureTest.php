@@ -352,6 +352,58 @@ class StudentWorkflowFeatureTest extends TestCase
         ]);
     }
 
+    public function test_student_enrollment_minimum_sks_follows_study_program_degree_level(): void
+    {
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Syarat Jenjang', 'academic_year' => '2026/2027', 'is_active' => true]);
+        $place = InternshipPlace::query()->create(['name' => 'Tempat Syarat Jenjang', 'is_active' => true]);
+
+        $s1User = User::factory()->create(['role' => 'mahasiswa']);
+        $s1Program = StudyProgram::query()->create(['code' => 'S1UJI', 'name' => 'S1 Uji', 'degree_level' => 'S1', 'is_active' => true]);
+        Student::query()->create([
+            'user_id' => $s1User->id,
+            'study_program_id' => $s1Program->id,
+            'npm' => '2217051991',
+            'full_name' => 'Mahasiswa S1',
+            'student_email' => '2217051991@student.unila.ac.id',
+            'phone' => '081234567890',
+        ]);
+
+        $this->actingAs($s1User)
+            ->from(route('student.enrollments.create'))
+            ->post(route('student.enrollments.store'), array_merge($this->validEnrollmentPayload($period, $s1Program, $place), [
+                'total_sks' => 99,
+                'current_semester' => 6,
+            ]))
+            ->assertRedirect(route('student.enrollments.create'))
+            ->assertSessionHasErrors('total_sks');
+
+        $d3User = User::factory()->create(['role' => 'mahasiswa']);
+        $d3Program = StudyProgram::query()->create(['code' => 'D3UJI', 'name' => 'D3 Uji', 'degree_level' => 'D3', 'is_active' => true]);
+        $d3Student = Student::query()->create([
+            'user_id' => $d3User->id,
+            'study_program_id' => $d3Program->id,
+            'npm' => '2207051992',
+            'full_name' => 'Mahasiswa D3',
+            'student_email' => '2207051992@student.unila.ac.id',
+            'phone' => '081234567891',
+        ]);
+
+        $this->actingAs($d3User)
+            ->post(route('student.enrollments.store'), array_merge($this->validEnrollmentPayload($period, $d3Program, $place), [
+                'total_sks' => 80,
+                'current_semester' => 4,
+            ]))
+            ->assertRedirect(route('student.dashboard'));
+
+        $this->assertDatabaseHas('internship_enrollments', [
+            'student_id' => $d3Student->id,
+            'study_program_id' => $d3Program->id,
+            'total_sks' => 80,
+            'current_semester' => 4,
+            'status' => 'pending_verification',
+        ]);
+    }
+
     public function test_student_can_revise_enrollment_when_revision_is_required(): void
     {
         $user = User::factory()->create(['role' => 'mahasiswa']);

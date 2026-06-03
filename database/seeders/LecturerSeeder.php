@@ -16,6 +16,7 @@ class LecturerSeeder extends Seeder
             ['code' => 'ILKOM'],
             [
                 'name' => 'S1 Ilmu Komputer',
+                'degree_level' => 'S1',
                 'faculty' => 'FMIPA',
                 'is_active' => true,
             ],

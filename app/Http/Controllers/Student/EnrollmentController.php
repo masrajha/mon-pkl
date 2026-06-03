@@ -61,7 +61,7 @@ class EnrollmentController extends Controller
         $data['program_id'] = $period->program_id;
         $data['study_program_id'] = $student->study_program_id;
         $settings = $this->configurations->forPeriod($period);
-        $this->validateEligibilityByRule($data, $settings, $period->program?->rule_key);
+        $this->validateEligibilityByRule($data, $settings, $period->program?->rule_key, $student->studyProgram?->degree_level);
 
         $existingEnrollment = InternshipEnrollment::query()
             ->where('student_id', $student->id)
@@ -101,7 +101,7 @@ class EnrollmentController extends Controller
         $data['program_id'] = $period->program_id;
         $data['study_program_id'] = $student->study_program_id;
         $settings = $this->configurations->forPeriod($period);
-        $this->validateEligibilityByRule($data, $settings, $period->program?->rule_key);
+        $this->validateEligibilityByRule($data, $settings, $period->program?->rule_key, $student->studyProgram?->degree_level);
         $this->validateQuota($data, $settings, $enrollment);
 
         $this->saveEnrollment($data, $student->id, $enrollment);
@@ -169,20 +169,21 @@ class EnrollmentController extends Controller
         return $student->loadMissing('studyProgram');
     }
 
-    private function validateEligibilityByRule(array $data, array $settings, ?string $ruleKey): void
+    private function validateEligibilityByRule(array $data, array $settings, ?string $ruleKey, ?string $degreeLevel): void
     {
         match ($ruleKey ?: 'kerja_praktik') {
-            'kerja_praktik' => $this->validateAcademicEligibility($data, $settings),
+            'kerja_praktik' => $this->validateAcademicEligibility($data, $settings, $degreeLevel),
             default => throw ValidationException::withMessages([
                 'program_id' => 'Rule program belum tersedia. Hubungi admin untuk mengaktifkan aturan program ini.',
             ]),
         };
     }
 
-    private function validateAcademicEligibility(array $data, array $settings): void
+    private function validateAcademicEligibility(array $data, array $settings, ?string $degreeLevel): void
     {
-        $minimumSemester = (int) $settings['enrollment']['minimum_semester_s1'];
-        $minimumSks = (int) $settings['enrollment']['minimum_total_sks'];
+        $degreeKey = strtolower((string) ($degreeLevel ?: 'S1'));
+        $minimumSemester = (int) ($settings['enrollment']["minimum_semester_{$degreeKey}"] ?? $settings['enrollment']['minimum_semester_s1']);
+        $minimumSks = (int) ($settings['enrollment']["minimum_total_sks_{$degreeKey}"] ?? $settings['enrollment']['minimum_total_sks'] ?? $settings['enrollment']['minimum_total_sks_s1']);
         $minimumGpa = (float) $settings['enrollment']['minimum_gpa'];
 
         if ((int) $data['total_sks'] < $minimumSks) {

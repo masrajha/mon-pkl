@@ -56,8 +56,12 @@
                             <x-text-input id="max_place_quota" name="enrollment[max_place_quota]" type="number" class="mt-1 block w-full" :value="old('enrollment.max_place_quota', $settings['enrollment']['max_place_quota'])" required />
                         </div>
                         <div>
-                            <x-input-label for="minimum_total_sks" :value="__('Minimal SKS')" />
-                            <x-text-input id="minimum_total_sks" name="enrollment[minimum_total_sks]" type="number" class="mt-1 block w-full" :value="old('enrollment.minimum_total_sks', $settings['enrollment']['minimum_total_sks'])" required />
+                            <x-input-label for="minimum_total_sks_s1" :value="__('Minimal SKS S1')" />
+                            <x-text-input id="minimum_total_sks_s1" name="enrollment[minimum_total_sks_s1]" type="number" class="mt-1 block w-full" :value="old('enrollment.minimum_total_sks_s1', $settings['enrollment']['minimum_total_sks_s1'])" required />
+                        </div>
+                        <div>
+                            <x-input-label for="minimum_total_sks_d3" :value="__('Minimal SKS D3')" />
+                            <x-text-input id="minimum_total_sks_d3" name="enrollment[minimum_total_sks_d3]" type="number" class="mt-1 block w-full" :value="old('enrollment.minimum_total_sks_d3', $settings['enrollment']['minimum_total_sks_d3'])" required />
                         </div>
                         <div>
                             <x-input-label for="minimum_semester_s1" :value="__('Minimal semester S1')" />

@@ -23,7 +23,8 @@ return [
     'enrollment' => [
         'min_place_quota' => (int) env('MONPKL_PLACE_MIN_QUOTA', 2),
         'max_place_quota' => (int) env('MONPKL_PLACE_MAX_QUOTA', 3),
-        'minimum_total_sks' => (int) env('MONPKL_MINIMUM_TOTAL_SKS', 100),
+        'minimum_total_sks_s1' => (int) env('MONPKL_MINIMUM_TOTAL_SKS_S1', env('MONPKL_MINIMUM_TOTAL_SKS', 100)),
+        'minimum_total_sks_d3' => (int) env('MONPKL_MINIMUM_TOTAL_SKS_D3', 80),
         'minimum_semester_s1' => (int) env('MONPKL_MINIMUM_SEMESTER_S1', 6),
         'minimum_semester_d3' => (int) env('MONPKL_MINIMUM_SEMESTER_D3', 4),
         'minimum_gpa' => (float) env('MONPKL_MINIMUM_GPA', 2.00),
