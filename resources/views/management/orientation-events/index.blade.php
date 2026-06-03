@@ -31,13 +31,24 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
+                <div class="relative z-20">
                     <x-input-label for="location_name" value="Nama Lokasi" />
-                    <x-text-input id="location_name" name="location_name" class="mt-1 block w-full" :value="old('location_name')" required />
+                    <x-text-input
+                        id="location_name"
+                        name="location_name"
+                        class="mt-1 block w-full"
+                        :value="old('location_name')"
+                        data-location-suggest-url="{{ $internalLocationSearchUrl }}"
+                        data-external-location-suggest-url="{{ $externalLocationSearchUrl }}"
+                        data-map-target="orientation_location_map"
+                        autocomplete="off"
+                        required
+                    />
                 </div>
-                <div>
+                <div class="relative z-10">
                     <x-input-label value="Pick Lokasi dari Peta" />
                     <div
+                        id="orientation_location_map"
                         class="monpkl-map monpkl-form-map mt-1 rounded-lg"
                         data-map-type="place-picker"
                         data-lat-input="latitude"

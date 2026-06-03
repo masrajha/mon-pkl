@@ -17,6 +17,7 @@
                 <div class="bg-white shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <div
+                            id="internship_place_location_map"
                             class="monpkl-map monpkl-form-map"
                             data-map-type="place-picker"
                             data-lat-input="latitude"
@@ -35,9 +36,21 @@
                             @method('PATCH')
                         @endif
 
-                        <div>
+                        <div class="relative z-20">
                             <x-input-label for="name" :value="__('Nama Instansi/Perusahaan')" />
-                            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $place->name)" required />
+                            <x-text-input
+                                id="name"
+                                name="name"
+                                type="text"
+                                class="mt-1 block w-full"
+                                :value="old('name', $place->name)"
+                                data-location-suggest-url="{{ $internalLocationSearchUrl }}"
+                                data-external-location-suggest-url="{{ $externalLocationSearchUrl }}"
+                                data-map-target="internship_place_location_map"
+                                data-address-target="address"
+                                autocomplete="off"
+                                required
+                            />
                         </div>
 
                         <div>

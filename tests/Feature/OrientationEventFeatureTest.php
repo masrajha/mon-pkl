@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
+use App\Models\InternshipPlace;
+use App\Models\InternshipPlaceProposal;
 use App\Models\Program;
 use App\Models\Student;
 use App\Models\StudyProgram;
@@ -105,5 +107,68 @@ class OrientationEventFeatureTest extends TestCase
             ->assertSee('Mahasiswa Pembekalan')
             ->assertSee('Presensi')
             ->assertSee('0 m');
+    }
+
+    public function test_admin_searches_internal_location_suggestions(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $studentUser = User::factory()->create(['role' => 'mahasiswa']);
+        $activityProgram = Program::query()->create([
+            'code' => 'MAGANG-UJI',
+            'name' => 'Magang',
+            'rule_key' => 'kerja_praktik',
+            'is_active' => true,
+        ]);
+        $studyProgram = StudyProgram::query()->create([
+            'code' => 'ILKOM',
+            'name' => 'S1 Ilmu Komputer',
+            'degree_level' => 'S1',
+            'is_active' => true,
+        ]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $activityProgram->id,
+            'name' => 'Juli 2026',
+            'academic_year' => '2026/2027',
+            'is_active' => true,
+        ]);
+        $student = Student::query()->create([
+            'user_id' => $studentUser->id,
+            'study_program_id' => $studyProgram->id,
+            'npm' => '2217051002',
+            'full_name' => 'Mahasiswa Usulan',
+            'student_email' => '2217051002@student.unila.ac.id',
+            'phone' => '081234567891',
+        ]);
+
+        InternshipPlace::query()->create([
+            'name' => 'Gedung FMIPA Universitas Lampung',
+            'address' => 'Jl. Prof. Dr. Sumantri Brojonegoro',
+            'latitude' => -5.3640000,
+            'longitude' => 105.2430000,
+            'is_active' => true,
+        ]);
+
+        InternshipPlaceProposal::query()->create([
+            'internship_period_id' => $period->id,
+            'study_program_id' => $studyProgram->id,
+            'student_id' => $student->id,
+            'name' => 'Aula FMIPA Unila',
+            'address' => 'Universitas Lampung',
+            'latitude' => -5.3650000,
+            'longitude' => 105.2440000,
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson(route('management.orientation-events.locations.search', ['q' => 'fmipa universitas lampung']))
+            ->assertOk()
+            ->assertJsonPath('data.0.source', 'Mitra')
+            ->assertJsonPath('data.0.name', 'Gedung FMIPA Universitas Lampung');
+
+        $this->actingAs($studentUser)
+            ->getJson(route('locations.search', ['q' => 'aula fmipa']))
+            ->assertOk()
+            ->assertJsonPath('data.0.source', 'Usulan tempat')
+            ->assertJsonPath('data.0.name', 'Aula FMIPA Unila');
     }
 }

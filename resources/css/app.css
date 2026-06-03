@@ -395,6 +395,20 @@
     min-height: 420px;
 }
 
+.monpkl-location-suggestions {
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    z-index: 1200;
+    margin-top: 0.25rem;
+    max-height: 18rem;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    background: #ffffff;
+    box-shadow: 0 18px 40px -18px rgb(15 23 42 / 0.45), 0 10px 18px -12px rgb(15 23 42 / 0.25);
+}
+
 .monpkl-place-icon span,
 .monpkl-checkin-icon span {
     display: block;

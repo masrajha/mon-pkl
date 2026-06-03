@@ -5,6 +5,7 @@ use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CoordinatorDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternshipPlaceController;
+use App\Http\Controllers\LocationSuggestionController;
 use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinatorController;
 use App\Http\Controllers\Management\DashboardController as ManagementDashboardController;
 use App\Http\Controllers\Management\EnrollmentController as ManagementEnrollmentController;
@@ -156,6 +157,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/maps/places/data', [MapController::class, 'placesData'])->name('maps.places.data');
     Route::get('/maps/monitoring', [MapController::class, 'monitoring'])->name('maps.monitoring');
     Route::get('/maps/monitoring/data', [MapController::class, 'monitoringData'])->name('maps.monitoring.data');
+    Route::get('/locations/search', LocationSuggestionController::class)->name('locations.search');
     Route::get('/reports/monitoring', [ReportController::class, 'monitoring'])->name('reports.monitoring');
     Route::get('/submission-progress/{progress}/file', SubmissionProgressFileController::class)->name('submission-progress.file');
 
@@ -193,6 +195,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/management/enrollment-validations', [ManagementEnrollmentController::class, 'validations'])->name('management.enrollment-validations.index');
         Route::patch('/management/enrollment-validations/{enrollment}', [ManagementEnrollmentController::class, 'validateEnrollment'])->name('management.enrollment-validations.update');
         Route::get('/management/orientation-events', [ManagementOrientationEventController::class, 'index'])->name('management.orientation-events.index');
+        Route::get('/management/orientation-events/locations/search', [ManagementOrientationEventController::class, 'locationSuggestions'])->name('management.orientation-events.locations.search');
         Route::post('/management/orientation-events', [ManagementOrientationEventController::class, 'store'])->name('management.orientation-events.store');
         Route::get('/management/orientation-events/{orientationEvent}', [ManagementOrientationEventController::class, 'show'])->name('management.orientation-events.show');
         Route::get('/management/supervisor-requests', [ManagementSupervisorChangeRequestController::class, 'index'])->name('management.supervisor-requests.index');

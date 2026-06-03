@@ -21,6 +21,8 @@ class InternshipPlaceController extends Controller
             'place' => new InternshipPlace(),
             'cities' => $this->cities(),
             'mapConfig' => $this->configurations->frontendMapConfig(null),
+            'internalLocationSearchUrl' => route('locations.search'),
+            'externalLocationSearchUrl' => $this->externalLocationSearchUrl(),
         ]);
     }
 
@@ -39,6 +41,8 @@ class InternshipPlaceController extends Controller
             'place' => $internshipPlace,
             'cities' => $this->cities(),
             'mapConfig' => $this->configurations->frontendMapConfig(null),
+            'internalLocationSearchUrl' => route('locations.search'),
+            'externalLocationSearchUrl' => $this->externalLocationSearchUrl(),
         ]);
     }
 
@@ -84,5 +88,10 @@ class InternshipPlaceController extends Controller
     private function cities()
     {
         return City::query()->orderBy('name')->get();
+    }
+
+    private function externalLocationSearchUrl(): string
+    {
+        return 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&countrycodes=id&q={query}';
     }
 }

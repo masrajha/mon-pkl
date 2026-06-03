@@ -7,16 +7,21 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\OrientationEvent;
 use App\Models\StudyProgram;
+use App\Services\LocationSuggestionService;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class OrientationEventController extends Controller
 {
-    public function __construct(private readonly PeriodConfigurationService $configurations)
+    public function __construct(
+        private readonly PeriodConfigurationService $configurations,
+        private readonly LocationSuggestionService $locations,
+    )
     {
     }
 
@@ -42,6 +47,15 @@ class OrientationEventController extends Controller
             'selectedPeriod' => $selectedPeriod,
             'selectedStudyProgram' => $selectedStudyProgram,
             'mapConfig' => $this->configurations->frontendMapConfig($selectedPeriod),
+            'internalLocationSearchUrl' => route('locations.search'),
+            'externalLocationSearchUrl' => 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&countrycodes=id&q={query}',
+        ]);
+    }
+
+    public function locationSuggestions(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->locations->internal($request->string('q')->toString())->all(),
         ]);
     }
 

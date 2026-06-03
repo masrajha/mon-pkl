@@ -22,6 +22,7 @@
                         </div>
                     </div>
                     <div
+                        id="student_proposal_location_map"
                         class="monpkl-map monpkl-form-map"
                         data-map-type="place-picker"
                         data-lat-input="latitude"
@@ -65,9 +66,20 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div class="relative z-20">
                             <x-input-label for="name" value="Nama Instansi/Perusahaan" />
-                            <x-text-input id="name" name="name" class="mt-1 block w-full" :value="old('name')" required />
+                            <x-text-input
+                                id="name"
+                                name="name"
+                                class="mt-1 block w-full"
+                                :value="old('name')"
+                                data-location-suggest-url="{{ $internalLocationSearchUrl }}"
+                                data-external-location-suggest-url="{{ $externalLocationSearchUrl }}"
+                                data-map-target="student_proposal_location_map"
+                                data-address-target="address"
+                                autocomplete="off"
+                                required
+                            />
                         </div>
 
                         <div>

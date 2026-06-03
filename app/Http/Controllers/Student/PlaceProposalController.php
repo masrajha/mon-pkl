@@ -27,6 +27,8 @@ class PlaceProposalController extends Controller
             'periods' => InternshipPeriod::query()->with('program')->where('is_locked', false)->orderByDesc('is_active')->orderByDesc('id')->get(),
             'cities' => City::query()->orderBy('name')->get(),
             'mapConfig' => $this->configurations->frontendMapConfig(null),
+            'internalLocationSearchUrl' => route('locations.search'),
+            'externalLocationSearchUrl' => $this->externalLocationSearchUrl(),
         ]);
     }
 
@@ -55,5 +57,10 @@ class PlaceProposalController extends Controller
         ]);
 
         return redirect()->route('student.dashboard')->with('status', 'Usulan mitra dikirim dan menunggu validasi admin.');
+    }
+
+    private function externalLocationSearchUrl(): string
+    {
+        return 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&countrycodes=id&q={query}';
     }
 }

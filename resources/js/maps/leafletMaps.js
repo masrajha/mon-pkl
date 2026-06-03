@@ -23,6 +23,7 @@ L.Icon.Default.mergeOptions({
 
 document.addEventListener('DOMContentLoaded', () => {
     initRegionPickers();
+    initLocationSuggestionInputs();
 
     document.querySelectorAll('[data-map-type]').forEach((element) => {
         if (element.dataset.mapType === 'places') {
@@ -319,6 +320,165 @@ function initPlacePickerMap(element) {
     }
 
     map.on('click', (event) => setLocation(event.latlng));
+    element.addEventListener('monpkl:set-location', (event) => {
+        const lat = Number(event.detail?.latitude);
+        const lng = Number(event.detail?.longitude);
+
+        if (!isValidLatLng(lat, lng)) {
+            return;
+        }
+
+        const selected = L.latLng(lat, lng);
+        setLocation(selected);
+        map.setView(selected, config.officeZoom);
+    });
+}
+
+function initLocationSuggestionInputs() {
+    document.querySelectorAll('[data-location-suggest-url]').forEach((input) => {
+        const list = document.createElement('div');
+        let timer = null;
+        let requestToken = 0;
+
+        list.className = 'monpkl-location-suggestions hidden';
+        input.parentElement?.classList.add('relative');
+        input.insertAdjacentElement('afterend', list);
+
+        const hide = () => {
+            list.classList.add('hidden');
+            list.replaceChildren();
+        };
+
+        input.addEventListener('input', () => {
+            clearTimeout(timer);
+            const query = input.value.trim();
+
+            if (query.length < 3) {
+                hide();
+                return;
+            }
+
+            timer = setTimeout(async () => {
+                const token = ++requestToken;
+                renderLocationSuggestions(list, [{
+                    name: 'Mencari lokasi...',
+                    address: 'Riwayat internal diperiksa lebih dulu.',
+                    source: 'Status',
+                    disabled: true,
+                }], () => {});
+
+                const suggestions = await locationSuggestions(input, query);
+
+                if (token !== requestToken) {
+                    return;
+                }
+
+                renderLocationSuggestions(list, suggestions, (suggestion) => {
+                    input.value = suggestion.name;
+                    selectSuggestedLocation(input, suggestion);
+                    hide();
+                });
+            }, 500);
+        });
+
+        input.addEventListener('blur', () => setTimeout(hide, 180));
+    });
+}
+
+async function locationSuggestions(input, query) {
+    const internal = await internalLocationSuggestions(input.dataset.locationSuggestUrl, query);
+
+    if (internal.length > 0) {
+        return internal;
+    }
+
+    return externalLocationSuggestions(input.dataset.externalLocationSuggestUrl, query);
+}
+
+async function internalLocationSuggestions(url, query) {
+    if (!url) {
+        return [];
+    }
+
+    try {
+        const separator = url.includes('?') ? '&' : '?';
+        const data = await fetchJson(`${url}${separator}q=${encodeURIComponent(query)}`);
+
+        return Array.isArray(data.data) ? data.data : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+async function externalLocationSuggestions(urlTemplate, query) {
+    if (!urlTemplate) {
+        return [];
+    }
+
+    try {
+        const url = urlTemplate.replace('{query}', encodeURIComponent(query));
+        const data = await fetchJson(url);
+
+        return (Array.isArray(data) ? data : []).map((item) => ({
+            source: 'Eksternal',
+            name: item.name || item.display_name,
+            address: item.display_name,
+            latitude: Number(item.lat),
+            longitude: Number(item.lon),
+        })).filter((item) => item.name && isValidLatLng(item.latitude, item.longitude));
+    } catch (error) {
+        return [];
+    }
+}
+
+function renderLocationSuggestions(list, suggestions, onSelect) {
+    list.replaceChildren();
+
+    if (suggestions.length === 0) {
+        suggestions = [{
+            name: 'Tidak ada saran lokasi',
+            address: 'Pilih titik secara manual dari peta.',
+            source: 'Status',
+            disabled: true,
+        }];
+    }
+
+    suggestions.forEach((suggestion) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.disabled = Boolean(suggestion.disabled);
+        button.className = 'block w-full px-3 py-2 text-left text-sm transition hover:bg-blue-50 disabled:cursor-default disabled:hover:bg-white';
+        button.innerHTML = `
+            <span class="block font-medium text-gray-900">${escapeHtml(suggestion.name || '-')}</span>
+            <span class="block text-xs text-gray-500">${escapeHtml(suggestion.source || 'Lokasi')} &middot; ${escapeHtml(suggestion.address || '-')}</span>
+        `;
+        button.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+
+            if (!suggestion.disabled) {
+                onSelect(suggestion);
+            }
+        });
+        list.append(button);
+    });
+
+    list.classList.remove('hidden');
+}
+
+function selectSuggestedLocation(input, suggestion) {
+    const map = input.dataset.mapTarget ? document.getElementById(input.dataset.mapTarget) : null;
+    const address = input.dataset.addressTarget ? document.getElementById(input.dataset.addressTarget) : null;
+
+    if (address && suggestion.address) {
+        address.value = suggestion.address;
+    }
+
+    map?.dispatchEvent(new CustomEvent('monpkl:set-location', {
+        detail: {
+            latitude: suggestion.latitude,
+            longitude: suggestion.longitude,
+        },
+    }));
 }
 
 function initRegionPickers() {
