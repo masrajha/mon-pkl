@@ -7,6 +7,7 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\Program;
+use App\Services\EnrollmentEmailNotificationService;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,8 +18,10 @@ use Illuminate\View\View;
 
 class EnrollmentController extends Controller
 {
-    public function __construct(private readonly PeriodConfigurationService $configurations)
-    {
+    public function __construct(
+        private readonly PeriodConfigurationService $configurations,
+        private readonly EnrollmentEmailNotificationService $enrollmentEmails,
+    ) {
     }
 
     public function create(Request $request): View
@@ -78,7 +81,8 @@ class EnrollmentController extends Controller
 
         $this->validateQuota($data, $settings, $existingEnrollment);
 
-        $this->saveEnrollment($request, $data, $student->id, $existingEnrollment);
+        $enrollment = $this->saveEnrollment($request, $data, $student->id, $existingEnrollment);
+        $this->enrollmentEmails->studentSubmitted($enrollment, revision: (bool) $existingEnrollment);
 
         return redirect()->route('student.dashboard')->with('status', 'Pendaftaran program dikirim dan menunggu verifikasi admin.');
     }
@@ -105,7 +109,8 @@ class EnrollmentController extends Controller
         $this->validateEligibilityByRule($data, $settings, $period->program?->rule_key, $student->studyProgram?->degree_level);
         $this->validateQuota($data, $settings, $enrollment);
 
-        $this->saveEnrollment($request, $data, $student->id, $enrollment);
+        $enrollment = $this->saveEnrollment($request, $data, $student->id, $enrollment);
+        $this->enrollmentEmails->studentSubmitted($enrollment, revision: true);
 
         return redirect()->route('student.dashboard')->with('status', 'Revisi pendaftaran dikirim kembali dan menunggu verifikasi admin.');
     }
@@ -150,7 +155,7 @@ class EnrollmentController extends Controller
         return $period;
     }
 
-    private function saveEnrollment(Request $request, array $data, int $studentId, ?InternshipEnrollment $enrollment = null): void
+    private function saveEnrollment(Request $request, array $data, int $studentId, ?InternshipEnrollment $enrollment = null): InternshipEnrollment
     {
         unset($data['program_id']);
         unset($data['registration_document']);
@@ -173,8 +178,12 @@ class EnrollmentController extends Controller
 
         if ($enrollment) {
             $enrollment->update($payload);
+
+            return $enrollment->refresh()->loadMissing(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace']);
         } else {
-            InternshipEnrollment::query()->create($payload);
+            return InternshipEnrollment::query()
+                ->create($payload)
+                ->loadMissing(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace']);
         }
     }
 

@@ -11,6 +11,7 @@ use App\Models\Lecturer;
 use App\Models\Program;
 use App\Models\Student;
 use App\Models\StudyProgram;
+use App\Services\EnrollmentEmailNotificationService;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -24,8 +25,10 @@ class EnrollmentController extends Controller
 {
     use InteractsWithTableControls;
 
-    public function __construct(private readonly PeriodConfigurationService $configurations)
-    {
+    public function __construct(
+        private readonly PeriodConfigurationService $configurations,
+        private readonly EnrollmentEmailNotificationService $enrollmentEmails,
+    ) {
     }
 
     public function index(Request $request): View
@@ -103,7 +106,8 @@ class EnrollmentController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        InternshipEnrollment::query()->create($this->validated($request));
+        $enrollment = InternshipEnrollment::query()->create($this->validated($request));
+        $this->enrollmentEmails->enrollmentChangedByAdmin($enrollment->refresh(), ['status']);
 
         return back()->with('status', 'Peserta periode berhasil ditambahkan.');
     }
@@ -118,6 +122,15 @@ class EnrollmentController extends Controller
     public function update(Request $request, InternshipEnrollment $enrollment): RedirectResponse
     {
         $enrollment->update($this->validated($request, $enrollment));
+        $changed = collect($enrollment->getChanges())
+            ->keys()
+            ->reject(fn (string $field) => in_array($field, ['updated_at'], true))
+            ->values()
+            ->all();
+
+        if ($changed !== []) {
+            $this->enrollmentEmails->enrollmentChangedByAdmin($enrollment->refresh(), $changed);
+        }
 
         return redirect()->route('management.enrollments.index', [
             'period_id' => $enrollment->internship_period_id,
@@ -284,6 +297,7 @@ class EnrollmentController extends Controller
             'lecturer_supervisor_user_id' => $lecturer?->user_id,
             'lecturer_supervisor' => $lecturer?->name,
         ]);
+        $this->enrollmentEmails->validationProcessed($enrollment->refresh(), $data['status']);
 
         return back()->with('status', 'Validasi pendaftaran berhasil diproses.');
     }

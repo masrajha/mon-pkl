@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('silat:email-notifications:process --limit=100')
     ->everyMinute()
     ->withoutOverlapping();
+
+Schedule::command('silat:enrollment-notifications:queue-pending-reminders --days=3')
+    ->hourly()
+    ->withoutOverlapping();
