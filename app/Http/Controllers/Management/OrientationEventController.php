@@ -7,6 +7,7 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\OrientationEvent;
 use App\Models\StudyProgram;
+use App\Services\PeriodConfigurationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,13 +16,20 @@ use Illuminate\View\View;
 
 class OrientationEventController extends Controller
 {
+    public function __construct(private readonly PeriodConfigurationService $configurations)
+    {
+    }
+
     public function index(Request $request): View
     {
+        $selectedPeriod = $request->integer('period_id') ?: null;
+        $selectedStudyProgram = $request->integer('study_program_id') ?: null;
+
         $events = OrientationEvent::query()
             ->with(['internshipPeriod.program', 'program', 'studyProgram'])
             ->withCount('attendances')
-            ->when($request->filled('period_id'), fn (Builder $query) => $query->where('internship_period_id', $request->integer('period_id')))
-            ->when($request->filled('study_program_id'), fn (Builder $query) => $query->where('study_program_id', $request->integer('study_program_id')))
+            ->when($selectedPeriod, fn (Builder $query) => $query->where('internship_period_id', $selectedPeriod))
+            ->when($selectedStudyProgram, fn (Builder $query) => $query->where('study_program_id', $selectedStudyProgram))
             ->tap(fn (Builder $query) => $this->scopeEventQuery($query, $request))
             ->latest()
             ->paginate(10)
@@ -31,8 +39,9 @@ class OrientationEventController extends Controller
             'events' => $events,
             'periods' => $this->periodsFor($request),
             'studyPrograms' => $this->studyProgramsFor($request),
-            'selectedPeriod' => $request->integer('period_id') ?: null,
-            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedPeriod' => $selectedPeriod,
+            'selectedStudyProgram' => $selectedStudyProgram,
+            'mapConfig' => $this->configurations->frontendMapConfig($selectedPeriod),
         ]);
     }
 

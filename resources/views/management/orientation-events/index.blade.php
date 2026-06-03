@@ -35,6 +35,19 @@
                     <x-input-label for="location_name" value="Nama Lokasi" />
                     <x-text-input id="location_name" name="location_name" class="mt-1 block w-full" :value="old('location_name')" required />
                 </div>
+                <div>
+                    <x-input-label value="Pick Lokasi dari Peta" />
+                    <div
+                        class="monpkl-map monpkl-form-map mt-1 rounded-lg"
+                        data-map-type="place-picker"
+                        data-lat-input="latitude"
+                        data-lng-input="longitude"
+                        data-initial-lat="{{ old('latitude') }}"
+                        data-initial-lng="{{ old('longitude') }}"
+                        data-map-config='@json($mapConfig)'
+                    ></div>
+                    <p class="mt-1 text-xs text-gray-500">Klik peta atau geser marker untuk mengisi koordinat lokasi pembekalan.</p>
+                </div>
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div><x-input-label for="latitude" value="Latitude" /><x-text-input id="latitude" name="latitude" class="mt-1 block w-full" :value="old('latitude')" required /></div>
                     <div><x-input-label for="longitude" value="Longitude" /><x-text-input id="longitude" name="longitude" class="mt-1 block w-full" :value="old('longitude')" required /></div>
