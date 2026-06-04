@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $student = $request->user()->student()->first();
         $enrollments = $student
             ? InternshipEnrollment::query()
-                ->with(['internshipPeriod.program', 'internshipPeriod.deadlines', 'studyProgram', 'internshipPlace', 'lecturer', 'checkIns'])
+                ->with(['internshipPeriod.program', 'internshipPeriod.deadlines', 'studyProgram', 'internshipPlace', 'lecturer', 'checkIns', 'seminarRequests'])
                 ->where('student_id', $student->id)
                 ->latest('id')
                 ->get()

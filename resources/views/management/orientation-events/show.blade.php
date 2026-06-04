@@ -26,7 +26,9 @@
                     <thead class="silat-table-head"><tr><th class="silat-table-cell">Mahasiswa</th><th class="silat-table-cell">Prodi</th><th class="silat-table-cell">Status</th><th class="silat-table-cell">Waktu</th><th class="silat-table-cell">Jarak</th></tr></thead>
                     <tbody>
                         @forelse ($participants as $enrollment)
-                            @php($attendance = $attendances->get($enrollment->student_id))
+                            @php
+                                $attendance = $attendances->get($enrollment->student_id);
+                            @endphp
                             <tr>
                                 <td class="silat-table-cell"><div class="font-medium text-gray-900">{{ $enrollment->student?->full_name }}</div><div class="text-xs text-gray-500">{{ $enrollment->student?->npm }}</div></td>
                                 <td class="silat-table-cell">{{ $enrollment->studyProgram?->name }}</td>

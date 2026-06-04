@@ -43,6 +43,7 @@
                 ['label' => 'Pindah Mitra', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*'], 'badge' => 'relocations'],
                 ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*'], 'badge' => 'supervisor_changes'],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
+                ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
                 ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
                 ['label' => 'Rekap Prodi', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
             ],
@@ -54,6 +55,7 @@
             'label' => 'Dosen Pembimbing',
             'items' => [
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
+                ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
                 ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
                 ['label' => 'Rekap Bimbingan', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
             ],
@@ -74,6 +76,7 @@
                 ['label' => 'Pindah Mitra', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*'], 'badge' => 'relocations'],
                 ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*'], 'badge' => 'supervisor_changes'],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
+                ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
             ],
         ];
 
@@ -140,8 +143,10 @@
                     <p class="px-3 text-xs font-semibold uppercase tracking-wide text-blue-300">{{ $group['label'] }}</p>
                     <div class="mt-2 space-y-1">
                         @foreach ($group['items'] as $item)
-                            @php($active = request()->routeIs($item['active']))
-                            @php($badgeCount = isset($item['badge']) ? (int) data_get($actionRequiredSummary, $item['badge'].'.count', 0) : 0)
+                            @php
+                                $active = request()->routeIs($item['active']);
+                                $badgeCount = isset($item['badge']) ? (int) data_get($actionRequiredSummary, $item['badge'].'.count', 0) : 0;
+                            @endphp
                             <a href="{{ route($item['route']) }}" class="{{ $itemClass($active) }}">
                                 <x-icon :name="$item['icon']" class="w-5 text-center" />
                                 <span class="min-w-0 flex-1">{{ $item['label'] }}</span>
@@ -221,8 +226,10 @@
                         <p class="px-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{{ $group['label'] }}</p>
                         <div class="mt-2 space-y-1">
                             @foreach ($group['items'] as $item)
-                                @php($active = request()->routeIs($item['active']))
-                                @php($badgeCount = isset($item['badge']) ? (int) data_get($actionRequiredSummary, $item['badge'].'.count', 0) : 0)
+                                @php
+                                    $active = request()->routeIs($item['active']);
+                                    $badgeCount = isset($item['badge']) ? (int) data_get($actionRequiredSummary, $item['badge'].'.count', 0) : 0;
+                                @endphp
                                 <a href="{{ route($item['route']) }}" class="{{ $mobileItemClass($active) }}" @click="open = false">
                                     <x-icon :name="$item['icon']" class="w-5 text-center" />
                                     <span class="min-w-0 flex-1">{{ $item['label'] }}</span>

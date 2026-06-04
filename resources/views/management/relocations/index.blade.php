@@ -39,7 +39,7 @@
                                 @endif
                             </td>
                             <td class="silat-table-cell text-gray-600">{{ Str::limit($request->reason, 80) }}</td>
-                            <td class="silat-table-cell">@php($statusVariant = match($request->status) {'pending' => 'warning', 'approved' => 'success', 'rejected' => 'danger', 'cancelled' => 'neutral', default => 'neutral'})<x-badge :variant="$statusVariant">{{ ['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan'][$request->status] ?? Str::headline($request->status) }}</x-badge>@if($request->admin_note)<div class="mt-1 text-xs text-gray-500">{{ $request->admin_note }}</div>@endif</td>
+                            <td class="silat-table-cell">@php $statusVariant = match($request->status) {'pending' => 'warning', 'approved' => 'success', 'rejected' => 'danger', 'cancelled' => 'neutral', default => 'neutral'}; @endphp<x-badge :variant="$statusVariant">{{ ['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan'][$request->status] ?? Str::headline($request->status) }}</x-badge>@if($request->admin_note)<div class="mt-1 text-xs text-gray-500">{{ $request->admin_note }}</div>@endif</td>
                             <td class="silat-table-cell">
                                 @if ($request->status === 'pending')
                                     <form method="POST" action="{{ route('management.relocations.update', $request) }}" class="space-y-2">

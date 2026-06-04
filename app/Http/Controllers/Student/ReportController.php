@@ -31,6 +31,11 @@ class ReportController extends Controller
             'lecturer',
             'submissionProgress' => fn ($query) => $query->latest('uploaded_at'),
             'submissionProgress.reviewer',
+            'seminarRequests' => fn ($query) => $query->latest('id'),
+            'seminarRequests.lecturerApprover',
+            'seminarRequests.manualAccValidator',
+            'seminarRequests.scheduler',
+            'seminarRequests.scorer',
             'sanctions' => fn ($query) => $query->latest('date'),
             'supervisorChangeRequests' => fn ($query) => $query->latest('id'),
             'checkIns' => fn ($query) => $query->orderBy('checked_at'),
@@ -55,6 +60,10 @@ class ReportController extends Controller
             'deadlineTypeLabels' => config('monpkl.deadline_types'),
             'submissionNotes' => config('monpkl.report_submission_notes'),
             'dailyActivityRows' => $this->dailyActivityRows($enrollment),
+            'seminarStatusLabels' => $this->seminarStatusLabels(),
+            'canRequestSeminar' => $this->canRequestSeminar($enrollment),
+            'seminarBlockedReason' => $this->seminarBlockedReason($enrollment),
+            'seminarRubric' => config('monpkl.seminar_assessment_rubric', []),
         ]);
     }
 
@@ -67,12 +76,6 @@ class ReportController extends Controller
             'deadline_type' => ['required', Rule::in(array_keys($this->deadlineLabels()))],
             'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
-
-        if ($data['deadline_type'] === 'seminar' && blank($enrollment->field_supervisor_email)) {
-            return back()
-                ->withErrors(['deadline_type' => 'Email pembimbing lapangan wajib dilengkapi sebelum mengajukan Seminar.'])
-                ->withInput();
-        }
 
         $approvedExists = SubmissionProgress::query()
             ->where('internship_enrollment_id', $enrollment->id)
@@ -261,5 +264,57 @@ class ReportController extends Controller
     private function deadlineLabels(): array
     {
         return config('monpkl.report_submission_types');
+    }
+
+    private function canRequestSeminar(InternshipEnrollment $enrollment): bool
+    {
+        return $this->seminarBlockedReason($enrollment) === null;
+    }
+
+    private function seminarBlockedReason(InternshipEnrollment $enrollment): ?string
+    {
+        if ($enrollment->status !== 'active') {
+            return 'Enrollment harus aktif sebelum pengajuan seminar.';
+        }
+
+        if (! $enrollment->lecturer_supervisor_id && ! $enrollment->lecturer_supervisor_user_id) {
+            return 'Dosen pembimbing wajib ditentukan sebelum pengajuan seminar.';
+        }
+
+        $hasFullReport = $enrollment->submissionProgress
+            ->where('deadline_type', 'full_report')
+            ->where('status', '!=', 'rejected')
+            ->isNotEmpty();
+
+        if (! $hasFullReport) {
+            return 'Unggah Pelaporan Tahap 4 (Laporan Lengkap): Bab 1 s.d 5 terlebih dahulu.';
+        }
+
+        $activeSeminar = $enrollment->seminarRequests
+            ->whereNotIn('status', ['completed', 'cancelled', 'rejected'])
+            ->isNotEmpty();
+
+        if ($activeSeminar) {
+            return 'Masih ada pengajuan seminar aktif.';
+        }
+
+        return null;
+    }
+
+    private function seminarStatusLabels(): array
+    {
+        return [
+            'waiting_lecturer_approval' => 'Menunggu ACC Dosen',
+            'waiting_manual_acc_validation' => 'Menunggu Validasi ACC',
+            'waiting_assessment_validation' => 'Menunggu Validasi Nilai Manual',
+            'assessment_revision_required' => 'Revisi Nilai Manual',
+            'lecturer_approved' => 'ACC Dosen',
+            'manual_acc_approved' => 'ACC Manual Valid',
+            'revision_required' => 'Perlu Revisi',
+            'scheduled' => 'Terjadwal',
+            'completed' => 'Selesai',
+            'cancelled' => 'Dibatalkan',
+            'rejected' => 'Ditolak',
+        ];
     }
 }

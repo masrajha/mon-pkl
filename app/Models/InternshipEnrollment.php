@@ -87,6 +87,11 @@ class InternshipEnrollment extends Model
         return $this->hasMany(SubmissionProgress::class);
     }
 
+    public function seminarRequests()
+    {
+        return $this->hasMany(SeminarRequest::class, 'internship_enrollment_id');
+    }
+
     public function sanctions()
     {
         return $this->hasMany(Sanction::class);

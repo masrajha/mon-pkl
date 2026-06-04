@@ -33,8 +33,11 @@ use App\Http\Controllers\Student\PlaceProposalController as StudentPlaceProposal
 use App\Http\Controllers\Student\ProfileController as StudentProfileController;
 use App\Http\Controllers\Student\ReportController as StudentReportController;
 use App\Http\Controllers\Student\RelocationRequestController as StudentRelocationRequestController;
+use App\Http\Controllers\Student\SeminarRequestController as StudentSeminarRequestController;
 use App\Http\Controllers\Student\SupervisorChangeRequestController as StudentSupervisorChangeRequestController;
+use App\Http\Controllers\Management\SeminarRequestController as ManagementSeminarRequestController;
 use App\Http\Controllers\SubmissionProgressFileController;
+use App\Http\Controllers\SeminarRequestFileController;
 use App\Http\Controllers\SystemConfigurationController;
 use App\Models\CheckIn;
 use App\Models\InternshipPeriod;
@@ -164,6 +167,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/locations/search', LocationSuggestionController::class)->name('locations.search');
     Route::get('/reports/monitoring', [ReportController::class, 'monitoring'])->name('reports.monitoring');
     Route::get('/submission-progress/{progress}/file', SubmissionProgressFileController::class)->name('submission-progress.file');
+    Route::get('/seminar-requests/{seminarRequest}/file/{type}', SeminarRequestFileController::class)->name('seminar-requests.file');
 
     Route::middleware('role:mahasiswa')->group(function () {
         Route::get('/student', StudentDashboardController::class)->name('student.dashboard');
@@ -193,6 +197,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/student/supervisor-requests/{supervisorRequest}/cancel', [StudentSupervisorChangeRequestController::class, 'cancel'])->name('student.supervisor-requests.cancel');
         Route::get('/student/reports/{enrollment}', [StudentReportController::class, 'show'])->name('student.reports.show');
         Route::post('/student/reports/{enrollment}/progress', [StudentReportController::class, 'storeProgress'])->name('student.reports.progress.store');
+        Route::post('/student/reports/{enrollment}/seminar-requests', [StudentSeminarRequestController::class, 'store'])->name('student.seminar-requests.store');
+        Route::patch('/student/seminar-requests/{seminarRequest}/cancel', [StudentSeminarRequestController::class, 'cancel'])->name('student.seminar-requests.cancel');
+        Route::patch('/student/seminar-requests/{seminarRequest}/manual-assessment', [StudentSeminarRequestController::class, 'submitManualAssessment'])->name('student.seminar-requests.manual-assessment');
         Route::get('/student/reports/{enrollment}/daily-logs/print', [StudentReportController::class, 'printDailyLogs'])->name('student.reports.daily-logs.print');
         Route::get('/student/reports/{enrollment}/print', [StudentReportController::class, 'print'])->name('student.reports.print');
         Route::get('/check-ins/create', [CheckInController::class, 'create'])->name('check-ins.create');
@@ -227,6 +234,12 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin,dosen,koordinator')->group(function () {
         Route::get('/management/submission-progress', [ManagementSubmissionProgressController::class, 'index'])->name('management.submission-progress.index');
         Route::patch('/management/submission-progress/{progress}', [ManagementSubmissionProgressController::class, 'update'])->name('management.submission-progress.update');
+        Route::get('/management/seminar-requests', [ManagementSeminarRequestController::class, 'index'])->name('management.seminar-requests.index');
+        Route::patch('/management/seminar-requests/{seminarRequest}/lecturer-decision', [ManagementSeminarRequestController::class, 'lecturerDecision'])->name('management.seminar-requests.lecturer-decision');
+        Route::patch('/management/seminar-requests/{seminarRequest}/manual-acc', [ManagementSeminarRequestController::class, 'validateManualAcc'])->name('management.seminar-requests.manual-acc');
+        Route::patch('/management/seminar-requests/{seminarRequest}/manual-assessment', [ManagementSeminarRequestController::class, 'validateManualAssessment'])->name('management.seminar-requests.manual-assessment');
+        Route::patch('/management/seminar-requests/{seminarRequest}/schedule', [ManagementSeminarRequestController::class, 'schedule'])->name('management.seminar-requests.schedule');
+        Route::patch('/management/seminar-requests/{seminarRequest}/score', [ManagementSeminarRequestController::class, 'score'])->name('management.seminar-requests.score');
     });
 
     Route::middleware('role:admin,dosen')->group(function () {

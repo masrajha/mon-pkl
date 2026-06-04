@@ -87,12 +87,14 @@
                                     <th class="silat-table-cell">{{ __('Jenis') }}</th>
                                     <th class="silat-table-cell">{{ __('Tanggal') }}</th>
                                     <th class="silat-table-cell">{{ __('Poin Sanksi') }}</th>
-                                    <th class="silat-table-cell">{{ __('Tetap') }}</th>
+                                    <th class="silat-table-cell">{{ __('Model Sanksi') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($deadlineTypes as $type => $label)
-                                    @php($deadline = $period->deadlines->firstWhere('deadline_type', $type))
+                                    @php
+                                        $deadline = $period->deadlines->firstWhere('deadline_type', $type);
+                                    @endphp
                                     <tr>
                                         <td class="silat-table-cell">
                                             <input type="hidden" name="deadlines[{{ $type }}][deadline_type]" value="{{ $type }}">
@@ -105,10 +107,14 @@
                                             <x-text-input name="deadlines[{{ $type }}][penalty_points]" type="number" class="block w-full" :value="old('deadlines.'.$type.'.penalty_points', $deadline?->penalty_points ?? 0)" />
                                         </td>
                                         <td class="silat-table-cell">
-                                            <label class="flex items-center gap-2">
-                                                <input type="checkbox" name="deadlines[{{ $type }}][is_fixed_penalty]" value="1" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" @checked(old('deadlines.'.$type.'.is_fixed_penalty', $deadline?->is_fixed_penalty))>
-                                                <span class="text-xs text-gray-500">{{ __('Sekali') }}</span>
-                                            </label>
+                                            <x-select-input name="deadlines[{{ $type }}][is_fixed_penalty]" class="block w-full">
+                                                <option value="0" @selected(! (bool) old('deadlines.'.$type.'.is_fixed_penalty', $deadline?->is_fixed_penalty))>
+                                                    {{ __('Per hari keterlambatan') }}
+                                                </option>
+                                                <option value="1" @selected((bool) old('deadlines.'.$type.'.is_fixed_penalty', $deadline?->is_fixed_penalty))>
+                                                    {{ __('Tetap / sekali dikenakan') }}
+                                                </option>
+                                            </x-select-input>
                                         </td>
                                     </tr>
                                 @endforeach

@@ -60,7 +60,6 @@ return [
         'bab2' => 'Pelaporan Tahap 2: Bab 1 dan 2.',
         'bab3' => 'Pelaporan Tahap 3: Bab 1, 2 dan 3.',
         'full_report' => 'Pelaporan Tahap 4 (Laporan Lengkap): Bab 1 s.d 5',
-        'seminar' => 'Seminar',
         'hardcopy' => 'Hardcover',
     ],
 
@@ -70,8 +69,40 @@ return [
         'bab2' => 'Bab 1 harus sudah lengkap dan direvisi. Bab 2 wajib memuat gambaran umum perusahaan (sejarah, struktur, produk, peralatan, mitra), landasan teori relevan, serta analisis proses bisnis berjalan (permasalahan & kebutuhan informasi).',
         'bab3' => 'Bab 3 (Rencana Kegiatan) harus berisi deskripsi kegiatan solusi alternatif, sumber data, metode pengumpulan data, dan metode penyelesaian masalah bertahap. Pastikan konsistensi alur ketiga bab.',
         'full_report' => 'Lengkapi dengan Bab IV (Pembahasan) yang berisi analisis kelemahan & keunggulan serta pengajuan solusi alternatif (minimal rancangan, lebih baik implementasi). Bab V (Kesimpulan & Rekomendasi) harus sesuai analisis. Perhatikan format: A4, bahasa Indonesia, sampul buffalo.',
-        'seminar' => 'Upload form pendaftaran seminar sebagai bukti pendaftaran dan kesiapan mengikuti seminar hasil PKL.',
         'hardcopy' => 'Upload tanda terima hardcover dari jurusan sebagai bukti penyerahan laporan final dalam bentuk cetak hardcover.',
+    ],
+
+    'seminar_assessment_rubric' => [
+        'material_mastery' => [
+            'group' => 'Seminar',
+            'label' => 'Penguasaan materi / metode',
+            'weight' => 20,
+        ],
+        'scientific_attitude' => [
+            'group' => 'Seminar',
+            'label' => 'Sikap ilmiah dan argumentasi',
+            'weight' => 10,
+        ],
+        'presentation_technique' => [
+            'group' => 'Seminar',
+            'label' => 'Teknik penyajian dan kebahasaan',
+            'weight' => 10,
+        ],
+        'originality' => [
+            'group' => 'Laporan',
+            'label' => 'Originalitas',
+            'weight' => 30,
+        ],
+        'relevance_cohesion' => [
+            'group' => 'Laporan',
+            'label' => 'Relevansi dan Keterpaduan',
+            'weight' => 15,
+        ],
+        'writing_format' => [
+            'group' => 'Laporan',
+            'label' => 'Penulisan (Format dan Bahasa)',
+            'weight' => 15,
+        ],
     ],
 
     'calendar' => [
