@@ -9,6 +9,16 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('field_supervisor_access_tokens')) {
+            Schema::table('field_supervisor_access_tokens', function (Blueprint $table): void {
+                if (! Schema::hasIndex('field_supervisor_access_tokens', 'fsat_enrollment_revoked_idx')) {
+                    $table->index(['internship_enrollment_id', 'revoked_at'], 'fsat_enrollment_revoked_idx');
+                }
+
+                if (! Schema::hasIndex('field_supervisor_access_tokens', 'fsat_email_expires_idx')) {
+                    $table->index(['email', 'expires_at'], 'fsat_email_expires_idx');
+                }
+            });
+
             return;
         }
 
@@ -23,8 +33,8 @@ return new class extends Migration
             $table->timestamp('last_accessed_at')->nullable();
             $table->timestamps();
 
-            $table->index(['internship_enrollment_id', 'revoked_at']);
-            $table->index(['email', 'expires_at']);
+            $table->index(['internship_enrollment_id', 'revoked_at'], 'fsat_enrollment_revoked_idx');
+            $table->index(['email', 'expires_at'], 'fsat_email_expires_idx');
         });
     }
 
