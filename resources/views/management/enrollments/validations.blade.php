@@ -136,15 +136,15 @@
                                             <x-textarea-input name="admin_notes[{{ $enrollment->id }}]" rows="3" class="min-w-64 text-sm" placeholder="Catatan untuk mahasiswa">{{ old('admin_notes.'.$enrollment->id, $enrollment->admin_note) }}</x-textarea-input>
                                         </td>
                                         <td class="silat-table-cell align-top">
-                                            <div class="flex flex-col items-end gap-2">
-                                                <button type="submit" name="action" value="active" formaction="{{ route('management.enrollment-validations.bulk') }}" class="silat-btn w-28 justify-center" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
-                                                    Setujui
+                                            <div class="flex justify-end gap-1.5">
+                                                <button type="submit" name="action" value="active" formaction="{{ route('management.enrollment-validations.bulk') }}" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-emerald-200 bg-emerald-50 text-sm text-emerald-700 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2" title="Setujui" aria-label="Setujui pendaftaran" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
+                                                    <i class="fa-regular fa-circle-check" role="img" aria-label="Ikon setujui"></i>
                                                 </button>
-                                                <button type="submit" name="action" value="revision_required" formaction="{{ route('management.enrollment-validations.bulk') }}" class="silat-btn-secondary w-28 justify-center" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
-                                                    Revisi
+                                                <button type="submit" name="action" value="revision_required" formaction="{{ route('management.enrollment-validations.bulk') }}" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-sm text-amber-700 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" title="Revisi" aria-label="Minta revisi pendaftaran" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
+                                                    <i class="fas fa-rotate-left" role="img" aria-label="Ikon revisi"></i>
                                                 </button>
-                                                <button type="submit" name="action" value="rejected" formaction="{{ route('management.enrollment-validations.bulk') }}" class="silat-btn-danger w-28 justify-center" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
-                                                    Tolak
+                                                <button type="submit" name="action" value="rejected" formaction="{{ route('management.enrollment-validations.bulk') }}" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-rose-200 bg-rose-50 text-sm text-rose-700 transition hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2" title="Tolak" aria-label="Tolak pendaftaran" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
+                                                    <i class="fas fa-ban" role="img" aria-label="Ikon tolak"></i>
                                                 </button>
                                             </div>
                                         </td>
