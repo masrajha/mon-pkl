@@ -11,9 +11,9 @@
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.programs.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.programs.index') }}">Program</a>
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.periods.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.periods.index') }}">Periode Program</a>
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.places.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.places.index') }}">Mitra</a>
+    @endif
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.place-proposals.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.place-proposals.index') }}">Usulan Tempat</a>
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.relocations.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.relocations.index') }}">Pindah Tempat</a>
-    @endif
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.supervisor-requests.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.supervisor-requests.index') }}">Perubahan Pembimbing</a>
     <a class="rounded-md border px-3 py-2 {{ request()->routeIs('management.orientation-events.*') ? 'bg-gray-900 text-white' : 'bg-white text-gray-700' }}" href="{{ route('management.orientation-events.index') }}">Pembekalan</a>
     @if ($isAdmin)

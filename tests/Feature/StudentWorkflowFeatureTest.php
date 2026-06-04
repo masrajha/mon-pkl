@@ -179,6 +179,76 @@ class StudentWorkflowFeatureTest extends TestCase
         ]);
     }
 
+    public function test_student_can_manage_pending_place_proposal_history_and_submit_multiple_pending(): void
+    {
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        $program = StudyProgram::query()->create(['code' => 'UPT', 'name' => 'Usulan Tempat', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Usulan', 'academic_year' => '2026/2027', 'is_active' => true]);
+        Student::query()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $program->id,
+            'npm' => '2217051020',
+            'full_name' => 'Mahasiswa Usulan Tempat',
+        ]);
+
+        $payload = [
+            'internship_period_id' => $period->id,
+            'address' => 'Alamat awal',
+            'city_name' => 'Bandar Lampung',
+            'latitude' => -5.45,
+            'longitude' => 105.27,
+        ];
+
+        $this->actingAs($user)
+            ->post(route('student.proposals.store'), $payload + ['name' => 'PT Usulan Pertama'])
+            ->assertRedirect(route('student.dashboard'));
+
+        $this->actingAs($user)
+            ->post(route('student.proposals.store'), $payload + ['name' => 'PT Usulan Kedua'])
+            ->assertRedirect(route('student.dashboard'));
+
+        $firstProposal = InternshipPlaceProposal::query()->where('name', 'PT Usulan Pertama')->firstOrFail();
+        $secondProposal = InternshipPlaceProposal::query()->where('name', 'PT Usulan Kedua')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(route('student.proposals.index'))
+            ->assertOk()
+            ->assertSee('PT Usulan Pertama')
+            ->assertSee('PT Usulan Kedua')
+            ->assertSee('Menunggu')
+            ->assertSee('Edit')
+            ->assertSee('Batalkan');
+
+        $this->actingAs($user)
+            ->get(route('student.proposals.edit', $firstProposal))
+            ->assertOk()
+            ->assertSee('Edit Usulan Tempat')
+            ->assertSee('PT Usulan Pertama');
+
+        $this->actingAs($user)
+            ->patch(route('student.proposals.update', $firstProposal), array_merge($payload, [
+                'name' => 'PT Usulan Pertama Revisi',
+                'address' => 'Alamat revisi',
+            ]))
+            ->assertRedirect(route('student.proposals.index'));
+
+        $this->assertDatabaseHas('internship_place_proposals', [
+            'id' => $firstProposal->id,
+            'name' => 'PT Usulan Pertama Revisi',
+            'address' => 'Alamat revisi',
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($user)
+            ->patch(route('student.proposals.cancel', $secondProposal))
+            ->assertRedirect(route('student.proposals.index'));
+
+        $this->assertDatabaseHas('internship_place_proposals', [
+            'id' => $secondProposal->id,
+            'status' => 'cancelled',
+        ]);
+    }
+
     public function test_student_print_report_requires_complete_supervisors(): void
     {
         $user = User::factory()->create(['role' => 'mahasiswa']);

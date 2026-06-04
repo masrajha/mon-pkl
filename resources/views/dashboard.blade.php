@@ -95,6 +95,10 @@
                 </section>
             @endif
 
+            @if (Auth::user()->hasRole(['admin', 'koordinator']))
+                @include('management.partials.action-required', ['summary' => $actionRequiredSummary])
+            @endif
+
             @if (Auth::user()->hasRole('koordinator'))
                 <section class="silat-card">
                     <div class="silat-section-header">

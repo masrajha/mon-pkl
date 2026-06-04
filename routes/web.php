@@ -177,8 +177,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/student/orientation-events/{orientationEvent}/attendance', [StudentOrientationAttendanceController::class, 'store'])->name('student.orientation-attendances.store');
         Route::get('/student/places', [StudentPlaceController::class, 'index'])->name('student.places.index');
         Route::get('/student/places/data', [StudentPlaceController::class, 'data'])->name('student.places.data');
+        Route::get('/student/place-proposals', [StudentPlaceProposalController::class, 'index'])->name('student.proposals.index');
         Route::get('/student/place-proposals/create', [StudentPlaceProposalController::class, 'create'])->name('student.proposals.create');
         Route::post('/student/place-proposals', [StudentPlaceProposalController::class, 'store'])->name('student.proposals.store');
+        Route::get('/student/place-proposals/{proposal}/edit', [StudentPlaceProposalController::class, 'edit'])->name('student.proposals.edit');
+        Route::patch('/student/place-proposals/{proposal}', [StudentPlaceProposalController::class, 'update'])->name('student.proposals.update');
+        Route::patch('/student/place-proposals/{proposal}/cancel', [StudentPlaceProposalController::class, 'cancel'])->name('student.proposals.cancel');
         Route::get('/student/relocations', [StudentRelocationRequestController::class, 'index'])->name('student.relocations.index');
         Route::get('/student/relocations/create', [StudentRelocationRequestController::class, 'create'])->name('student.relocations.create');
         Route::post('/student/relocations', [StudentRelocationRequestController::class, 'store'])->name('student.relocations.store');
@@ -203,6 +207,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/management/enrollment-validations', [ManagementEnrollmentController::class, 'validations'])->name('management.enrollment-validations.index');
         Route::get('/management/enrollment-validations/{enrollment}/registration-document', [ManagementEnrollmentController::class, 'registrationDocument'])->name('management.enrollment-validations.document');
         Route::patch('/management/enrollment-validations/{enrollment}', [ManagementEnrollmentController::class, 'validateEnrollment'])->name('management.enrollment-validations.update');
+        Route::get('/management/place-proposals', [ManagementPlaceProposalController::class, 'index'])->name('management.place-proposals.index');
+        Route::post('/management/place-proposals/{proposal}/approve', [ManagementPlaceProposalController::class, 'approve'])->name('management.place-proposals.approve');
+        Route::post('/management/place-proposals/{proposal}/reject', [ManagementPlaceProposalController::class, 'reject'])->name('management.place-proposals.reject');
         Route::get('/management/orientation-events', [ManagementOrientationEventController::class, 'index'])->name('management.orientation-events.index');
         Route::get('/management/orientation-events/locations/search', [ManagementOrientationEventController::class, 'locationSuggestions'])->name('management.orientation-events.locations.search');
         Route::post('/management/orientation-events', [ManagementOrientationEventController::class, 'store'])->name('management.orientation-events.store');
@@ -268,9 +275,6 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/management/places', [ManagementPlaceController::class, 'index'])->name('management.places.index');
         Route::post('/management/places/bulk', [ManagementPlaceController::class, 'bulk'])->name('management.places.bulk');
-        Route::get('/management/place-proposals', [ManagementPlaceProposalController::class, 'index'])->name('management.place-proposals.index');
-        Route::post('/management/place-proposals/{proposal}/approve', [ManagementPlaceProposalController::class, 'approve'])->name('management.place-proposals.approve');
-        Route::post('/management/place-proposals/{proposal}/reject', [ManagementPlaceProposalController::class, 'reject'])->name('management.place-proposals.reject');
         Route::get('/management/enrollments', [ManagementEnrollmentController::class, 'index'])->name('management.enrollments.index');
         Route::get('/management/enrollments/students/search', [ManagementEnrollmentController::class, 'studentSearch'])->name('management.enrollments.students.search');
         Route::post('/management/enrollments', [ManagementEnrollmentController::class, 'store'])->name('management.enrollments.store');

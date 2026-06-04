@@ -6,6 +6,7 @@ use App\Models\InternshipPeriod;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlace;
+use App\Models\InternshipPlaceProposal;
 use App\Models\Lecturer;
 use App\Models\Program;
 use App\Models\Student;
@@ -297,6 +298,79 @@ class ManagementFeatureTest extends TestCase
             'id' => $enrollment->id,
             'lecturer_supervisor_id' => $supervisor->id,
             'field_supervisor' => 'Pembimbing Scope',
+        ]);
+    }
+
+    public function test_coordinator_sees_action_required_summary_and_scoped_place_proposals(): void
+    {
+        $coordinatorUser = User::factory()->create(['role' => 'koordinator']);
+        $studentUser = User::factory()->create(['role' => 'mahasiswa']);
+        $scopeProgram = StudyProgram::query()->create(['code' => 'SCP', 'name' => 'Scope Prodi', 'is_active' => true]);
+        $otherProgram = StudyProgram::query()->create(['code' => 'OTH', 'name' => 'Other Prodi', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Scope Action', 'academic_year' => '2026/2027']);
+        $coordinatorLecturer = Lecturer::query()->create([
+            'user_id' => $coordinatorUser->id,
+            'study_program_id' => $scopeProgram->id,
+            'name' => 'Koordinator Action',
+            'status' => 'active',
+        ]);
+        InternshipCoordinator::query()->create([
+            'lecturer_id' => $coordinatorLecturer->id,
+            'internship_period_id' => $period->id,
+            'study_program_id' => $scopeProgram->id,
+            'status' => 'active',
+        ]);
+        $student = Student::query()->create([
+            'user_id' => $studentUser->id,
+            'npm' => '2217051991',
+            'full_name' => 'Mahasiswa Proposal Scope',
+            'study_program_id' => $scopeProgram->id,
+        ]);
+        $proposal = InternshipPlaceProposal::query()->create([
+            'internship_period_id' => $period->id,
+            'study_program_id' => $scopeProgram->id,
+            'student_id' => $student->id,
+            'proposed_by' => $studentUser->id,
+            'name' => 'PT Scope Action',
+            'address' => 'Alamat scope',
+            'city_name' => 'Bandar Lampung',
+            'latitude' => -5.4,
+            'longitude' => 105.2,
+            'status' => 'pending',
+        ]);
+        InternshipPlaceProposal::query()->create([
+            'internship_period_id' => $period->id,
+            'study_program_id' => $otherProgram->id,
+            'student_id' => $student->id,
+            'proposed_by' => $studentUser->id,
+            'name' => 'PT Luar Scope',
+            'address' => 'Alamat luar',
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($coordinatorUser)
+            ->get(route('coordinator.dashboard'))
+            ->assertOk()
+            ->assertSee('Tindakan Diperlukan')
+            ->assertSee('Usulan Tempat')
+            ->assertSee('1 pengajuan menunggu tindakan.');
+
+        $this->actingAs($coordinatorUser)
+            ->get(route('management.place-proposals.index'))
+            ->assertOk()
+            ->assertSee('PT Scope Action')
+            ->assertDontSee('PT Luar Scope');
+
+        $this->actingAs($coordinatorUser)
+            ->post(route('management.place-proposals.approve', $proposal), [
+                'mode' => 'new',
+                'admin_note' => 'Disetujui koordinator.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('internship_place_proposals', [
+            'id' => $proposal->id,
+            'status' => 'approved',
         ]);
     }
 

@@ -1,5 +1,6 @@
 @php
     $user = Auth::user();
+    $actionRequiredSummary ??= [];
     $groups = [];
 
     $groups[] = [
@@ -16,7 +17,7 @@
                 ['label' => 'Ringkasan Program', 'route' => 'student.dashboard', 'icon' => 'fa-house-user', 'active' => ['student.dashboard']],
                 ['label' => 'Profil Saya', 'route' => 'student.profile.edit', 'icon' => 'fa-id-card', 'active' => ['student.profile.*']],
                 ['label' => 'Pendaftaran Program', 'route' => 'student.enrollments.create', 'icon' => 'fa-clipboard-list', 'active' => ['student.enrollments.*']],
-                ['label' => 'Usulan Tempat', 'route' => 'student.proposals.create', 'icon' => 'fa-building-circle-arrow-right', 'active' => ['student.proposals.*']],
+                ['label' => 'Usulan Tempat', 'route' => 'student.proposals.index', 'icon' => 'fa-building-circle-arrow-right', 'active' => ['student.proposals.*']],
                 ['label' => 'Pindah Tempat', 'route' => 'student.relocations.index', 'icon' => 'fa-route', 'active' => ['student.relocations.*']],
                 ['label' => 'Perubahan Pembimbing', 'route' => 'student.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['student.supervisor-requests.*']],
                 ['label' => 'Presensi', 'route' => 'check-ins.create', 'icon' => 'fa-fingerprint', 'active' => ['check-ins.*']],
@@ -37,9 +38,10 @@
             'label' => 'Koordinator',
             'items' => [
                 ['label' => 'Dashboard Koordinator', 'route' => 'coordinator.dashboard', 'icon' => 'fa-user-tie', 'active' => ['coordinator.*']],
-                ['label' => 'Validasi Pendaftaran', 'route' => 'management.enrollment-validations.index', 'icon' => 'fa-user-check', 'active' => ['management.enrollment-validations.*']],
-                ['label' => 'Pindah Tempat', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*']],
-                ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*']],
+                ['label' => 'Validasi Pendaftaran', 'route' => 'management.enrollment-validations.index', 'icon' => 'fa-user-check', 'active' => ['management.enrollment-validations.*'], 'badge' => 'enrollment_validations'],
+                ['label' => 'Usulan Tempat', 'route' => 'management.place-proposals.index', 'icon' => 'fa-building-circle-check', 'active' => ['management.place-proposals.*'], 'badge' => 'place_proposals'],
+                ['label' => 'Pindah Tempat', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*'], 'badge' => 'relocations'],
+                ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*'], 'badge' => 'supervisor_changes'],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
                 ['label' => 'Rekap Prodi', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
@@ -66,11 +68,11 @@
                 ['label' => 'Program Kegiatan', 'route' => 'management.programs.index', 'icon' => 'fa-layer-group', 'active' => ['management.programs.*']],
                 ['label' => 'Periode Program', 'route' => 'management.periods.index', 'icon' => 'fa-calendar-days', 'active' => ['management.periods.*']],
                 ['label' => 'Koordinator Program', 'route' => 'management.coordinators.index', 'icon' => 'fa-user-gear', 'active' => ['management.coordinators.*']],
-                ['label' => 'Validasi Pendaftaran', 'route' => 'management.enrollment-validations.index', 'icon' => 'fa-user-check', 'active' => ['management.enrollment-validations.*']],
+                ['label' => 'Validasi Pendaftaran', 'route' => 'management.enrollment-validations.index', 'icon' => 'fa-user-check', 'active' => ['management.enrollment-validations.*'], 'badge' => 'enrollment_validations'],
                 ['label' => 'Peserta Periode', 'route' => 'management.enrollments.index', 'icon' => 'fa-users-viewfinder', 'active' => ['management.enrollments.*']],
-                ['label' => 'Usulan Tempat', 'route' => 'management.place-proposals.index', 'icon' => 'fa-building-circle-check', 'active' => ['management.place-proposals.*']],
-                ['label' => 'Pindah Tempat', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*']],
-                ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*']],
+                ['label' => 'Usulan Tempat', 'route' => 'management.place-proposals.index', 'icon' => 'fa-building-circle-check', 'active' => ['management.place-proposals.*'], 'badge' => 'place_proposals'],
+                ['label' => 'Pindah Tempat', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*'], 'badge' => 'relocations'],
+                ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*'], 'badge' => 'supervisor_changes'],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
             ],
         ];
@@ -139,9 +141,13 @@
                     <div class="mt-2 space-y-1">
                         @foreach ($group['items'] as $item)
                             @php($active = request()->routeIs($item['active']))
+                            @php($badgeCount = isset($item['badge']) ? (int) data_get($actionRequiredSummary, $item['badge'].'.count', 0) : 0)
                             <a href="{{ route($item['route']) }}" class="{{ $itemClass($active) }}">
                                 <x-icon :name="$item['icon']" class="w-5 text-center" />
-                                <span>{{ $item['label'] }}</span>
+                                <span class="min-w-0 flex-1">{{ $item['label'] }}</span>
+                                @if ($badgeCount > 0)
+                                    <span class="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">{{ number_format($badgeCount, 0, ',', '.') }}</span>
+                                @endif
                             </a>
                         @endforeach
                     </div>
@@ -216,9 +222,13 @@
                         <div class="mt-2 space-y-1">
                             @foreach ($group['items'] as $item)
                                 @php($active = request()->routeIs($item['active']))
+                                @php($badgeCount = isset($item['badge']) ? (int) data_get($actionRequiredSummary, $item['badge'].'.count', 0) : 0)
                                 <a href="{{ route($item['route']) }}" class="{{ $mobileItemClass($active) }}" @click="open = false">
                                     <x-icon :name="$item['icon']" class="w-5 text-center" />
-                                    <span>{{ $item['label'] }}</span>
+                                    <span class="min-w-0 flex-1">{{ $item['label'] }}</span>
+                                    @if ($badgeCount > 0)
+                                        <span class="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">{{ number_format($badgeCount, 0, ',', '.') }}</span>
+                                    @endif
                                 </a>
                             @endforeach
                         </div>

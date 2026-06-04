@@ -1,50 +1,109 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="text-xl font-semibold text-gray-800">{{ __('Validasi Usulan Mitra') }}</h2></x-slot>
+    <x-slot name="header"><h2 class="text-xl font-semibold text-gray-800">{{ __('Validasi Usulan Tempat') }}</h2></x-slot>
     <div class="py-10"><div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         @include('management.partials.nav')
         @if (session('status'))<div class="mb-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('status') }}</div>@endif
         @if ($errors->any())<div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{{ $errors->first() }}</div>@endif
-        <x-table-controls class="silat-card mb-4" title="Daftar Usulan Mitra" description="Cari usulan berdasarkan nama mitra, alamat, kota, atau mahasiswa." search-placeholder="Cari usulan mitra...">
-            <x-slot name="filters">
-                <div>
-                    <x-input-label for="filter_status" value="Status" />
-                    <select id="filter_status" name="status" class="mt-1 w-full rounded-md border-gray-300 text-sm"><option value="">Semua status</option>@foreach (['pending','approved','merged','rejected'] as $status)<option value="{{ $status }}" @selected($selectedStatus === $status)>{{ Str::headline($status) }}</option>@endforeach</select>
-                </div>
-            </x-slot>
-        </x-table-controls>
-        <div class="space-y-4">
-            @forelse ($proposals as $proposal)
-                <div class="bg-white p-5 shadow-sm sm:rounded-lg">
-                    <div class="flex flex-wrap justify-between gap-4">
-                        <div>
-                            <h3 class="font-semibold text-gray-900">{{ $proposal->name }}</h3>
-                            <p class="text-sm text-gray-500">{{ $proposal->student?->full_name }} · {{ $proposal->internshipPeriod?->display_name }} · {{ $proposal->studyProgram?->name }}</p>
-                            <p class="mt-2 text-sm text-gray-700">{{ $proposal->address ?: '-' }}</p>
-                            <p class="text-xs text-gray-500">{{ $proposal->city_name ?: $proposal->city?->name ?: '-' }} · {{ $proposal->latitude }}, {{ $proposal->longitude }}</p>
-                        </div>
-                        <div class="text-sm font-semibold text-gray-700">{{ $proposal->status }}</div>
+
+        <div class="silat-card overflow-hidden">
+            <x-table-controls title="Daftar Usulan Tempat" description="Cari usulan berdasarkan nama tempat, alamat, kota, atau mahasiswa." search-placeholder="Cari usulan tempat...">
+                <x-slot name="filters">
+                    <div>
+                        <x-input-label for="filter_status" value="Status" />
+                        <select id="filter_status" name="status" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                            <option value="">Semua status</option>
+                            @foreach (['pending' => 'Menunggu', 'approved' => 'Disetujui', 'merged' => 'Digabungkan', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan'] as $value => $label)
+                                <option value="{{ $value }}" @selected($selectedStatus === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    @if ($proposal->status === 'pending')
-                        <div class="mt-4 grid gap-3 lg:grid-cols-2">
-                            <form method="POST" action="{{ route('management.place-proposals.approve', $proposal) }}" class="space-y-3 rounded-md border p-4">
-                                @csrf
-                                <select name="mode" class="block w-full rounded-md border-gray-300"><option value="new">Jadikan master baru</option><option value="merge">Gabungkan ke master</option></select>
-                                <select name="internship_place_id" class="block w-full rounded-md border-gray-300"><option value="">Pilih master jika merge</option>@foreach ($places as $place)<option value="{{ $place->id }}">{{ $place->name }}</option>@endforeach</select>
-                                <textarea name="admin_note" rows="2" class="block w-full rounded-md border-gray-300" placeholder="Catatan admin"></textarea>
-                                <x-primary-button>Setujui</x-primary-button>
-                            </form>
-                            <form method="POST" action="{{ route('management.place-proposals.reject', $proposal) }}" class="space-y-3 rounded-md border p-4">
-                                @csrf
-                                <textarea name="admin_note" rows="4" class="block w-full rounded-md border-gray-300" placeholder="Alasan penolakan" required></textarea>
-                                <x-danger-button>Tolak</x-danger-button>
-                            </form>
-                        </div>
-                    @endif
-                </div>
-            @empty
-                <div class="bg-white p-6 text-center text-sm text-gray-500 shadow-sm sm:rounded-lg">Belum ada usulan mitra.</div>
-            @endforelse
+                </x-slot>
+            </x-table-controls>
+            <div class="silat-table-wrap">
+                <table class="silat-table">
+                    <thead class="silat-table-head">
+                        <tr>
+                            <th class="silat-table-cell">Mahasiswa</th>
+                            <th class="silat-table-cell">Periode/Prodi</th>
+                            <th class="silat-table-cell"><x-sortable-heading column="name" label="Tempat Usulan" /></th>
+                            <th class="silat-table-cell">Lokasi</th>
+                            <th class="silat-table-cell"><x-sortable-heading column="status" label="Status" /></th>
+                            <th class="silat-table-cell text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($proposals as $proposal)
+                            @php
+                                $statusLabels = ['pending' => 'Menunggu', 'approved' => 'Disetujui', 'merged' => 'Digabungkan', 'rejected' => 'Ditolak', 'cancelled' => 'Dibatalkan'];
+                                $statusVariant = match($proposal->status) {'pending' => 'warning', 'approved', 'merged' => 'success', 'rejected' => 'danger', 'cancelled' => 'neutral', default => 'neutral'};
+                            @endphp
+                            <tr>
+                                <td class="silat-table-cell">
+                                    <span class="font-medium text-gray-900">{{ $proposal->student?->full_name ?: '-' }}</span>
+                                    <div class="text-xs text-gray-500">{{ $proposal->student?->npm ?: '-' }}</div>
+                                </td>
+                                <td class="silat-table-cell">
+                                    {{ $proposal->internshipPeriod?->display_name ?: '-' }}
+                                    <div class="text-xs text-gray-500">{{ $proposal->studyProgram?->name ?: '-' }}</div>
+                                </td>
+                                <td class="silat-table-cell">
+                                    <div class="font-medium text-gray-900">{{ $proposal->name }}</div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ $proposal->field_supervisor_name ?: 'Kontak belum diisi' }}
+                                        @if ($proposal->field_supervisor_phone)
+                                            · {{ $proposal->field_supervisor_phone }}
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="silat-table-cell text-gray-600">
+                                    {{ Str::limit($proposal->address ?: '-', 80) }}
+                                    <div class="text-xs text-gray-500">{{ $proposal->city_name ?: $proposal->city?->name ?: '-' }} · {{ $proposal->latitude }}, {{ $proposal->longitude }}</div>
+                                </td>
+                                <td class="silat-table-cell">
+                                    <x-badge :variant="$statusVariant">{{ $statusLabels[$proposal->status] ?? Str::headline($proposal->status) }}</x-badge>
+                                    @if ($proposal->admin_note)
+                                        <div class="mt-1 text-xs text-gray-500">{{ $proposal->admin_note }}</div>
+                                    @endif
+                                    @if ($proposal->approvedPlace)
+                                        <div class="mt-1 text-xs text-green-700">Master: {{ $proposal->approvedPlace->name }}</div>
+                                    @endif
+                                </td>
+                                <td class="silat-table-cell">
+                                    @if ($proposal->status === 'pending')
+                                        <div class="grid gap-3 xl:grid-cols-2">
+                                            <form method="POST" action="{{ route('management.place-proposals.approve', $proposal) }}" class="space-y-2">
+                                                @csrf
+                                                <select name="mode" class="w-56 rounded-md border-gray-300 text-xs">
+                                                    <option value="new">Jadikan master baru</option>
+                                                    <option value="merge">Gabungkan ke master</option>
+                                                </select>
+                                                <select name="internship_place_id" class="w-56 rounded-md border-gray-300 text-xs">
+                                                    <option value="">Pilih master jika merge</option>
+                                                    @foreach ($places as $place)
+                                                        <option value="{{ $place->id }}">{{ $place->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <textarea name="admin_note" rows="2" class="w-56 rounded-md border-gray-300 text-xs" placeholder="Catatan admin"></textarea>
+                                                <button class="rounded-md bg-green-700 px-3 py-1 text-xs font-semibold text-white">Setujui</button>
+                                            </form>
+                                            <form method="POST" action="{{ route('management.place-proposals.reject', $proposal) }}" class="space-y-2">
+                                                @csrf
+                                                <textarea name="admin_note" rows="4" class="w-56 rounded-md border-gray-300 text-xs" placeholder="Alasan penolakan" required></textarea>
+                                                <button class="rounded-md bg-red-700 px-3 py-1 text-xs font-semibold text-white">Tolak</button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-gray-500">{{ $proposal->reviewer?->name ?: '-' }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="silat-table-cell"><x-empty-state title="Belum ada usulan tempat" icon="fa-building-circle-check" /></td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <x-table-pagination :paginator="$proposals" />
         </div>
-        <x-table-pagination :paginator="$proposals" class="mt-4 rounded-lg border bg-white shadow-sm" />
     </div></div>
 </x-app-layout>

@@ -67,4 +67,9 @@ class InternshipPlaceProposal extends Model
     {
         return $this->belongsTo(InternshipPlace::class, 'approved_internship_place_id');
     }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
 }

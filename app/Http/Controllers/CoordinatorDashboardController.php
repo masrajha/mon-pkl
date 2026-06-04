@@ -6,12 +6,17 @@ use App\Models\CheckIn;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\OrientationEvent;
+use App\Services\ActionRequiredSummaryService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CoordinatorDashboardController extends Controller
 {
+    public function __construct(private readonly ActionRequiredSummaryService $actions)
+    {
+    }
+
     public function __invoke(Request $request): View
     {
         $assignments = InternshipCoordinator::query()
@@ -106,6 +111,13 @@ class CoordinatorDashboardController extends Controller
                 return $event;
             });
 
-        return view('coordinator.dashboard', compact('assignments', 'stats', 'recentEnrollments', 'highestSanctions', 'orientationEvents'));
+        return view('coordinator.dashboard', [
+            'assignments' => $assignments,
+            'stats' => $stats,
+            'recentEnrollments' => $recentEnrollments,
+            'highestSanctions' => $highestSanctions,
+            'orientationEvents' => $orientationEvents,
+            'actionRequiredSummary' => $this->actions->forUser($request->user()),
+        ]);
     }
 }

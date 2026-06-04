@@ -12,11 +12,16 @@ use App\Models\Lecturer;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Services\ActionRequiredSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    public function __construct(private readonly ActionRequiredSummaryService $actions)
+    {
+    }
+
     public function __invoke(Request $request): View
     {
         $user = $request->user();
@@ -35,6 +40,7 @@ class DashboardController extends Controller
                 ? $lecturer->coordinatorAssignments->where('status', 'active')->values()
                 : collect(),
             'adminStats' => $user->hasRole('admin') ? $this->adminStats() : null,
+            'actionRequiredSummary' => $this->actions->forUser($user),
         ]);
     }
 

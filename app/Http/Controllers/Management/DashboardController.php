@@ -13,10 +13,15 @@ use App\Models\OrientationEvent;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Services\ActionRequiredSummaryService;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    public function __construct(private readonly ActionRequiredSummaryService $actions)
+    {
+    }
+
     public function __invoke(): View
     {
         $activeEnrollments = InternshipEnrollment::query()->where('status', 'active')->count();
@@ -74,6 +79,7 @@ class DashboardController extends Controller
                 ->limit(4)
                 ->get(),
             'orientationEvents' => $orientationEvents,
+            'actionRequiredSummary' => $this->actions->forUser(request()->user()),
         ]);
     }
 }

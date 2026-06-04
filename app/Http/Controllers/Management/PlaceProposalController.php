@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PlaceProposalController extends Controller
@@ -24,7 +25,7 @@ class PlaceProposalController extends Controller
 
     public function index(Request $request): View
     {
-        $query = InternshipPlaceProposal::query()->with(['student', 'internshipPeriod.program', 'studyProgram', 'approvedPlace']);
+        $query = InternshipPlaceProposal::query()->with(['student', 'internshipPeriod.program', 'studyProgram', 'city', 'approvedPlace', 'reviewer']);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->toString();
@@ -39,6 +40,8 @@ class PlaceProposalController extends Controller
             $query->where('status', $request->string('status'));
         }
 
+        $this->scopeByCoordinator($query, $request);
+
         return view('management.place-proposals.index', [
             'proposals' => $this->applyTableSort($query, $request, ['id', 'status', 'name'], 'id', 'desc')
                 ->paginate($this->tablePerPage($request))
@@ -50,6 +53,9 @@ class PlaceProposalController extends Controller
 
     public function approve(Request $request, InternshipPlaceProposal $proposal): RedirectResponse
     {
+        $this->authorizeScope($proposal, $request);
+        $this->ensurePending($proposal);
+
         $data = $request->validate([
             'mode' => ['required', Rule::in(['new', 'merge'])],
             'internship_place_id' => ['required_if:mode,merge', 'nullable', 'exists:internship_places,id'],
@@ -76,6 +82,9 @@ class PlaceProposalController extends Controller
 
     public function reject(Request $request, InternshipPlaceProposal $proposal): RedirectResponse
     {
+        $this->authorizeScope($proposal, $request);
+        $this->ensurePending($proposal);
+
         $data = $request->validate([
             'admin_note' => ['required', 'string', 'max:1000'],
         ]);
@@ -109,5 +118,57 @@ class PlaceProposalController extends Controller
             'longitude' => $proposal->longitude,
             'visited' => false,
         ]);
+    }
+
+    private function ensurePending(InternshipPlaceProposal $proposal): void
+    {
+        if ($proposal->status !== 'pending') {
+            throw ValidationException::withMessages(['status' => 'Usulan hanya dapat diproses saat masih Menunggu.']);
+        }
+    }
+
+    private function scopeByCoordinator($query, Request $request): void
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('admin')) {
+            return;
+        }
+
+        $assignments = $user?->lecturer?->coordinatorAssignments()
+            ->where('status', 'active')
+            ->get(['internship_period_id', 'study_program_id']) ?? collect();
+
+        if ($assignments->isEmpty()) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->where(function ($query) use ($assignments): void {
+            foreach ($assignments as $assignment) {
+                $query->orWhere(function ($query) use ($assignment): void {
+                    $query->where('internship_period_id', $assignment->internship_period_id)
+                        ->where('study_program_id', $assignment->study_program_id);
+                });
+            }
+        });
+    }
+
+    private function authorizeScope(InternshipPlaceProposal $proposal, Request $request): void
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('admin')) {
+            return;
+        }
+
+        $allowed = $user?->lecturer?->coordinatorAssignments()
+            ->where('status', 'active')
+            ->where('internship_period_id', $proposal->internship_period_id)
+            ->where('study_program_id', $proposal->study_program_id)
+            ->exists();
+
+        abort_unless($allowed, 403);
     }
 }

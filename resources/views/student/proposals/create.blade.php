@@ -1,9 +1,17 @@
 <x-app-layout>
+    @php
+        $proposal ??= null;
+        $isEdit = filled($proposal);
+    @endphp
+
     <x-slot name="header">
-        <div>
-            <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Workflow Mahasiswa</p>
-            <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Usulan Mitra Baru') }}</h2>
-            <p class="mt-1 text-sm text-gray-500">Tentukan titik lokasi pada peta, lalu lengkapi identitas instansi.</p>
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Workflow Mahasiswa</p>
+                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ $isEdit ? __('Edit Usulan Tempat') : __('Usulan Tempat Baru') }}</h2>
+                <p class="mt-1 text-sm text-gray-500">Tentukan titik lokasi pada peta, lalu lengkapi identitas instansi.</p>
+            </div>
+            <a class="silat-secondary-link" href="{{ route('student.proposals.index') }}">Lihat histori</a>
         </div>
     </x-slot>
 
@@ -27,8 +35,8 @@
                         data-map-type="place-picker"
                         data-lat-input="latitude"
                         data-lng-input="longitude"
-                        data-initial-lat="{{ old('latitude') }}"
-                        data-initial-lng="{{ old('longitude') }}"
+                        data-initial-lat="{{ $initialLatitude }}"
+                        data-initial-lng="{{ $initialLongitude }}"
                         data-map-config='@json($mapConfig)'
                     ></div>
                 </section>
@@ -41,8 +49,11 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('student.proposals.store') }}" class="space-y-5 p-5">
+                    <form method="POST" action="{{ $isEdit ? route('student.proposals.update', $proposal) : route('student.proposals.store') }}" class="space-y-5 p-5">
                         @csrf
+                        @if ($isEdit)
+                            @method('PATCH')
+                        @endif
 
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
@@ -50,7 +61,7 @@
                                 <x-select-input id="internship_period_id" name="internship_period_id" class="mt-1" required>
                                     <option value="">Pilih periode program</option>
                                     @foreach ($periods as $period)
-                                        <option value="{{ $period->id }}" @selected(old('internship_period_id') == $period->id)>{{ $period->display_name }}</option>
+                                        <option value="{{ $period->id }}" @selected(old('internship_period_id', $proposal?->internship_period_id) == $period->id)>{{ $period->display_name }}</option>
                                     @endforeach
                                 </x-select-input>
                             </div>
@@ -72,19 +83,19 @@
                                 id="name"
                                 name="name"
                                 class="mt-1 block w-full"
-                                :value="old('name')"
                                 data-location-suggest-url="{{ $internalLocationSearchUrl }}"
                                 data-external-location-suggest-url="{{ $externalLocationSearchUrl }}"
                                 data-map-target="student_proposal_location_map"
                                 data-address-target="address"
                                 autocomplete="off"
+                                :value="old('name', $proposal?->name)"
                                 required
                             />
                         </div>
 
                         <div>
                             <x-input-label for="address" value="Alamat Lengkap" />
-                            <textarea id="address" name="address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('address') }}</textarea>
+                            <textarea id="address" name="address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('address', $proposal?->address) }}</textarea>
                         </div>
 
                         <div
@@ -93,7 +104,7 @@
                             data-regency-select="regency_id"
                             data-city-name-input="city_name"
                             data-status-target="region_status"
-                            data-initial-city="{{ old('city_name') }}"
+                            data-initial-city="{{ old('city_name', $proposal?->city_name) }}"
                         >
                             <x-input-label for="province_id" value="Provinsi" />
                             <select id="province_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -105,8 +116,8 @@
                                 <option value="">Pilih provinsi terlebih dahulu</option>
                             </select>
 
-                            <input id="city_name" name="city_name" type="hidden" value="{{ old('city_name') }}">
-                            <input name="city_id" type="hidden" value="{{ old('city_id') }}">
+                            <input id="city_name" name="city_name" type="hidden" value="{{ old('city_name', $proposal?->city_name) }}">
+                            <input name="city_id" type="hidden" value="{{ old('city_id', $proposal?->city_id) }}">
                             <p id="region_status" class="mt-2 text-xs text-gray-500">
                                 Pilih kab/kota atau pilih titik pada peta untuk deteksi otomatis.
                             </p>
@@ -115,27 +126,28 @@
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <x-input-label for="latitude" value="Latitude" />
-                                <x-text-input id="latitude" name="latitude" class="mt-1 block w-full" :value="old('latitude')" required />
+                                <x-text-input id="latitude" name="latitude" class="mt-1 block w-full" :value="old('latitude', $proposal?->latitude)" required />
                             </div>
                             <div>
                                 <x-input-label for="longitude" value="Longitude" />
-                                <x-text-input id="longitude" name="longitude" class="mt-1 block w-full" :value="old('longitude')" required />
+                                <x-text-input id="longitude" name="longitude" class="mt-1 block w-full" :value="old('longitude', $proposal?->longitude)" required />
                             </div>
                         </div>
 
                         <div>
                             <x-input-label for="field_supervisor_name" value="Kontak Umum Instansi" />
-                            <x-text-input id="field_supervisor_name" name="field_supervisor_name" class="mt-1 block w-full" :value="old('field_supervisor_name')" />
+                            <x-text-input id="field_supervisor_name" name="field_supervisor_name" class="mt-1 block w-full" :value="old('field_supervisor_name', $proposal?->field_supervisor_name)" />
                             <p class="mt-1 text-xs text-gray-500">Pembimbing lapangan per mahasiswa akan dikonfirmasi pada data peserta periode.</p>
                         </div>
 
                         <div>
                             <x-input-label for="field_supervisor_phone" value="HP Kontak Instansi" />
-                            <x-text-input id="field_supervisor_phone" name="field_supervisor_phone" class="mt-1 block w-full" :value="old('field_supervisor_phone')" />
+                            <x-text-input id="field_supervisor_phone" name="field_supervisor_phone" class="mt-1 block w-full" :value="old('field_supervisor_phone', $proposal?->field_supervisor_phone)" />
                         </div>
 
-                        <div class="flex justify-end">
-                            <x-primary-button><x-icon name="fa-paper-plane" /> Kirim Usulan</x-primary-button>
+                        <div class="flex items-center justify-between gap-3">
+                            <a class="silat-secondary-link" href="{{ route('student.proposals.index') }}">Kembali</a>
+                            <x-primary-button><x-icon :name="$isEdit ? 'fa-floppy-disk' : 'fa-paper-plane'" /> {{ $isEdit ? 'Simpan Perubahan' : 'Kirim Usulan' }}</x-primary-button>
                         </div>
                     </form>
                 </section>

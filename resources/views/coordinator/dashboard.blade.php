@@ -33,6 +33,8 @@
             @endforeach
         </div>
 
+        @include('management.partials.action-required', ['summary' => $actionRequiredSummary])
+
         <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
             <section class="silat-card">
                 <div class="silat-section-header">

@@ -86,7 +86,7 @@
                 <div class="grid gap-4 p-5 md:grid-cols-3">
                     <div class="silat-stat-card"><p class="silat-stat-label">Profil</p><p class="mt-2 text-lg font-semibold text-gray-900">{{ $student?->full_name ?: 'Belum lengkap' }}</p><p class="text-sm text-gray-500">{{ $student?->npm ?: '-' }}</p><a class="silat-secondary-link mt-3" href="{{ route('student.profile.edit') }}">Kelola profil</a></div>
                     <div class="silat-stat-card"><p class="silat-stat-label">Pendaftaran</p><p class="silat-stat-value">{{ $enrollments->count() }}</p><p class="silat-stat-note">{{ $activeEnrollment?->status ?: 'Belum ada status aktif' }}</p></div>
-                    <div class="silat-stat-card"><p class="silat-stat-label">Usulan Tempat</p><p class="silat-stat-value">{{ $proposals->count() }}</p><a class="silat-secondary-link" href="{{ route('student.proposals.create') }}">Ajukan tempat</a></div>
+                    <div class="silat-stat-card"><p class="silat-stat-label">Usulan Tempat</p><p class="silat-stat-value">{{ $proposals->count() }}</p><a class="silat-secondary-link" href="{{ route('student.proposals.index') }}">Lihat usulan</a></div>
                 </div>
             </section>
 
