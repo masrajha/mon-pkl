@@ -60,8 +60,14 @@ class DocumentationController extends Controller
             'admin' => [
                 'heading' => 'Role Admin',
                 'label' => 'Admin',
-                'description' => 'Master data, konfigurasi sistem, validasi, peserta periode, pembekalan, dan rekap lintas scope.',
+                'description' => 'Master data, konfigurasi program, email/notifikasi, validasi, peserta periode, pembekalan, seminar, dan rekap lintas scope.',
                 'icon' => 'A',
+            ],
+            'pembimbing-lapangan' => [
+                'heading' => 'Role Pembimbing Lapangan',
+                'label' => 'Pembimbing Lapangan',
+                'description' => 'Portal terbatas untuk melihat mahasiswa terkait melalui token URL atau login email pembimbing lapangan.',
+                'icon' => 'P',
             ],
         ];
     }

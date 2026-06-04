@@ -2,14 +2,15 @@
 
 SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untuk mengelola pendaftaran program, presensi, pembekalan, laporan, catatan harian, perpindahan mitra, perubahan pembimbing, dan monitoring aktivitas mahasiswa.
 
-Dokumen ini dibagi menjadi empat bagian berdasarkan role pengguna:
+Dokumen ini dibagi menjadi lima bagian berdasarkan role pengguna:
 
 1. Role Mahasiswa
 2. Role Dosen Pembimbing
 3. Role Koordinator
 4. Role Admin
+5. Role Pembimbing Lapangan
 
-Tahap pertama dokumen ini memuat manual lengkap untuk Role Mahasiswa. Bagian role lain disiapkan sebagai kerangka dan akan dilengkapi pada tahap berikutnya.
+Dokumentasi publik pada `/docs` membaca isi file ini, sehingga perubahan manual di sini otomatis menjadi sumber halaman dokumentasi aplikasi.
 
 ---
 
@@ -95,7 +96,7 @@ Data pembimbing lapangan yang dapat diisi:
 - Email pembimbing lapangan.
 - HP kontak mahasiswa selama periode ini.
 
-Email pembimbing lapangan bersifat opsional saat pendaftaran awal. Email ini wajib dilengkapi sebelum mahasiswa mengajukan seminar, karena akan digunakan untuk akses pembimbing lapangan pada pengembangan berikutnya.
+Email pembimbing lapangan bersifat opsional saat pendaftaran awal. Email ini wajib dilengkapi sebelum mahasiswa mengajukan seminar dan dapat digunakan admin/koordinator untuk mengirim akses portal Pembimbing Lapangan.
 
 Jika data sudah benar, klik **Lanjutkan**. Jika perlu memperbaiki pilihan program/periode, klik **Kembali**.
 
@@ -133,7 +134,7 @@ Aturan default saat ini:
 
 Catatan:
 
-- Nilai di atas dapat berubah melalui konfigurasi sistem oleh admin.
+- Nilai di atas dapat berubah melalui **Konfigurasi Program** oleh admin.
 - Program studi mahasiswa menentukan jenjang yang dipakai.
 - Jika total SKS, semester, atau IPK belum memenuhi syarat, sistem menolak pendaftaran dan menampilkan pesan validasi.
 - Mahasiswa juga harus mencentang bahwa program/KP sudah diambil pada KRS semester berjalan.
@@ -157,7 +158,7 @@ Jika status **Revision Required**, mahasiswa dapat membuka kembali form pendafta
 
 ### 1.7 Usulan Mitra Baru
 
-Menu: **Usulan Tempat**
+Menu: **Usulan Mitra**
 
 Mahasiswa dapat mengajukan mitra baru jika tempat kegiatan belum tersedia pada daftar mitra.
 
@@ -242,7 +243,7 @@ Jadwal default:
 
 Catatan:
 
-- Jadwal dapat diubah oleh admin pada konfigurasi sistem.
+- Jadwal dapat diubah oleh admin pada **Konfigurasi Program**.
 - Di luar rentang waktu aktif, presensi ditolak dengan pesan bahwa check-in hanya dapat dilakukan pada jam kerja.
 - Sistem membatasi satu presensi masuk dan satu presensi pulang resmi per hari.
 - Presensi pulang memerlukan presensi masuk pada hari yang sama.
@@ -376,7 +377,6 @@ Jenis unggahan progres laporan:
 - Pelaporan Tahap 2: Bab 1 dan 2.
 - Pelaporan Tahap 3: Bab 1, 2 dan 3.
 - Pelaporan Tahap 4/Laporan Lengkap: Bab 1 sampai 5.
-- Seminar.
 - Hardcopy.
 
 Batasan file unggahan laporan:
@@ -385,10 +385,14 @@ Batasan file unggahan laporan:
 - Maksimal ukuran file: 10 MB.
 - Setiap unggahan disimpan dengan status review.
 
-Khusus unggahan seminar:
+Khusus seminar:
 
 - Mahasiswa wajib memiliki email pembimbing lapangan pada enrollment.
 - Jika email belum ada, mahasiswa harus mengajukan pelengkapan/perubahan data pembimbing terlebih dahulu.
+- Seminar diajukan melalui workflow Pengajuan Seminar, bukan sebagai progres laporan biasa.
+- Pengajuan seminar baru dapat dilakukan setelah mahasiswa mengunggah Pelaporan Tahap 4/Laporan Lengkap Bab 1 sampai 5.
+- ACC seminar dapat dilakukan melalui dua jalur: dosen pembimbing menyetujui lewat sistem, atau mahasiswa mengunggah berkas ACC seminar dari dosen untuk divalidasi admin/koordinator.
+- Penilaian seminar juga memiliki dua jalur: dosen pembimbing mengisi nilai via sistem, atau mahasiswa menginput komponen nilai manual dan mengunggah berkas bukti/form penilaian untuk divalidasi admin/koordinator.
 
 ### 1.16 Cara Kerja Sanksi Keterlambatan Laporan
 
@@ -459,9 +463,9 @@ Cetak laporan memuat:
 
 Cetak laporan hanya dapat dilakukan jika data penting sudah tersedia, terutama dosen pembimbing dan pembimbing lapangan.
 
-### 1.19 Pindah Tempat
+### 1.19 Pindah Mitra
 
-Menu: **Pindah Tempat**
+Menu: **Pindah Mitra**
 
 Mahasiswa dapat mengajukan pindah mitra/tempat kegiatan jika memiliki enrollment aktif.
 
@@ -514,7 +518,7 @@ Peta menggunakan Leaflet dan tile OpenStreetMap. Lokasi dapat ditampilkan sebaga
 | Catatan presensi | Wajib diisi; masuk menjadi rencana, pulang menjadi realisasi. |
 | Presensi pembekalan | Satu kali per event, memakai lokasi pembekalan. |
 | Unggah laporan | PDF/DOC/DOCX, maksimal 10 MB. |
-| Seminar | Email pembimbing lapangan wajib tersedia sebelum upload seminar. |
+| Seminar | Email pembimbing lapangan wajib tersedia dan Laporan Lengkap Bab 1-5 sudah diunggah sebelum pengajuan seminar. |
 
 ### 1.23 Alur Singkat Mahasiswa dari Awal sampai Selesai
 
@@ -533,7 +537,9 @@ Peta menggunakan Leaflet dan tile OpenStreetMap. Lokasi dapat ditampilkan sebaga
 13. Unggah progres laporan sesuai deadline.
 14. Pantau sanksi, status review, dan catatan harian di **Laporan Saya**.
 15. Lengkapi email pembimbing lapangan sebelum pengajuan seminar.
-16. Cetak laporan atau form catatan harian jika diperlukan.
+16. Ajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
+17. Ikuti alur ACC seminar, jadwal seminar, dan penilaian sesuai arahan dosen/admin/koordinator.
+18. Cetak laporan atau form catatan harian jika diperlukan.
 
 ---
 
@@ -552,12 +558,14 @@ Dosen pembimbing dapat menggunakan SiLAT untuk:
 - Memberikan review laporan: setujui, minta revisi, atau tolak.
 - Memberikan catatan review kepada mahasiswa.
 - Melihat sanksi keterlambatan pada unggahan laporan.
+- Memproses ACC seminar melalui sistem.
+- Mengisi nilai seminar melalui sistem jika seminar sudah terjadwal.
 
 Catatan:
 
 - Akses dosen pembimbing dibatasi pada mahasiswa yang ditetapkan sebagai bimbingannya.
 - Jika dosen juga memiliki penugasan koordinator aktif, dosen dapat memperoleh akses tambahan untuk scope periode/prodi koordinator. Akses tersebut dibahas pada Bagian 3 Role Koordinator.
-- Modul penilaian laporan, seminar, nilai akhir, dan nilai dosen penuh masih berada pada backlog pengembangan berikutnya.
+- Modul nilai akhir penuh masih berada pada backlog pengembangan berikutnya.
 
 ### 2.2 Login dan Dashboard Dosen
 
@@ -705,7 +713,36 @@ Rekap menampilkan:
 
 Untuk role dosen, data dibatasi pada mahasiswa bimbingan dosen tersebut. Jika dosen juga koordinator, sistem dapat memperluas data sesuai penugasan periode/prodi koordinator.
 
-### 2.9 Cara Kerja Hari Hadir pada Rekap
+### 2.9 Review Seminar dan Penilaian Seminar
+
+Menu: **Review Seminar**
+
+Dosen pembimbing dapat memproses pengajuan seminar mahasiswa bimbingannya.
+
+Alur via sistem:
+
+1. Mahasiswa mengajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
+2. Dosen membuka menu **Review Seminar**.
+3. Dosen memilih keputusan ACC seminar: setujui, minta revisi, atau tolak.
+4. Jika disetujui, admin/koordinator dapat menjadwalkan seminar.
+5. Setelah seminar terjadwal, dosen mengisi komponen nilai seminar via sistem.
+
+Komponen nilai seminar:
+
+| Komponen | Bobot |
+|----------|-------|
+| Penguasaan materi/metode | 20% |
+| Sikap ilmiah dan argumentasi | 10% |
+| Teknik penyajian dan kebahasaan | 10% |
+| Originalitas laporan | 30% |
+| Relevansi dan keterpaduan laporan | 15% |
+| Penulisan, format, dan bahasa | 15% |
+
+Sistem menghitung nilai total berdasarkan komponen tersebut.
+
+Jika mahasiswa memakai jalur manual, dosen memberi ACC atau nilai di luar sistem sesuai dokumen resmi. Mahasiswa mengunggah bukti, lalu admin/koordinator memvalidasi berkas manual tersebut.
+
+### 2.10 Cara Kerja Hari Hadir pada Rekap
 
 Sistem menghitung hari hadir dari pasangan presensi masuk dan pulang pada tanggal yang sama.
 
@@ -725,7 +762,7 @@ Hari hadir     : 1 hari
 Durasi         : 8 jam 35 menit
 ```
 
-### 2.10 Cara Kerja Jarak pada Rekap
+### 2.11 Cara Kerja Jarak pada Rekap
 
 Jarak pada rekap berasal dari jarak presensi mahasiswa terhadap lokasi mitra/tempat kegiatan.
 
@@ -743,7 +780,7 @@ Interpretasi jarak:
 - Jarak besar perlu diperiksa, terutama jika melebihi radius yang dikonfigurasi.
 - Perbedaan jarak dapat dipengaruhi akurasi GPS perangkat mahasiswa.
 
-### 2.11 Peta Mitra
+### 2.12 Peta Mitra
 
 Menu: **Peta Mitra**
 
@@ -757,7 +794,7 @@ Peta mitra membantu dosen:
 
 Peta menggunakan Leaflet dan tile OpenStreetMap.
 
-### 2.12 Peta Monitoring
+### 2.13 Peta Monitoring
 
 Menu: **Peta Monitoring**
 
@@ -772,7 +809,7 @@ Peta monitoring membantu dosen:
 
 Data peta monitoring mengikuti filter dan scope role. Untuk dosen, data utama adalah mahasiswa bimbingan.
 
-### 2.13 Akses File Laporan
+### 2.14 Akses File Laporan
 
 Dosen dapat membuka file laporan melalui tombol **Buka file** pada halaman Review Laporan.
 
@@ -785,7 +822,7 @@ Batasan akses:
 
 Jika dosen tidak termasuk pembimbing mahasiswa tersebut dan tidak memiliki scope koordinator yang sesuai, akses file ditolak.
 
-### 2.14 Cara Kerja Sanksi Unggahan Laporan
+### 2.15 Cara Kerja Sanksi Unggahan Laporan
 
 Pada halaman Review Laporan, dosen dapat melihat poin sanksi jika mahasiswa terlambat mengunggah dokumen.
 
@@ -808,7 +845,7 @@ Sanksi         : 15 poin
 
 Dosen tidak mengubah poin sanksi secara manual pada halaman review. Dosen hanya memberi status dan catatan review dokumen.
 
-### 2.15 Batasan Role Dosen Pembimbing
+### 2.16 Batasan Role Dosen Pembimbing
 
 | Area | Batasan |
 |------|---------|
@@ -819,10 +856,10 @@ Dosen tidak mengubah poin sanksi secara manual pada halaman review. Dosen hanya 
 | File laporan | Akses file dibatasi berdasarkan relasi pembimbing atau scope koordinator. |
 | Rekap monitoring | Data dibatasi sesuai mahasiswa bimbingan atau scope koordinator. |
 | Peta monitoring | Data mengikuti hak akses role. |
-| Penilaian numerik | Modul nilai dosen, nilai seminar, dan nilai akhir belum aktif pada tahap ini. |
+| Penilaian numerik | Nilai seminar sudah tersedia. Nilai akhir penuh belum aktif pada tahap ini. |
 | Validasi pendaftaran | Dosen pembimbing biasa tidak memvalidasi pendaftaran, kecuali memiliki role/penugasan koordinator yang sesuai. |
 
-### 2.16 Alur Singkat Dosen Pembimbing
+### 2.17 Alur Singkat Dosen Pembimbing
 
 1. Login ke SiLAT sebagai dosen.
 2. Buka **Dashboard** untuk melihat ringkasan mahasiswa bimbingan.
@@ -831,9 +868,10 @@ Dosen tidak mengubah poin sanksi secara manual pada halaman review. Dosen hanya 
 5. Pilih status review: setujui, minta revisi, atau tolak.
 6. Isi catatan review, terutama jika meminta revisi atau menolak.
 7. Klik **Simpan Review**.
-8. Buka **Rekap Bimbingan** untuk memantau presensi, durasi, dan jarak mahasiswa.
-9. Gunakan **Peta Monitoring** jika perlu memeriksa lokasi presensi secara visual.
-10. Lanjutkan komunikasi akademik dengan mahasiswa berdasarkan catatan review dan rekap aktivitas.
+8. Buka **Review Seminar** untuk memproses ACC atau nilai seminar jika mahasiswa sudah mengajukan seminar.
+9. Buka **Rekap Bimbingan** untuk memantau presensi, durasi, dan jarak mahasiswa.
+10. Gunakan **Peta Monitoring** jika perlu memeriksa lokasi presensi secara visual.
+11. Lanjutkan komunikasi akademik dengan mahasiswa berdasarkan catatan review dan rekap aktivitas.
 
 ---
 
@@ -855,6 +893,7 @@ Koordinator dapat menggunakan SiLAT untuk:
 - Melihat rekap presensi pembekalan.
 - Memproses permohonan perubahan pembimbing.
 - Mereview progres laporan mahasiswa pada scope tugasnya.
+- Memvalidasi ACC seminar manual, menjadwalkan seminar, dan memvalidasi nilai seminar manual pada scope tugasnya.
 - Melihat peta monitoring dan rekap monitoring pada scope tugasnya.
 - Memantau mahasiswa dengan sanksi tertinggi.
 
@@ -862,7 +901,7 @@ Batas utama koordinator:
 
 - Koordinator hanya mengakses data sesuai periode dan prodi penugasannya.
 - Jika event pembekalan dibuat untuk semua prodi, koordinator tetap hanya melihat peserta sesuai scope prodi yang ditugaskan.
-- Koordinator tidak mengelola master data global seperti user, prodi, program, periode, dan konfigurasi sistem. Fitur tersebut berada pada role admin.
+- Koordinator tidak mengelola master data global seperti user, prodi, program, periode, dan **Konfigurasi Program**. Fitur tersebut berada pada role admin.
 
 ### 3.2 Login dan Dashboard Koordinator
 
@@ -1131,7 +1170,23 @@ Status review:
 
 Catatan wajib diisi jika koordinator meminta revisi atau menolak dokumen.
 
-### 3.14 Rekap Monitoring
+### 3.14 Review Seminar oleh Koordinator
+
+Menu: **Review Seminar**
+
+Koordinator dapat memproses bagian administratif seminar dalam scope periode/prodi penugasannya.
+
+Koordinator dapat:
+
+- Melihat pengajuan seminar mahasiswa dalam scope.
+- Memvalidasi berkas ACC seminar manual.
+- Menolak ACC manual jika bukti tidak sesuai dan memberi catatan.
+- Menjadwalkan seminar setelah ACC valid.
+- Memvalidasi nilai seminar manual yang diinput mahasiswa beserta berkas bukti/form penilaian.
+
+Koordinator tidak menggantikan keputusan akademik dosen pembimbing untuk ACC atau nilai via sistem. Jalur dosen tetap dilakukan oleh dosen pembimbing, sedangkan koordinator menangani validasi administratif dan jadwal sesuai scope.
+
+### 3.15 Rekap Monitoring
 
 Menu: **Rekap Monitoring**
 
@@ -1166,7 +1221,7 @@ Rekap menampilkan:
 
 Koordinator dapat menggunakan rekap ini untuk melihat mahasiswa yang perlu dibimbing ulang, dipanggil, atau dikonfirmasi.
 
-### 3.15 Peta Monitoring
+### 3.16 Peta Monitoring
 
 Menu: **Peta Monitoring**
 
@@ -1181,7 +1236,7 @@ Koordinator dapat menggunakan peta untuk:
 
 Data peta monitoring mengikuti filter periode/prodi dan hak akses koordinator.
 
-### 3.16 Cara Kerja Hari Hadir, Durasi, dan Jarak
+### 3.17 Cara Kerja Hari Hadir, Durasi, dan Jarak
 
 Koordinator membaca metrik presensi dengan aturan yang sama seperti role lain.
 
@@ -1209,7 +1264,7 @@ Sanksi durasi:
 - Default durasi minimal adalah 6 jam.
 - Default sanksi adalah 1 poin per jam kurang, dibulatkan ke atas.
 
-### 3.17 Sanksi dan Tindak Lanjut
+### 3.18 Sanksi dan Tindak Lanjut
 
 Dashboard koordinator menampilkan mahasiswa dengan sanksi tertinggi.
 
@@ -1226,7 +1281,7 @@ Koordinator dapat memakai data sanksi untuk:
 - Memeriksa apakah ada masalah lokasi, mitra, atau jadwal.
 - Mengambil keputusan akademik sesuai kebijakan program.
 
-### 3.18 Batasan Role Koordinator
+### 3.19 Batasan Role Koordinator
 
 | Area | Batasan |
 |------|---------|
@@ -1237,11 +1292,12 @@ Koordinator dapat memakai data sanksi untuk:
 | Pembekalan | Koordinator dapat membuat dan melihat event pembekalan pada scope tugasnya. |
 | Presensi pembekalan | Koordinator melihat rekap hadir/belum hadir dan jarak, tetapi mahasiswa yang melakukan presensi. |
 | Review laporan | Koordinator dapat mereview laporan dalam scope periode/prodi. |
+| Review seminar | Koordinator dapat memvalidasi ACC manual, menjadwalkan seminar, dan memvalidasi nilai manual dalam scope periode/prodi. |
 | Perubahan pembimbing | Koordinator dapat memproses permohonan dalam scope. |
-| Master data | Koordinator tidak mengelola master user, prodi, program, periode, dan konfigurasi sistem. |
+| Master data | Koordinator tidak mengelola master user, prodi, program, periode, dan Konfigurasi Program. |
 | Admin global | Tindakan lintas seluruh data berada pada role admin. |
 
-### 3.19 Alur Singkat Koordinator
+### 3.20 Alur Singkat Koordinator
 
 1. Login ke SiLAT sebagai koordinator.
 2. Buka **Dashboard Koordinator**.
@@ -1254,8 +1310,9 @@ Koordinator dapat memakai data sanksi untuk:
 9. Tentukan lokasi pembekalan dari peta dan simpan event.
 10. Pantau rekap presensi pembekalan.
 11. Buka **Review Laporan** untuk meninjau unggahan mahasiswa.
-12. Buka **Rekap Monitoring** dan **Peta Monitoring** untuk memantau presensi, durasi, jarak, dan sanksi.
-13. Tindak lanjuti mahasiswa dengan sanksi tinggi atau presensi tidak wajar.
+12. Buka **Review Seminar** untuk memvalidasi ACC manual, menjadwalkan seminar, atau memvalidasi nilai manual.
+13. Buka **Rekap Monitoring** dan **Peta Monitoring** untuk memantau presensi, durasi, jarak, dan sanksi.
+14. Tindak lanjuti mahasiswa dengan sanksi tinggi atau presensi tidak wajar.
 
 ---
 
@@ -1271,6 +1328,7 @@ Admin dapat menggunakan sistem untuk:
 - Mengelola user.
 - Mengelola mahasiswa.
 - Mengelola dosen.
+- Mengelola pembimbing lapangan berbasis email enrollment.
 - Mengelola program studi.
 - Mengelola program kegiatan.
 - Mengelola periode program.
@@ -1283,7 +1341,9 @@ Admin dapat menggunakan sistem untuk:
 - Memproses perubahan pembimbing.
 - Mengelola pembekalan program.
 - Mereview laporan mahasiswa.
-- Mengubah konfigurasi sistem/periode.
+- Mengubah konfigurasi program/periode.
+- Mengelola email dan notifikasi.
+- Mengelola review seminar, ACC manual, jadwal seminar, dan validasi nilai manual.
 - Melihat peta mitra, peta monitoring, dan rekap monitoring.
 
 Admin tidak dibatasi oleh scope periode/prodi seperti koordinator. Karena itu, perubahan admin dapat berdampak ke seluruh data sistem.
@@ -1325,11 +1385,13 @@ Role yang tersedia:
 | Admin | Mengelola sistem lintas data. |
 | Dosen | Mereview laporan dan memantau mahasiswa bimbingan. |
 | Mahasiswa | Mengikuti workflow pendaftaran, presensi, dan laporan. |
+| Pembimbing Lapangan | Melihat mahasiswa terkait melalui portal pembimbing lapangan. |
 
 Catatan:
 
 - Role koordinator dihitung dari penugasan koordinator aktif pada data dosen, bukan sekadar role user biasa.
 - Jika dosen harus menjadi koordinator, buat/tautkan user dosen terlebih dahulu, lalu buat penugasan pada menu **Koordinator Program**.
+- Akun Pembimbing Lapangan sebaiknya dibuat/ditautkan dari menu **Pembimbing Lapangan**, bukan langsung dari Manajemen User, agar email akun pasti terkait data pembimbing lapangan pada enrollment aktif.
 
 ### 4.4 Manajemen Mahasiswa
 
@@ -1369,7 +1431,32 @@ Dosen yang aktif dapat dipilih sebagai:
 - Dosen koordinator program.
 - Reviewer laporan sesuai relasi bimbingan atau scope koordinator.
 
-### 4.6 Manajemen Program Studi
+### 4.6 Manajemen Pembimbing Lapangan
+
+Menu: **Pembimbing Lapangan**
+
+Admin/koordinator dapat melihat daftar pembimbing lapangan yang berasal dari email pembimbing lapangan pada enrollment aktif.
+
+Data yang ditampilkan:
+
+- Nama pembimbing lapangan.
+- Email pembimbing lapangan.
+- Jumlah mahasiswa/enrollment terkait.
+- Status akun login jika sudah ada.
+- Status token akses aktif jika tersedia.
+
+Fungsi utama:
+
+- Membuat atau menautkan akun role **Pembimbing Lapangan** berdasarkan email yang sudah tercatat pada enrollment.
+- Memastikan akun pembimbing lapangan tidak dibuat untuk email yang tidak terkait enrollment aktif.
+- Membantu admin melihat siapa saja pembimbing lapangan yang sudah siap memakai portal.
+
+Catatan:
+
+- Role Pembimbing Lapangan juga dapat dibuat dari Manajemen User, tetapi cara yang direkomendasikan adalah dari menu ini agar tidak ambigu.
+- Jika email pembimbing lapangan belum terisi pada peserta, lengkapi melalui **Peserta Periode** atau proses perubahan pembimbing terlebih dahulu.
+
+### 4.7 Manajemen Program Studi
 
 Menu: **Prodi**
 
@@ -1392,9 +1479,9 @@ Contoh:
 | D3 | 80 | 4 |
 | S1 | 100 | 6 |
 
-Nilai default dapat diubah pada konfigurasi sistem.
+Nilai default dapat diubah pada Konfigurasi Program.
 
-### 4.7 Manajemen Program Kegiatan
+### 4.8 Manajemen Program Kegiatan
 
 Menu: **Program Kegiatan**
 
@@ -1417,7 +1504,7 @@ Contoh program:
 - Riset.
 - Studi Independen.
 
-### 4.8 Manajemen Periode Program
+### 4.9 Manajemen Periode Program
 
 Menu: **Periode Program**
 
@@ -1446,7 +1533,7 @@ Periode menjadi acuan untuk:
 
 Admin juga dapat menyelesaikan periode. Saat periode diselesaikan, peserta aktif pada periode tersebut dapat diubah menjadi selesai sesuai proses yang tersedia pada sistem.
 
-### 4.9 Manajemen Koordinator Program
+### 4.10 Manajemen Koordinator Program
 
 Menu: **Koordinator Program**
 
@@ -1467,7 +1554,7 @@ Ketentuan:
 - Jika prodi sudah memiliki koordinator pada periode yang sama, sistem menolak duplikasi.
 - Koordinator hanya dapat mengakses data pada scope periode/prodi penugasannya.
 
-### 4.10 Manajemen Master Mitra
+### 4.11 Manajemen Master Mitra
 
 Menu: **Mitra**
 
@@ -1497,9 +1584,9 @@ Bulk action pada master mitra:
 
 Gunakan merge untuk merapikan data mitra ganda atau variasi nama instansi yang sama.
 
-### 4.11 Validasi Usulan Mitra
+### 4.12 Validasi Usulan Mitra
 
-Menu: **Usulan Tempat**
+Menu: **Usulan Mitra**
 
 Mahasiswa dapat mengajukan mitra baru. Admin memvalidasi usulan tersebut.
 
@@ -1522,9 +1609,9 @@ Pilihan saat menyetujui:
 
 Jika ditolak, alasan penolakan wajib diisi agar mahasiswa memahami tindak lanjutnya.
 
-### 4.12 Pindah Tempat
+### 4.13 Pindah Mitra
 
-Menu: **Pindah Tempat**
+Menu: **Pindah Mitra**
 
 Admin memproses permohonan pindah mitra/tempat kegiatan dari mahasiswa.
 
@@ -1539,7 +1626,7 @@ Admin dapat:
 
 Jika disetujui, sistem memperbarui mitra pada enrollment mahasiswa.
 
-### 4.13 Validasi Pendaftaran
+### 4.14 Validasi Pendaftaran
 
 Menu: **Validasi Pendaftaran**
 
@@ -1578,7 +1665,7 @@ Keputusan validasi:
 
 Dosen pembimbing wajib dipilih sebelum enrollment diaktifkan.
 
-### 4.14 Peserta Periode
+### 4.15 Peserta Periode
 
 Menu: **Peserta Periode**
 
@@ -1590,6 +1677,8 @@ Fitur penting:
 - Pada mode edit, mahasiswa tidak dapat diganti.
 - Program studi mengikuti prodi mahasiswa.
 - Admin memilih periode program, mitra, dosen pembimbing, data pembimbing lapangan, kontak mahasiswa, kelayakan akademik, dan status enrollment.
+- Admin dapat membuat token akses pembimbing lapangan jika email pembimbing lapangan sudah terisi.
+- Token akses pembimbing lapangan memiliki masa berlaku, dapat dicabut, dan dikirim melalui antrean email.
 
 Status enrollment yang tersedia:
 
@@ -1606,7 +1695,7 @@ Status enrollment yang tersedia:
 
 Gunakan modul ini untuk perbaikan administratif peserta periode, bukan sebagai pengganti workflow pendaftaran mahasiswa jika alur normal masih memungkinkan.
 
-### 4.15 Perubahan Pembimbing
+### 4.16 Perubahan Pembimbing
 
 Menu: **Perubahan Pembimbing**
 
@@ -1621,9 +1710,9 @@ Data yang dapat diubah:
 
 Jika permohonan disetujui, data enrollment diperbarui sesuai keputusan admin.
 
-Email pembimbing lapangan penting karena wajib tersedia sebelum mahasiswa mengunggah dokumen seminar.
+Email pembimbing lapangan penting karena wajib tersedia sebelum mahasiswa mengajukan seminar.
 
-### 4.16 Pembekalan Program
+### 4.17 Pembekalan Program
 
 Menu: **Pembekalan**
 
@@ -1650,7 +1739,7 @@ Pembekalan Magang Juli 2026
 
 Admin dapat memilih lokasi melalui peta. Mahasiswa yang sesuai dengan event akan melihat link presensi pembekalan pada dashboard.
 
-### 4.17 Rekap Pembekalan
+### 4.18 Rekap Pembekalan
 
 Admin dapat membuka rekap setiap event pembekalan.
 
@@ -1667,7 +1756,7 @@ Rekap menampilkan:
 
 Presensi pembekalan hanya dapat dilakukan satu kali oleh mahasiswa pada event yang sesuai.
 
-### 4.18 Review Laporan
+### 4.19 Review Laporan
 
 Menu: **Review Laporan**
 
@@ -1688,9 +1777,32 @@ Catatan wajib diisi jika status review adalah **Minta Revisi** atau **Tolak**.
 
 Dokumen yang sudah disetujui terkunci. Jika dokumen **Laporan Lengkap** disetujui, file disimpan sebagai laporan final pada enrollment.
 
-### 4.19 Konfigurasi Sistem
+### 4.20 Review Seminar
 
-Menu: **Konfigurasi Sistem**
+Menu: **Review Seminar**
+
+Admin/koordinator dapat memproses sisi administratif workflow seminar.
+
+Fungsi utama:
+
+- Melihat daftar pengajuan seminar.
+- Memvalidasi berkas ACC seminar manual yang diunggah mahasiswa.
+- Menolak ACC manual jika bukti tidak sesuai dan memberi catatan.
+- Menjadwalkan seminar setelah ACC valid, baik ACC via sistem maupun ACC manual.
+- Memvalidasi nilai seminar manual yang diinput mahasiswa beserta berkas bukti/form penilaian.
+
+Alur seminar:
+
+1. Mahasiswa mengajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
+2. ACC seminar dapat berjalan via sistem oleh dosen atau via upload berkas ACC manual oleh mahasiswa.
+3. Jika memakai jalur manual, admin/koordinator memvalidasi berkas ACC.
+4. Admin/koordinator menjadwalkan seminar.
+5. Nilai seminar dapat diisi oleh dosen via sistem atau diinput manual oleh mahasiswa dengan bukti.
+6. Jika nilai manual, admin/koordinator memvalidasi komponen nilai dan berkas bukti.
+
+### 4.21 Konfigurasi Program
+
+Menu: **Konfigurasi Program**
 
 Admin mengatur konfigurasi per periode.
 
@@ -1822,7 +1934,38 @@ Dampak:
 - Mengatur perhitungan jarak Haversine.
 - Mengatur jumlah data monitoring yang dimuat.
 
-### 4.20 Cara Kerja Presensi dan Jarak dari Sisi Admin
+### 4.22 Email & Notifikasi
+
+Menu: **Email & Notifikasi**
+
+Admin mengelola pengiriman email sistem dan konfigurasi mail server.
+
+Tab yang tersedia:
+
+| Tab | Fungsi |
+|-----|--------|
+| Status Notifikasi | Mengaktifkan/menonaktifkan pengiriman email global dan cakupan workflow email. |
+| Antrean Email | Melihat email pending, terkirim, gagal, error pengiriman, attempt, serta menjalankan proses antrean atau retry gagal. |
+| Mail Server | Menyimpan override konfigurasi mail server seperti mailer, SMTP host, port, enkripsi, username, password, email pengirim, dan nama pengirim. |
+
+Kontrol global:
+
+- Jika **Email notifikasi aktif** dimatikan, event email tetap berada di antrean tetapi tidak dikirim.
+- Cocok digunakan saat SMTP bermasalah, masa uji coba, atau maintenance.
+
+Cakupan notifikasi:
+
+- Admin dapat mengaktifkan/menonaktifkan workflow yang boleh membuat antrean email baru.
+- Workflow yang sudah tersedia: pendaftaran, usulan mitra, pindah mitra, perubahan pembimbing, dan pembimbing lapangan.
+- Workflow yang belum tersedia tampil sebagai referensi dan checkbox-nya tidak dapat diaktifkan.
+
+Mail server:
+
+- Konfigurasi mail server disimpan di database pada tabel `system_settings`, bukan menulis langsung ke `.env`.
+- Jika belum ada konfigurasi database, sistem memakai konfigurasi dari `.env`.
+- Password SMTP disimpan terenkripsi.
+
+### 4.23 Cara Kerja Presensi dan Jarak dari Sisi Admin
 
 Admin perlu memahami cara sistem menghitung presensi.
 
@@ -1854,7 +1997,7 @@ Jarak:
 
 Jika radius maksimum diisi 0, pembatasan radius dapat dianggap tidak aktif.
 
-### 4.21 Peta dan Rekap Monitoring
+### 4.24 Peta dan Rekap Monitoring
 
 Admin dapat membuka:
 
@@ -1885,7 +2028,7 @@ Rekap Monitoring:
 
 Ekspor PDF/Excel pada halaman rekap masih dalam status belum aktif jika tombol tampil disabled.
 
-### 4.22 Batasan dan Kehati-hatian Admin
+### 4.25 Batasan dan Kehati-hatian Admin
 
 | Area | Batasan/Kehati-hatian |
 |------|-----------------------|
@@ -1899,10 +2042,12 @@ Ekspor PDF/Excel pada halaman rekap masih dalam status belum aktif jika tombol t
 | Konfigurasi SKS/IPK | Langsung memengaruhi pendaftaran mahasiswa. |
 | Konfigurasi radius | Langsung memengaruhi diterima/ditolaknya presensi. |
 | Konfigurasi deadline | Langsung memengaruhi sanksi keterlambatan laporan. |
+| Email & Notifikasi | Toggle global menghentikan pengiriman, sedangkan toggle cakupan menghentikan pembuatan antrean baru untuk workflow terkait. |
+| Mail Server | Override database dipakai saat antrean email diproses; jika kosong sistem memakai `.env`. |
 | Dokumen disetujui | Dokumen laporan yang disetujui terkunci. |
 | Periode terkunci | Konfigurasi periode terkunci hanya dapat diubah oleh admin khusus/super admin. |
 
-### 4.23 Alur Operasional Admin
+### 4.26 Alur Operasional Admin
 
 Alur awal setup:
 
@@ -1911,9 +2056,10 @@ Alur awal setup:
 3. Lengkapi master dosen.
 4. Lengkapi master program kegiatan.
 5. Buat periode program.
-6. Atur konfigurasi periode.
+6. Atur konfigurasi periode melalui **Konfigurasi Program**.
 7. Tambahkan master mitra jika sudah tersedia.
 8. Buat penugasan koordinator program.
+9. Periksa **Email & Notifikasi** jika sistem akan mengirim email otomatis.
 
 Alur pendaftaran:
 
@@ -1931,7 +2077,10 @@ Alur pelaksanaan:
 3. Mahasiswa melakukan presensi harian.
 4. Mahasiswa mengunggah progres laporan.
 5. Dosen/koordinator/admin mereview laporan.
-6. Admin memantau rekap monitoring, sanksi, dan pembekalan.
+6. Admin/koordinator mengirim token akses pembimbing lapangan jika diperlukan.
+7. Mahasiswa mengajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
+8. Dosen/admin/koordinator memproses ACC, jadwal, dan nilai seminar sesuai jalur sistem atau manual.
+9. Admin memantau rekap monitoring, sanksi, pembekalan, seminar, dan antrean email.
 
 Alur penutupan:
 
@@ -1939,3 +2088,81 @@ Alur penutupan:
 2. Pastikan data pembimbing dan nilai sudah lengkap saat modul penilaian aktif.
 3. Selesaikan periode jika seluruh proses sudah selesai.
 4. Gunakan rekap monitoring sebagai arsip evaluasi periode.
+
+---
+
+## Bagian 5. Role Pembimbing Lapangan
+
+### 5.1 Ringkasan Hak Akses Pembimbing Lapangan
+
+Pembimbing Lapangan dapat menggunakan SiLAT untuk melihat mahasiswa yang terkait dengan email pembimbing lapangan pada enrollment aktif.
+
+Akses tersedia melalui dua cara:
+
+- URL token akses yang dikirim oleh admin/koordinator.
+- Login dengan akun role **Pembimbing Lapangan** jika email login sama dengan email pembimbing lapangan pada enrollment aktif.
+
+### 5.2 Akses Melalui Token URL
+
+Admin/koordinator dapat membuat token akses dari data peserta periode.
+
+Ketentuan token:
+
+- Token bersifat unik.
+- Token memiliki masa berlaku.
+- Token dapat dicabut oleh admin.
+- Token hanya membuka data mahasiswa/enrollment yang terkait dengan token tersebut.
+- Link token dikirim melalui antrean email sistem jika email notifikasi aktif.
+
+Langkah penggunaan:
+
+1. Buka email akses dari SiLAT.
+2. Klik tautan portal pembimbing lapangan.
+3. Periksa data mahasiswa yang tampil.
+4. Gunakan informasi presensi dan catatan harian sebagai bahan monitoring.
+
+### 5.3 Akses Melalui Login
+
+Jika akun Pembimbing Lapangan sudah dibuat, pembimbing dapat login menggunakan email yang sama dengan email pembimbing lapangan pada enrollment.
+
+Sistem hanya menampilkan mahasiswa yang memiliki `field_supervisor_email` sama dengan email akun login.
+
+Jika tidak ada mahasiswa yang tampil:
+
+- Pastikan email login sama dengan email pembimbing lapangan pada data peserta.
+- Hubungi admin/koordinator untuk mengecek data pembimbing lapangan.
+- Pastikan enrollment mahasiswa masih aktif.
+
+### 5.4 Dashboard Pembimbing Lapangan
+
+Dashboard pembimbing lapangan menampilkan daftar mahasiswa terkait.
+
+Informasi yang tersedia:
+
+- Nama mahasiswa dan NPM.
+- Program/periode.
+- Program studi.
+- Mitra/tempat kegiatan.
+- Dosen pembimbing.
+- Ringkasan presensi.
+- Catatan aktivitas dari presensi masuk dan pulang.
+
+Pada tahap saat ini, portal berfungsi sebagai akses monitoring terbatas. Validasi catatan harian online dan pengisian nilai pembimbing lapangan masih berada pada tahap pengembangan berikutnya.
+
+### 5.5 Batasan Role Pembimbing Lapangan
+
+| Area | Batasan |
+|------|---------|
+| Scope data | Hanya data mahasiswa yang email pembimbing lapangannya sama dengan email token/login. |
+| Token | Token dapat kedaluwarsa atau dicabut admin. |
+| Login | Email login harus cocok dengan email pembimbing lapangan pada enrollment aktif. |
+| Validasi catatan harian | Belum aktif; catatan dapat dilihat sebagai bahan monitoring. |
+| Penilaian lapangan | Belum aktif; form nilai pembimbing lapangan masih backlog. |
+
+### 5.6 Alur Singkat Pembimbing Lapangan
+
+1. Terima email akses atau login dengan akun pembimbing lapangan.
+2. Buka portal Pembimbing Lapangan.
+3. Periksa daftar mahasiswa terkait.
+4. Pantau presensi, durasi, dan catatan aktivitas mahasiswa.
+5. Hubungi admin/koordinator jika data mahasiswa tidak sesuai.

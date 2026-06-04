@@ -62,7 +62,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | MF-04 | CRUD Periode PKL (nama, tahun akademik, semester, batch, starts_at, ends_at, is_active, is_locked). |
 | MF-05 | CRUD Master Tempat PKL (nama, alamat, kota, provinsi, koordinat, kontak umum, is_active). |
 | MF-06 | Bulk action pada Master Tempat PKL: hapus (jika tidak ada enrollment), merge ke tujuan. |
-| MF-07 | CRUD User (akun login dengan role `admin`, `dosen`, `mahasiswa`). |
+| MF-07 | CRUD User (akun login dengan role `admin`, `dosen`, `mahasiswa`, `pembimbing_lapangan`). |
 | MF-08 | Manajemen Koordinator PKL (dosen, periode, prodi, status aktif). Satu periode‑prodi hanya boleh satu koordinator. |
 | MF-09 | **[KONFIG]** Atur **kuota minimal & maksimal mahasiswa per tempat PKL** (default min=2, max=3). Sistem menolak enrollment jika melebihi max. |
 
@@ -152,7 +152,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | ID | Kebutuhan |
 |----|-----------|
 | AU-01 | Laravel Breeze + Socialite (Google domain unila.ac.id). |
-| AU-02 | Role middleware (`admin`, `dosen`, `mahasiswa`). Dosen dengan penugasan koordinator mendapat akses tambahan. |
+| AU-02 | Role middleware (`admin`, `dosen`, `mahasiswa`, `pembimbing_lapangan`). Dosen dengan penugasan koordinator mendapat akses tambahan sebagai koordinator sesuai scope periode/prodi. Pembimbing lapangan mendapat akses terbatas berdasarkan email pada enrollment atau token akses. |
 
 ---
 
@@ -337,6 +337,17 @@ Kolom `rule_key` disiapkan agar setiap program dapat memakai rule berbeda di mas
 
 - Tambahkan `pair_id INTEGER NULL` (referensi ke check‑in pasangan, atau gunakan logika query grouping per tanggal)
 
+### 4.6 Tabel Implementasi Tambahan Saat Ini
+
+Implementasi saat ini juga menambahkan tabel/struktur berikut:
+
+| Tabel/Struktur | Fungsi |
+|----------------|--------|
+| `email_notifications` | Antrean email event-driven, status pengiriman, attempt, error, relasi notifiable, dan idempotency melalui `event_key`. |
+| `system_settings` | Penyimpanan pengaturan global berbasis key/value JSON, termasuk toggle email, cakupan workflow notifikasi, dan override mail server. |
+| `field_supervisor_access_tokens` | Token portal Pembimbing Lapangan, terhubung ke enrollment, email, hash token, masa berlaku, pencabutan, pembuat, dan waktu akses terakhir. |
+| `seminar_requests` | Workflow seminar: pengajuan seminar, jalur ACC sistem/manual, validasi ACC manual, jadwal seminar, penilaian seminar sistem/manual, validasi nilai manual, dan berkas pendukung. |
+
 ---
 
 ## 5. Identifikasi Data yang Dapat Dikonfigurasi
@@ -358,7 +369,7 @@ Semua nilai yang bersifat **aturan operasional** dan dapat berbeda antar periode
 | **Kuota tempat PKL** | Minimal & maksimal mahasiswa per tempat | Global config (atau per periode) | min=2, max=3 |
 | **Deadline** | Tanggal dan poin sanksi per jenis | Tabel `period_deadlines` | Ditentukan admin per periode |
 
-> **Cara akses konfigurasi**: Semua parameter dapat diubah melalui halaman admin **Konfigurasi Sistem** (per periode). Master program kegiatan dikelola melalui menu admin tersendiri. Nilai global default disimpan di `config/monpkl.php` dan diwariskan saat periode baru dibuat.
+> **Cara akses konfigurasi**: Parameter periode dapat diubah melalui halaman admin **Konfigurasi Program**. Master program kegiatan dikelola melalui menu admin tersendiri. Pengaturan global email/notifikasi dikelola melalui **Email & Notifikasi**. Nilai default periode tetap disimpan di `config/monpkl.php` dan diwariskan saat periode baru dibuat.
 
 > **Catatan rule program**: Rule operasional saat ini mengikuti Kerja Praktik. Program seperti Magang, Riset, atau program MBKM lain dapat memakai rule tersebut sementara, tetapi struktur `programs.rule_key` harus dipertahankan agar rule berbeda dapat didefinisikan ulang tanpa migrasi besar di masa datang.
 
@@ -416,7 +427,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | MF-04 | Sudah diimplementasikan | CRUD Periode PKL tersedia dan periode terhubung ke Program Kegiatan. |
 | MF-05 | Sudah diimplementasikan | Master Tempat PKL tersedia dengan input/edit lokasi Leaflet. Field `is_active` sudah tersedia dan tempat aktif dipakai pada pendaftaran serta permohonan pindah tempat. |
 | MF-06 | Sudah diimplementasikan | Bulk hapus dan merge Master Tempat PKL tersedia. |
-| MF-07 | Sudah diimplementasikan | CRUD User tersedia untuk role `admin`, `dosen`, `mahasiswa`. |
+| MF-07 | Sudah diimplementasikan | CRUD User tersedia untuk role `admin`, `dosen`, `mahasiswa`, dan `pembimbing_lapangan`. Akun pembimbing lapangan direkomendasikan dibuat/ditautkan dari menu Pembimbing Lapangan agar emailnya pasti terkait enrollment aktif, bukan dibuat bebas dari Manajemen User. |
 | MF-08 | Sudah diimplementasikan | Penugasan Koordinator PKL per periode/prodi tersedia dan dibatasi satu koordinator per periode-prodi. Form tambah koordinator mendukung multi-select prodi untuk membuat beberapa penugasan sekaligus pada periode yang sama. |
 | MF-09 | Sudah diimplementasikan sebagian | Kuota minimal dan maksimal tersedia di konfigurasi periode. Kuota maksimal sudah divalidasi pada pendaftaran mahasiswa dan input peserta admin; kuota minimal ditampilkan sebagai indikator peringatan pada validasi pendaftaran. |
 
@@ -424,7 +435,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui `internship_period_settings`, mencakup jam check-in, peta, upload foto, hari libur laporan, aturan laporan dasar, kuota, dan syarat akademik. Syarat minimal SKS sudah dibedakan per jenjang, misalnya D3=80 dan S1=100. |
+| KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui menu **Konfigurasi Program** dan tabel `internship_period_settings`, mencakup jam check-in, peta, upload foto, hari libur laporan, aturan laporan dasar, kuota, syarat akademik, serta model sanksi deadline tetap/per hari. Syarat minimal SKS sudah dibedakan per jenjang, misalnya D3=80 dan S1=100. |
 | KS-02 | Sudah diimplementasikan | Tabel/model `period_deadlines` dan UI konfigurasi deadline per periode sudah tersedia, termasuk tanggal, poin penalti, dan flag penalti tetap. Deadline dipakai untuk menghitung sanksi unggahan progres laporan. |
 | KS-03 | Sudah diimplementasikan | Konfigurasi hanya dapat diakses admin. Periode terkunci tidak dapat diubah melalui konfigurasi kecuali oleh super admin yang tercantum pada konfigurasi. |
 | KS-04 | Sudah diimplementasikan | Program terhubung ke periode dan memiliki `rule_key`. Implementasi saat ini memakai rule `kerja_praktik` sebagai fallback terstruktur, sehingga rule program lain dapat ditambahkan tanpa mengubah data historis. |
@@ -465,7 +476,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| PG-01 | Sudah diimplementasikan | Mahasiswa dapat mengunggah dokumen progres laporan pada halaman Laporan Saya untuk jenis Proposal, Bab I-V, Laporan Lengkap, Seminar, dan Hardcopy. |
+| PG-01 | Sudah diimplementasikan | Mahasiswa dapat mengunggah dokumen progres laporan pada halaman Laporan Saya untuk jenis Proposal, Bab I-V, Laporan Lengkap, dan Hardcopy. Jenis Seminar dipisahkan ke workflow Pengajuan Seminar agar tidak bercampur dengan progres laporan biasa. |
 | PG-02 | Sudah diimplementasikan | Unggahan terhubung ke `period_deadlines` berdasarkan periode enrollment dan mencatat waktu unggah. |
 | PG-03 | Sudah diimplementasikan | Sistem menghitung sanksi keterlambatan unggahan berdasarkan deadline, poin penalti, dan mode penalti tetap/per hari, lalu menambahkan poin ke total sanksi enrollment. |
 | PG-04 | Sudah diimplementasikan | Dosen pembimbing, koordinator sesuai scope, dan admin dapat memberi status `approved`, `revision`, atau `rejected` beserta catatan review. |
@@ -494,12 +505,27 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| EN-01 | Sudah diimplementasikan sebagian | Fondasi notifikasi email berbasis event tersedia melalui tabel `email_notifications`, `EmailNotificationService`, mailable `SystemNotificationMail`, command `silat:email-notifications:process`, dan scheduler tiap menit. Email memiliki subjek, penerima, body line terstruktur, tombol/link aksi, relasi `notifiable`, `event_key` idempotent, status pengiriman, retry manual untuk status gagal, serta pencatatan error. Cakupan event masih bertahap per modul. |
+| EN-01 | Sudah diimplementasikan sebagian | Fondasi notifikasi email berbasis event tersedia melalui tabel `email_notifications`, `EmailNotificationService`, mailable `SystemNotificationMail`, command `silat:email-notifications:process`, dan scheduler tiap menit. Email memiliki subjek, penerima, body line terstruktur, tombol/link aksi, relasi `notifiable`, `event_key` idempotent, status pengiriman, retry manual untuk status gagal, serta pencatatan error. Menu **Email & Notifikasi** sudah tersedia dengan tab Status Notifikasi, Antrean Email, dan Mail Server. Pengaturan global aktif/nonaktif, cakupan workflow aktif/nonaktif, dan override SMTP disimpan di tabel `system_settings`; password SMTP disimpan terenkripsi. Jika pengiriman global nonaktif, event tetap berada di antrean dan tidak dikirim. Jika cakupan workflow nonaktif, event baru untuk prefix workflow tersebut tidak dibuat. |
 | EN-02 | Sudah diimplementasikan | Email pendaftaran program dikirim kepada mahasiswa saat pendaftaran dikirim, revisi dikirim ulang, disetujui, diminta revisi, ditolak, atau data peserta diperbarui admin. Admin dan koordinator sesuai scope periode/prodi menerima email saat pendaftaran baru/revisi masuk serta reminder pendaftaran pending mendekati batas pendaftaran. |
 | EN-03 | Sudah diimplementasikan | Email usulan mitra dikirim kepada mahasiswa saat usulan dikirim, disetujui sebagai master baru, digabung ke master mitra, atau ditolak. Admin menerima email saat ada usulan baru dan reminder untuk usulan pending minimal 48 jam. |
 | EN-07 | Sudah diimplementasikan | Email perubahan pembimbing dikirim kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Admin dan koordinator sesuai scope periode/prodi menerima email saat ada permohonan baru serta reminder untuk permohonan pending minimal 48 jam. Saat permohonan disetujui dan dosen berubah, dosen pembimbing baru menerima notifikasi penugasan, sedangkan dosen pembimbing lama menerima notifikasi bahwa mahasiswa tidak lagi menjadi bimbingannya. |
 | EN-08 | Sudah diimplementasikan | Email pindah tempat dikirim kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Admin dan koordinator sesuai scope periode/prodi menerima email saat ada permohonan baru serta reminder untuk permohonan pending minimal 48 jam. Saat permohonan disetujui, dosen pembimbing mahasiswa menerima notifikasi bahwa mahasiswa bimbingannya pindah mitra/tempat kegiatan. Modul pindah tempat juga dapat diakses koordinator dengan pembatasan data sesuai penugasan aktif. |
+| EN-09 | Sudah diimplementasikan sebagian | Admin dapat membuat token akses pembimbing lapangan dari Peserta Periode. Sistem membuat token unik, masa berlaku 30 hari, dapat dicabut, dan mengantrekan email berisi URL portal pembimbing lapangan ke email yang tercatat pada enrollment. Reminder validasi catatan harian dan reminder pemberian nilai pembimbing lapangan belum tersedia. |
 | NF-09 | Sudah diimplementasikan sebagian | Infrastruktur notifikasi otomatis dan scheduler sudah tersedia. Reminder otomatis yang sudah berjalan mencakup pendaftaran pending mendekati deadline serta reminder pending untuk usulan mitra, perubahan pembimbing, dan pindah tempat. Reminder deadline laporan H-7/H-3/H-1/hari H masih berada pada backlog EN-06. |
+
+### 8.10 Seminar dan Penilaian Seminar
+
+| ID SRS | Status Implementasi | Catatan |
+|--------|---------------------|---------|
+| PN-02 | Sudah diimplementasikan sebagian | Workflow seminar menyediakan penilaian seminar oleh dosen pembimbing via sistem dan jalur manual. Pada jalur sistem, dosen mengisi komponen nilai seminar/laporan sesuai bobot form seminar dan sistem menghitung total. Pada jalur manual, mahasiswa menginput komponen nilai, mengunggah berkas bukti/form penilaian, lalu admin/koordinator memvalidasi. Nilai laporan akhir penuh dan integrasi nilai akhir PN-03 belum tersedia. |
+| PG-06 | Sudah diimplementasikan sebagian | Pengajuan seminar dipisahkan dari progres laporan. Mahasiswa baru dapat mengajukan seminar setelah mengunggah Pelaporan Tahap 4/Laporan Lengkap Bab 1 s.d. 5. Workflow seminar mendukung ACC dosen via sistem atau upload berkas ACC manual yang divalidasi admin/koordinator, penjadwalan seminar, penilaian seminar, serta validasi nilai manual. |
+
+### 8.11 Role Pembimbing Lapangan
+
+| ID SRS | Status Implementasi | Catatan |
+|--------|---------------------|---------|
+| PL-01 | Sudah diimplementasikan sebagian | Portal Pembimbing Lapangan tersedia melalui URL token. Token disimpan pada `field_supervisor_access_tokens`, unik, memiliki masa berlaku, dapat dicabut, dan hanya membuka enrollment terkait. |
+| PL-02 | Sudah diimplementasikan sebagian | Role `pembimbing_lapangan` tersedia. Login Google/email pembimbing lapangan diizinkan jika email tersebut tercatat pada enrollment aktif sebagai `field_supervisor_email`. Akses portal saat login tetap dibatasi berdasarkan email pembimbing lapangan pada enrollment. |
 
 ---
 
@@ -512,7 +538,7 @@ Bagian ini hanya mencatat kebutuhan SRS yang belum tersedia atau masih perlu dis
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
 | PN-01 | Buat form nilai pembimbing lapangan dan perhitungan komponen A, B, C. | Tinggi |
-| PN-02 | Buat form nilai laporan dan seminar oleh dosen pembimbing. | Tinggi |
+| PN-02 | Lengkapi integrasi nilai seminar dengan nilai laporan dosen pembimbing penuh jika komponen nilai akhir sudah dibuat. | Tinggi |
 | PN-03 | Hitung nilai akhir dan konversi huruf mutu berdasarkan aturan Unila. | Tinggi |
 | PN-04 | Buat proses pengesahan nilai akhir oleh admin. | Tinggi |
 
@@ -523,7 +549,7 @@ Bagian ini hanya mencatat kebutuhan SRS yang belum tersedia atau masih perlu dis
 | EN-04 | Kirim email pembekalan kepada mahasiswa saat event dibuka, reminder H-1 atau beberapa jam sebelum kegiatan, presensi berhasil dicatat, dan belum presensi mendekati waktu tutup. Kirim email kepada admin/koordinator berisi rekap setelah event ditutup, termasuk jumlah hadir dan tidak hadir. | Tinggi |
 | EN-05 | Kirim digest presensi, bukan email untuk setiap check-in/check-out. Digest dikirim mingguan kepada mahasiswa berisi ringkasan presensi, durasi, jarak, dan sanksi. Digest kepada dosen pembimbing/koordinator berisi mahasiswa dengan pola bermasalah seperti durasi kurang, sering terlambat, atau jarak presensi tidak wajar. | Menengah |
 | EN-06 | Kirim email laporan dan deadline kepada mahasiswa untuk reminder H-7, H-3, H-1, dan hari H; upload berhasil; laporan disetujui; laporan diminta revisi; laporan ditolak; dan sanksi keterlambatan. Kirim email kepada dosen pembimbing saat ada laporan baru menunggu review atau laporan pending review melewati batas waktu. Kirim email rekap kepada admin/koordinator untuk laporan belum diunggah, pending review, dan sanksi tertinggi. | Tinggi |
-| EN-09 | Kirim email kepada pembimbing lapangan untuk akses URL + token, token baru jika token lama kedaluwarsa, reminder validasi catatan harian, reminder pemberian nilai kegiatan, dan konfirmasi nilai berhasil dikirim. Kirim email kepada admin/koordinator jika pembimbing lapangan belum mengisi nilai mendekati deadline atau token gagal/expired berulang. | Tinggi |
+| EN-09 | Lengkapi email pembimbing lapangan untuk token baru jika token lama kedaluwarsa, reminder validasi catatan harian, reminder pemberian nilai kegiatan, dan konfirmasi nilai berhasil dikirim. Kirim email kepada admin/koordinator jika pembimbing lapangan belum mengisi nilai mendekati deadline atau token gagal/expired berulang. Email token akses awal sudah tercatat pada Bagian 8. | Tinggi |
 | EN-10 | Kirim email penilaian kepada dosen pembimbing saat mahasiswa sudah memenuhi syarat untuk dinilai, reminder pengisian nilai laporan/seminar, dan konfirmasi nilai tersimpan. Kirim email kepada admin saat semua komponen nilai sudah lengkap dan siap disahkan atau ada nilai belum lengkap mendekati penutupan periode. | Tinggi |
 | EN-11 | Kirim email operasional kepada admin/super admin saat periode baru dibuat, periode dikunci/diselesaikan, konfigurasi penting berubah, import data selesai/gagal, atau terjadi error penting pada pengiriman email, storage, dan integrasi. | Menengah |
 | EN-12 | Implementasi lanjutan diprioritaskan berurutan: deadline dan review laporan; pembekalan; token akses pembimbing lapangan; reminder validasi catatan harian dan nilai; lalu digest mingguan presensi/sanksi. Pendaftaran, usulan mitra, perubahan pembimbing, dan pindah tempat sudah tercatat pada Bagian 8. | Tinggi |
@@ -532,8 +558,6 @@ Bagian ini hanya mencatat kebutuhan SRS yang belum tersedia atau masih perlu dis
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| PL-01 | Membuat halaman khusus role Pembimbing Lapangan. Akses dapat dilakukan melalui link URL + token yang dikirim ke email pembimbing lapangan. Token harus unik, memiliki masa berlaku, dapat dicabut, dan hanya membuka data mahasiswa/enrollment yang terkait dengan email pembimbing tersebut. | Tinggi |
-| PL-02 | Menyediakan opsi login dengan email untuk Pembimbing Lapangan. Jika domain `gmail.com` diizinkan, pembimbing dapat menggunakan login email/Google sesuai kebijakan autentikasi yang ditetapkan. Sistem tetap membatasi akses berdasarkan email pembimbing lapangan yang tersimpan pada enrollment. | Menengah |
 | PL-03 | Pembimbing Lapangan dapat memvalidasi catatan harian mahasiswa secara online, termasuk melihat tanggal, jam masuk/pulang, durasi, rencana aktivitas, realisasi, jarak presensi, dan foto presensi bila tersedia. | Tinggi |
 | PL-04 | Pembimbing Lapangan dapat memberikan nilai kegiatan melalui form nilai lapangan PN-01. Nilai tersimpan sebagai bagian dari komponen penilaian akhir dan dapat direview/dikunci oleh admin sesuai alur pengesahan nilai. | Tinggi |
 
