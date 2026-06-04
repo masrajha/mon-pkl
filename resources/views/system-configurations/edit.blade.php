@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Konfigurasi Sistem') }}: {{ $period->display_name }}
+                {{ __('Konfigurasi Program') }}: {{ $period->display_name }}
             </h2>
             <a class="text-sm font-medium text-indigo-600 hover:text-indigo-800" href="{{ route('system-configurations.index') }}">
                 {{ __('Kembali') }}

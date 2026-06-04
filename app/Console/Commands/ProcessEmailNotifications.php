@@ -34,7 +34,9 @@ class ProcessEmailNotifications extends Command
 
         $result = $notifications->processDue($limit);
 
-        $this->info("Email notifications processed. Sent: {$result['sent']}. Failed: {$result['failed']}.");
+        $skipped = $result['skipped'] ?? 0;
+
+        $this->info("Email notifications processed. Sent: {$result['sent']}. Failed: {$result['failed']}. Skipped: {$skipped}.");
 
         return self::SUCCESS;
     }

@@ -24,7 +24,7 @@
                             <x-input-label for="filter_role" value="Role" />
                             <select id="filter_role" name="role" class="mt-1 w-full rounded-md border-gray-300 text-sm">
                                 <option value="">Semua role</option>
-                                @foreach (['admin' => 'Admin', 'dosen' => 'Dosen', 'mahasiswa' => 'Mahasiswa'] as $value => $label)<option value="{{ $value }}" @selected($selectedRole === $value)>{{ $label }}</option>@endforeach
+                                @foreach (['admin' => 'Admin', 'dosen' => 'Dosen', 'mahasiswa' => 'Mahasiswa', 'pembimbing_lapangan' => 'Pembimbing Lapangan'] as $value => $label)<option value="{{ $value }}" @selected($selectedRole === $value)>{{ $label }}</option>@endforeach
                             </select>
                         </div>
                     </x-slot>

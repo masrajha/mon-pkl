@@ -5,11 +5,15 @@ use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CoordinatorDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentationController;
+use App\Http\Controllers\EmailNotificationConfigurationController;
+use App\Http\Controllers\FieldSupervisorPortalController;
 use App\Http\Controllers\InternshipPlaceController;
 use App\Http\Controllers\LocationSuggestionController;
 use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinatorController;
 use App\Http\Controllers\Management\DashboardController as ManagementDashboardController;
 use App\Http\Controllers\Management\EnrollmentController as ManagementEnrollmentController;
+use App\Http\Controllers\Management\FieldSupervisorAccessController as ManagementFieldSupervisorAccessController;
+use App\Http\Controllers\Management\FieldSupervisorController as ManagementFieldSupervisorController;
 use App\Http\Controllers\Management\LecturerController as ManagementLecturerController;
 use App\Http\Controllers\Management\OrientationEventController as ManagementOrientationEventController;
 use App\Http\Controllers\Management\PeriodController as ManagementPeriodController;
@@ -156,6 +160,7 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 
 Route::get('/docs', [DocumentationController::class, 'index'])->name('docs.index');
 Route::get('/docs/{role}', [DocumentationController::class, 'show'])->name('docs.show');
+Route::get('/field-supervisor/access/{token}', [FieldSupervisorPortalController::class, 'token'])->name('field-supervisor.token');
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -168,6 +173,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/monitoring', [ReportController::class, 'monitoring'])->name('reports.monitoring');
     Route::get('/submission-progress/{progress}/file', SubmissionProgressFileController::class)->name('submission-progress.file');
     Route::get('/seminar-requests/{seminarRequest}/file/{type}', SeminarRequestFileController::class)->name('seminar-requests.file');
+
+    Route::middleware('role:pembimbing_lapangan')->group(function () {
+        Route::get('/field-supervisor', [FieldSupervisorPortalController::class, 'index'])->name('field-supervisor.index');
+    });
 
     Route::middleware('role:mahasiswa')->group(function () {
         Route::get('/student', StudentDashboardController::class)->name('student.dashboard');
@@ -229,6 +238,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('/management/supervisor-requests/{supervisorRequest}', [ManagementSupervisorChangeRequestController::class, 'update'])->name('management.supervisor-requests.update');
         Route::get('/management/relocations', [ManagementRelocationRequestController::class, 'index'])->name('management.relocations.index');
         Route::patch('/management/relocations/{relocation}', [ManagementRelocationRequestController::class, 'update'])->name('management.relocations.update');
+        Route::get('/management/field-supervisors', [ManagementFieldSupervisorController::class, 'index'])->name('management.field-supervisors.index');
+        Route::post('/management/field-supervisors/account', [ManagementFieldSupervisorController::class, 'createAccount'])->name('management.field-supervisors.create-account');
     });
 
     Route::middleware('role:admin,dosen,koordinator')->group(function () {
@@ -290,6 +301,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/management/places', [ManagementPlaceController::class, 'index'])->name('management.places.index');
         Route::post('/management/places/bulk', [ManagementPlaceController::class, 'bulk'])->name('management.places.bulk');
         Route::get('/management/enrollments', [ManagementEnrollmentController::class, 'index'])->name('management.enrollments.index');
+        Route::post('/management/enrollments/{enrollment}/field-supervisor-access', [ManagementFieldSupervisorAccessController::class, 'store'])->name('management.enrollments.field-supervisor-access.store');
+        Route::delete('/management/enrollments/{enrollment}/field-supervisor-access', [ManagementFieldSupervisorAccessController::class, 'destroy'])->name('management.enrollments.field-supervisor-access.destroy');
         Route::get('/management/enrollments/students/search', [ManagementEnrollmentController::class, 'studentSearch'])->name('management.enrollments.students.search');
         Route::post('/management/enrollments', [ManagementEnrollmentController::class, 'store'])->name('management.enrollments.store');
         Route::get('/management/enrollments/{enrollment}/edit', [ManagementEnrollmentController::class, 'edit'])->name('management.enrollments.edit');
@@ -298,6 +311,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/system-configurations', [SystemConfigurationController::class, 'index'])->name('system-configurations.index');
         Route::get('/system-configurations/{period}/edit', [SystemConfigurationController::class, 'edit'])->name('system-configurations.edit');
         Route::patch('/system-configurations/{period}', [SystemConfigurationController::class, 'update'])->name('system-configurations.update');
+        Route::get('/email-notifications', [EmailNotificationConfigurationController::class, 'index'])->name('email-notifications.index');
+        Route::patch('/email-notifications/status', [EmailNotificationConfigurationController::class, 'updateStatus'])->name('email-notifications.status.update');
+        Route::patch('/email-notifications/coverage', [EmailNotificationConfigurationController::class, 'updateCoverage'])->name('email-notifications.coverage.update');
+        Route::patch('/email-notifications/mail', [EmailNotificationConfigurationController::class, 'updateMail'])->name('email-notifications.mail.update');
+        Route::post('/email-notifications/process', [EmailNotificationConfigurationController::class, 'processPending'])->name('email-notifications.process');
+        Route::post('/email-notifications/retry-failed', [EmailNotificationConfigurationController::class, 'retryFailed'])->name('email-notifications.retry-failed');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

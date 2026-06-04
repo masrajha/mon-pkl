@@ -102,20 +102,20 @@
                 </div>
             </section>
 
-            <div class="grid gap-4 md:grid-cols-4">
-                <div class="rounded-lg border border-sky-100 bg-sky-50 p-4 text-sky-900">
+            <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <div class="min-h-24 rounded-lg border border-sky-100 bg-sky-50 p-4 text-sky-900">
                     <p class="text-xs font-semibold uppercase text-sky-700">Hari Hadir</p>
                     <p class="mt-2 text-2xl font-bold">{{ number_format($attendanceDays, 0, ',', '.') }}</p>
                 </div>
-                <div class="rounded-lg border border-rose-100 bg-rose-50 p-4 text-rose-900">
+                <div class="min-h-24 rounded-lg border border-rose-100 bg-rose-50 p-4 text-rose-900">
                     <p class="text-xs font-semibold uppercase text-rose-700">Total Sanksi</p>
                     <p class="mt-2 text-2xl font-bold">{{ number_format($sanctionsPoints, 0, ',', '.') }}</p>
                 </div>
-                <div class="rounded-lg border border-amber-100 bg-amber-50 p-4 text-amber-900">
+                <div class="min-h-24 rounded-lg border border-amber-100 bg-amber-50 p-4 text-amber-900">
                     <p class="text-xs font-semibold uppercase text-amber-700">Deadline</p>
                     <p class="mt-2 text-2xl font-bold">{{ $nearestDeadline?->deadline_date?->format('d/m') ?: '-' }}</p>
                 </div>
-                <div class="rounded-lg border border-blue-100 bg-blue-50 p-4 text-blue-900">
+                <div class="min-h-24 rounded-lg border border-blue-100 bg-blue-50 p-4 text-blue-900">
                     <p class="text-xs font-semibold uppercase text-blue-700">Laporan</p>
                     <p class="mt-2 text-2xl font-bold">{{ $reportProgress }}%</p>
                 </div>

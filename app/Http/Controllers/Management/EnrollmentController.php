@@ -33,7 +33,7 @@ class EnrollmentController extends Controller
 
     public function index(Request $request): View
     {
-        $query = InternshipEnrollment::query()->with(['student', 'studyProgram', 'internshipPeriod.program', 'internshipPlace', 'lecturer', 'lecturerSupervisor']);
+        $query = InternshipEnrollment::query()->with(['student', 'studyProgram', 'internshipPeriod.program', 'internshipPlace', 'lecturer', 'lecturerSupervisor', 'fieldSupervisorAccessTokens']);
 
         if ($request->filled('q')) {
             $search = $request->string('q')->toString();

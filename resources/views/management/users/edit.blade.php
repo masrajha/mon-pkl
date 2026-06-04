@@ -9,7 +9,7 @@
             <x-input-label for="email" value="Email" /><x-text-input id="email" name="email" type="email" class="block w-full" :value="$user->email" required />
             <x-input-label for="role" value="Role" />
             <select id="role" name="role" class="block w-full rounded-md border-gray-300">
-                @foreach (['admin', 'dosen', 'mahasiswa'] as $role)<option value="{{ $role }}" @selected($user->role === $role)>{{ ucfirst($role) }}</option>@endforeach
+                @foreach (['admin' => 'Admin', 'dosen' => 'Dosen', 'mahasiswa' => 'Mahasiswa'] + ($user->role === 'pembimbing_lapangan' ? ['pembimbing_lapangan' => 'Pembimbing Lapangan'] : []) as $role => $label)<option value="{{ $role }}" @selected($user->role === $role)>{{ $label }}</option>@endforeach
             </select>
             <x-input-label for="password" value="Password baru" /><x-text-input id="password" name="password" type="password" class="block w-full" />
             <x-primary-button>Simpan Perubahan</x-primary-button>

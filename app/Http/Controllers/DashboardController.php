@@ -13,6 +13,7 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
 use App\Services\ActionRequiredSummaryService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -22,9 +23,14 @@ class DashboardController extends Controller
     {
     }
 
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+
+        if ($user->hasRole('pembimbing_lapangan')) {
+            return redirect()->route('field-supervisor.index');
+        }
+
         $student = $user->student()->with(['studyProgram'])->first();
         $lecturer = $user->lecturer()->with(['coordinatorAssignments.internshipPeriod.program', 'coordinatorAssignments.studyProgram'])->first();
 

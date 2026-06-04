@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\InternshipEnrollment;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -25,11 +26,13 @@ class GoogleAuthController extends Controller
         $googleUser = Socialite::driver('google')->user();
         $email = strtolower((string) $googleUser->getEmail());
 
-        if (! $this->isAllowedEmailDomain($email)) {
+        $isFieldSupervisorEmail = $this->isFieldSupervisorEmail($email);
+
+        if (! $this->isAllowedEmailDomain($email) && ! $isFieldSupervisorEmail) {
             return redirect()
                 ->route('login')
                 ->withErrors([
-                    'email' => 'Login Google hanya diizinkan untuk domain Universitas Lampung.',
+                    'email' => 'Login Google hanya diizinkan untuk domain Universitas Lampung atau email pembimbing lapangan yang terdaftar.',
                 ]);
         }
 
@@ -39,21 +42,31 @@ class GoogleAuthController extends Controller
             ->first();
 
         if ($user) {
-            $user->update([
+            $updates = [
                 'google_id' => $user->google_id ?: $googleUser->getId(),
                 'avatar_url' => $googleUser->getAvatar(),
-            ]);
+            ];
+
+            if ($isFieldSupervisorEmail && $user->role === 'mahasiswa' && ! $user->student()->exists()) {
+                $updates['role'] = 'pembimbing_lapangan';
+            }
+
+            $user->update($updates);
         } else {
             $user = User::create([
                 'name' => $googleUser->getName() ?: $googleUser->getNickname() ?: $email,
                 'email' => $email,
                 'google_id' => $googleUser->getId(),
                 'avatar_url' => $googleUser->getAvatar(),
-                'role' => 'mahasiswa',
+                'role' => $isFieldSupervisorEmail ? 'pembimbing_lapangan' : 'mahasiswa',
             ]);
         }
 
         Auth::login($user, remember: true);
+
+        if ($user->hasRole('pembimbing_lapangan')) {
+            return redirect()->intended(route('field-supervisor.index', absolute: false));
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
@@ -85,5 +98,13 @@ class GoogleAuthController extends Controller
         }
 
         return false;
+    }
+
+    private function isFieldSupervisorEmail(string $email): bool
+    {
+        return InternshipEnrollment::query()
+            ->whereRaw('LOWER(field_supervisor_email) = ?', [Str::lower(trim($email))])
+            ->whereNotIn('status', ['cancelled', 'rejected'])
+            ->exists();
     }
 }

@@ -42,6 +42,7 @@
                 ['label' => 'Usulan Mitra', 'route' => 'management.place-proposals.index', 'icon' => 'fa-building-circle-check', 'active' => ['management.place-proposals.*'], 'badge' => 'place_proposals'],
                 ['label' => 'Pindah Mitra', 'route' => 'management.relocations.index', 'icon' => 'fa-route', 'active' => ['management.relocations.*'], 'badge' => 'relocations'],
                 ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*'], 'badge' => 'supervisor_changes'],
+                ['label' => 'Pembimbing Lapangan', 'route' => 'management.field-supervisors.index', 'icon' => 'fa-user-check', 'active' => ['management.field-supervisors.*']],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
                 ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
@@ -58,6 +59,15 @@
                 ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
                 ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
                 ['label' => 'Rekap Bimbingan', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
+            ],
+        ];
+    }
+
+    if ($user->hasRole('pembimbing_lapangan')) {
+        $groups[] = [
+            'label' => 'Pembimbing Lapangan',
+            'items' => [
+                ['label' => 'Mahasiswa Bimbingan', 'route' => 'field-supervisor.index', 'icon' => 'fa-user-check', 'active' => ['field-supervisor.*']],
             ],
         ];
     }
@@ -86,6 +96,7 @@
                 ['label' => 'User', 'route' => 'management.users.index', 'icon' => 'fa-users-gear', 'active' => ['management.users.*']],
                 ['label' => 'Mahasiswa', 'route' => 'management.students.index', 'icon' => 'fa-user-graduate', 'active' => ['management.students.*']],
                 ['label' => 'Dosen', 'route' => 'management.lecturers.index', 'icon' => 'fa-chalkboard-user', 'active' => ['management.lecturers.*']],
+                ['label' => 'Pembimbing Lapangan', 'route' => 'management.field-supervisors.index', 'icon' => 'fa-user-check', 'active' => ['management.field-supervisors.*']],
                 ['label' => 'Prodi', 'route' => 'management.study-programs.index', 'icon' => 'fa-school', 'active' => ['management.study-programs.*']],
                 ['label' => 'Mitra', 'route' => 'management.places.index', 'icon' => 'fa-building', 'active' => ['management.places.*']],
             ],
@@ -111,7 +122,8 @@
         $groups[] = [
             'label' => 'Konfigurasi',
             'items' => [
-                ['label' => 'Konfigurasi Sistem', 'route' => 'system-configurations.index', 'icon' => 'fa-sliders', 'active' => ['system-configurations.*']],
+                ['label' => 'Konfigurasi Program', 'route' => 'system-configurations.index', 'icon' => 'fa-sliders', 'active' => ['system-configurations.*']],
+                ['label' => 'Email & Notifikasi', 'route' => 'email-notifications.index', 'icon' => 'fa-envelope-circle-check', 'active' => ['email-notifications.*']],
             ],
         ];
     }
