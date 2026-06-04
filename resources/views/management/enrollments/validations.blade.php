@@ -6,81 +6,165 @@
             <p class="mt-1 text-sm text-gray-500">Setujui, minta revisi, atau tolak pengajuan berdasarkan scope periode/prodi.</p>
         </div>
     </x-slot>
-    <div class="py-8"><div class="silat-shell space-y-6">
-        @include('management.partials.nav')
-        @if (session('status'))<x-alert variant="success">{{ session('status') }}</x-alert>@endif
-        @if ($errors->any())<x-alert variant="danger">{{ $errors->first() }}</x-alert>@endif
 
-        <x-table-controls class="silat-card" title="Antrean Validasi" description="Cari dan filter pendaftaran yang perlu diproses." search-placeholder="Cari mahasiswa, NPM, atau mitra...">
-            <x-slot name="filters">
-                <div><x-input-label value="Program" /><x-select-input name="program_id" class="mt-1"><option value="">Semua program</option>@foreach ($programs as $program)<option value="{{ $program->id }}" @selected($selectedProgram === $program->id)>{{ $program->name }}</option>@endforeach</x-select-input></div>
-                <div class="mt-3"><x-input-label value="Periode Program" /><x-select-input name="period_id" class="mt-1"><option value="">Semua periode program</option>@foreach ($periods as $period)<option value="{{ $period->id }}" @selected($selectedPeriod === $period->id)>{{ $period->display_name }}</option>@endforeach</x-select-input></div>
-                <div class="mt-3"><x-input-label value="Prodi" /><x-select-input name="study_program_id" class="mt-1"><option value="">Semua prodi</option>@foreach ($studyPrograms as $program)<option value="{{ $program->id }}" @selected($selectedStudyProgram === $program->id)>{{ $program->name }}</option>@endforeach</x-select-input></div>
-            </x-slot>
-        </x-table-controls>
+    <div class="py-8">
+        <div class="silat-shell space-y-6">
+            @include('management.partials.nav')
 
-        <div class="space-y-4">
-            @forelse ($enrollments as $enrollment)
-                @php
-                    $quotaKey = $enrollment->internship_period_id.'-'.$enrollment->study_program_id.'-'.$enrollment->internship_place_id;
-                    $quotaCount = $quotaWarnings[$quotaKey] ?? null;
-                    $settings = app(\App\Services\PeriodConfigurationService::class)->forPeriod($enrollment->internshipPeriod);
-                @endphp
-                <form method="POST" action="{{ route('management.enrollment-validations.update', $enrollment) }}" class="silat-card">
-                    @csrf @method('PATCH')
-                    <div class="grid gap-5 p-5 xl:grid-cols-[1fr_1.4fr]">
+            @if (session('status'))
+                <x-alert variant="success">{{ session('status') }}</x-alert>
+            @endif
+
+            @if ($errors->any())
+                <x-alert variant="danger">{{ $errors->first() }}</x-alert>
+            @endif
+
+            <x-table-controls class="silat-card" title="Antrean Validasi" description="Cari dan filter pendaftaran yang perlu diproses." search-placeholder="Cari mahasiswa, NPM, atau mitra...">
+                <x-slot name="filters">
+                    <div>
+                        <x-input-label value="Program" />
+                        <x-select-input name="program_id" class="mt-1">
+                            <option value="">Semua program</option>
+                            @foreach ($programs as $program)
+                                <option value="{{ $program->id }}" @selected($selectedProgram === $program->id)>{{ $program->name }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div class="mt-3">
+                        <x-input-label value="Periode Program" />
+                        <x-select-input name="period_id" class="mt-1">
+                            <option value="">Semua periode program</option>
+                            @foreach ($periods as $period)
+                                <option value="{{ $period->id }}" @selected($selectedPeriod === $period->id)>{{ $period->display_name }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div class="mt-3">
+                        <x-input-label value="Prodi" />
+                        <x-select-input name="study_program_id" class="mt-1">
+                            <option value="">Semua prodi</option>
+                            @foreach ($studyPrograms as $program)
+                                <option value="{{ $program->id }}" @selected($selectedStudyProgram === $program->id)>{{ $program->name }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                </x-slot>
+            </x-table-controls>
+
+            <div class="silat-card overflow-hidden">
+                <form method="POST" action="{{ route('management.enrollment-validations.bulk') }}">
+                    @csrf
+                    <div class="silat-table-toolbar">
                         <div>
-                            <div class="flex items-start justify-between gap-3">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900">{{ $enrollment->student?->full_name }}</h3>
-                                    <p class="text-sm text-gray-500">{{ $enrollment->student?->npm }} · {{ $enrollment->studyProgram?->name }}</p>
-                                </div>
-                                <x-badge variant="{{ $enrollment->status === 'revision_required' ? 'warning' : 'info' }}">{{ $enrollment->status }}</x-badge>
-                            </div>
-                            <div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
-                                <p class="font-semibold text-gray-900">{{ $enrollment->internshipPeriod?->display_name }}</p>
-                                <p>{{ $enrollment->internshipPlace?->name ?: 'Belum memilih mitra' }}</p>
-                            </div>
-                            <div class="mt-4 grid gap-2 text-sm text-gray-600 sm:grid-cols-2">
-                                <span>KRS: {{ $enrollment->has_krs_pkl ? 'Ya' : 'Tidak' }}</span>
-                                <span>SKS: {{ $enrollment->total_sks ?? '-' }}</span>
-                                <span>Semester: {{ $enrollment->current_semester ?? '-' }}</span>
-                                <span>IPK: {{ $enrollment->gpa ?? '-' }}</span>
-                            </div>
-                            <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4 text-sm">
-                                <p class="font-semibold text-gray-900">Dokumen Bukti Akademik</p>
-                                <p class="mt-1 text-gray-500">Transkrip Sementara + KRS Semester saat ini.</p>
-                                @if ($enrollment->registration_document_path)
-                                    <a class="mt-2 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700" href="{{ route('management.enrollment-validations.document', $enrollment) }}" target="_blank">
-                                        <x-icon name="fa-file-pdf" /> Buka dokumen
-                                    </a>
-                                @else
-                                    <p class="mt-2 text-sm text-red-600">Dokumen belum diunggah.</p>
-                                @endif
-                            </div>
-                            @if ($quotaCount !== null)
-                                <x-alert variant="warning" class="mt-4">Kuota minimal mitra belum terpenuhi: {{ $quotaCount }}/{{ $settings['enrollment']['min_place_quota'] }} mahasiswa.</x-alert>
-                            @endif
+                            <p class="text-sm font-semibold text-gray-900">Bulk action</p>
+                            <p class="text-xs text-gray-500">Pilih pendaftaran, lalu jalankan keputusan yang sama.</p>
                         </div>
-                        <div class="grid gap-4 md:grid-cols-2">
-                            <div><x-input-label for="lecturer_supervisor_id_{{ $enrollment->id }}" value="Dosen Pembimbing" /><x-select-input id="lecturer_supervisor_id_{{ $enrollment->id }}" name="lecturer_supervisor_id" class="mt-1"><option value="">Belum ditentukan</option>@foreach ($lecturers as $lecturer)<option value="{{ $lecturer->id }}" @selected($enrollment->lecturer_supervisor_id === $lecturer->id)>{{ $lecturer->name }}</option>@endforeach</x-select-input></div>
-                            <div><x-input-label for="status_{{ $enrollment->id }}" value="Keputusan" /><x-select-input id="status_{{ $enrollment->id }}" name="status" class="mt-1" required><option value="active">Setujui</option><option value="revision_required" @selected($enrollment->status === 'revision_required')>Minta Revisi</option><option value="rejected">Tolak</option></x-select-input></div>
-                            <div><x-input-label for="field_supervisor_{{ $enrollment->id }}" value="Pembimbing Lapangan" /><x-text-input id="field_supervisor_{{ $enrollment->id }}" name="field_supervisor" class="mt-1 block w-full" :value="$enrollment->field_supervisor" /></div>
-                            <div><x-input-label for="field_supervisor_phone_{{ $enrollment->id }}" value="HP Pembimbing Lapangan" /><x-text-input id="field_supervisor_phone_{{ $enrollment->id }}" name="field_supervisor_phone" class="mt-1 block w-full" :value="$enrollment->field_supervisor_phone" /></div>
-                            <div class="md:col-span-2"><x-input-label for="field_supervisor_email_{{ $enrollment->id }}" value="Email Pembimbing Lapangan" /><x-text-input id="field_supervisor_email_{{ $enrollment->id }}" name="field_supervisor_email" type="email" class="mt-1 block w-full" :value="$enrollment->field_supervisor_email" /><p class="mt-1 text-xs text-gray-500">Opsional saat validasi, wajib sebelum mahasiswa mengajukan Seminar.</p></div>
-                            <div class="md:col-span-2"><x-input-label for="admin_note_{{ $enrollment->id }}" value="Catatan Verifikasi" /><x-textarea-input id="admin_note_{{ $enrollment->id }}" name="admin_note" rows="3" class="mt-1">{{ $enrollment->admin_note }}</x-textarea-input></div>
-                            <div class="md:col-span-2 flex flex-wrap justify-end gap-2">
-                                <button type="submit" name="status" value="revision_required" class="silat-btn-secondary">Minta Revisi</button>
-                                <button type="submit" name="status" value="rejected" class="silat-btn-danger">Tolak</button>
-                                <button type="submit" name="status" value="active" class="silat-btn">Setujui</button>
-                            </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="submit" name="action" value="active" class="silat-btn">
+                                <x-icon name="fa-check" class="mr-1" /> Setujui
+                            </button>
+                            <button type="submit" name="action" value="revision_required" class="silat-btn-secondary">
+                                <x-icon name="fa-rotate-left" class="mr-1" /> Revisi
+                            </button>
+                            <button type="submit" name="action" value="rejected" class="silat-btn-danger">
+                                <x-icon name="fa-xmark" class="mr-1" /> Tolak
+                            </button>
                         </div>
                     </div>
+
+                    <div class="silat-table-wrap">
+                        <table class="silat-table">
+                            <thead class="silat-table-head">
+                                <tr>
+                                    <th class="silat-table-cell">
+                                        <input type="checkbox" class="rounded border-gray-300" onclick="document.querySelectorAll('[data-enrollment-checkbox]').forEach((el) => el.checked = this.checked)">
+                                    </th>
+                                    <th class="silat-table-cell">Program/Periode</th>
+                                    <th class="silat-table-cell">Nama/NPM</th>
+                                    <th class="silat-table-cell">Prodi</th>
+                                    <th class="silat-table-cell">SKS/IPK</th>
+                                    <th class="silat-table-cell">Lampiran</th>
+                                    <th class="silat-table-cell">Catatan Verifikasi</th>
+                                    <th class="silat-table-cell text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($enrollments as $enrollment)
+                                    @php
+                                        $quotaKey = $enrollment->internship_period_id.'-'.$enrollment->study_program_id.'-'.$enrollment->internship_place_id;
+                                        $quotaCount = $quotaWarnings[$quotaKey] ?? null;
+                                        $settings = app(\App\Services\PeriodConfigurationService::class)->forPeriod($enrollment->internshipPeriod);
+                                        $statusVariant = $enrollment->status === 'revision_required' ? 'warning' : 'info';
+                                    @endphp
+                                    <tr>
+                                        <td class="silat-table-cell align-top">
+                                            <input data-enrollment-checkbox type="checkbox" name="enrollment_ids[]" value="{{ $enrollment->id }}" class="rounded border-gray-300">
+                                        </td>
+                                        <td class="silat-table-cell align-top">
+                                            <div class="font-medium text-gray-900">{{ $enrollment->internshipPeriod?->program?->name ?: '-' }}</div>
+                                            <div class="text-xs text-gray-500">{{ $enrollment->internshipPeriod?->display_name ?: '-' }}</div>
+                                            <div class="mt-2 text-xs text-gray-600">{{ $enrollment->internshipPlace?->name ?: 'Belum memilih mitra' }}</div>
+                                            <x-badge class="mt-2" :variant="$statusVariant">{{ Str::headline($enrollment->status) }}</x-badge>
+                                            @if ($quotaCount !== null)
+                                                <div class="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-700">
+                                                    Kuota mitra {{ $quotaCount }}/{{ $settings['enrollment']['min_place_quota'] }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td class="silat-table-cell align-top">
+                                            <div class="font-medium text-gray-900">{{ $enrollment->student?->full_name ?: '-' }}</div>
+                                            <div class="text-xs text-gray-500">{{ $enrollment->student?->npm ?: '-' }}</div>
+                                        </td>
+                                        <td class="silat-table-cell align-top text-gray-700">
+                                            {{ $enrollment->studyProgram?->name ?: '-' }}
+                                        </td>
+                                        <td class="silat-table-cell align-top text-gray-700">
+                                            <div>SKS: {{ $enrollment->total_sks ?? '-' }}</div>
+                                            <div>IPK: {{ $enrollment->gpa ?? '-' }}</div>
+                                            <div class="text-xs text-gray-500">Semester {{ $enrollment->current_semester ?? '-' }} · KRS {{ $enrollment->has_krs_pkl ? 'Ya' : 'Tidak' }}</div>
+                                        </td>
+                                        <td class="silat-table-cell align-top">
+                                            @if ($enrollment->registration_document_path)
+                                                <a class="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700" href="{{ route('management.enrollment-validations.document', $enrollment) }}" target="_blank">
+                                                    <x-icon name="fa-file-pdf" /> Buka
+                                                </a>
+                                            @else
+                                                <span class="text-sm text-red-600">Belum ada</span>
+                                            @endif
+                                        </td>
+                                        <td class="silat-table-cell align-top">
+                                            <x-textarea-input name="admin_notes[{{ $enrollment->id }}]" rows="3" class="min-w-64 text-sm" placeholder="Catatan untuk mahasiswa">{{ old('admin_notes.'.$enrollment->id, $enrollment->admin_note) }}</x-textarea-input>
+                                        </td>
+                                        <td class="silat-table-cell align-top">
+                                            <div class="flex flex-col items-end gap-2">
+                                                <button type="submit" name="action" value="active" formaction="{{ route('management.enrollment-validations.bulk') }}" class="silat-btn w-28 justify-center" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
+                                                    Setujui
+                                                </button>
+                                                <button type="submit" name="action" value="revision_required" formaction="{{ route('management.enrollment-validations.bulk') }}" class="silat-btn-secondary w-28 justify-center" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
+                                                    Revisi
+                                                </button>
+                                                <button type="submit" name="action" value="rejected" formaction="{{ route('management.enrollment-validations.bulk') }}" class="silat-btn-danger w-28 justify-center" onclick="this.form.single_enrollment_id.value = '{{ $enrollment->id }}'">
+                                                    Tolak
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="silat-table-cell">
+                                            <x-empty-state title="Tidak ada pendaftaran yang menunggu validasi" description="Data akan muncul saat mahasiswa mengirim pendaftaran baru." />
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <input type="hidden" name="single_enrollment_id" value="">
                 </form>
-            @empty
-                <x-empty-state title="Tidak ada pendaftaran yang menunggu validasi" description="Data akan muncul saat mahasiswa mengirim pendaftaran baru." />
-            @endforelse
+
+                <x-table-pagination :paginator="$enrollments" />
+            </div>
         </div>
-        <x-table-pagination :paginator="$enrollments" />
-    </div></div>
+    </div>
 </x-app-layout>

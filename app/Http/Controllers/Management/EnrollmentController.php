@@ -278,28 +278,53 @@ class EnrollmentController extends Controller
 
         $data = $request->validate([
             'status' => ['required', Rule::in(['active', 'revision_required', 'rejected'])],
-            'lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
-            'field_supervisor' => ['nullable', 'string', 'max:255'],
-            'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
-            'field_supervisor_email' => ['nullable', 'email', 'max:255'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        if ($data['status'] === 'active' && ! $data['lecturer_supervisor_id']) {
-            return back()->withErrors(['lecturer_supervisor_id' => 'Dosen pembimbing wajib dipilih sebelum pendaftaran diaktifkan.'])->withInput();
-        }
-
-        $lecturer = $data['lecturer_supervisor_id']
-            ? Lecturer::query()->where('status', 'active')->find($data['lecturer_supervisor_id'])
-            : null;
-
-        $enrollment->update($data + [
-            'lecturer_supervisor_user_id' => $lecturer?->user_id,
-            'lecturer_supervisor' => $lecturer?->name,
-        ]);
-        $this->enrollmentEmails->validationProcessed($enrollment->refresh(), $data['status']);
+        $this->processValidation($enrollment, $data['status'], $data['admin_note'] ?? null);
 
         return back()->with('status', 'Validasi pendaftaran berhasil diproses.');
+    }
+
+    public function bulkValidateEnrollments(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'action' => ['required', Rule::in(['active', 'revision_required', 'rejected'])],
+            'enrollment_ids' => ['nullable', 'array'],
+            'enrollment_ids.*' => ['integer', 'exists:internship_enrollments,id'],
+            'single_enrollment_id' => ['nullable', 'integer', 'exists:internship_enrollments,id'],
+            'admin_notes' => ['nullable', 'array'],
+            'admin_notes.*' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $enrollmentIds = filled($data['single_enrollment_id'] ?? null)
+            ? collect([(int) $data['single_enrollment_id']])
+            : collect($data['enrollment_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
+
+        if ($enrollmentIds->isEmpty()) {
+            throw ValidationException::withMessages([
+                'enrollment_ids' => 'Pilih minimal satu pendaftaran untuk diproses.',
+            ]);
+        }
+
+        $enrollments = InternshipEnrollment::query()
+            ->whereIn('id', $enrollmentIds)
+            ->whereIn('status', ['pending_verification', 'revision_required'])
+            ->get();
+
+        $processed = 0;
+
+        foreach ($enrollments as $enrollment) {
+            $this->authorizeValidationScope($enrollment, $request);
+            $this->processValidation(
+                $enrollment,
+                $data['action'],
+                $data['admin_notes'][$enrollment->id] ?? null,
+            );
+            $processed++;
+        }
+
+        return back()->with('status', $processed.' pendaftaran berhasil diproses.');
     }
 
     public function registrationDocument(Request $request, InternshipEnrollment $enrollment)
@@ -374,5 +399,15 @@ class EnrollmentController extends Controller
             ->exists();
 
         abort_unless($allowed, 403);
+    }
+
+    private function processValidation(InternshipEnrollment $enrollment, string $status, ?string $adminNote): void
+    {
+        $enrollment->update([
+            'status' => $status,
+            'admin_note' => $adminNote,
+        ]);
+
+        $this->enrollmentEmails->validationProcessed($enrollment->refresh(), $status);
     }
 }
