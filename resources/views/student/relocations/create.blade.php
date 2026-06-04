@@ -3,7 +3,7 @@
     <div class="py-10"><div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
         @if ($errors->any())<div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{{ $errors->first() }}</div>@endif
         @if ($hasPendingRequest)
-            <x-alert variant="warning" class="mb-4">Masih ada permohonan pindah tempat berstatus Menunggu. Batalkan permohonan tersebut atau tunggu keputusan admin/koordinator sebelum mengajukan yang baru.</x-alert>
+            <x-alert variant="warning" class="mb-4">Masih ada permohonan pindah mitra berstatus Menunggu. Batalkan permohonan tersebut atau tunggu keputusan admin/koordinator sebelum mengajukan yang baru.</x-alert>
         @endif
         <form method="POST" action="{{ route('student.relocations.store') }}" class="space-y-4 bg-white p-6 shadow-sm sm:rounded-lg">
             @csrf
@@ -13,18 +13,18 @@
                     <option value="">Pilih enrollment</option>
                     @foreach ($enrollments as $enrollment)
                         <option value="{{ $enrollment->id }}" @selected((string) old('internship_enrollment_id', $selectedEnrollmentId) === (string) $enrollment->id)>
-                            {{ $enrollment->internshipPeriod?->display_name }} - {{ $enrollment->studyProgram?->name }} - {{ $enrollment->internshipPlace?->name ?: 'Belum ditempatkan' }}
+                            {{ $enrollment->internshipPeriod?->display_name }} - {{ $enrollment->studyProgram?->name }} - {{ $enrollment->internshipPlace?->name ?: 'Mitra belum ditentukan' }}
                         </option>
                     @endforeach
                 </select>
                 @if ($enrollments->isEmpty())
-                    <p class="mt-2 text-sm text-amber-700">Belum ada enrollment aktif yang dapat diajukan pindah tempat.</p>
+                    <p class="mt-2 text-sm text-amber-700">Belum ada enrollment aktif yang dapat diajukan pindah mitra.</p>
                 @endif
             </div>
             <div>
                 <x-input-label for="new_internship_place_id" value="Mitra Tujuan" />
                 <select id="new_internship_place_id" name="new_internship_place_id" class="mt-1 block w-full rounded-md border-gray-300" required>
-                    <option value="">Pilih tempat tujuan</option>
+                    <option value="">Pilih mitra tujuan</option>
                     @foreach ($places as $place)
                         <option value="{{ $place->id }}" @selected(old('new_internship_place_id') == $place->id)>{{ $place->name }}</option>
                     @endforeach

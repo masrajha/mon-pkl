@@ -36,13 +36,13 @@
                     <x-input-label for="action" value="Bulk action" />
                     <select id="action" name="action" class="mt-1 rounded-md border-gray-300 text-sm">
                         <option value="delete">Hapus yang peserta 0</option>
-                        <option value="merge">Merge ke tempat tujuan</option>
+                        <option value="merge">Merge ke mitra tujuan</option>
                     </select>
                 </div>
                 <div class="min-w-80 flex-1">
                     <x-input-label for="target_place_id" value="Tujuan merge" />
                     <select id="target_place_id" name="target_place_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
-                        <option value="">Pilih salah satu tempat yang dicentang</option>
+                        <option value="">Pilih salah satu mitra yang dicentang</option>
                         @foreach ($allPlaces as $target)
                             <option value="{{ $target->id }}">{{ $target->name }}</option>
                         @endforeach
@@ -52,7 +52,7 @@
             </div>
             <div class="silat-table-wrap">
                 <table class="silat-table">
-                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><input type="checkbox" class="rounded border-gray-300" onclick="document.querySelectorAll('[data-place-checkbox]').forEach((el) => el.checked = this.checked)"></th><th class="silat-table-cell"><x-sortable-heading column="name" label="Instansi" /></th><th class="silat-table-cell">Kota</th><th class="silat-table-cell"><x-sortable-heading column="is_active" label="Status" /></th><th class="silat-table-cell">Koordinat</th><th class="silat-table-cell">{{ $selectedPeriod ? 'Peserta Periode' : 'Peserta Total' }}</th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
+                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><input type="checkbox" class="rounded border-gray-300" onclick="document.querySelectorAll('[data-place-checkbox]').forEach((el) => el.checked = this.checked)"></th><th class="silat-table-cell"><x-sortable-heading column="name" label="Mitra" /></th><th class="silat-table-cell">Kota</th><th class="silat-table-cell"><x-sortable-heading column="is_active" label="Status" /></th><th class="silat-table-cell">Lokasi Mitra</th><th class="silat-table-cell">{{ $selectedPeriod ? 'Peserta Periode' : 'Peserta Total' }}</th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
                     <tbody>@foreach ($places as $place)<tr><td class="silat-table-cell"><input data-place-checkbox type="checkbox" name="place_ids[]" value="{{ $place->id }}" class="rounded border-gray-300"></td><td class="silat-table-cell"><div class="font-medium text-gray-900">{{ $place->name }}</div><div class="text-xs text-gray-500">{{ $place->address }}</div></td><td class="silat-table-cell text-gray-600">{{ $place->city?->name ?: '-' }}</td><td class="silat-table-cell"><x-badge :variant="$place->is_active ? 'success' : 'neutral'">{{ $place->is_active ? 'Aktif' : 'Nonaktif' }}</x-badge></td><td class="silat-table-cell text-gray-600">{{ $place->latitude && $place->longitude ? $place->latitude.', '.$place->longitude : '-' }}</td><td class="silat-table-cell text-gray-600">{{ $place->enrollments_count }}</td><td class="silat-table-cell text-right"><a class="silat-secondary-link justify-end" href="{{ route('internship-places.edit', $place) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a></td></tr>@endforeach</tbody>
                 </table>
             </div>

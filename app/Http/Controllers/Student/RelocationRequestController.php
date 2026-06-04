@@ -53,12 +53,12 @@ class RelocationRequestController extends Controller
 
         if ($this->hasPendingRequest($request)) {
             throw ValidationException::withMessages([
-                'internship_enrollment_id' => 'Masih ada permohonan pindah tempat yang menunggu persetujuan. Batalkan atau tunggu keputusan terlebih dahulu.',
+                'internship_enrollment_id' => 'Masih ada permohonan pindah mitra yang menunggu persetujuan. Batalkan atau tunggu keputusan terlebih dahulu.',
             ]);
         }
 
         if ((int) $enrollment->internship_place_id === (int) $data['new_internship_place_id']) {
-            throw ValidationException::withMessages(['new_internship_place_id' => 'Tempat tujuan harus berbeda dari tempat saat ini.']);
+            throw ValidationException::withMessages(['new_internship_place_id' => 'Mitra tujuan harus berbeda dari mitra saat ini.']);
         }
 
         $relocation = RelocationRequest::query()->create($data + [
@@ -83,7 +83,7 @@ class RelocationRequestController extends Controller
             'admin_note' => 'Dibatalkan oleh mahasiswa.',
         ]);
 
-        return redirect()->route('student.relocations.index')->with('status', 'Permohonan pindah tempat dibatalkan.');
+        return redirect()->route('student.relocations.index')->with('status', 'Permohonan pindah mitra dibatalkan.');
     }
 
     private function activeEnrollments(Request $request)

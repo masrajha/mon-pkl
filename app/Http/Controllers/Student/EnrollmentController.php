@@ -75,7 +75,7 @@ class EnrollmentController extends Controller
 
         if ($existingEnrollment && ! in_array($existingEnrollment->status, ['cancelled', 'rejected', 'revision_required'], true)) {
             throw ValidationException::withMessages([
-                'internship_period_id' => 'Anda sudah memiliki pendaftaran pada periode ini. Jika ingin mengganti instansi, gunakan menu Pindah Mitra.',
+                'internship_period_id' => 'Anda sudah memiliki pendaftaran pada periode ini. Jika ingin mengganti mitra, gunakan menu Pindah Mitra.',
             ]);
         }
 

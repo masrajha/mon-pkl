@@ -93,7 +93,7 @@ class PlaceController extends Controller
         }
 
         if (! $placeIds->contains($targetPlaceId)) {
-            throw ValidationException::withMessages(['target_place_id' => 'Tempat tujuan merge harus termasuk dalam data yang dipilih.']);
+            throw ValidationException::withMessages(['target_place_id' => 'Mitra tujuan merge harus termasuk dalam data yang dipilih.']);
         }
 
         if ($placeIds->count() < 2) {

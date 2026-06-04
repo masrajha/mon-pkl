@@ -27,7 +27,7 @@ class ActionRequiredSummaryService
                 'description' => 'Pendaftaran mahasiswa menunggu validasi.',
             ],
             'place_proposals' => [
-                'label' => 'Usulan Tempat',
+                'label' => 'Usulan Mitra',
                 'count' => $this->placeProposalCount($user),
                 'route' => 'management.place-proposals.index',
                 'params' => ['status' => 'pending'],
@@ -35,12 +35,12 @@ class ActionRequiredSummaryService
                 'description' => 'Usulan mitra baru menunggu keputusan.',
             ],
             'relocations' => [
-                'label' => 'Pindah Tempat',
+                'label' => 'Pindah Mitra',
                 'count' => $this->relocationCount($user),
                 'route' => 'management.relocations.index',
                 'params' => ['status' => 'pending'],
                 'icon' => 'fa-route',
-                'description' => 'Permohonan pindah tempat menunggu persetujuan.',
+                'description' => 'Permohonan pindah mitra menunggu persetujuan.',
             ],
             'supervisor_changes' => [
                 'label' => 'Perubahan Pembimbing',

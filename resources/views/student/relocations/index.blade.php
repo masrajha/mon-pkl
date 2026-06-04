@@ -3,8 +3,8 @@
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Workflow Mahasiswa</p>
-                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Pindah Tempat') }}</h2>
-                <p class="mt-1 text-sm text-gray-500">Histori permohonan pindah tempat kegiatan.</p>
+                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Pindah Mitra') }}</h2>
+                <p class="mt-1 text-sm text-gray-500">Histori permohonan pindah mitra kegiatan.</p>
             </div>
             @unless ($hasPendingRequest)
                 <a class="silat-btn" href="{{ route('student.relocations.create') }}"><x-icon name="fa-plus" /> Ajukan Pindah</a>
@@ -17,14 +17,14 @@
         @if ($errors->any())<x-alert variant="danger">{{ $errors->first() }}</x-alert>@endif
 
         @if ($hasPendingRequest)
-            <x-alert variant="warning">Masih ada permohonan pindah tempat berstatus Menunggu. Ajukan permohonan baru setelah permohonan tersebut disetujui, ditolak, atau dibatalkan.</x-alert>
+            <x-alert variant="warning">Masih ada permohonan pindah mitra berstatus Menunggu. Ajukan permohonan baru setelah permohonan tersebut disetujui, ditolak, atau dibatalkan.</x-alert>
         @endif
 
         <section class="silat-card overflow-hidden">
             <div class="silat-section-header">
                 <div>
                     <h3 class="silat-section-title">Histori Permohonan</h3>
-                    <p class="silat-section-description">Tempat sebelumnya, tempat usulan, alasan, dan keputusan reviewer.</p>
+                    <p class="silat-section-description">Mitra sebelumnya, mitra usulan, alasan, dan keputusan reviewer.</p>
                 </div>
             </div>
             <div class="silat-table-wrap">
@@ -32,8 +32,8 @@
                     <thead class="silat-table-head">
                         <tr>
                             <th class="silat-table-cell">Periode/Prodi</th>
-                            <th class="silat-table-cell">Tempat Sebelumnya</th>
-                            <th class="silat-table-cell">Tempat Usulan</th>
+                            <th class="silat-table-cell">Mitra Sebelumnya</th>
+                            <th class="silat-table-cell">Mitra Usulan</th>
                             <th class="silat-table-cell">Alasan</th>
                             <th class="silat-table-cell">Status</th>
                             <th class="silat-table-cell text-right">Aksi</th>
@@ -71,7 +71,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="silat-table-cell"><x-empty-state title="Belum ada permohonan pindah tempat" description="Permohonan yang dikirim akan muncul di sini." icon="fa-route" /></td></tr>
+                            <tr><td colspan="6" class="silat-table-cell"><x-empty-state title="Belum ada permohonan pindah mitra" description="Permohonan yang dikirim akan muncul di sini." icon="fa-route" /></td></tr>
                         @endforelse
                     </tbody>
                 </table>

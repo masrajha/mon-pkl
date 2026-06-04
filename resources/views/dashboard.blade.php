@@ -45,7 +45,7 @@
                         <div class="flex items-center gap-3"><x-icon name="fa-exclamation-triangle" class="text-xl text-rose-700" /><div><p class="text-sm">Status Pendaftaran</p><p class="text-xl font-bold">{{ $studentEnrollment?->status ?: 'Belum daftar' }}</p></div></div>
                     </div>
                     <div class="rounded-lg bg-amber-100 p-4 text-amber-800">
-                        <div class="flex items-center gap-3"><x-icon name="fa-hourglass-start" class="text-xl text-amber-700" /><div><p class="text-sm">Usulan Tempat</p><p class="text-xl font-bold">{{ number_format($studentProposalCount, 0, ',', '.') }}</p></div></div>
+                        <div class="flex items-center gap-3"><x-icon name="fa-hourglass-start" class="text-xl text-amber-700" /><div><p class="text-sm">Usulan Mitra</p><p class="text-xl font-bold">{{ number_format($studentProposalCount, 0, ',', '.') }}</p></div></div>
                     </div>
                 </div>
             @endif
@@ -165,8 +165,8 @@
                     </div>
                 </div>
                 <div class="grid gap-3 p-5 md:grid-cols-3">
-                    <a class="silat-action-card" href="{{ route('maps.places') }}"><p class="font-semibold text-gray-900">Peta Mitra</p><p class="silat-stat-note">Sebaran instansi dan jumlah peserta.</p></a>
-                    <a class="silat-action-card" href="{{ route('maps.monitoring') }}"><p class="font-semibold text-gray-900">Peta Monitoring</p><p class="silat-stat-note">Lokasi check-in mahasiswa dan jarak ke instansi.</p></a>
+                    <a class="silat-action-card" href="{{ route('maps.places') }}"><p class="font-semibold text-gray-900">Peta Mitra</p><p class="silat-stat-note">Sebaran mitra dan jumlah peserta.</p></a>
+                    <a class="silat-action-card" href="{{ route('maps.monitoring') }}"><p class="font-semibold text-gray-900">Peta Monitoring</p><p class="silat-stat-note">Lokasi check-in mahasiswa dan jarak ke lokasi mitra.</p></a>
                     <a class="silat-action-card" href="{{ route('reports.monitoring') }}"><p class="font-semibold text-gray-900">Rekap Monitoring</p><p class="silat-stat-note">Ringkasan kehadiran, durasi, dan jarak.</p></a>
                 </div>
             </section>

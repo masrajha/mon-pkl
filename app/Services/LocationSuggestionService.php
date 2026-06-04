@@ -69,7 +69,7 @@ class LocationSuggestionService
             ->limit(5)
             ->get()
             ->map(fn (InternshipPlaceProposal $proposal): array => $this->format(
-                source: 'Usulan tempat',
+                source: 'Usulan mitra',
                 name: $proposal->name,
                 address: $proposal->address ?: $proposal->city_name,
                 latitude: $proposal->latitude,

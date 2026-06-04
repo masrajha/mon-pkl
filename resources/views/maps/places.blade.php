@@ -31,14 +31,14 @@
                         <table class="silat-table">
                             <thead class="silat-table-head sticky top-0">
                                 <tr>
-                                    <th class="silat-table-cell">{{ __('Tempat') }}</th>
+                                    <th class="silat-table-cell">{{ __('Mitra') }}</th>
                                     <th class="silat-table-cell">{{ __('Kota') }}</th>
                                     <th class="silat-table-cell">{{ __('Peserta') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="places-table-body">
                                 <tr>
-                                    <td colspan="3" class="silat-table-cell text-center text-gray-500">{{ __('Memuat tempat PKL...') }}</td>
+                                    <td colspan="3" class="silat-table-cell text-center text-gray-500">{{ __('Memuat data mitra...') }}</td>
                                 </tr>
                             </tbody>
                         </table>

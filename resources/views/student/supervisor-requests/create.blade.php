@@ -28,7 +28,7 @@
                             data-field-supervisor-email="{{ $enrollment->field_supervisor_email ?: 'Email belum diisi' }}"
                             @selected((string) old('internship_enrollment_id', $selectedEnrollmentId) === (string) $enrollment->id)
                         >
-                            {{ $enrollment->internshipPeriod?->display_name }} - {{ $enrollment->studyProgram?->name }} - {{ $enrollment->internshipPlace?->name ?: 'Belum ditempatkan' }}
+                            {{ $enrollment->internshipPeriod?->display_name }} - {{ $enrollment->studyProgram?->name }} - {{ $enrollment->internshipPlace?->name ?: 'Mitra belum ditentukan' }}
                         </option>
                     @endforeach
                 </x-select-input>

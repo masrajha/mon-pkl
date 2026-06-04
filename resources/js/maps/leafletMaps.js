@@ -201,7 +201,7 @@ async function initMonitoringMap(element) {
 
     L.control.layers(null, {
         'Lokasi mahasiswa': studentGroup,
-        'Lokasi instansi': officeGroup,
+        'Lokasi mitra': officeGroup,
         'Garis jarak': lineGroup,
     }, { collapsed: false }).addTo(map);
 
@@ -230,7 +230,7 @@ function initCheckInMap(element) {
             color: '#2563eb',
             fillColor: '#ffffff',
             fillOpacity: 1,
-        }).bindPopup(`<strong>${escapeHtml(element.dataset.officeName || 'Tempat PKL')}</strong>`).addTo(layer);
+        }).bindPopup(`<strong>${escapeHtml(element.dataset.officeName || 'Mitra')}</strong>`).addTo(layer);
         map.setView([officeLat, officeLng], config.officeZoom);
     }
 
@@ -678,7 +678,7 @@ function renderPlacesTable(tableBody, features, onSelect) {
     if (features.length === 0) {
         const row = document.createElement('tr');
         const colspan = Number(tableBody.dataset.colspan || 3);
-        row.innerHTML = `<td colspan="${colspan}" class="silat-table-cell text-center text-gray-500">Tidak ada tempat PKL pada filter ini.</td>`;
+        row.innerHTML = `<td colspan="${colspan}" class="silat-table-cell text-center text-gray-500">Tidak ada mitra pada filter ini.</td>`;
         tableBody.append(row);
         return;
     }

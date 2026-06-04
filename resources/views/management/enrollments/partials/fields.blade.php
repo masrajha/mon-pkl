@@ -40,9 +40,9 @@
     </div>
 </div>
 
-<x-input-label for="internship_place_id" value="Mitra / Tempat Kegiatan" />
+<x-input-label for="internship_place_id" value="Mitra" />
 <select id="internship_place_id" name="internship_place_id" class="block w-full rounded-md border-gray-300">
-    <option value="">Belum ditempatkan</option>
+    <option value="">Mitra belum ditentukan</option>
     @foreach ($places as $place)
         <option value="{{ $place->id }}" @selected((string) old('internship_place_id', $enrollment?->internship_place_id) === (string) $place->id)>{{ $place->name }}</option>
     @endforeach

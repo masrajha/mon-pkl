@@ -22,9 +22,9 @@ class RelocationEmailNotificationService
         $this->notifyStudent(
             $relocation,
             'relocation.submitted.student',
-            '[SiLAT] Permohonan Pindah Tempat Dikirim',
+            '[SiLAT] Permohonan Pindah Mitra Dikirim',
             [
-                'Permohonan pindah tempat Anda sudah dikirim dan menunggu validasi admin/koordinator.',
+                'Permohonan pindah mitra Anda sudah dikirim dan menunggu validasi admin/koordinator.',
                 $this->contextLine($relocation),
                 'Silakan pantau dashboard SiLAT untuk melihat status terbaru.',
             ],
@@ -35,11 +35,11 @@ class RelocationEmailNotificationService
         $this->notifyReviewers(
             $relocation,
             'relocation.submitted.reviewer',
-            '[SiLAT] Permohonan Pindah Tempat Baru',
+            '[SiLAT] Permohonan Pindah Mitra Baru',
             [
-                ($relocation->enrollment?->student?->full_name ?: 'Mahasiswa').' mengirim permohonan pindah tempat.',
+                ($relocation->enrollment?->student?->full_name ?: 'Mahasiswa').' mengirim permohonan pindah mitra.',
                 $this->contextLine($relocation),
-                'Mohon proses permohonan pindah tempat pada SiLAT.',
+                'Mohon proses permohonan pindah mitra pada SiLAT.',
             ],
             route('management.relocations.index', ['status' => 'pending']),
             'reviewer-relocation-submitted-'.$relocation->id,
@@ -52,11 +52,11 @@ class RelocationEmailNotificationService
 
         $approved = $relocation->status === 'approved';
         $subject = $approved
-            ? '[SiLAT] Permohonan Pindah Tempat Disetujui'
-            : '[SiLAT] Permohonan Pindah Tempat Ditolak';
+            ? '[SiLAT] Permohonan Pindah Mitra Disetujui'
+            : '[SiLAT] Permohonan Pindah Mitra Ditolak';
 
         $lines = [
-            $approved ? 'Permohonan pindah tempat Anda disetujui.' : 'Permohonan pindah tempat Anda ditolak.',
+            $approved ? 'Permohonan pindah mitra Anda disetujui.' : 'Permohonan pindah mitra Anda ditolak.',
             $this->contextLine($relocation),
         ];
 
@@ -94,11 +94,11 @@ class RelocationEmailNotificationService
                 $queued += $this->notifyReviewers(
                     $relocation,
                     'relocation.pending.reminder.reviewer',
-                    '[SiLAT] Reminder Permohonan Pindah Tempat Pending',
+                    '[SiLAT] Reminder Permohonan Pindah Mitra Pending',
                     [
-                        'Ada permohonan pindah tempat yang masih pending.',
+                        'Ada permohonan pindah mitra yang masih pending.',
                         $this->contextLine($relocation),
-                        'Mohon proses permohonan pindah tempat pada SiLAT.',
+                        'Mohon proses permohonan pindah mitra pada SiLAT.',
                     ],
                     route('management.relocations.index', ['status' => 'pending']),
                     'reviewer-relocation-pending-reminder-'.$hours.'-'.$relocation->id,
@@ -141,7 +141,7 @@ class RelocationEmailNotificationService
                 subject: $subject,
                 bodyLines: $lines,
                 recipientName: $recipient['name'],
-                actionText: 'Buka Pindah Tempat',
+                actionText: 'Buka Pindah Mitra',
                 actionUrl: $actionUrl,
                 notifiable: $relocation,
                 eventKey: $eventKeyPrefix.'-'.$recipient['email'],
@@ -163,9 +163,9 @@ class RelocationEmailNotificationService
         $this->emails->queue(
             type: 'relocation.lecturer.approved',
             recipientEmail: $email,
-            subject: '[SiLAT] Mahasiswa Bimbingan Pindah Tempat',
+            subject: '[SiLAT] Mahasiswa Bimbingan Pindah Mitra',
             bodyLines: [
-                'Mahasiswa bimbingan Anda memiliki permohonan pindah tempat yang sudah disetujui.',
+                'Mahasiswa bimbingan Anda memiliki permohonan pindah mitra yang sudah disetujui.',
                 $this->contextLine($relocation),
             ],
             recipientName: $lecturer?->name,
@@ -214,7 +214,7 @@ class RelocationEmailNotificationService
         $enrollment = $relocation->enrollment;
 
         return sprintf(
-            'Mahasiswa: %s (%s). Program/periode: %s. Prodi: %s. Tempat lama: %s. Tempat baru: %s.',
+            'Mahasiswa: %s (%s). Program/periode: %s. Prodi: %s. Mitra lama: %s. Mitra baru: %s.',
             $enrollment?->student?->full_name ?: '-',
             $enrollment?->student?->npm ?: '-',
             $enrollment?->internshipPeriod?->display_name ?: '-',

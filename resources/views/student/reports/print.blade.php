@@ -51,7 +51,7 @@
     <p>{{ $enrollment->internshipPeriod?->display_name }} &middot; {{ $enrollment->studyProgram?->name }}</p>
     <div class="meta">
         <strong>Mahasiswa</strong><span>{{ $enrollment->student?->full_name }} / {{ $enrollment->student?->npm }}</span>
-        <strong>Mitra / Tempat Kegiatan</strong><span>{{ $enrollment->internshipPlace?->name }}</span>
+        <strong>Mitra</strong><span>{{ $enrollment->internshipPlace?->name }}</span>
         <strong>Alamat</strong><span>{{ $enrollment->internshipPlace?->address }}</span>
         <strong>Dosen Pembimbing</strong><span>{{ $enrollment->lecturer?->name }}</span>
         <strong>Pembimbing Lapangan</strong><span>{{ $enrollment->field_supervisor }}</span>
@@ -156,7 +156,7 @@
             data.addColumn('number', 'Durasi');
             data.addColumn('number', 'Batas Minimal');
             data.addRows(attendanceRows.map((row) => [row.label, row.durationHours, 6]));
-            drawLine('chart-duration', data, 'Durasi di Tempat Program', 'Dalam jam');
+            drawLine('chart-duration', data, 'Durasi di Mitra', 'Dalam jam');
         }
 
         function drawLine(elementId, data, title, subtitle) {

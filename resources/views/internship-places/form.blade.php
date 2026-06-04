@@ -37,7 +37,7 @@
                         @endif
 
                         <div class="relative z-20">
-                            <x-input-label for="name" :value="__('Nama Instansi/Perusahaan')" />
+                            <x-input-label for="name" :value="__('Nama Mitra/Instansi')" />
                             <x-text-input
                                 id="name"
                                 name="name"
@@ -95,13 +95,13 @@
                         </div>
 
                         <div>
-                            <x-input-label for="field_supervisor_name" :value="__('Kontak Umum Instansi')" />
+                            <x-input-label for="field_supervisor_name" :value="__('Kontak Umum Mitra')" />
                             <x-text-input id="field_supervisor_name" name="field_supervisor_name" type="text" class="mt-1 block w-full" :value="old('field_supervisor_name', $place->field_supervisor_name)" />
                             <p class="mt-1 text-xs text-gray-500">{{ __('Pembimbing lapangan per mahasiswa diisi pada menu Peserta Periode.') }}</p>
                         </div>
 
                         <div>
-                            <x-input-label for="field_supervisor_phone" :value="__('HP Kontak Instansi')" />
+                            <x-input-label for="field_supervisor_phone" :value="__('HP Kontak Mitra')" />
                             <x-text-input id="field_supervisor_phone" name="field_supervisor_phone" type="text" class="mt-1 block w-full" :value="old('field_supervisor_phone', $place->field_supervisor_phone)" />
                         </div>
 

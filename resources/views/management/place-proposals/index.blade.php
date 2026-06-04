@@ -1,12 +1,12 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="text-xl font-semibold text-gray-800">{{ __('Validasi Usulan Tempat') }}</h2></x-slot>
+    <x-slot name="header"><h2 class="text-xl font-semibold text-gray-800">{{ __('Validasi Usulan Mitra') }}</h2></x-slot>
     <div class="py-10"><div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
         @include('management.partials.nav')
         @if (session('status'))<div class="mb-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('status') }}</div>@endif
         @if ($errors->any())<div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{{ $errors->first() }}</div>@endif
 
         <div class="silat-card overflow-hidden">
-            <x-table-controls title="Daftar Usulan Tempat" description="Cari usulan berdasarkan nama tempat, alamat, kota, atau mahasiswa." search-placeholder="Cari usulan tempat...">
+            <x-table-controls title="Daftar Usulan Mitra" description="Cari usulan berdasarkan nama mitra, alamat, kota, atau mahasiswa." search-placeholder="Cari usulan mitra...">
                 <x-slot name="filters">
                     <div>
                         <x-input-label for="filter_status" value="Status" />
@@ -25,8 +25,8 @@
                         <tr>
                             <th class="silat-table-cell">Mahasiswa</th>
                             <th class="silat-table-cell">Periode/Prodi</th>
-                            <th class="silat-table-cell"><x-sortable-heading column="name" label="Tempat Usulan" /></th>
-                            <th class="silat-table-cell">Lokasi</th>
+                            <th class="silat-table-cell"><x-sortable-heading column="name" label="Mitra Usulan" /></th>
+                            <th class="silat-table-cell">Lokasi Mitra</th>
                             <th class="silat-table-cell"><x-sortable-heading column="status" label="Status" /></th>
                             <th class="silat-table-cell text-right">Aksi</th>
                         </tr>
@@ -98,7 +98,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="silat-table-cell"><x-empty-state title="Belum ada usulan tempat" icon="fa-building-circle-check" /></td></tr>
+                            <tr><td colspan="6" class="silat-table-cell"><x-empty-state title="Belum ada usulan mitra" icon="fa-building-circle-check" /></td></tr>
                         @endforelse
                     </tbody>
                 </table>

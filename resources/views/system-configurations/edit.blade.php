@@ -48,11 +48,11 @@
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Pendaftaran dan Kuota') }}</h3>
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
                         <div>
-                            <x-input-label for="min_place_quota" :value="__('Kuota minimal per tempat')" />
+                            <x-input-label for="min_place_quota" :value="__('Kuota minimal per mitra')" />
                             <x-text-input id="min_place_quota" name="enrollment[min_place_quota]" type="number" class="mt-1 block w-full" :value="old('enrollment.min_place_quota', $settings['enrollment']['min_place_quota'])" required />
                         </div>
                         <div>
-                            <x-input-label for="max_place_quota" :value="__('Kuota maksimal per tempat')" />
+                            <x-input-label for="max_place_quota" :value="__('Kuota maksimal per mitra')" />
                             <x-text-input id="max_place_quota" name="enrollment[max_place_quota]" type="number" class="mt-1 block w-full" :value="old('enrollment.max_place_quota', $settings['enrollment']['max_place_quota'])" required />
                         </div>
                         <div>
@@ -226,7 +226,7 @@
                             <x-text-input id="fit_max_zoom" name="map[fit_max_zoom]" type="number" class="mt-1 block w-full" :value="old('map.fit_max_zoom', $settings['map']['fit_max_zoom'])" required />
                         </div>
                         <div>
-                            <x-input-label for="office_zoom" :value="__('Zoom instansi')" />
+                            <x-input-label for="office_zoom" :value="__('Zoom lokasi mitra')" />
                             <x-text-input id="office_zoom" name="map[office_zoom]" type="number" class="mt-1 block w-full" :value="old('map.office_zoom', $settings['map']['office_zoom'])" required />
                         </div>
                         <div>

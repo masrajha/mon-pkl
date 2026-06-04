@@ -50,7 +50,7 @@ class PlaceProposalController extends Controller
         ]);
         $this->proposalEmails->submitted($proposal);
 
-        return redirect()->route('student.dashboard')->with('status', 'Usulan tempat dikirim dan menunggu validasi admin/koordinator.');
+        return redirect()->route('student.dashboard')->with('status', 'Usulan mitra dikirim dan menunggu validasi admin/koordinator.');
     }
 
     public function edit(Request $request, InternshipPlaceProposal $proposal): View
@@ -82,7 +82,7 @@ class PlaceProposalController extends Controller
             'proposed_by' => $request->user()->id,
         ]);
 
-        return redirect()->route('student.proposals.index')->with('status', 'Usulan tempat diperbarui.');
+        return redirect()->route('student.proposals.index')->with('status', 'Usulan mitra diperbarui.');
     }
 
     public function cancel(Request $request, InternshipPlaceProposal $proposal): RedirectResponse
@@ -98,7 +98,7 @@ class PlaceProposalController extends Controller
             'admin_note' => 'Dibatalkan oleh mahasiswa.',
         ]);
 
-        return redirect()->route('student.proposals.index')->with('status', 'Usulan tempat dibatalkan.');
+        return redirect()->route('student.proposals.index')->with('status', 'Usulan mitra dibatalkan.');
     }
 
     private function studentProposals(Request $request)

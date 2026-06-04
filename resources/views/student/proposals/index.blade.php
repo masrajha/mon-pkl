@@ -3,10 +3,10 @@
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Workflow Mahasiswa</p>
-                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Usulan Tempat') }}</h2>
-                <p class="mt-1 text-sm text-gray-500">Histori usulan tempat kegiatan yang pernah dikirim.</p>
+                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Usulan Mitra') }}</h2>
+                <p class="mt-1 text-sm text-gray-500">Histori usulan mitra kegiatan yang pernah dikirim.</p>
             </div>
-            <a class="silat-btn" href="{{ route('student.proposals.create') }}"><x-icon name="fa-plus" /> Ajukan Tempat</a>
+            <a class="silat-btn" href="{{ route('student.proposals.create') }}"><x-icon name="fa-plus" /> Ajukan Mitra</a>
         </div>
     </x-slot>
 
@@ -18,7 +18,7 @@
             <div class="silat-section-header">
                 <div>
                     <h3 class="silat-section-title">Histori Usulan</h3>
-                    <p class="silat-section-description">Nama tempat, lokasi, periode, status, dan catatan reviewer.</p>
+                    <p class="silat-section-description">Nama mitra, lokasi mitra, periode, status, dan catatan reviewer.</p>
                 </div>
             </div>
             <div class="silat-table-wrap">
@@ -26,8 +26,8 @@
                     <thead class="silat-table-head">
                         <tr>
                             <th class="silat-table-cell">Periode/Prodi</th>
-                            <th class="silat-table-cell">Tempat Usulan</th>
-                            <th class="silat-table-cell">Lokasi</th>
+                            <th class="silat-table-cell">Mitra Usulan</th>
+                            <th class="silat-table-cell">Lokasi Mitra</th>
                             <th class="silat-table-cell">Kontak</th>
                             <th class="silat-table-cell">Status</th>
                             <th class="silat-table-cell text-right">Aksi</th>
@@ -77,7 +77,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="silat-table-cell"><x-empty-state title="Belum ada usulan tempat" description="Usulan yang dikirim akan muncul di sini." icon="fa-building-circle-arrow-right" /></td></tr>
+                            <tr><td colspan="6" class="silat-table-cell"><x-empty-state title="Belum ada usulan mitra" description="Usulan yang dikirim akan muncul di sini." icon="fa-building-circle-arrow-right" /></td></tr>
                         @endforelse
                     </tbody>
                 </table>

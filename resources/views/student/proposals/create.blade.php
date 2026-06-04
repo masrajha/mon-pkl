@@ -8,8 +8,8 @@
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Workflow Mahasiswa</p>
-                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ $isEdit ? __('Edit Usulan Tempat') : __('Usulan Tempat Baru') }}</h2>
-                <p class="mt-1 text-sm text-gray-500">Tentukan titik lokasi pada peta, lalu lengkapi identitas instansi.</p>
+                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ $isEdit ? __('Edit Usulan Mitra') : __('Usulan Mitra Baru') }}</h2>
+                <p class="mt-1 text-sm text-gray-500">Tentukan titik lokasi mitra pada peta, lalu lengkapi identitas mitra.</p>
             </div>
             <a class="silat-secondary-link" href="{{ route('student.proposals.index') }}">Lihat histori</a>
         </div>
@@ -26,7 +26,7 @@
                     <div class="silat-section-header">
                         <div>
                             <h3 class="silat-section-title">Titik Lokasi Mitra</h3>
-                            <p class="silat-section-description">Klik peta atau geser marker untuk menentukan koordinat.</p>
+                            <p class="silat-section-description">Klik peta atau geser marker untuk menentukan koordinat lokasi mitra.</p>
                         </div>
                     </div>
                     <div
@@ -78,7 +78,7 @@
                         </div>
 
                         <div class="relative z-20">
-                            <x-input-label for="name" value="Nama Instansi/Perusahaan" />
+                            <x-input-label for="name" value="Nama Mitra/Instansi" />
                             <x-text-input
                                 id="name"
                                 name="name"
@@ -135,13 +135,13 @@
                         </div>
 
                         <div>
-                            <x-input-label for="field_supervisor_name" value="Kontak Umum Instansi" />
+                            <x-input-label for="field_supervisor_name" value="Kontak Umum Mitra" />
                             <x-text-input id="field_supervisor_name" name="field_supervisor_name" class="mt-1 block w-full" :value="old('field_supervisor_name', $proposal?->field_supervisor_name)" />
                             <p class="mt-1 text-xs text-gray-500">Pembimbing lapangan per mahasiswa akan dikonfirmasi pada data peserta periode.</p>
                         </div>
 
                         <div>
-                            <x-input-label for="field_supervisor_phone" value="HP Kontak Instansi" />
+                            <x-input-label for="field_supervisor_phone" value="HP Kontak Mitra" />
                             <x-text-input id="field_supervisor_phone" name="field_supervisor_phone" class="mt-1 block w-full" :value="old('field_supervisor_phone', $proposal?->field_supervisor_phone)" />
                         </div>
 

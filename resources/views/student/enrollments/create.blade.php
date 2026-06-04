@@ -35,7 +35,7 @@
             <div class="grid gap-3 md:grid-cols-3" data-enrollment-steps>
                 @foreach ([
                     ['step' => '1', 'title' => 'Program', 'desc' => 'Pilih program dan periode aktif.'],
-                    ['step' => '2', 'title' => 'Mitra', 'desc' => 'Isi mitra dan pembimbing lapangan.'],
+                    ['step' => '2', 'title' => 'Mitra', 'desc' => 'Pilih mitra dan isi pembimbing lapangan.'],
                     ['step' => '3', 'title' => 'Kelayakan', 'desc' => 'Isi syarat akademik dan dokumen.'],
                 ] as $item)
                     <div class="silat-card p-3" data-step-indicator="{{ $item['step'] }}">
@@ -96,9 +96,9 @@
                 </div>
                 <div class="grid gap-4 p-5 md:grid-cols-3">
                     <div class="md:col-span-3">
-                        <x-input-label for="internship_place_id" value="Mitra / Tempat Kegiatan" />
+                        <x-input-label for="internship_place_id" value="Mitra" />
                         <x-select-input id="internship_place_id" name="internship_place_id" class="mt-1">
-                            <option value="">Belum ada / akan mengajukan baru</option>
+                            <option value="">Mitra belum ada / akan mengajukan baru</option>
                             @foreach ($places as $place)
                                 <option value="{{ $place->id }}" @selected($selectedPlace == $place->id)>{{ $place->name }}</option>
                             @endforeach

@@ -86,7 +86,7 @@
                 <div class="grid gap-4 p-5 md:grid-cols-3">
                     <div class="silat-stat-card"><p class="silat-stat-label">Profil</p><p class="mt-2 text-lg font-semibold text-gray-900">{{ $student?->full_name ?: 'Belum lengkap' }}</p><p class="text-sm text-gray-500">{{ $student?->npm ?: '-' }}</p><a class="silat-secondary-link mt-3" href="{{ route('student.profile.edit') }}">Kelola profil</a></div>
                     <div class="silat-stat-card"><p class="silat-stat-label">Pendaftaran</p><p class="silat-stat-value">{{ $enrollments->count() }}</p><p class="silat-stat-note">{{ $activeEnrollment?->status ?: 'Belum ada status aktif' }}</p></div>
-                    <div class="silat-stat-card"><p class="silat-stat-label">Usulan Tempat</p><p class="silat-stat-value">{{ $proposals->count() }}</p><a class="silat-secondary-link" href="{{ route('student.proposals.index') }}">Lihat usulan</a></div>
+                    <div class="silat-stat-card"><p class="silat-stat-label">Usulan Mitra</p><p class="silat-stat-value">{{ $proposals->count() }}</p><a class="silat-secondary-link" href="{{ route('student.proposals.index') }}">Lihat usulan</a></div>
                 </div>
             </section>
 
@@ -141,7 +141,7 @@
                         @forelse ($enrollments as $enrollment)
                             <tr>
                                 <td class="silat-table-cell">{{ $enrollment->internshipPeriod?->display_name }}<div class="text-xs text-gray-500">{{ $enrollment->studyProgram?->name }}</div></td>
-                                <td class="silat-table-cell">{{ $enrollment->internshipPlace?->name ?: 'Belum ditempatkan' }}</td>
+                                <td class="silat-table-cell">{{ $enrollment->internshipPlace?->name ?: 'Mitra belum ditentukan' }}</td>
                                 <td class="silat-table-cell">{{ $enrollment->lecturer?->name ?: 'Dosen belum ditentukan' }}<div class="text-xs text-gray-500">{{ $enrollment->field_supervisor ?: 'Pembimbing lapangan belum diisi' }}</div></td>
                                 <td class="silat-table-cell">
                                     @php($statusVariant = match($enrollment->status) {'active' => 'success', 'pending_verification' => 'warning', 'revision_required' => 'warning', 'rejected' => 'danger', default => 'neutral'})
@@ -153,7 +153,7 @@
                                 <td class="silat-table-cell space-x-3 text-right">
                                     @if ($enrollment->status === 'active')
                                         <a class="silat-secondary-link" href="{{ route('check-ins.create') }}">Presensi</a>
-                                        <a class="silat-secondary-link" href="{{ route('student.relocations.create') }}">Pindah</a>
+                                        <a class="silat-secondary-link" href="{{ route('student.relocations.create') }}">Pindah Mitra</a>
                                         <a class="silat-secondary-link" href="{{ route('student.supervisor-requests.create') }}">Pembimbing</a>
                                     @elseif ($enrollment->status === 'revision_required')
                                         <a class="silat-secondary-link" href="{{ route('student.enrollments.edit', $enrollment) }}">Perbaiki</a>

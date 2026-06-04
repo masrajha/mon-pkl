@@ -21,18 +21,18 @@
             </x-table-controls>
             <div class="silat-table-wrap">
             <table class="silat-table">
-                <thead class="silat-table-head"><tr><th class="silat-table-cell">Mahasiswa</th><th class="silat-table-cell">Periode/Prodi</th><th class="silat-table-cell">Dari</th><th class="silat-table-cell">Ke</th><th class="silat-table-cell">Alasan</th><th class="silat-table-cell"><x-sortable-heading column="status" label="Status" /></th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
+                <thead class="silat-table-head"><tr><th class="silat-table-cell">Mahasiswa</th><th class="silat-table-cell">Periode/Prodi</th><th class="silat-table-cell">Mitra Lama</th><th class="silat-table-cell">Mitra Baru</th><th class="silat-table-cell">Alasan</th><th class="silat-table-cell"><x-sortable-heading column="status" label="Status" /></th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
                 <tbody>
                     @forelse ($requests as $request)
                         <tr>
                             <td class="silat-table-cell"><span class="font-medium text-gray-900">{{ $request->enrollment?->student?->full_name }}</span><div class="text-xs text-gray-500">{{ $request->enrollment?->student?->npm }}</div></td>
                             <td class="silat-table-cell">{{ $request->enrollment?->internshipPeriod?->display_name }}<div class="text-xs text-gray-500">{{ $request->enrollment?->studyProgram?->name }}</div></td>
                             <td class="silat-table-cell">
-                                <div class="text-xs text-gray-500">Tempat sebelumnya</div>
+                                <div class="text-xs text-gray-500">Mitra sebelumnya</div>
                                 <div class="font-medium text-gray-900">{{ $request->currentPlace?->name ?: '-' }}</div>
                             </td>
                             <td class="silat-table-cell">
-                                <div class="text-xs text-gray-500">Tempat usulan</div>
+                                <div class="text-xs text-gray-500">Mitra usulan</div>
                                 <div class="font-medium text-gray-900">{{ $request->newPlace?->name ?: '-' }}</div>
                                 @if ($request->status === 'approved')
                                     <div class="mt-1 text-xs text-green-700">Sudah diterapkan ke enrollment.</div>
@@ -56,7 +56,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="silat-table-cell"><x-empty-state title="Belum ada permohonan pindah tempat" icon="fa-route" /></td></tr>
+                        <tr><td colspan="7" class="silat-table-cell"><x-empty-state title="Belum ada permohonan pindah mitra" icon="fa-route" /></td></tr>
                     @endforelse
                 </tbody>
             </table>

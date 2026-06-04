@@ -68,13 +68,13 @@ class RelocationRequestController extends Controller
             if ($data['status'] === 'approved') {
                 $relocation->enrollment()->update([
                     'internship_place_id' => $relocation->new_internship_place_id,
-                    'admin_note' => $data['admin_note'] ?? 'Permohonan pindah tempat disetujui.',
+                    'admin_note' => $data['admin_note'] ?? 'Permohonan pindah mitra disetujui.',
                 ]);
             }
         });
         $this->relocationEmails->reviewed($relocation->refresh());
 
-        return back()->with('status', 'Permohonan pindah tempat berhasil diproses.');
+        return back()->with('status', 'Permohonan pindah mitra berhasil diproses.');
     }
 
     private function scopeByCoordinator($query, Request $request): void
