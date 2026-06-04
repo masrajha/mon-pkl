@@ -93,7 +93,20 @@
                                     <td class="silat-table-cell">{{ $event->location_name }}<div class="text-xs text-gray-500">{{ $event->latitude }}, {{ $event->longitude }}</div></td>
                                     <td class="silat-table-cell">{{ $event->starts_at?->format('d/m/Y H:i') ?: '-' }}<div class="text-xs text-gray-500">s.d. {{ $event->ends_at?->format('d/m/Y H:i') ?: '-' }}</div></td>
                                     <td class="silat-table-cell"><x-badge>{{ number_format($event->attendances_count, 0, ',', '.') }} hadir</x-badge></td>
-                                    <td class="silat-table-cell text-right"><a class="silat-secondary-link justify-end" href="{{ route('management.orientation-events.show', $event) }}">Rekap</a></td>
+                                    <td class="silat-table-cell">
+                                        <div class="flex flex-wrap items-center justify-end gap-2">
+                                            <a class="silat-secondary-link" href="{{ route('management.orientation-events.show', $event) }}">Rekap</a>
+                                            <a class="silat-secondary-link" href="{{ route('management.orientation-events.edit', $event) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a>
+                                            @if ($event->attendances_count > 0)
+                                                <button type="button" class="silat-secondary-link text-gray-400" title="Tidak dapat dihapus karena sudah ada presensi" disabled><x-icon name="fa-trash" class="mr-1" /> Delete</button>
+                                            @else
+                                                <form method="POST" action="{{ route('management.orientation-events.destroy', $event) }}" onsubmit="return confirm('Hapus event pembekalan ini?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="silat-secondary-link text-red-700 hover:text-red-900"><x-icon name="fa-trash" class="mr-1" /> Delete</button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="silat-table-cell"><x-empty-state title="Belum ada event pembekalan" icon="fa-users-viewfinder" /></td></tr>

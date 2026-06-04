@@ -61,17 +61,7 @@ class OrientationEventController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'internship_period_id' => ['required', 'exists:internship_periods,id'],
-            'study_program_id' => ['nullable', 'exists:study_programs,id'],
-            'location_name' => ['required', 'string', 'max:255'],
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'starts_at' => ['nullable', 'date'],
-            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
-            'max_distance_meters' => ['nullable', 'integer', 'min:0', 'max:100000'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
+        $data = $this->validated($request);
 
         $period = InternshipPeriod::query()->with('program')->findOrFail($data['internship_period_id']);
         $this->authorizeEventScope($request, $period->id, $data['study_program_id'] ?? null);
@@ -85,6 +75,56 @@ class OrientationEventController extends Controller
         ]);
 
         return back()->with('status', 'Event pembekalan berhasil dibuat.');
+    }
+
+    public function edit(Request $request, OrientationEvent $orientationEvent): View
+    {
+        $orientationEvent->load(['internshipPeriod.program', 'studyProgram']);
+        $this->authorizeViewScope($request, $orientationEvent->internship_period_id, $orientationEvent->study_program_id);
+
+        return view('management.orientation-events.edit', [
+            'event' => $orientationEvent,
+            'periods' => $this->periodsFor($request),
+            'studyPrograms' => $this->studyProgramsFor($request),
+            'mapConfig' => $this->configurations->frontendMapConfig($orientationEvent->internship_period_id),
+            'internalLocationSearchUrl' => route('locations.search'),
+            'externalLocationSearchUrl' => 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&countrycodes=id&q={query}',
+        ]);
+    }
+
+    public function update(Request $request, OrientationEvent $orientationEvent): RedirectResponse
+    {
+        $this->authorizeViewScope($request, $orientationEvent->internship_period_id, $orientationEvent->study_program_id);
+        $data = $this->validated($request);
+
+        $period = InternshipPeriod::query()->with('program')->findOrFail($data['internship_period_id']);
+        $this->authorizeEventScope($request, $period->id, $data['study_program_id'] ?? null);
+
+        $orientationEvent->update([
+            ...$data,
+            'program_id' => $period->program_id,
+            'name' => $this->eventName($period),
+            'is_active' => (bool) ($data['is_active'] ?? false),
+        ]);
+
+        return redirect()
+            ->route('management.orientation-events.index')
+            ->with('status', 'Event pembekalan berhasil diperbarui.');
+    }
+
+    public function destroy(Request $request, OrientationEvent $orientationEvent): RedirectResponse
+    {
+        $this->authorizeViewScope($request, $orientationEvent->internship_period_id, $orientationEvent->study_program_id);
+
+        if ($orientationEvent->attendances()->exists()) {
+            return back()->withErrors([
+                'orientation_event' => 'Event pembekalan tidak dapat dihapus karena sudah memiliki data presensi.',
+            ]);
+        }
+
+        $orientationEvent->delete();
+
+        return back()->with('status', 'Event pembekalan berhasil dihapus.');
     }
 
     public function show(Request $request, OrientationEvent $orientationEvent): View
@@ -121,6 +161,21 @@ class OrientationEventController extends Controller
         $programName = $period->program?->name ?: 'Program';
 
         return trim('Pembekalan '.$programName.' '.$period->name);
+    }
+
+    private function validated(Request $request): array
+    {
+        return $request->validate([
+            'internship_period_id' => ['required', 'exists:internship_periods,id'],
+            'study_program_id' => ['nullable', 'exists:study_programs,id'],
+            'location_name' => ['required', 'string', 'max:255'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'starts_at' => ['nullable', 'date'],
+            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
+            'max_distance_meters' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
     }
 
     private function periodsFor(Request $request)

@@ -6,6 +6,8 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\InternshipPlaceProposal;
+use App\Models\OrientationAttendance;
+use App\Models\OrientationEvent;
 use App\Models\Program;
 use App\Models\Student;
 use App\Models\StudyProgram;
@@ -175,5 +177,115 @@ class OrientationEventFeatureTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.0.source', 'Usulan tempat')
             ->assertJsonPath('data.0.name', 'Aula FMIPA Unila');
+    }
+
+    public function test_admin_updates_and_deletes_orientation_events_without_attendance_only(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $studentUser = User::factory()->create(['role' => 'mahasiswa']);
+        $activityProgram = Program::query()->create([
+            'code' => 'KP-UJI',
+            'name' => 'Kerja Praktik',
+            'rule_key' => 'kerja_praktik',
+            'is_active' => true,
+        ]);
+        $studyProgram = StudyProgram::query()->create([
+            'code' => 'D3MI',
+            'name' => 'D3 Manajemen Informatika',
+            'degree_level' => 'D3',
+            'is_active' => true,
+        ]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $activityProgram->id,
+            'name' => 'Juni 2026',
+            'academic_year' => '2025/2026',
+            'is_active' => true,
+        ]);
+        $student = Student::query()->create([
+            'user_id' => $studentUser->id,
+            'study_program_id' => $studyProgram->id,
+            'npm' => '2217051003',
+            'full_name' => 'Mahasiswa Delete Guard',
+            'student_email' => '2217051003@student.unila.ac.id',
+            'phone' => '081234567892',
+        ]);
+        $enrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $studyProgram->id,
+            'internship_period_id' => $period->id,
+            'status' => 'active',
+        ]);
+
+        $event = OrientationEvent::query()->create([
+            'internship_period_id' => $period->id,
+            'program_id' => $activityProgram->id,
+            'study_program_id' => $studyProgram->id,
+            'name' => 'Pembekalan Kerja Praktik Juni 2026',
+            'location_name' => 'Aula Lama',
+            'latitude' => -5.3640000,
+            'longitude' => 105.2430000,
+            'is_active' => true,
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('management.orientation-events.edit', $event))
+            ->assertOk()
+            ->assertSee('Edit Event Pembekalan')
+            ->assertSee('Aula Lama');
+
+        $this->actingAs($admin)
+            ->patch(route('management.orientation-events.update', $event), [
+                'internship_period_id' => $period->id,
+                'study_program_id' => $studyProgram->id,
+                'location_name' => 'Aula Baru',
+                'latitude' => -5.3650000,
+                'longitude' => 105.2440000,
+                'max_distance_meters' => 150,
+                'is_active' => 1,
+            ])
+            ->assertRedirect(route('management.orientation-events.index'));
+
+        $this->assertDatabaseHas('orientation_events', [
+            'id' => $event->id,
+            'location_name' => 'Aula Baru',
+            'max_distance_meters' => 150,
+        ]);
+
+        OrientationAttendance::query()->create([
+            'orientation_event_id' => $event->id,
+            'internship_enrollment_id' => $enrollment->id,
+            'student_id' => $student->id,
+            'checked_at' => now(),
+            'student_latitude' => -5.3650000,
+            'student_longitude' => 105.2440000,
+            'event_latitude' => -5.3650000,
+            'event_longitude' => 105.2440000,
+            'distance_meters' => 0,
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('management.orientation-events.destroy', $event))
+            ->assertSessionHasErrors('orientation_event');
+
+        $this->assertDatabaseHas('orientation_events', ['id' => $event->id]);
+
+        $emptyEvent = OrientationEvent::query()->create([
+            'internship_period_id' => $period->id,
+            'program_id' => $activityProgram->id,
+            'study_program_id' => $studyProgram->id,
+            'name' => 'Pembekalan Kerja Praktik Juni 2026',
+            'location_name' => 'Aula Kosong',
+            'latitude' => -5.3660000,
+            'longitude' => 105.2450000,
+            'is_active' => true,
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('management.orientation-events.destroy', $emptyEvent))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('orientation_events', ['id' => $emptyEvent->id]);
     }
 }

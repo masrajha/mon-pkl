@@ -80,6 +80,15 @@
                                 <x-badge variant="success">{{ number_format($event->attendances_count, 0, ',', '.') }} hadir</x-badge>
                                 <x-badge variant="danger">{{ number_format($event->absent_count, 0, ',', '.') }} belum</x-badge>
                                 <a class="silat-secondary-link" href="{{ route('management.orientation-events.show', $event) }}">Detail</a>
+                                <a class="silat-secondary-link" href="{{ route('management.orientation-events.edit', $event) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a>
+                                @if ($event->attendances_count > 0)
+                                    <button type="button" class="silat-secondary-link text-gray-400" title="Tidak dapat dihapus karena sudah ada presensi" disabled><x-icon name="fa-trash" class="mr-1" /> Delete</button>
+                                @else
+                                    <form method="POST" action="{{ route('management.orientation-events.destroy', $event) }}" onsubmit="return confirm('Hapus event pembekalan ini?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="silat-secondary-link text-red-700 hover:text-red-900"><x-icon name="fa-trash" class="mr-1" /> Delete</button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     @empty

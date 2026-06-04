@@ -206,6 +206,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/management/orientation-events', [ManagementOrientationEventController::class, 'index'])->name('management.orientation-events.index');
         Route::get('/management/orientation-events/locations/search', [ManagementOrientationEventController::class, 'locationSuggestions'])->name('management.orientation-events.locations.search');
         Route::post('/management/orientation-events', [ManagementOrientationEventController::class, 'store'])->name('management.orientation-events.store');
+        Route::get('/management/orientation-events/{orientationEvent}/edit', [ManagementOrientationEventController::class, 'edit'])->name('management.orientation-events.edit');
+        Route::patch('/management/orientation-events/{orientationEvent}', [ManagementOrientationEventController::class, 'update'])->name('management.orientation-events.update');
+        Route::delete('/management/orientation-events/{orientationEvent}', [ManagementOrientationEventController::class, 'destroy'])->name('management.orientation-events.destroy');
         Route::get('/management/orientation-events/{orientationEvent}', [ManagementOrientationEventController::class, 'show'])->name('management.orientation-events.show');
         Route::get('/management/supervisor-requests', [ManagementSupervisorChangeRequestController::class, 'index'])->name('management.supervisor-requests.index');
         Route::patch('/management/supervisor-requests/{supervisorRequest}', [ManagementSupervisorChangeRequestController::class, 'update'])->name('management.supervisor-requests.update');
