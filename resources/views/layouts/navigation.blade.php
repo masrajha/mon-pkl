@@ -103,7 +103,7 @@
     }
 
     $monitoringItems = [
-        ['label' => 'Peta Mitra', 'route' => 'maps.places', 'icon' => 'fa-map', 'active' => ['maps.places']],
+        ['label' => 'Peta & Rute Mitra', 'route' => 'maps.places', 'icon' => 'fa-map', 'active' => ['maps.places']],
         ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
         ['label' => 'Rekap Monitoring', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
     ];

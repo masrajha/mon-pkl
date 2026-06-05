@@ -25,6 +25,15 @@
         </div>
     @endif
 
+    @if ($showCoordinatorAllStudyPrograms ?? false)
+        <div class="flex items-end">
+            <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                <input type="checkbox" name="all_study_programs" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($selectedAllStudyPrograms ?? false)>
+                {{ __('Tampilkan semua prodi') }}
+            </label>
+        </div>
+    @endif
+
     @if ($showDateFilters ?? false)
         <div>
             <x-input-label for="start_date" :value="__('Dari')" />

@@ -150,6 +150,17 @@ return [
         'monitoring_limit_max' => (int) env('MONPKL_MAP_MONITORING_LIMIT_MAX', 2000),
     ],
 
+    'routing' => [
+        'max_places' => (int) env('MONPKL_ROUTE_MAX_PLACES', 25),
+        'cache_minutes' => (int) env('MONPKL_ROUTE_CACHE_MINUTES', 60),
+        'osrm' => [
+            'enabled' => filter_var(env('MONPKL_OSRM_ENABLED', true), FILTER_VALIDATE_BOOL),
+            'base_url' => env('MONPKL_OSRM_BASE_URL', 'https://router.project-osrm.org'),
+            'profile' => env('MONPKL_OSRM_PROFILE', 'driving'),
+            'timeout_seconds' => (int) env('MONPKL_OSRM_TIMEOUT_SECONDS', 5),
+        ],
+    ],
+
     'region' => [
         'provinces_url' => env('MONPKL_REGION_PROVINCES_URL', 'https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'),
         'regencies_url' => env('MONPKL_REGION_REGENCIES_URL', 'https://www.emsifa.com/api-wilayah-indonesia/api/regencies/{province_id}.json'),

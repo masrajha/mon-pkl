@@ -7,6 +7,7 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\StudyProgram;
+use App\Services\MapRouteService;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -33,14 +34,7 @@ class MapController extends Controller
     {
         $request = $this->requestWithDefaultPlacesPeriod($request);
 
-        $query = InternshipPlace::query()
-            ->with('city')
-            ->withCount(['enrollments' => fn (Builder $query) => $this->scopeEnrollments($query, $request)])
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->whereHas('enrollments', fn (Builder $query) => $this->scopeEnrollments($query, $request));
-
-        $features = $query
+        $features = $this->placesQuery($request)
             ->orderBy('name')
             ->get()
             ->map(fn (InternshipPlace $place): array => [
@@ -65,6 +59,25 @@ class MapController extends Controller
             'type' => 'FeatureCollection',
             'features' => $features,
         ]);
+    }
+
+    public function placesRoute(Request $request, MapRouteService $routes): JsonResponse
+    {
+        $request = $this->requestWithDefaultPlacesPeriod($request);
+        $validated = $request->validate([
+            'start_lat' => ['required', 'numeric', 'between:-90,90'],
+            'start_lng' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        $places = $this->placesQuery($request)
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($routes->route(
+            $places,
+            (float) $validated['start_lat'],
+            (float) $validated['start_lng'],
+        ));
     }
 
     public function monitoringData(Request $request): JsonResponse
@@ -132,6 +145,8 @@ class MapController extends Controller
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedAllStudyPrograms' => $this->shouldShowAllStudyPrograms($request),
+            'showCoordinatorAllStudyPrograms' => ! $forMonitoring && (bool) $request->user()?->hasRole('koordinator'),
             'startDate' => $startDate->toDateString(),
             'endDate' => $endDate->toDateString(),
             'todayOnly' => $request->boolean('today_only'),
@@ -194,15 +209,16 @@ class MapController extends Controller
         return [$start, $end];
     }
 
-    private function scopeEnrollments(Builder $query, Request $request): Builder
+    private function scopeEnrollments(Builder $query, Request $request, bool $allowCoordinatorAllStudyPrograms = false): Builder
     {
         $user = $request->user();
+        $showAllStudyPrograms = $allowCoordinatorAllStudyPrograms && $this->shouldShowAllStudyPrograms($request);
 
         if ($request->filled('period_id')) {
             $query->where('internship_period_id', $request->integer('period_id'));
         }
 
-        if ($request->filled('study_program_id')) {
+        if ($request->filled('study_program_id') && ! $showAllStudyPrograms) {
             $query->where('study_program_id', $request->integer('study_program_id'));
         }
 
@@ -211,6 +227,10 @@ class MapController extends Controller
         }
 
         if ($user?->hasRole(['dosen', 'koordinator'])) {
+            if ($showAllStudyPrograms) {
+                return $query;
+            }
+
             $coordinatorAssignments = $user->lecturer?->coordinatorAssignments()
                 ->where('status', 'active')
                 ->get(['internship_period_id', 'study_program_id']) ?? collect();
@@ -238,6 +258,16 @@ class MapController extends Controller
         return $query->whereHas('student', fn (Builder $query) => $query->where('user_id', $user?->id));
     }
 
+    private function placesQuery(Request $request): Builder
+    {
+        return InternshipPlace::query()
+            ->with('city')
+            ->withCount(['enrollments' => fn (Builder $query) => $this->scopeEnrollments($query, $request, true)])
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->whereHas('enrollments', fn (Builder $query) => $this->scopeEnrollments($query, $request, true));
+    }
+
     private function requestWithDefaultPlacesPeriod(Request $request): Request
     {
         if ($request->filled('period_id') || ! $this->shouldDefaultPlacesToActivePeriod($request)) {
@@ -260,5 +290,11 @@ class MapController extends Controller
         return (bool) $user
             && ! $user->hasRole('admin')
             && $user->hasRole(['mahasiswa', 'koordinator']);
+    }
+
+    private function shouldShowAllStudyPrograms(Request $request): bool
+    {
+        return $request->boolean('all_study_programs')
+            && (bool) $request->user()?->hasRole('koordinator');
     }
 }

@@ -23,6 +23,7 @@ class MapAccessTest extends TestCase
         $this->get(route('maps.places'))->assertRedirect(route('login'));
         $this->get(route('maps.monitoring'))->assertRedirect(route('login'));
         $this->get(route('maps.places.data'))->assertRedirect(route('login'));
+        $this->get(route('maps.places.route'))->assertRedirect(route('login'));
         $this->get(route('maps.monitoring.data'))->assertRedirect(route('login'));
     }
 
@@ -33,6 +34,7 @@ class MapAccessTest extends TestCase
         $this->actingAs($admin)->get(route('maps.places'))->assertOk();
         $this->actingAs($admin)->get(route('maps.monitoring'))->assertOk();
         $this->actingAs($admin)->getJson(route('maps.places.data'))->assertOk()->assertJson(['type' => 'FeatureCollection']);
+        $this->actingAs($admin)->getJson(route('maps.places.route', ['start_lat' => -5.3971, 'start_lng' => 105.2668]))->assertOk();
         $this->actingAs($admin)->getJson(route('maps.monitoring.data'))->assertOk()->assertJsonStructure(['check_ins']);
     }
 
@@ -169,5 +171,100 @@ class MapAccessTest extends TestCase
             ->assertOk()
             ->assertJsonPath('features.0.properties.id', $place->id)
             ->assertJsonPath('features.0.properties.enrollments_count', 1);
+    }
+
+    public function test_coordinator_places_route_uses_scoped_places_with_haversine_fallback(): void
+    {
+        config()->set('monpkl.routing.osrm.enabled', false);
+
+        $user = User::factory()->create(['role' => 'dosen']);
+        $studyProgram = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $otherStudyProgram = StudyProgram::query()->create(['code' => 'SI', 'name' => 'Sistem Informasi', 'is_active' => true]);
+        $lecturer = Lecturer::query()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $studyProgram->id,
+            'name' => 'Koordinator Rute',
+            'status' => 'active',
+        ]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Aktif', 'is_active' => true]);
+        InternshipCoordinator::query()->create([
+            'lecturer_id' => $lecturer->id,
+            'internship_period_id' => $period->id,
+            'study_program_id' => $studyProgram->id,
+            'status' => 'active',
+        ]);
+
+        $includedPlace = InternshipPlace::query()->create([
+            'name' => 'Mitra Dalam Scope',
+            'latitude' => -5.3971,
+            'longitude' => 105.2668,
+            'is_active' => true,
+        ]);
+        $excludedPlace = InternshipPlace::query()->create([
+            'name' => 'Mitra Luar Scope',
+            'latitude' => -5.4100,
+            'longitude' => 105.2800,
+            'is_active' => true,
+        ]);
+        $studentUser = User::factory()->create(['role' => 'mahasiswa']);
+        $student = Student::query()->create([
+            'user_id' => $studentUser->id,
+            'study_program_id' => $studyProgram->id,
+            'npm' => '2217051007',
+            'full_name' => 'Mahasiswa Rute',
+        ]);
+        $otherStudent = Student::query()->create([
+            'user_id' => User::factory()->create(['role' => 'mahasiswa'])->id,
+            'study_program_id' => $otherStudyProgram->id,
+            'npm' => '2217051008',
+            'full_name' => 'Mahasiswa Luar Rute',
+        ]);
+
+        InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $studyProgram->id,
+            'internship_period_id' => $period->id,
+            'internship_place_id' => $includedPlace->id,
+            'status' => 'active',
+        ]);
+        InternshipEnrollment::query()->create([
+            'student_id' => $otherStudent->id,
+            'study_program_id' => $otherStudyProgram->id,
+            'internship_period_id' => $period->id,
+            'internship_place_id' => $excludedPlace->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->getJson(route('maps.places.route', [
+                'start_lat' => -5.3900,
+                'start_lng' => 105.2600,
+            ]))
+            ->assertOk()
+            ->assertJsonPath('source', 'haversine')
+            ->assertJsonPath('fallback', true)
+            ->assertJsonPath('stops.0.id', $includedPlace->id)
+            ->assertJsonMissing(['id' => $excludedPlace->id]);
+
+        $this->actingAs($user)
+            ->get(route('maps.places', ['all_study_programs' => 1]))
+            ->assertOk()
+            ->assertSee('Tampilkan semua prodi');
+
+        $this->actingAs($user)
+            ->getJson(route('maps.places.data', ['all_study_programs' => 1]))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $includedPlace->id])
+            ->assertJsonFragment(['id' => $excludedPlace->id]);
+
+        $this->actingAs($user)
+            ->getJson(route('maps.places.route', [
+                'all_study_programs' => 1,
+                'start_lat' => -5.3900,
+                'start_lng' => 105.2600,
+            ]))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $includedPlace->id])
+            ->assertJsonFragment(['id' => $excludedPlace->id]);
     }
 }

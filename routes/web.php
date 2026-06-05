@@ -167,6 +167,7 @@ Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verif
 Route::middleware('auth')->group(function () {
     Route::get('/maps/places', [MapController::class, 'places'])->name('maps.places');
     Route::get('/maps/places/data', [MapController::class, 'placesData'])->name('maps.places.data');
+    Route::get('/maps/places/route', [MapController::class, 'placesRoute'])->name('maps.places.route');
     Route::get('/maps/monitoring', [MapController::class, 'monitoring'])->name('maps.monitoring');
     Route::get('/maps/monitoring/data', [MapController::class, 'monitoringData'])->name('maps.monitoring.data');
     Route::get('/locations/search', LocationSuggestionController::class)->name('locations.search');

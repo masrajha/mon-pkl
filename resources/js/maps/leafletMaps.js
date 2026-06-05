@@ -84,10 +84,12 @@ function mapConfig(element) {
 async function initPlacesMap(element) {
     const map = baseMap(element);
     const group = L.markerClusterGroup();
+    const routeLayer = L.layerGroup().addTo(map);
     const data = await fetchJson(element.dataset.dataUrl);
     const markerByPlaceId = new Map();
     const featureByPlaceId = new Map();
     const tableBody = element.dataset.tableTarget ? document.getElementById(element.dataset.tableTarget) : null;
+    const routeTableBody = element.dataset.routeTableTarget ? document.getElementById(element.dataset.routeTableTarget) : null;
 
     const selectPlace = (placeId, options = {}) => {
         const marker = markerByPlaceId.get(Number(placeId));
@@ -130,6 +132,182 @@ async function initPlacesMap(element) {
     fitLayer(map, group);
 
     renderPlacesTable(tableBody, data.features, selectPlace);
+    initPlacesRouteControls(element, map, routeLayer, routeTableBody, selectPlace);
+}
+
+function initPlacesRouteControls(element, map, routeLayer, routeTableBody, selectPlace) {
+    const form = element.dataset.routeForm ? document.getElementById(element.dataset.routeForm) : null;
+    const status = element.dataset.routeStatusTarget ? document.getElementById(element.dataset.routeStatusTarget) : null;
+    const summary = element.dataset.routeSummaryTarget ? document.getElementById(element.dataset.routeSummaryTarget) : null;
+    const currentLocationButton = form?.querySelector('[data-route-current-location]');
+    let startPreviewMarker = null;
+
+    if (!form || !element.dataset.routeUrl) {
+        return;
+    }
+
+    const setStartLocation = (lat, lng, message, focus = false) => {
+        form.elements.start_lat.value = lat.toFixed(7);
+        form.elements.start_lng.value = lng.toFixed(7);
+        routeLayer.clearLayers();
+
+        startPreviewMarker = L.marker([lat, lng], { icon: routeStartIcon() })
+            .bindPopup('<strong>Titik awal</strong>')
+            .addTo(routeLayer);
+
+        if (focus) {
+            map.setView([lat, lng], Math.max(map.getZoom(), mapConfig(element).officeZoom));
+            startPreviewMarker.openPopup();
+        }
+
+        if (summary) {
+            summary.textContent = 'Titik awal siap. Tekan Hitung Rute untuk menyusun kunjungan.';
+        }
+
+        setRouteStatus(status, message, 'success');
+    };
+
+    const initialLat = Number(form.elements.start_lat.value);
+    const initialLng = Number(form.elements.start_lng.value);
+
+    if (isValidLatLng(initialLat, initialLng)) {
+        setStartLocation(initialLat, initialLng, 'Titik awal default: Universitas Lampung.');
+    }
+
+    map.on('click', (event) => {
+        setStartLocation(event.latlng.lat, event.latlng.lng, 'Titik awal dipilih dari peta.');
+    });
+
+    currentLocationButton?.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            setRouteStatus(status, 'Peramban tidak mendukung geolokasi.', 'error');
+            return;
+        }
+
+        setRouteStatus(status, 'Mengambil lokasi saat ini...', 'info');
+        navigator.geolocation.getCurrentPosition((position) => {
+            setStartLocation(position.coords.latitude, position.coords.longitude, 'Lokasi awal terisi.', true);
+        }, () => {
+            setRouteStatus(status, 'Lokasi saat ini belum dapat diambil.', 'error');
+        }, {
+            enableHighAccuracy: Boolean(mapConfig(element).geolocation?.enable_high_accuracy ?? true),
+            timeout: Number(mapConfig(element).geolocation?.timeout_ms ?? 12000),
+            maximumAge: Number(mapConfig(element).geolocation?.maximum_age_ms ?? 30000),
+        });
+    });
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const startLat = Number(form.elements.start_lat.value);
+        const startLng = Number(form.elements.start_lng.value);
+
+        if (!isValidLatLng(startLat, startLng)) {
+            setRouteStatus(status, 'Koordinat titik awal belum valid.', 'error');
+            return;
+        }
+
+        setRouteStatus(status, 'Menghitung rute...', 'info');
+
+        try {
+            const route = await fetchJson(routeUrl(element.dataset.routeUrl, startLat, startLng));
+            renderPlacesRoute(map, routeLayer, route, startLat, startLng, routeTableBody, summary, selectPlace);
+            setRouteStatus(status, route.message || 'Rute berhasil dihitung.', route.fallback ? 'warning' : 'success');
+        } catch (error) {
+            setRouteStatus(status, 'Rute belum dapat dihitung.', 'error');
+        }
+    });
+}
+
+function routeUrl(baseUrl, startLat, startLng) {
+    const url = new URL(baseUrl, window.location.origin);
+
+    url.searchParams.set('start_lat', startLat.toFixed(7));
+    url.searchParams.set('start_lng', startLng.toFixed(7));
+
+    return url.toString();
+}
+
+function renderPlacesRoute(map, routeLayer, route, startLat, startLng, tableBody, summary, selectPlace) {
+    routeLayer.clearLayers();
+
+    const start = L.latLng(startLat, startLng);
+    const geometry = Array.isArray(route.geometry) ? route.geometry : [];
+    const latLngs = geometry
+        .map((coordinate) => Array.isArray(coordinate) && coordinate.length >= 2 ? [Number(coordinate[1]), Number(coordinate[0])] : null)
+        .filter((coordinate) => coordinate && isValidLatLng(coordinate[0], coordinate[1]));
+
+    L.marker(start, { icon: routeStartIcon() })
+        .bindPopup('<strong>Titik awal</strong>')
+        .addTo(routeLayer);
+
+    if (latLngs.length > 1) {
+        L.polyline(latLngs, {
+            color: route.fallback ? '#d97706' : '#0f766e',
+            weight: 4,
+            opacity: 0.8,
+        }).addTo(routeLayer);
+    }
+
+    (route.stops || []).forEach((stop) => {
+        L.marker([stop.lat, stop.lng], { icon: routeStopIcon(stop.order) })
+            .bindPopup(routeStopPopup(stop))
+            .on('click', () => selectPlace(stop.id, { focusMap: false }))
+            .addTo(routeLayer);
+    });
+
+    fitLayer(map, routeLayer);
+    renderPlacesRouteTable(tableBody, route.stops || [], selectPlace);
+
+    if (summary) {
+        const distance = formatDistance(route.total_distance_meters);
+        const duration = route.total_duration_seconds === null ? '' : ` &middot; ${formatDuration(route.total_duration_seconds)}`;
+        const omitted = Number(route.omitted_count || 0) > 0 ? ` &middot; ${Number(route.omitted_count).toLocaleString('id-ID')} mitra tidak masuk batas rute` : '';
+        summary.innerHTML = `${distance}${duration}${omitted}`;
+    }
+}
+
+function renderPlacesRouteTable(tableBody, stops, selectPlace) {
+    if (!tableBody) {
+        return;
+    }
+
+    tableBody.replaceChildren();
+
+    if (stops.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="3" class="silat-table-cell text-center text-gray-500">Tidak ada rute pada filter ini.</td>';
+        tableBody.append(row);
+        return;
+    }
+
+    stops.forEach((stop) => {
+        const row = document.createElement('tr');
+
+        row.className = 'cursor-pointer transition hover:bg-teal-50';
+        row.innerHTML = `
+            <td class="silat-table-cell text-gray-700">${Number(stop.order || 0).toLocaleString('id-ID')}</td>
+            <td class="silat-table-cell">
+                <div class="font-medium text-gray-900">${escapeHtml(stop.name || '-')}</div>
+                <div class="line-clamp-2 text-xs text-gray-500">${escapeHtml(stop.city || stop.address || '-')}</div>
+            </td>
+            <td class="silat-table-cell text-gray-700">
+                <div>${formatDistance(stop.segment_distance_meters)}</div>
+                <div class="text-xs text-gray-500">${formatDistance(stop.cumulative_distance_meters)}</div>
+            </td>
+        `;
+        row.addEventListener('click', () => selectPlace(stop.id, { scroll: true }));
+        tableBody.append(row);
+    });
+}
+
+function setRouteStatus(element, message, type) {
+    if (!element) {
+        return;
+    }
+
+    element.textContent = message;
+    element.className = `text-sm ${type === 'error' ? 'text-red-600' : type === 'warning' ? 'text-amber-700' : type === 'success' ? 'text-green-700' : 'text-gray-500'}`;
 }
 
 async function initMonitoringMap(element) {
@@ -801,6 +979,24 @@ function checkInIcon(type) {
     });
 }
 
+function routeStartIcon() {
+    return L.divIcon({
+        className: 'monpkl-route-start-icon',
+        html: '<span><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i></span>',
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+    });
+}
+
+function routeStopIcon(order) {
+    return L.divIcon({
+        className: 'monpkl-route-stop-icon',
+        html: `<span>${Number(order || 0).toLocaleString('id-ID')}</span>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+    });
+}
+
 function placePopup(props) {
     return `
         <div class="monpkl-popup">
@@ -838,6 +1034,18 @@ function officePopup(checkIn) {
     `;
 }
 
+function routeStopPopup(stop) {
+    return `
+        <div class="monpkl-popup">
+            <strong>${Number(stop.order || 0).toLocaleString('id-ID')}. ${escapeHtml(stop.name || '-')}</strong>
+            <span>${escapeHtml(stop.city || '-')}</span>
+            <span>${escapeHtml(stop.address || '-')}</span>
+            <span>Segmen: ${formatDistance(stop.segment_distance_meters)}</span>
+            <span>Total: ${formatDistance(stop.cumulative_distance_meters)}</span>
+        </div>
+    `;
+}
+
 function formatDate(value) {
     if (!value) {
         return '-';
@@ -847,6 +1055,28 @@ function formatDate(value) {
         dateStyle: 'medium',
         timeStyle: 'short',
     }).format(new Date(value));
+}
+
+function formatDistance(value) {
+    const meters = Number(value || 0);
+
+    if (meters >= 1000) {
+        return `${(meters / 1000).toLocaleString('id-ID', { maximumFractionDigits: 2 })} km`;
+    }
+
+    return `${meters.toLocaleString('id-ID', { maximumFractionDigits: 0 })} m`;
+}
+
+function formatDuration(value) {
+    const seconds = Number(value || 0);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.round((seconds % 3600) / 60);
+
+    if (hours > 0) {
+        return `${hours} jam ${minutes} menit`;
+    }
+
+    return `${minutes} menit`;
 }
 
 function escapeHtml(value) {
