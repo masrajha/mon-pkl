@@ -72,15 +72,16 @@ class CheckInController extends Controller
         }
 
         $checkedAt = now($settings['timezone']);
-        $period = $enrollment->internshipPeriod;
+        $attendanceStartsAt = $enrollment->effectiveAttendanceStartsAt();
+        $attendanceEndsAt = $enrollment->effectiveAttendanceEndsAt();
 
-        if ($period?->starts_at && $checkedAt->lt($period->starts_at->copy()->startOfDay())) {
+        if ($attendanceStartsAt && $checkedAt->lt($attendanceStartsAt->copy()->startOfDay())) {
             throw ValidationException::withMessages([
                 'student_latitude' => 'Periode program belum dimulai.',
             ]);
         }
 
-        if ($period?->ends_at && $checkedAt->gt($period->ends_at->copy()->endOfDay())) {
+        if ($attendanceEndsAt && $checkedAt->gt($attendanceEndsAt->copy()->endOfDay())) {
             throw ValidationException::withMessages([
                 'student_latitude' => 'Periode program sudah selesai.',
             ]);

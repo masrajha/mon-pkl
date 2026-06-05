@@ -14,6 +14,8 @@ class InternshipEnrollment extends Model
         'study_program_id',
         'internship_period_id',
         'internship_place_id',
+        'attendance_starts_at',
+        'attendance_ends_at',
         'lecturer_supervisor_id',
         'lecturer_supervisor_user_id',
         'lecturer_supervisor',
@@ -37,9 +39,26 @@ class InternshipEnrollment extends Model
     protected function casts(): array
     {
         return [
+            'attendance_starts_at' => 'date',
+            'attendance_ends_at' => 'date',
             'has_krs_pkl' => 'boolean',
             'gpa' => 'decimal:2',
         ];
+    }
+
+    public function effectiveAttendanceStartsAt()
+    {
+        return $this->attendance_starts_at ?? $this->internshipPeriod?->starts_at;
+    }
+
+    public function effectiveAttendanceEndsAt()
+    {
+        return $this->attendance_ends_at ?? $this->internshipPeriod?->ends_at;
+    }
+
+    public function hasAttendanceOverride(): bool
+    {
+        return filled($this->attendance_starts_at) || filled($this->attendance_ends_at);
     }
 
     public function student()

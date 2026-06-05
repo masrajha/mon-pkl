@@ -18,7 +18,8 @@
                 <x-input-label for="academic_year" value="Tahun Akademik" /><x-text-input id="academic_year" name="academic_year" class="block w-full" />
                 <x-input-label for="semester" value="Semester" /><x-text-input id="semester" name="semester" class="block w-full" />
                 <x-input-label for="batch" value="Gelombang" /><x-text-input id="batch" name="batch" class="block w-full" />
-                <div class="grid gap-3 sm:grid-cols-2"><div><x-input-label for="starts_at" value="Mulai" /><x-text-input id="starts_at" name="starts_at" type="date" class="block w-full" /></div><div><x-input-label for="ends_at" value="Selesai" /><x-text-input id="ends_at" name="ends_at" type="date" class="block w-full" /></div></div>
+                <div class="grid gap-3 sm:grid-cols-2"><div><x-input-label for="starts_at" value="Mulai Pelaksanaan / Presensi" /><x-text-input id="starts_at" name="starts_at" type="date" class="block w-full" /></div><div><x-input-label for="ends_at" value="Selesai Pelaksanaan / Presensi" /><x-text-input id="ends_at" name="ends_at" type="date" class="block w-full" /></div></div>
+                <p class="text-xs text-gray-500">Rentang ini menjadi default valid presensi peserta. Peserta tertentu dapat memiliki tanggal presensi khusus di menu Peserta Periode.</p>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" value="1" class="rounded border-gray-300"> Aktif</label>
                 <x-primary-button>Simpan</x-primary-button>
             </form>
@@ -37,7 +38,7 @@
                 </x-table-controls>
                 <div class="silat-table-wrap">
                 <table class="silat-table">
-                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><x-sortable-heading column="name" label="Periode" /></th><th class="silat-table-cell">Program</th><th class="silat-table-cell"><x-sortable-heading column="academic_year" label="Akademik" /></th><th class="silat-table-cell"><x-sortable-heading column="starts_at" label="Tanggal" /></th><th class="silat-table-cell">Status</th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
+                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><x-sortable-heading column="name" label="Periode" /></th><th class="silat-table-cell">Program</th><th class="silat-table-cell"><x-sortable-heading column="academic_year" label="Akademik" /></th><th class="silat-table-cell"><x-sortable-heading column="starts_at" label="Pelaksanaan / Presensi" /></th><th class="silat-table-cell">Status</th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
                     <tbody>
                         @foreach ($periods as $period)
                             <tr>

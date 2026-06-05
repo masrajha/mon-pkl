@@ -48,6 +48,28 @@
     @endforeach
 </select>
 
+<div class="rounded-md border border-blue-100 bg-blue-50 p-4">
+    <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+            <h4 class="text-sm font-semibold text-gray-900">Periode Presensi Peserta</h4>
+            <p class="mt-1 text-xs text-gray-600">Kosongkan tanggal khusus untuk mengikuti Mulai/Selesai Pelaksanaan dari Periode Program.</p>
+        </div>
+        @if ($enrollment?->hasAttendanceOverride())
+            <x-badge variant="info">Khusus</x-badge>
+        @endif
+    </div>
+    <div class="mt-3 grid gap-3 sm:grid-cols-2">
+        <div>
+            <x-input-label for="attendance_starts_at" value="Mulai Presensi Khusus" />
+            <x-text-input id="attendance_starts_at" name="attendance_starts_at" type="date" class="block w-full" :value="old('attendance_starts_at', $enrollment?->attendance_starts_at?->toDateString())" />
+        </div>
+        <div>
+            <x-input-label for="attendance_ends_at" value="Selesai Presensi Khusus" />
+            <x-text-input id="attendance_ends_at" name="attendance_ends_at" type="date" class="block w-full" :value="old('attendance_ends_at', $enrollment?->attendance_ends_at?->toDateString())" />
+        </div>
+    </div>
+</div>
+
 <x-input-label for="lecturer_supervisor_id" value="Dosen Pembimbing" />
 <select id="lecturer_supervisor_id" name="lecturer_supervisor_id" class="block w-full rounded-md border-gray-300">
     <option value="">Belum ditentukan</option>

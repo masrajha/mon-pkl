@@ -154,6 +154,8 @@ class EnrollmentController extends Controller
         $data = $request->validate([
             'internship_period_id' => ['required', 'exists:internship_periods,id'],
             'internship_place_id' => ['nullable', 'exists:internship_places,id'],
+            'attendance_starts_at' => ['nullable', 'date'],
+            'attendance_ends_at' => ['nullable', 'date'],
             'lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
             'field_supervisor' => ['nullable', 'string', 'max:255'],
             'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
@@ -201,9 +203,51 @@ class EnrollmentController extends Controller
         $data['lecturer_supervisor_user_id'] = $lecturer?->user_id;
         $data['lecturer_supervisor'] = $lecturer?->name;
         $data['has_krs_pkl'] = (bool) ($data['has_krs_pkl'] ?? false);
+        $this->validateEffectiveAttendancePeriod($data);
+        $this->validateLockedAttendanceOverride($request, $data, $enrollment);
         $this->validateQuota($data, $enrollment);
 
         return $data;
+    }
+
+    private function validateEffectiveAttendancePeriod(array $data): void
+    {
+        $period = InternshipPeriod::query()->find($data['internship_period_id']);
+        $startsAt = $data['attendance_starts_at'] ?? $period?->starts_at?->toDateString();
+        $endsAt = $data['attendance_ends_at'] ?? $period?->ends_at?->toDateString();
+
+        if ($startsAt && $endsAt && $endsAt < $startsAt) {
+            throw ValidationException::withMessages([
+                'attendance_ends_at' => 'Selesai presensi efektif tidak boleh lebih awal dari mulai presensi efektif.',
+            ]);
+        }
+    }
+
+    private function validateLockedAttendanceOverride(Request $request, array $data, ?InternshipEnrollment $enrollment): void
+    {
+        if (! $enrollment) {
+            return;
+        }
+
+        $period = InternshipPeriod::query()->find($data['internship_period_id']);
+
+        if (! $period?->is_locked || $this->isSuperAdmin($request)) {
+            return;
+        }
+
+        $startsAt = $enrollment->attendance_starts_at?->toDateString();
+        $endsAt = $enrollment->attendance_ends_at?->toDateString();
+
+        if (($data['attendance_starts_at'] ?? null) !== $startsAt || ($data['attendance_ends_at'] ?? null) !== $endsAt) {
+            throw ValidationException::withMessages([
+                'attendance_starts_at' => 'Periode sudah terkunci. Tanggal presensi khusus hanya dapat diubah oleh admin khusus.',
+            ]);
+        }
+    }
+
+    private function isSuperAdmin(Request $request): bool
+    {
+        return in_array($request->user()?->email, config('monpkl.super_admin_emails', []), true);
     }
 
     private function validateQuota(array $data, ?InternshipEnrollment $enrollment = null): void

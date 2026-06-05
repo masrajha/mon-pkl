@@ -96,7 +96,7 @@ class CheckInFeatureTest extends TestCase
 
         $user = User::factory()->create(['role' => 'mahasiswa']);
         $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
-        $period = InternshipPeriod::query()->create(['name' => 'Periode Uji', 'academic_year' => '2025/2026', 'semester' => 'Genap']);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Uji', 'academic_year' => '2025/2026', 'semester' => 'Genap', 'is_active' => true]);
         $place = InternshipPlace::query()->create(['name' => 'Instansi Uji', 'latitude' => -5.3971, 'longitude' => 105.2668]);
         $student = Student::query()->create(['user_id' => $user->id, 'study_program_id' => $program->id, 'npm' => '2217051002', 'full_name' => $user->name]);
         InternshipEnrollment::query()->create([
@@ -210,15 +210,58 @@ class CheckInFeatureTest extends TestCase
         $this->assertDatabaseCount('check_ins', 0);
     }
 
-    private function activeEnrollmentFor(User $user): array
+    public function test_check_in_uses_enrollment_attendance_override_dates(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        [$enrollment] = $this->activeEnrollmentFor($user, [
+            'starts_at' => '2026-06-15',
+            'ends_at' => '2026-07-31',
+        ], [
+            'attendance_starts_at' => '2026-06-20',
+            'attendance_ends_at' => '2026-08-10',
+        ]);
+
+        Carbon::setTestNow(Carbon::create(2026, 6, 18, 8, 30, 0, config('monpkl.timezone')));
+        $this->actingAs($user)
+            ->from(route('check-ins.create'))
+            ->post(route('check-ins.store'), [
+                'student_latitude' => -5.3972,
+                'student_longitude' => 105.2669,
+                'action' => 'check_in',
+                'note' => 'Menyusun rencana aktivitas pengujian hari ini.',
+                'photo_capture' => $this->capturedPhoto(),
+            ])
+            ->assertRedirect(route('check-ins.create'))
+            ->assertSessionHasErrors('student_latitude');
+
+        Carbon::setTestNow(Carbon::create(2026, 8, 5, 8, 30, 0, config('monpkl.timezone')));
+        $this->actingAs($user)
+            ->post(route('check-ins.store'), [
+                'student_latitude' => -5.3972,
+                'student_longitude' => 105.2669,
+                'action' => 'check_in',
+                'note' => 'Menyusun rencana aktivitas pengujian hari ini.',
+                'photo_capture' => $this->capturedPhoto(),
+            ])
+            ->assertRedirect(route('check-ins.create'));
+
+        $this->assertDatabaseHas('check_ins', [
+            'internship_enrollment_id' => $enrollment->id,
+            'action' => 'check_in',
+        ]);
+    }
+
+    private function activeEnrollmentFor(User $user, array $periodOverrides = [], array $enrollmentOverrides = []): array
     {
         $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
-        $period = InternshipPeriod::query()->create([
+        $period = InternshipPeriod::query()->create(array_merge([
             'name' => 'Periode Uji',
             'academic_year' => '2025/2026',
             'semester' => 'Genap',
             'is_active' => true,
-        ]);
+        ], $periodOverrides));
         $place = InternshipPlace::query()->create([
             'name' => 'Instansi Uji',
             'latitude' => -5.3971,
@@ -230,13 +273,13 @@ class CheckInFeatureTest extends TestCase
             'npm' => '221705'.str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
             'full_name' => $user->name,
         ]);
-        $enrollment = InternshipEnrollment::query()->create([
+        $enrollment = InternshipEnrollment::query()->create(array_merge([
             'student_id' => $student->id,
             'study_program_id' => $program->id,
             'internship_period_id' => $period->id,
             'internship_place_id' => $place->id,
             'status' => 'active',
-        ]);
+        ], $enrollmentOverrides));
 
         return [$enrollment, $student, $period, $place];
     }

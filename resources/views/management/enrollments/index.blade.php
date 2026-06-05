@@ -71,6 +71,8 @@
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($enrollments as $enrollment)
                                     @php
+                                        $attendanceStartsAt = $enrollment->effectiveAttendanceStartsAt();
+                                        $attendanceEndsAt = $enrollment->effectiveAttendanceEndsAt();
                                         $statusVariant = match($enrollment->status) {
                                             'active' => 'success',
                                             'pending_verification', 'draft' => 'warning',
@@ -88,6 +90,15 @@
                                         <td class="silat-table-cell">
                                             {{ $enrollment->internshipPeriod?->display_name }}
                                             <div class="text-xs text-gray-500">{{ $enrollment->studyProgram?->name }}</div>
+                                            <div class="mt-1 text-xs text-gray-500">
+                                                Presensi:
+                                                {{ $attendanceStartsAt?->format('d/m/Y') ?: '-' }}
+                                                -
+                                                {{ $attendanceEndsAt?->format('d/m/Y') ?: '-' }}
+                                                @if ($enrollment->hasAttendanceOverride())
+                                                    <x-badge variant="info">Khusus</x-badge>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="silat-table-cell text-gray-600">{{ $enrollment->internshipPlace?->name ?: '-' }}</td>
                                         <td class="silat-table-cell">

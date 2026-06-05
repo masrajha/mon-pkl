@@ -45,6 +45,14 @@
                 </div>
 
                 <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div class="mb-4 rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                        <p class="font-semibold">{{ __('Pelaksanaan / presensi periode') }}:
+                            {{ $period->starts_at?->format('d/m/Y') ?: '-' }}
+                            {{ __('s.d.') }}
+                            {{ $period->ends_at?->format('d/m/Y') ?: '-' }}
+                        </p>
+                        <p class="mt-1 text-xs text-blue-800">{{ __('Presensi mahasiswa mengikuti rentang ini secara default. Deadline pendaftaran, laporan, seminar, dan hardcopy dapat berlangsung di luar rentang pelaksanaan.') }}</p>
+                    </div>
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Pendaftaran dan Kuota') }}</h3>
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
                         <div>
