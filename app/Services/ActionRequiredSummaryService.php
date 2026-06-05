@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlaceProposal;
 use App\Models\RelocationRequest;
+use App\Models\SeminarRequest;
+use App\Models\SubmissionProgress;
 use App\Models\SupervisorChangeRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,7 +15,15 @@ class ActionRequiredSummaryService
 {
     public function forUser(?User $user): array
     {
-        if (! $user || ! $user->hasRole(['admin', 'koordinator'])) {
+        if (! $user) {
+            return [];
+        }
+
+        if ($user->hasRole('dosen')) {
+            return $this->lecturerActions($user);
+        }
+
+        if (! $user->hasRole(['admin', 'koordinator'])) {
             return [];
         }
 
@@ -90,6 +100,44 @@ class ActionRequiredSummaryService
             ->whereHas('enrollment', fn (Builder $query) => $this->scopeByCoordinator($query, $user));
 
         return $query->count();
+    }
+
+    private function lecturerActions(User $user): array
+    {
+        return [
+            'lecturer_report_reviews' => [
+                'label' => 'Review Laporan',
+                'count' => $this->lecturerReportReviewCount($user),
+                'route' => 'management.submission-progress.index',
+                'params' => ['status' => 'pending'],
+                'icon' => 'fa-file-circle-check',
+                'description' => 'Unggahan laporan mahasiswa bimbingan menunggu review.',
+            ],
+            'lecturer_seminar_reviews' => [
+                'label' => 'Review Seminar',
+                'count' => $this->lecturerSeminarReviewCount($user),
+                'route' => 'management.seminar-requests.index',
+                'params' => [],
+                'icon' => 'fa-person-chalkboard',
+                'description' => 'ACC seminar atau penilaian seminar menunggu tindakan dosen.',
+            ],
+        ];
+    }
+
+    private function lecturerReportReviewCount(User $user): int
+    {
+        return SubmissionProgress::query()
+            ->where('status', 'pending')
+            ->whereHas('enrollment', fn (Builder $query) => $query->where('lecturer_supervisor_user_id', $user->id))
+            ->count();
+    }
+
+    private function lecturerSeminarReviewCount(User $user): int
+    {
+        return SeminarRequest::query()
+            ->whereIn('status', ['waiting_lecturer_approval', 'scheduled'])
+            ->whereHas('enrollment', fn (Builder $query) => $query->where('lecturer_supervisor_user_id', $user->id))
+            ->count();
     }
 
     private function scopeByCoordinator(Builder $query, User $user): void

@@ -8,6 +8,7 @@ use App\Models\InternshipPeriod;
 use App\Models\InternshipPlaceProposal;
 use App\Services\PeriodConfigurationService;
 use App\Services\PlaceProposalEmailNotificationService;
+use App\Services\StudentWorkflowAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -18,6 +19,7 @@ class PlaceProposalController extends Controller
     public function __construct(
         private readonly PeriodConfigurationService $configurations,
         private readonly PlaceProposalEmailNotificationService $proposalEmails,
+        private readonly StudentWorkflowAccessService $workflowAccess,
     ) {
     }
 
@@ -41,6 +43,8 @@ class PlaceProposalController extends Controller
     {
         $student = $this->studentWithStudyProgram($request);
         $data = $this->validatedProposalData($request);
+        $period = InternshipPeriod::query()->with('setting')->findOrFail($data['internship_period_id']);
+        $this->ensurePlaceProposalOpen($period);
 
         $proposal = InternshipPlaceProposal::query()->create($data + [
             'student_id' => $student->id,
@@ -76,8 +80,11 @@ class PlaceProposalController extends Controller
         }
 
         $student = $this->studentWithStudyProgram($request);
+        $data = $this->validatedProposalData($request);
+        $period = InternshipPeriod::query()->with('setting')->findOrFail($data['internship_period_id']);
+        $this->ensurePlaceProposalOpen($period);
 
-        $proposal->update($this->validatedProposalData($request) + [
+        $proposal->update($data + [
             'study_program_id' => $student->study_program_id,
             'proposed_by' => $request->user()->id,
         ]);
@@ -121,11 +128,13 @@ class PlaceProposalController extends Controller
     private function formOptions(?InternshipPlaceProposal $proposal = null): array
     {
         $periods = InternshipPeriod::query()
-            ->with('program')
+            ->with(['program', 'setting'])
             ->where('is_locked', false)
             ->orderByDesc('is_active')
             ->orderByDesc('id')
-            ->get();
+            ->get()
+            ->filter(fn (InternshipPeriod $period) => $this->workflowAccess->placeProposalOpen($period))
+            ->values();
 
         if ($proposal && ! $periods->contains('id', $proposal->internship_period_id)) {
             $proposalPeriod = InternshipPeriod::query()->with('program')->find($proposal->internship_period_id);
@@ -159,6 +168,15 @@ class PlaceProposalController extends Controller
             'field_supervisor_name' => ['nullable', 'string', 'max:255'],
             'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
         ]);
+    }
+
+    private function ensurePlaceProposalOpen(InternshipPeriod $period): void
+    {
+        if (! $this->workflowAccess->placeProposalOpen($period)) {
+            throw ValidationException::withMessages([
+                'internship_period_id' => 'Usulan mitra baru untuk periode ini sedang ditutup.',
+            ]);
+        }
     }
 
     private function authorizeStudentProposal(Request $request, InternshipPlaceProposal $proposal): void

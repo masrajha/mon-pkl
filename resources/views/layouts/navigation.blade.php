@@ -14,20 +14,19 @@
         $groups[] = [
             'label' => 'Program Saya',
             'items' => [
-                ['label' => 'Ringkasan Program', 'route' => 'student.dashboard', 'icon' => 'fa-house-user', 'active' => ['student.dashboard']],
+                ['label' => 'Ringkasan Program', 'route' => 'student.dashboard', 'icon' => 'fa-house-user', 'active' => ['student.dashboard', 'student.reports.*']],
                 ['label' => 'Profil Saya', 'route' => 'student.profile.edit', 'icon' => 'fa-id-card', 'active' => ['student.profile.*']],
                 ['label' => 'Pendaftaran Program', 'route' => 'student.enrollments.create', 'icon' => 'fa-clipboard-list', 'active' => ['student.enrollments.*']],
-                ['label' => 'Usulan Mitra', 'route' => 'student.proposals.index', 'icon' => 'fa-building-circle-arrow-right', 'active' => ['student.proposals.*']],
-                ['label' => 'Pindah Mitra', 'route' => 'student.relocations.index', 'icon' => 'fa-route', 'active' => ['student.relocations.*']],
-                ['label' => 'Perubahan Pembimbing', 'route' => 'student.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['student.supervisor-requests.*']],
                 ['label' => 'Presensi', 'route' => 'check-ins.create', 'icon' => 'fa-fingerprint', 'active' => ['check-ins.*']],
-                ['label' => 'Laporan & Log', 'route' => 'student.dashboard', 'icon' => 'fa-book-open', 'active' => ['student.reports.*']],
             ],
         ];
 
         $groups[] = [
-            'label' => 'Mitra',
+            'label' => 'Layanan Program',
             'items' => [
+                ['label' => 'Usulan Mitra', 'route' => 'student.proposals.index', 'icon' => 'fa-building-circle-arrow-right', 'active' => ['student.proposals.*']],
+                ['label' => 'Pindah Mitra', 'route' => 'student.relocations.index', 'icon' => 'fa-route', 'active' => ['student.relocations.*']],
+                ['label' => 'Perubahan Pembimbing', 'route' => 'student.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['student.supervisor-requests.*']],
                 ['label' => 'Data Mitra', 'route' => 'student.places.index', 'icon' => 'fa-building', 'active' => ['student.places.*']],
             ],
         ];
@@ -55,8 +54,8 @@
         $groups[] = [
             'label' => 'Dosen Pembimbing',
             'items' => [
-                ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
-                ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
+                ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*'], 'badge' => 'lecturer_report_reviews'],
+                ['label' => 'Seminar & Penilaian', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*'], 'badge' => 'lecturer_seminar_reviews'],
                 ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
                 ['label' => 'Rekap Bimbingan', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
             ],

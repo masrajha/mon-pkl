@@ -85,7 +85,7 @@
                                     <td class="silat-table-cell">
                                         <div class="font-medium text-gray-900">{{ $seminarRequest->title }}</div>
                                         <div class="text-xs text-gray-500">{{ $enrollment?->internshipPeriod?->display_name ?: '-' }}</div>
-                                        <div class="mt-1 text-xs text-gray-500">Usulan: {{ $seminarRequest->proposed_date?->format('d/m/Y') ?: '-' }} {{ $seminarRequest->proposed_time ?: '' }}</div>
+                                        <div class="mt-1 text-xs text-gray-500">Usulan: {{ $seminarRequest->proposed_date?->format('d/m/Y') ?: '-' }} {{ $seminarRequest->proposed_time ? substr((string) $seminarRequest->proposed_time, 0, 5) : '' }}</div>
                                         @if ($seminarRequest->student_note)
                                             <div class="mt-1 text-xs text-gray-500">{{ Str::limit($seminarRequest->student_note, 100) }}</div>
                                         @endif
@@ -158,10 +158,20 @@
                                             @endif
 
                                             @if ($canSchedule && in_array($seminarRequest->status, ['lecturer_approved', 'manual_acc_approved', 'scheduled'], true))
+                                                @php
+                                                    $defaultScheduledAt = $seminarRequest->scheduled_at?->format('Y-m-d\TH:i');
+
+                                                    if (! $defaultScheduledAt && $seminarRequest->proposed_date) {
+                                                        $proposedTime = $seminarRequest->proposed_time
+                                                            ? substr((string) $seminarRequest->proposed_time, 0, 5)
+                                                            : '08:00';
+                                                        $defaultScheduledAt = $seminarRequest->proposed_date->format('Y-m-d').'T'.$proposedTime;
+                                                    }
+                                                @endphp
                                                 <form method="POST" action="{{ route('management.seminar-requests.schedule', $seminarRequest) }}" class="space-y-2 rounded-lg border border-gray-200 p-3">
                                                     @csrf @method('PATCH')
                                                     <x-input-label value="Jadwal Final" />
-                                                    <x-text-input name="scheduled_at" type="datetime-local" class="block w-full text-sm" :value="old('scheduled_at', $seminarRequest->scheduled_at?->format('Y-m-d\\TH:i'))" required />
+                                                    <x-text-input name="scheduled_at" type="datetime-local" class="block w-full text-sm" :value="old('scheduled_at', $defaultScheduledAt)" required />
                                                     <x-select-input name="mode" class="block w-full text-sm" required>
                                                         @foreach (['offline' => 'Offline', 'online' => 'Online', 'hybrid' => 'Hybrid'] as $value => $label)
                                                             <option value="{{ $value }}" @selected($seminarRequest->mode === $value)>{{ $label }}</option>

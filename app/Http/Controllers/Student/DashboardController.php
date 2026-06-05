@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlaceProposal;
 use App\Models\OrientationEvent;
+use App\Models\PeriodDeadline;
 use App\Models\RelocationRequest;
 use App\Models\SupervisorChangeRequest;
 use Illuminate\Http\Request;
@@ -23,7 +24,9 @@ class DashboardController extends Controller
                 ->latest('id')
                 ->get()
             : collect();
-        $activeEnrollment = $enrollments->firstWhere('status', 'active') ?? $enrollments->first();
+        $activeEnrollment = $enrollments
+            ->first(fn (InternshipEnrollment $enrollment) => $enrollment->status === 'active' && (bool) $enrollment->internshipPeriod?->is_active)
+            ?? $enrollments->first();
         $orientationEvents = $activeEnrollment
             ? OrientationEvent::query()
                 ->with(['internshipPeriod.program', 'studyProgram'])
@@ -63,6 +66,7 @@ class DashboardController extends Controller
                 ->count() ?? 0,
             'sanctionsPoints' => (int) ($activeEnrollment?->total_sanctions_points ?? 0),
             'nearestDeadline' => $nearestDeadline,
+            'importantDeadlines' => $this->importantDeadlinesForEnrollments($enrollments),
             'orientationEvents' => $orientationEvents,
             'reportProgress' => $activeEnrollment?->final_report_path ? 100 : 0,
             'proposals' => $student
@@ -77,5 +81,39 @@ class DashboardController extends Controller
             'hasPendingRelocationRequest' => $relocationRequests->contains('status', 'pending'),
             'hasPendingSupervisorChangeRequest' => $supervisorChangeRequests->contains('status', 'pending'),
         ]);
+    }
+
+    private function importantDeadlinesForEnrollments($enrollments)
+    {
+        $periodIds = $enrollments
+            ->filter(fn (InternshipEnrollment $enrollment) => $enrollment->status === 'active' && (bool) $enrollment->internshipPeriod?->is_active)
+            ->pluck('internship_period_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($periodIds->isEmpty()) {
+            $periodIds = $enrollments->pluck('internship_period_id')->filter()->unique()->values();
+        }
+
+        if ($periodIds->isEmpty()) {
+            return collect();
+        }
+
+        $baseQuery = PeriodDeadline::query()
+            ->with('internshipPeriod.program')
+            ->whereIn('internship_period_id', $periodIds)
+            ->whereDate('deadline_date', '>=', today())
+            ->orderBy('deadline_date')
+            ->orderBy('deadline_type');
+
+        $withinSevenDays = (clone $baseQuery)
+            ->whereDate('deadline_date', '<=', today()->addDays(7))
+            ->limit(6)
+            ->get();
+
+        return $withinSevenDays->isNotEmpty()
+            ? $withinSevenDays
+            : $baseQuery->limit(3)->get();
     }
 }

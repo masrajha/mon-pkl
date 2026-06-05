@@ -16,7 +16,7 @@ class SeminarRequestController extends Controller
     public function store(Request $request, InternshipEnrollment $enrollment): RedirectResponse
     {
         $this->authorizeEnrollment($request, $enrollment);
-        abort_unless($enrollment->status === 'active', 403);
+        abort_unless(in_array($enrollment->status, ['active', 'completed'], true), 403);
 
         $this->ensureCanRequestSeminar($enrollment);
 

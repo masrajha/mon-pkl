@@ -64,6 +64,9 @@
                                         <option value="{{ $period->id }}" @selected(old('internship_period_id', $proposal?->internship_period_id) == $period->id)>{{ $period->display_name }}</option>
                                     @endforeach
                                 </x-select-input>
+                                @if ($periods->isEmpty())
+                                    <p class="mt-2 text-sm text-amber-700">Usulan mitra baru sedang ditutup untuk semua periode yang tersedia.</p>
+                                @endif
                             </div>
 
                             <div>

@@ -6,6 +6,7 @@ use App\Models\CheckIn;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\OrientationEvent;
+use App\Models\PeriodDeadline;
 use App\Services\ActionRequiredSummaryService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -117,7 +118,33 @@ class CoordinatorDashboardController extends Controller
             'recentEnrollments' => $recentEnrollments,
             'highestSanctions' => $highestSanctions,
             'orientationEvents' => $orientationEvents,
+            'importantDeadlines' => $this->importantDeadlinesForAssignments($assignments),
             'actionRequiredSummary' => $this->actions->forUser($request->user()),
         ]);
+    }
+
+    private function importantDeadlinesForAssignments($assignments)
+    {
+        $periodIds = $assignments->pluck('internship_period_id')->filter()->unique()->values();
+
+        if ($periodIds->isEmpty()) {
+            return collect();
+        }
+
+        $baseQuery = PeriodDeadline::query()
+            ->with('internshipPeriod.program')
+            ->whereIn('internship_period_id', $periodIds)
+            ->whereDate('deadline_date', '>=', today())
+            ->orderBy('deadline_date')
+            ->orderBy('deadline_type');
+
+        $withinSevenDays = (clone $baseQuery)
+            ->whereDate('deadline_date', '<=', today()->addDays(7))
+            ->limit(6)
+            ->get();
+
+        return $withinSevenDays->isNotEmpty()
+            ? $withinSevenDays
+            : $baseQuery->limit(3)->get();
     }
 }

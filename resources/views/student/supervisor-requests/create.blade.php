@@ -1,4 +1,12 @@
 <x-app-layout>
+    @php
+        $selectedEnrollment = $enrollments->firstWhere('id', old('internship_enrollment_id', $selectedEnrollmentId));
+        $selectedLecturerId = old('requested_lecturer_supervisor_id', $selectedEnrollment?->lecturer_supervisor_id);
+        $selectedFieldSupervisor = old('requested_field_supervisor', $selectedEnrollment?->field_supervisor);
+        $selectedFieldSupervisorPhone = old('requested_field_supervisor_phone', $selectedEnrollment?->field_supervisor_phone);
+        $selectedFieldSupervisorEmail = old('requested_field_supervisor_email', $selectedEnrollment?->field_supervisor_email);
+    @endphp
+
     <x-slot name="header">
         <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Workflow Mahasiswa</p>
@@ -24,8 +32,12 @@
                         <option
                             value="{{ $enrollment->id }}"
                             data-lecturer="{{ $enrollment->lecturer?->name ?: 'Belum ditentukan' }}"
+                            data-lecturer-id="{{ $enrollment->lecturer_supervisor_id }}"
                             data-field-supervisor="{{ $enrollment->field_supervisor ?: 'Belum diisi' }}"
+                            data-field-supervisor-value="{{ $enrollment->field_supervisor }}"
+                            data-field-supervisor-phone="{{ $enrollment->field_supervisor_phone }}"
                             data-field-supervisor-email="{{ $enrollment->field_supervisor_email ?: 'Email belum diisi' }}"
+                            data-field-supervisor-email-value="{{ $enrollment->field_supervisor_email }}"
                             @selected((string) old('internship_enrollment_id', $selectedEnrollmentId) === (string) $enrollment->id)
                         >
                             {{ $enrollment->internshipPeriod?->display_name }} - {{ $enrollment->studyProgram?->name }} - {{ $enrollment->internshipPlace?->name ?: 'Mitra belum ditentukan' }}
@@ -55,21 +67,21 @@
                     <x-select-input id="requested_lecturer_supervisor_id" name="requested_lecturer_supervisor_id" class="mt-1">
                         <option value="">Belum tahu / ditentukan admin</option>
                         @foreach ($lecturers as $lecturer)
-                            <option value="{{ $lecturer->id }}" @selected(old('requested_lecturer_supervisor_id') == $lecturer->id)>{{ $lecturer->name }}</option>
+                            <option value="{{ $lecturer->id }}" @selected((string) $selectedLecturerId === (string) $lecturer->id)>{{ $lecturer->name }}</option>
                         @endforeach
                     </x-select-input>
                 </div>
                 <div>
                     <x-input-label for="requested_field_supervisor" value="Pembimbing Lapangan" />
-                    <x-text-input id="requested_field_supervisor" name="requested_field_supervisor" class="mt-1 block w-full" :value="old('requested_field_supervisor')" />
+                    <x-text-input id="requested_field_supervisor" name="requested_field_supervisor" class="mt-1 block w-full" :value="$selectedFieldSupervisor" />
                 </div>
                 <div>
                     <x-input-label for="requested_field_supervisor_phone" value="HP Pembimbing Lapangan" />
-                    <x-text-input id="requested_field_supervisor_phone" name="requested_field_supervisor_phone" class="mt-1 block w-full" :value="old('requested_field_supervisor_phone')" />
+                    <x-text-input id="requested_field_supervisor_phone" name="requested_field_supervisor_phone" class="mt-1 block w-full" :value="$selectedFieldSupervisorPhone" />
                 </div>
                 <div>
                     <x-input-label for="requested_field_supervisor_email" value="Email Pembimbing Lapangan" />
-                    <x-text-input id="requested_field_supervisor_email" name="requested_field_supervisor_email" type="email" class="mt-1 block w-full" :value="old('requested_field_supervisor_email')" />
+                    <x-text-input id="requested_field_supervisor_email" name="requested_field_supervisor_email" type="email" class="mt-1 block w-full" :value="$selectedFieldSupervisorEmail" />
                     <p class="mt-1 text-xs text-gray-500">Wajib tersedia sebelum mahasiswa mengajukan Seminar.</p>
                 </div>
             </div>
@@ -94,14 +106,26 @@
             const lecturer = document.querySelector('[data-current-lecturer]');
             const fieldSupervisor = document.querySelector('[data-current-field-supervisor]');
             const fieldSupervisorEmail = document.querySelector('[data-current-field-supervisor-email]');
-            const sync = () => {
+            const requestedLecturer = document.getElementById('requested_lecturer_supervisor_id');
+            const requestedFieldSupervisor = document.getElementById('requested_field_supervisor');
+            const requestedFieldSupervisorPhone = document.getElementById('requested_field_supervisor_phone');
+            const requestedFieldSupervisorEmail = document.getElementById('requested_field_supervisor_email');
+
+            const sync = (fillRequestedFields = false) => {
                 const option = enrollment.selectedOptions[0];
                 lecturer.textContent = option?.dataset.lecturer || '-';
                 fieldSupervisor.textContent = option?.dataset.fieldSupervisor || '-';
                 fieldSupervisorEmail.textContent = option?.dataset.fieldSupervisorEmail || '-';
+
+                if (fillRequestedFields) {
+                    requestedLecturer.value = option?.dataset.lecturerId || '';
+                    requestedFieldSupervisor.value = option?.dataset.fieldSupervisorValue || '';
+                    requestedFieldSupervisorPhone.value = option?.dataset.fieldSupervisorPhone || '';
+                    requestedFieldSupervisorEmail.value = option?.dataset.fieldSupervisorEmailValue || '';
+                }
             };
 
-            enrollment.addEventListener('change', sync);
+            enrollment.addEventListener('change', () => sync(true));
             sync();
         });
     </script>

@@ -69,6 +69,9 @@
                                 <option value="{{ $period->id }}" data-program-id="{{ $period->program_id }}" @selected($selectedPeriod == $period->id)>{{ $period->display_name }}</option>
                             @endforeach
                         </x-select-input>
+                        @if ($periods->isEmpty())
+                            <p class="mt-2 text-sm text-amber-700">Belum ada periode yang membuka pendaftaran saat ini.</p>
+                        @endif
                         @if ($isRevision)
                             <p class="mt-1 text-xs text-gray-500">Periode tidak dapat diubah saat revisi.</p>
                         @endif

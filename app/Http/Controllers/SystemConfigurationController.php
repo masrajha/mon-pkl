@@ -67,6 +67,9 @@ class SystemConfigurationController extends Controller
             'enrollment.minimum_semester_s1' => ['required', 'integer', 'min:1', 'max:20'],
             'enrollment.minimum_semester_d3' => ['required', 'integer', 'min:1', 'max:20'],
             'enrollment.minimum_gpa' => ['required', 'numeric', 'min:0', 'max:4'],
+            'workflow.allow_place_proposal' => ['nullable', 'boolean'],
+            'workflow.allow_relocation' => ['nullable', 'boolean'],
+            'workflow.allow_supervisor_change' => ['nullable', 'boolean'],
             'check_in.recent_limit' => ['required', 'integer', 'min:1', 'max:100'],
             'check_in.photo_max_kb' => ['required', 'integer', 'min:1', 'max:20480'],
             'check_in.max_distance_meters' => ['required', 'integer', 'min:0', 'max:100000'],
@@ -112,6 +115,9 @@ class SystemConfigurationController extends Controller
         }
         $settings['calendar']['holidays'] = $this->parseHolidays($request->input('calendar.holidays_text'));
         unset($settings['calendar']['holidays_text']);
+        $settings['workflow']['allow_place_proposal'] = $request->boolean('workflow.allow_place_proposal');
+        $settings['workflow']['allow_relocation'] = $request->boolean('workflow.allow_relocation');
+        $settings['workflow']['allow_supervisor_change'] = $request->boolean('workflow.allow_supervisor_change');
         $settings['check_in']['photo_disk'] = $defaults['check_in']['photo_disk'];
         $settings['check_in']['photo_directory'] = $defaults['check_in']['photo_directory'];
         $settings['map']['geolocation']['enable_high_accuracy'] = $request->boolean('map.geolocation.enable_high_accuracy');

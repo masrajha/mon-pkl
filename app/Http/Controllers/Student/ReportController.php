@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\InternshipEnrollment;
+use App\Models\OrientationEvent;
 use App\Models\PeriodDeadline;
 use App\Models\Sanction;
 use App\Models\SubmissionProgress;
 use App\Services\PeriodConfigurationService;
+use App\Services\StudentWorkflowAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,10 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
+    public function __construct(private readonly StudentWorkflowAccessService $workflowAccess)
+    {
+    }
+
     public function show(Request $request, InternshipEnrollment $enrollment): View
     {
         $this->authorizeEnrollment($request, $enrollment);
@@ -24,6 +30,7 @@ class ReportController extends Controller
             'student.user',
             'studyProgram',
             'internshipPeriod.program',
+            'internshipPeriod.setting',
             'internshipPeriod.deadlines' => fn ($query) => $query
                 ->whereIn('deadline_type', array_keys(config('monpkl.deadline_types')))
                 ->orderBy('deadline_date'),
@@ -50,12 +57,25 @@ class ReportController extends Controller
             ->pluck('deadline_type')
             ->unique()
             ->values();
+        $uploadableDeadlineLabels = collect($deadlineLabels)
+            ->reject(fn ($label, $type) => $type === 'hardcopy' || $lockedDeadlineTypes->contains($type))
+            ->all();
+        $hardcopyProgress = $progressByType->get('hardcopy');
+        $orientationEvents = OrientationEvent::query()
+            ->with(['internshipPeriod.program', 'studyProgram'])
+            ->with(['attendances' => fn ($query) => $query->where('student_id', $enrollment->student_id)])
+            ->forEnrollment($enrollment)
+            ->where('is_active', true)
+            ->orderByDesc('id')
+            ->get();
 
         return view('student.reports.show', [
             'enrollment' => $enrollment,
             'progressByType' => $progressByType,
             'lockedDeadlineTypes' => $lockedDeadlineTypes,
-            'uploadableDeadlineLabels' => collect($deadlineLabels)->reject(fn ($label, $type) => $lockedDeadlineTypes->contains($type))->all(),
+            'uploadableDeadlineLabels' => $uploadableDeadlineLabels,
+            'hardcopyProgress' => $hardcopyProgress,
+            'canUploadHardcopy' => ! $lockedDeadlineTypes->contains('hardcopy'),
             'deadlineLabels' => $deadlineLabels,
             'deadlineTypeLabels' => config('monpkl.deadline_types'),
             'submissionNotes' => config('monpkl.report_submission_notes'),
@@ -64,6 +84,10 @@ class ReportController extends Controller
             'canRequestSeminar' => $this->canRequestSeminar($enrollment),
             'seminarBlockedReason' => $this->seminarBlockedReason($enrollment),
             'seminarRubric' => config('monpkl.seminar_assessment_rubric', []),
+            'orientationEvents' => $orientationEvents,
+            'activeTab' => $this->activeTab($request),
+            'canRequestRelocation' => $this->workflowAccess->relocationOpen($enrollment),
+            'canRequestSupervisorChange' => $this->workflowAccess->supervisorChangeOpen($enrollment),
         ]);
     }
 
@@ -271,10 +295,19 @@ class ReportController extends Controller
         return $this->seminarBlockedReason($enrollment) === null;
     }
 
+    private function activeTab(Request $request): string
+    {
+        $tab = $request->string('tab')->toString();
+
+        return in_array($tab, ['detail', 'pembekalan', 'presensi', 'pelaporan', 'seminar', 'penyelesaian'], true)
+            ? $tab
+            : 'detail';
+    }
+
     private function seminarBlockedReason(InternshipEnrollment $enrollment): ?string
     {
-        if ($enrollment->status !== 'active') {
-            return 'Enrollment harus aktif sebelum pengajuan seminar.';
+        if (! in_array($enrollment->status, ['active', 'completed'], true)) {
+            return 'Enrollment harus aktif atau selesai sebelum pengajuan seminar.';
         }
 
         if (! $enrollment->lecturer_supervisor_id && ! $enrollment->lecturer_supervisor_user_id) {

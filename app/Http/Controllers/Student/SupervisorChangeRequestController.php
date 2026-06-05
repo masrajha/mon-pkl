@@ -7,6 +7,7 @@ use App\Models\InternshipEnrollment;
 use App\Models\Lecturer;
 use App\Models\SupervisorChangeRequest;
 use App\Services\SupervisorChangeEmailNotificationService;
+use App\Services\StudentWorkflowAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -15,7 +16,10 @@ use Illuminate\View\View;
 
 class SupervisorChangeRequestController extends Controller
 {
-    public function __construct(private readonly SupervisorChangeEmailNotificationService $supervisorEmails)
+    public function __construct(
+        private readonly SupervisorChangeEmailNotificationService $supervisorEmails,
+        private readonly StudentWorkflowAccessService $workflowAccess,
+    )
     {
     }
 
@@ -53,8 +57,17 @@ class SupervisorChangeRequestController extends Controller
         ]);
 
         $enrollment = InternshipEnrollment::query()
-            ->with(['supervisorChangeRequests' => fn ($query) => $query->where('status', 'pending')])
+            ->with([
+                'internshipPeriod.setting',
+                'supervisorChangeRequests' => fn ($query) => $query->where('status', 'pending'),
+            ])
             ->findOrFail($data['internship_enrollment_id']);
+
+        if (! $this->workflowAccess->supervisorChangeOpen($enrollment)) {
+            throw ValidationException::withMessages([
+                'internship_enrollment_id' => 'Pengajuan perubahan pembimbing untuk periode ini sedang ditutup.',
+            ]);
+        }
 
         if ($enrollment->supervisorChangeRequests->isNotEmpty() || $this->hasPendingRequest($request)) {
             throw ValidationException::withMessages([
@@ -104,11 +117,14 @@ class SupervisorChangeRequestController extends Controller
     private function activeEnrollments(Request $request)
     {
         return InternshipEnrollment::query()
-            ->with(['internshipPeriod.program', 'studyProgram', 'internshipPlace', 'lecturer'])
+            ->with(['internshipPeriod.program', 'internshipPeriod.setting', 'studyProgram', 'internshipPlace', 'lecturer'])
             ->where('status', 'active')
+            ->whereHas('internshipPeriod', fn ($query) => $query->where('is_active', true)->where('is_locked', false))
             ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id))
             ->latest('id')
-            ->get();
+            ->get()
+            ->filter(fn (InternshipEnrollment $enrollment) => $this->workflowAccess->supervisorChangeOpen($enrollment))
+            ->values();
     }
 
     private function studentRequests(Request $request)

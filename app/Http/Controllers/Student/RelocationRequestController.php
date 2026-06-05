@@ -7,6 +7,7 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlace;
 use App\Models\RelocationRequest;
 use App\Services\RelocationEmailNotificationService;
+use App\Services\StudentWorkflowAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -15,7 +16,10 @@ use Illuminate\View\View;
 
 class RelocationRequestController extends Controller
 {
-    public function __construct(private readonly RelocationEmailNotificationService $relocationEmails)
+    public function __construct(
+        private readonly RelocationEmailNotificationService $relocationEmails,
+        private readonly StudentWorkflowAccessService $workflowAccess,
+    )
     {
     }
 
@@ -50,6 +54,13 @@ class RelocationRequestController extends Controller
         ]);
 
         $enrollment = InternshipEnrollment::query()->findOrFail($data['internship_enrollment_id']);
+        $enrollment->loadMissing('internshipPeriod.setting');
+
+        if (! $this->workflowAccess->relocationOpen($enrollment)) {
+            throw ValidationException::withMessages([
+                'internship_enrollment_id' => 'Pengajuan pindah mitra untuk periode ini sedang ditutup.',
+            ]);
+        }
 
         if ($this->hasPendingRequest($request)) {
             throw ValidationException::withMessages([
@@ -89,11 +100,14 @@ class RelocationRequestController extends Controller
     private function activeEnrollments(Request $request)
     {
         return InternshipEnrollment::query()
-            ->with(['internshipPeriod.program', 'studyProgram', 'internshipPlace'])
+            ->with(['internshipPeriod.program', 'internshipPeriod.setting', 'studyProgram', 'internshipPlace'])
             ->where('status', 'active')
+            ->whereHas('internshipPeriod', fn ($query) => $query->where('is_active', true)->where('is_locked', false))
             ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id))
             ->latest('id')
-            ->get();
+            ->get()
+            ->filter(fn (InternshipEnrollment $enrollment) => $this->workflowAccess->relocationOpen($enrollment))
+            ->values();
     }
 
     private function studentRequests(Request $request)

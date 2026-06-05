@@ -35,6 +35,12 @@
 
         @include('management.partials.action-required', ['summary' => $actionRequiredSummary])
 
+        @include('partials.important-deadlines', [
+            'deadlines' => $importantDeadlines,
+            'title' => 'Deadline Scope Koordinator',
+            'description' => 'Deadline dalam 7 hari ke depan dari periode yang Anda koordinasikan, atau deadline terdekat berikutnya.',
+        ])
+
         <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
             <section class="silat-card">
                 <div class="silat-section-header">

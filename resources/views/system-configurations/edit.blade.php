@@ -79,6 +79,36 @@
                 </div>
 
                 <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">{{ __('Kontrol Layanan Mahasiswa') }}</h3>
+                        <p class="mt-1 text-sm text-gray-500">{{ __('Pendaftaran tetap mengikuti deadline Pendaftaran Dibuka dan Pendaftaran Ditutup. Toggle ini hanya membatasi layanan pengajuan oleh mahasiswa.') }}</p>
+                    </div>
+                    <div class="mt-4 grid gap-3 md:grid-cols-3">
+                        <label class="flex min-h-24 items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <input type="checkbox" name="workflow[allow_place_proposal]" value="1" @checked(old('workflow.allow_place_proposal', data_get($settings, 'workflow.allow_place_proposal', true))) class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span>
+                                <span class="block font-semibold text-gray-900">{{ __('Usulan Mitra Baru') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500">{{ __('Mahasiswa dapat mengusulkan mitra baru untuk periode ini.') }}</span>
+                            </span>
+                        </label>
+                        <label class="flex min-h-24 items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <input type="checkbox" name="workflow[allow_relocation]" value="1" @checked(old('workflow.allow_relocation', data_get($settings, 'workflow.allow_relocation', true))) class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span>
+                                <span class="block font-semibold text-gray-900">{{ __('Pengajuan Pindah Mitra') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500">{{ __('Mahasiswa aktif dapat mengajukan pindah mitra.') }}</span>
+                            </span>
+                        </label>
+                        <label class="flex min-h-24 items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <input type="checkbox" name="workflow[allow_supervisor_change]" value="1" @checked(old('workflow.allow_supervisor_change', data_get($settings, 'workflow.allow_supervisor_change', true))) class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                            <span>
+                                <span class="block font-semibold text-gray-900">{{ __('Pengajuan Perubahan Pembimbing') }}</span>
+                                <span class="mt-1 block text-sm text-gray-500">{{ __('Mahasiswa aktif dapat mengajukan perubahan dosen atau pembimbing lapangan.') }}</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Deadline Periode') }}</h3>
                     <div class="silat-table-wrap mt-4 rounded-lg border border-gray-100">
                         <table class="silat-table">

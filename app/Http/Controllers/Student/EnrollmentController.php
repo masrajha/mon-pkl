@@ -9,6 +9,7 @@ use App\Models\InternshipPlace;
 use App\Models\Program;
 use App\Services\EnrollmentEmailNotificationService;
 use App\Services\PeriodConfigurationService;
+use App\Services\StudentWorkflowAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -21,6 +22,7 @@ class EnrollmentController extends Controller
     public function __construct(
         private readonly PeriodConfigurationService $configurations,
         private readonly EnrollmentEmailNotificationService $enrollmentEmails,
+        private readonly StudentWorkflowAccessService $workflowAccess,
     ) {
     }
 
@@ -40,17 +42,32 @@ class EnrollmentController extends Controller
         abort_unless((int) $enrollment->student_id === (int) $student->id, 403);
         abort_unless($enrollment->status === 'revision_required', 403);
 
-        return view('student.enrollments.create', $this->formData($student) + [
-            'enrollment' => $enrollment->loadMissing(['internshipPeriod.program', 'internshipPlace']),
+        $enrollment->loadMissing(['internshipPeriod.program', 'internshipPeriod.deadlines', 'internshipPlace']);
+
+        return view('student.enrollments.create', $this->formData($student, $enrollment) + [
+            'enrollment' => $enrollment,
         ]);
     }
 
-    private function formData($student): array
+    private function formData($student, ?InternshipEnrollment $enrollment = null): array
     {
+        $periods = InternshipPeriod::query()
+            ->with(['program', 'deadlines'])
+            ->where('is_locked', false)
+            ->orderByDesc('is_active')
+            ->orderByDesc('id')
+            ->get()
+            ->filter(fn (InternshipPeriod $period) => $this->workflowAccess->registrationOpen($period))
+            ->values();
+
+        if ($enrollment && ! $periods->contains('id', $enrollment->internship_period_id)) {
+            $periods->push($enrollment->internshipPeriod);
+        }
+
         return [
             'student' => $student,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
-            'periods' => InternshipPeriod::query()->with('program')->where('is_locked', false)->orderByDesc('is_active')->orderByDesc('id')->get(),
+            'periods' => $periods->filter()->values(),
             'places' => InternshipPlace::query()->where('is_active', true)->orderBy('name')->get(),
         ];
     }
@@ -61,6 +78,7 @@ class EnrollmentController extends Controller
 
         $data = $this->validated($request);
         $period = $this->validatedPeriod($data);
+        $this->ensureRegistrationOpen($period);
 
         $data['program_id'] = $period->program_id;
         $data['study_program_id'] = $student->study_program_id;
@@ -142,7 +160,7 @@ class EnrollmentController extends Controller
 
     private function validatedPeriod(array $data): InternshipPeriod
     {
-        $period = InternshipPeriod::query()->with('program')->findOrFail($data['internship_period_id']);
+        $period = InternshipPeriod::query()->with(['program', 'deadlines'])->findOrFail($data['internship_period_id']);
 
         if ($period->is_locked) {
             throw ValidationException::withMessages(['internship_period_id' => 'Periode yang dipilih sudah terkunci.']);
@@ -153,6 +171,15 @@ class EnrollmentController extends Controller
         }
 
         return $period;
+    }
+
+    private function ensureRegistrationOpen(InternshipPeriod $period): void
+    {
+        if (! $this->workflowAccess->registrationOpen($period)) {
+            throw ValidationException::withMessages([
+                'internship_period_id' => 'Pendaftaran untuk periode ini belum dibuka atau sudah ditutup.',
+            ]);
+        }
     }
 
     private function saveEnrollment(Request $request, array $data, int $studentId, ?InternshipEnrollment $enrollment = null): InternshipEnrollment

@@ -30,6 +30,12 @@ return [
         'minimum_gpa' => (float) env('MONPKL_MINIMUM_GPA', 2.00),
     ],
 
+    'workflow' => [
+        'allow_place_proposal' => filter_var(env('MONPKL_ALLOW_PLACE_PROPOSAL', true), FILTER_VALIDATE_BOOL),
+        'allow_relocation' => filter_var(env('MONPKL_ALLOW_RELOCATION', true), FILTER_VALIDATE_BOOL),
+        'allow_supervisor_change' => filter_var(env('MONPKL_ALLOW_SUPERVISOR_CHANGE', true), FILTER_VALIDATE_BOOL),
+    ],
+
     'super_admin_emails' => collect(explode(',', env('MONPKL_SUPER_ADMIN_EMAILS', '')))
         ->map(fn (string $email) => trim($email))
         ->filter()
@@ -51,7 +57,7 @@ return [
         'bab3' => 'Pelaporan Tahap 3: Bab 1, 2 dan 3.',
         'full_report' => 'Pelaporan Tahap 4 (Laporan Lengkap): Bab 1 s.d 5',
         'seminar' => 'Seminar',
-        'hardcopy' => 'Hardcover',
+        'hardcopy' => 'Hardcopy',
     ],
 
     'report_submission_types' => [
@@ -60,7 +66,7 @@ return [
         'bab2' => 'Pelaporan Tahap 2: Bab 1 dan 2.',
         'bab3' => 'Pelaporan Tahap 3: Bab 1, 2 dan 3.',
         'full_report' => 'Pelaporan Tahap 4 (Laporan Lengkap): Bab 1 s.d 5',
-        'hardcopy' => 'Hardcover',
+        'hardcopy' => 'Hardcopy',
     ],
 
     'report_submission_notes' => [
@@ -69,7 +75,7 @@ return [
         'bab2' => 'Bab 1 harus sudah lengkap dan direvisi. Bab 2 wajib memuat gambaran umum perusahaan (sejarah, struktur, produk, peralatan, mitra), landasan teori relevan, serta analisis proses bisnis berjalan (permasalahan & kebutuhan informasi).',
         'bab3' => 'Bab 3 (Rencana Kegiatan) harus berisi deskripsi kegiatan solusi alternatif, sumber data, metode pengumpulan data, dan metode penyelesaian masalah bertahap. Pastikan konsistensi alur ketiga bab.',
         'full_report' => 'Lengkapi dengan Bab IV (Pembahasan) yang berisi analisis kelemahan & keunggulan serta pengajuan solusi alternatif (minimal rancangan, lebih baik implementasi). Bab V (Kesimpulan & Rekomendasi) harus sesuai analisis. Perhatikan format: A4, bahasa Indonesia, sampul buffalo.',
-        'hardcopy' => 'Upload tanda terima hardcover dari jurusan sebagai bukti penyerahan laporan final dalam bentuk cetak hardcover.',
+        'hardcopy' => 'Upload tanda terima hardcopy dari jurusan sebagai bukti penyerahan laporan final dalam bentuk cetak.',
     ],
 
     'seminar_assessment_rubric' => [

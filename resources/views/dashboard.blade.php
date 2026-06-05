@@ -16,24 +16,86 @@
     <div class="py-8">
         <div class="silat-shell space-y-6">
             @if (Auth::user()->hasRole('mahasiswa'))
-                <section class="rounded-lg bg-gradient-to-r from-green-500 to-green-700 p-6 text-white shadow-sm">
-                    <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                @php
+                    $studentEnrollmentSummary ??= ['total' => 0, 'statuses' => collect()];
+                    $studentEnrollmentStatusLabels = [
+                        'draft' => 'Draft',
+                        'pending_verification' => 'Menunggu Verifikasi',
+                        'revision_required' => 'Perlu Revisi',
+                        'active' => 'Aktif',
+                        'completed' => 'Selesai',
+                        'period_inactive' => 'Periode Nonaktif',
+                        'period_unavailable' => 'Periode Tidak Tersedia',
+                        'rejected' => 'Ditolak',
+                        'cancelled' => 'Dibatalkan',
+                    ];
+                    $studentEnrollmentStatusCounts = collect($studentEnrollmentStatusLabels)
+                        ->map(fn ($label, $status) => [
+                            'status' => $status,
+                            'label' => $label,
+                            'count' => (int) ($studentEnrollmentSummary['statuses'][$status] ?? 0),
+                        ])
+                        ->filter(fn ($item) => $item['count'] > 0);
+                    $studentPrimaryEnrollmentStatus = $studentEnrollmentStatusCounts->firstWhere('status', 'active') ?? $studentEnrollmentStatusCounts->first();
+                    $studentSecondaryEnrollmentStatuses = $studentEnrollmentStatusCounts
+                        ->reject(fn ($item) => $studentPrimaryEnrollmentStatus && $item['status'] === $studentPrimaryEnrollmentStatus['status'])
+                        ->values();
+                    $hasEnrollmentSummary = ($studentEnrollmentSummary['total'] ?? 0) > 0;
+                @endphp
+                <section class="rounded-lg border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-sky-50 p-6 text-gray-950 shadow-sm">
+                    <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                         <div>
-                            <p class="text-sm text-green-100">{{ now()->translatedFormat('l, d F Y') }}</p>
+                            <p class="text-sm font-medium text-emerald-700">{{ now()->translatedFormat('l, d F Y') }}</p>
                             <h3 class="mt-1 text-2xl font-bold">Program Saya</h3>
-                            <p class="mt-2 text-green-50">{{ $studentEnrollment?->internshipPeriod?->display_name ?: 'Lengkapi profil dan mulai pendaftaran program.' }}</p>
-                            <div class="mt-4 flex flex-wrap gap-3">
-                                <a class="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-green-700" href="{{ route('student.dashboard') }}">
-                                    <x-icon name="fa-location-dot" />
-                                    Buka Program Saya
-                                </a>
-                                <a class="inline-flex items-center gap-2 rounded-lg bg-white/15 px-5 py-2 text-sm font-semibold text-white ring-1 ring-white/30" href="{{ route('student.enrollments.create') }}">
+                            <p class="mt-2 text-gray-600">{{ $studentActiveEnrollments->isNotEmpty() ? 'Program aktif yang sedang Anda ikuti.' : 'Lengkapi profil dan mulai pendaftaran program.' }}</p>
+                        </div>
+                        <div class="hidden h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl text-emerald-700 md:flex">
+                            <x-icon name="fa-location-dot" />
+                        </div>
+                    </div>
+
+                    <div class="mt-5 grid gap-4 lg:grid-cols-2">
+                        @forelse ($studentActiveEnrollments as $activeEnrollment)
+                            <article class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                        <x-badge variant="success">Aktif</x-badge>
+                                        <h4 class="mt-3 font-semibold text-gray-950">{{ $activeEnrollment->internshipPeriod?->display_name ?: 'Program aktif' }}</h4>
+                                        <p class="mt-1 text-sm text-gray-500">{{ $activeEnrollment->studyProgram?->name ?: '-' }}</p>
+                                    </div>
+                                    <p class="text-right text-xs font-semibold uppercase tracking-wide text-emerald-700">{{ $activeEnrollment->internshipPeriod?->program?->name ?: 'Program' }}</p>
+                                </div>
+                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Mitra</p>
+                                        <p class="mt-1 text-sm font-semibold text-gray-900">{{ $activeEnrollment->internshipPlace?->name ?: 'Belum ditentukan' }}</p>
+                                    </div>
+                                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Dosen</p>
+                                        <p class="mt-1 text-sm font-semibold text-gray-900">{{ $activeEnrollment->lecturer?->name ?: 'Belum ditentukan' }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex flex-wrap gap-2">
+                                    <a class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" href="{{ route('student.reports.show', $activeEnrollment) }}">
+                                        <x-icon name="fa-arrow-right-to-bracket" />
+                                        Detail
+                                    </a>
+                                    <a class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2" href="{{ route('check-ins.create') }}">
+                                        <x-icon name="fa-fingerprint" />
+                                        Presensi
+                                    </a>
+                                </div>
+                            </article>
+                        @empty
+                            <div class="rounded-lg border border-dashed border-gray-300 bg-white/70 p-5">
+                                <p class="font-semibold text-gray-900">Belum ada program aktif</p>
+                                <p class="mt-1 text-sm text-gray-500">Daftar program atau tunggu validasi pendaftaran agar program aktif muncul di sini.</p>
+                                <a class="mt-4 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" href="{{ route('student.enrollments.create') }}">
                                     <x-icon name="fa-clipboard-list" />
                                     Pendaftaran
                                 </a>
                             </div>
-                        </div>
-                        <x-icon name="fa-location-dot" class="text-6xl text-white/50" />
+                        @endforelse
                     </div>
                 </section>
 
@@ -41,21 +103,51 @@
                     <div class="rounded-lg bg-sky-100 p-4 text-sky-800">
                         <div class="flex items-center gap-3"><x-icon name="fa-calendar-check" class="text-xl text-sky-700" /><div><p class="text-sm">Profil</p><p class="text-xl font-bold">{{ $studentProfileComplete ? 'Lengkap' : 'Belum lengkap' }}</p></div></div>
                     </div>
-                    <div class="rounded-lg bg-rose-100 p-4 text-rose-800">
-                        <div class="flex items-center gap-3"><x-icon name="fa-exclamation-triangle" class="text-xl text-rose-700" /><div><p class="text-sm">Status Pendaftaran</p><p class="text-xl font-bold">{{ $studentEnrollment?->status ?: 'Belum daftar' }}</p></div></div>
+                    <div class="rounded-lg bg-emerald-50 p-4 text-emerald-800">
+                        <div class="flex items-center gap-3">
+                            <x-icon name="{{ $hasEnrollmentSummary ? 'fa-circle-check' : 'fa-circle-info' }}" class="text-xl {{ $hasEnrollmentSummary ? 'text-emerald-700' : 'text-gray-600' }}" />
+                            <div>
+                                <p class="text-sm">Status Pendaftaran</p>
+                                @if ($hasEnrollmentSummary)
+                                    <p class="mt-1 text-xl font-bold text-emerald-900">
+                                        {{ $studentPrimaryEnrollmentStatus['label'] }} {{ number_format($studentPrimaryEnrollmentStatus['count'], 0, ',', '.') }}
+                                    </p>
+                                    @if ($studentSecondaryEnrollmentStatuses->isNotEmpty())
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            @foreach ($studentSecondaryEnrollmentStatuses as $item)
+                                                <span class="inline-flex items-center rounded-full bg-white px-5 py-2 text-sm font-semibold leading-normal text-emerald-700 shadow-sm ring-1 ring-emerald-200">
+                                                    {{ $item['label'] }} {{ number_format($item['count'], 0, ',', '.') }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                @else
+                                    <p class="text-xl font-bold text-gray-700">Belum Mendaftar</p>
+                                @endif
+                            </div>
+                        </div>
                     </div>
-                    <div class="rounded-lg bg-amber-100 p-4 text-amber-800">
-                        <div class="flex items-center gap-3"><x-icon name="fa-hourglass-start" class="text-xl text-amber-700" /><div><p class="text-sm">Usulan Mitra</p><p class="text-xl font-bold">{{ number_format($studentProposalCount, 0, ',', '.') }}</p></div></div>
+                    <div class="rounded-lg bg-indigo-50 p-4 text-indigo-800">
+                        <div class="flex items-center gap-3"><x-icon name="fa-building-circle-arrow-right" class="text-xl text-indigo-700" /><div><p class="text-sm">Usulan Mitra</p><p class="text-xl font-bold">{{ number_format($studentProposalCount, 0, ',', '.') }}</p></div></div>
                     </div>
                 </div>
+
+                @include('partials.important-deadlines', [
+                    'deadlines' => $studentImportantDeadlines,
+                    'title' => 'Deadline Program Saya',
+                    'description' => 'Deadline dalam 7 hari ke depan dari program yang Anda ikuti, atau deadline terdekat berikutnya.',
+                ])
             @endif
 
             @if (Auth::user()->hasRole('dosen'))
+                @php
+                    $supervisedGroups = $supervisedEnrollments->groupBy(fn ($enrollment) => $enrollment->internship_period_id ?: 'tanpa-periode');
+                @endphp
                 <section class="silat-card">
                     <div class="silat-section-header">
                         <div>
                             <h3 class="silat-section-title">{{ __('Dashboard Dosen Pembimbing') }}</h3>
-                            <p class="silat-section-description">{{ __('Pantau mahasiswa bimbingan, kebutuhan revisi, dan akses monitoring.') }}</p>
+                            <p class="silat-section-description">{{ __('Mahasiswa bimbingan dikelompokkan berdasarkan program periode.') }}</p>
                         </div>
                         <a class="silat-btn-secondary" href="{{ route('reports.monitoring') }}"><x-icon name="fa-chart-column" /> Rekap Bimbingan</a>
                     </div>
@@ -75,24 +167,73 @@
                             </div>
                         </div>
                     </div>
-                    <div class="overflow-x-auto border-t border-gray-100">
-                        <table class="silat-table">
-                            <thead class="silat-table-head"><tr><th class="silat-table-cell">Mahasiswa</th><th class="silat-table-cell">Program</th><th class="silat-table-cell">Mitra</th><th class="silat-table-cell">Aksi</th></tr></thead>
-                            <tbody class="divide-y divide-gray-100">
-                                @forelse ($supervisedEnrollments as $enrollment)
-                                    <tr>
-                                        <td class="silat-table-cell font-medium text-gray-900">{{ $enrollment->student?->full_name }}<div class="text-xs text-gray-500">{{ $enrollment->student?->npm }}</div></td>
-                                        <td class="silat-table-cell">{{ $enrollment->internshipPeriod?->display_name }}<div class="text-xs text-gray-500">{{ $enrollment->studyProgram?->name }}</div></td>
-                                        <td class="silat-table-cell">{{ $enrollment->internshipPlace?->name ?: '-' }}</td>
-                                        <td class="silat-table-cell space-x-3"><a class="silat-secondary-link" href="{{ route('maps.monitoring') }}">Peta</a><a class="silat-secondary-link" href="{{ route('reports.monitoring') }}">Rekap</a></td>
-                                    </tr>
-                                @empty
-                                    <tr><td colspan="4" class="silat-table-cell"><x-empty-state title="Belum ada mahasiswa bimbingan" icon="fa-chalkboard-user" /></td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+
+                    <div class="space-y-5 border-t border-gray-100 p-5">
+                        @forelse ($supervisedGroups as $group)
+                            @php
+                                $firstEnrollment = $group->first();
+                                $period = $firstEnrollment?->internshipPeriod;
+                            @endphp
+                            <section class="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                                <div class="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-gray-50 px-4 py-3">
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">{{ $period?->program?->name ?: 'Program' }}</p>
+                                        <h4 class="mt-1 font-semibold text-gray-900">{{ $period?->display_name ?: 'Tanpa periode' }}</h4>
+                                        <p class="mt-1 text-sm text-gray-500">{{ number_format($group->count(), 0, ',', '.') }} mahasiswa bimbingan</p>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2">
+                                        <a class="silat-btn-secondary" href="{{ route('management.submission-progress.index', ['period_id' => $period?->id]) }}"><x-icon name="fa-file-circle-check" /> Review Laporan</a>
+                                        <a class="silat-btn-secondary" href="{{ route('management.seminar-requests.index', ['period_id' => $period?->id]) }}"><x-icon name="fa-person-chalkboard" /> Review Seminar</a>
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="silat-table">
+                                        <thead class="silat-table-head">
+                                            <tr>
+                                                <th class="silat-table-cell">Mahasiswa</th>
+                                                <th class="silat-table-cell">Prodi</th>
+                                                <th class="silat-table-cell">Mitra</th>
+                                                <th class="silat-table-cell">Status</th>
+                                                <th class="silat-table-cell">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            @foreach ($group as $enrollment)
+                                                <tr>
+                                                    <td class="silat-table-cell font-medium text-gray-900">
+                                                        {{ $enrollment->student?->full_name }}
+                                                        <div class="text-xs text-gray-500">{{ $enrollment->student?->npm }}</div>
+                                                    </td>
+                                                    <td class="silat-table-cell">{{ $enrollment->studyProgram?->name ?: '-' }}</td>
+                                                    <td class="silat-table-cell">{{ $enrollment->internshipPlace?->name ?: '-' }}</td>
+                                                    <td class="silat-table-cell"><x-badge>{{ $enrollment->status }}</x-badge></td>
+                                                    <td class="silat-table-cell">
+                                                        <div class="flex flex-wrap gap-3">
+                                                            <a class="silat-secondary-link" href="{{ route('management.submission-progress.index', ['q' => $enrollment->student?->npm]) }}">Laporan</a>
+                                                            <a class="silat-secondary-link" href="{{ route('management.seminar-requests.index', ['q' => $enrollment->student?->npm]) }}">Seminar</a>
+                                                            <a class="silat-secondary-link" href="{{ route('maps.monitoring', ['period_id' => $enrollment->internship_period_id]) }}">Peta</a>
+                                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', ['period_id' => $enrollment->internship_period_id]) }}">Rekap</a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        @empty
+                            <x-empty-state title="Belum ada mahasiswa bimbingan" icon="fa-chalkboard-user" />
+                        @endforelse
                     </div>
                 </section>
+
+                @include('management.partials.action-required', ['summary' => $actionRequiredSummary])
+
+                @include('partials.important-deadlines', [
+                    'deadlines' => $lecturerImportantDeadlines,
+                    'title' => 'Deadline Mahasiswa Bimbingan',
+                    'description' => 'Deadline dalam 7 hari ke depan dari periode mahasiswa bimbingan, atau deadline terdekat berikutnya.',
+                ])
             @endif
 
             @if (Auth::user()->hasRole(['admin', 'koordinator']))

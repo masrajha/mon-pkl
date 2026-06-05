@@ -275,13 +275,8 @@ class CheckInController extends Controller
         return InternshipEnrollment::query()
             ->with(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace'])
             ->where('status', 'active')
+            ->whereHas('internshipPeriod', fn ($query) => $query->where('is_active', true))
             ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id))
-            ->orderByDesc(
-                \App\Models\InternshipPeriod::query()
-                    ->select('is_active')
-                    ->whereColumn('internship_periods.id', 'internship_enrollments.internship_period_id')
-                    ->limit(1)
-            )
             ->latest('id')
             ->first();
     }
