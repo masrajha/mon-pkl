@@ -30,7 +30,9 @@ class EnrollmentController extends Controller
     {
         $student = $this->studentOrRedirect($request);
 
-        return view('student.enrollments.create', $this->formData($student) + [
+        $selectedPlaceId = (int) $request->old('internship_place_id', $request->integer('internship_place_id') ?: 0);
+
+        return view('student.enrollments.create', $this->formData($student, selectedPlaceId: $selectedPlaceId ?: null) + [
             'enrollment' => null,
         ]);
     }
@@ -44,12 +46,14 @@ class EnrollmentController extends Controller
 
         $enrollment->loadMissing(['internshipPeriod.program', 'internshipPeriod.deadlines', 'internshipPlace']);
 
-        return view('student.enrollments.create', $this->formData($student, $enrollment) + [
+        $selectedPlaceId = (int) $request->old('internship_place_id', $enrollment->internship_place_id);
+
+        return view('student.enrollments.create', $this->formData($student, $enrollment, $selectedPlaceId ?: null) + [
             'enrollment' => $enrollment,
         ]);
     }
 
-    private function formData($student, ?InternshipEnrollment $enrollment = null): array
+    private function formData($student, ?InternshipEnrollment $enrollment = null, ?int $selectedPlaceId = null): array
     {
         $periods = InternshipPeriod::query()
             ->with(['program', 'deadlines'])
@@ -68,7 +72,9 @@ class EnrollmentController extends Controller
             'student' => $student,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
             'periods' => $periods->filter()->values(),
-            'places' => InternshipPlace::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedPlace' => $selectedPlaceId
+                ? InternshipPlace::query()->where('is_active', true)->find($selectedPlaceId)
+                : null,
         ];
     }
 
@@ -82,6 +88,7 @@ class EnrollmentController extends Controller
 
         $data['program_id'] = $period->program_id;
         $data['study_program_id'] = $student->study_program_id;
+        $data['contact_student_phone'] = $student->phone;
         $settings = $this->configurations->forPeriod($period);
         $this->validateEligibilityByRule($data, $settings, $period->program?->rule_key, $student->studyProgram?->degree_level);
 
@@ -123,6 +130,7 @@ class EnrollmentController extends Controller
 
         $data['program_id'] = $period->program_id;
         $data['study_program_id'] = $student->study_program_id;
+        $data['contact_student_phone'] = $student->phone;
         $settings = $this->configurations->forPeriod($period);
         $this->validateEligibilityByRule($data, $settings, $period->program?->rule_key, $student->studyProgram?->degree_level);
         $this->validateQuota($data, $settings, $enrollment);
@@ -139,10 +147,6 @@ class EnrollmentController extends Controller
             'internship_period_id' => ['required', 'exists:internship_periods,id'],
             'program_id' => ['nullable', 'exists:programs,id'],
             'internship_place_id' => ['nullable', Rule::exists('internship_places', 'id')->where('is_active', true)],
-            'contact_student_phone' => ['required', 'string', 'max:50'],
-            'field_supervisor' => ['nullable', 'string', 'max:255'],
-            'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
-            'field_supervisor_email' => ['nullable', 'email', 'max:255'],
             'has_krs_pkl' => ['accepted'],
             'total_sks' => ['required', 'integer', 'min:0', 'max:250'],
             'current_semester' => ['required', 'integer', 'min:1', 'max:20'],

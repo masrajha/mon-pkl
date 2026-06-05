@@ -34,10 +34,13 @@ class RelocationRequestController extends Controller
     public function create(Request $request): View
     {
         $selectedEnrollmentId = (int) $request->integer('enrollment_id');
+        $selectedPlaceId = (int) old('new_internship_place_id', 0);
 
         return view('student.relocations.create', [
             'enrollments' => $this->activeEnrollments($request),
-            'places' => InternshipPlace::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedPlace' => $selectedPlaceId
+                ? InternshipPlace::query()->where('is_active', true)->find($selectedPlaceId)
+                : null,
             'selectedEnrollmentId' => $selectedEnrollmentId,
             'hasPendingRequest' => $this->hasPendingRequest($request),
         ]);

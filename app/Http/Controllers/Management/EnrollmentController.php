@@ -114,7 +114,7 @@ class EnrollmentController extends Controller
 
     public function edit(Request $request, InternshipEnrollment $enrollment): View
     {
-        $enrollment->loadMissing(['student.studyProgram', 'studyProgram', 'internshipPeriod.program']);
+        $enrollment->loadMissing(['student.studyProgram', 'studyProgram', 'internshipPeriod.program', 'internshipPlace']);
 
         return view('management.enrollments.edit', $this->formData($request) + compact('enrollment'));
     }
@@ -304,14 +304,17 @@ class EnrollmentController extends Controller
     private function formData(?Request $request = null): array
     {
         $selectedStudentId = old('student_id', $request?->integer('student_id') ?: null);
+        $selectedPlaceId = (int) old('internship_place_id', 0);
 
         return [
             'selectedStudent' => $selectedStudentId
                 ? Student::query()->with('studyProgram:id,code,name')->find($selectedStudentId)
                 : null,
+            'selectedPlace' => $selectedPlaceId
+                ? InternshipPlace::query()->find($selectedPlaceId)
+                : null,
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
             'periods' => InternshipPeriod::query()->with('program')->orderByDesc('is_active')->orderByDesc('id')->get(),
-            'places' => InternshipPlace::query()->where('is_active', true)->orderBy('name')->get(),
             'lecturers' => Lecturer::query()->where('status', 'active')->orderBy('name')->get(),
         ];
     }

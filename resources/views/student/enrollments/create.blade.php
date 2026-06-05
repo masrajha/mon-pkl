@@ -4,7 +4,8 @@
         $formAction = $isRevision ? route('student.enrollments.update', $enrollment) : route('student.enrollments.store');
         $selectedProgram = old('program_id', $enrollment?->internshipPeriod?->program_id);
         $selectedPeriod = old('internship_period_id', $enrollment?->internship_period_id);
-        $selectedPlace = old('internship_place_id', $enrollment?->internship_place_id ?? request('internship_place_id'));
+        $selectedPlaceId = old('internship_place_id', $enrollment?->internship_place_id ?? request('internship_place_id'));
+        $selectedPlaceLabel = ((string) $selectedPlace?->id === (string) $selectedPlaceId) ? $selectedPlace?->name : '';
     @endphp
 
     <x-slot name="header">
@@ -35,7 +36,7 @@
             <div class="grid gap-3 md:grid-cols-3" data-enrollment-steps>
                 @foreach ([
                     ['step' => '1', 'title' => 'Program', 'desc' => 'Pilih program dan periode aktif.'],
-                    ['step' => '2', 'title' => 'Mitra', 'desc' => 'Pilih mitra dan isi pembimbing lapangan.'],
+                    ['step' => '2', 'title' => 'Mitra', 'desc' => 'Pilih mitra atau ajukan mitra baru.'],
                     ['step' => '3', 'title' => 'Kelayakan', 'desc' => 'Isi syarat akademik dan dokumen.'],
                 ] as $item)
                     <div class="silat-card p-3" data-step-indicator="{{ $item['step'] }}">
@@ -94,35 +95,18 @@
 
             <section class="silat-card" data-enrollment-step="2" hidden>
                 <div class="silat-section-header">
-                    <div><h3 class="silat-section-title">2. Mitra dan Pembimbing Lapangan</h3><p class="silat-section-description">Pilih mitra jika sudah tersedia, atau lanjutkan tanpa mitra untuk mengajukan baru.</p></div>
+                    <div><h3 class="silat-section-title">2. Mitra</h3><p class="silat-section-description">Pilih mitra jika sudah tersedia, atau lanjutkan tanpa mitra untuk mengajukan baru.</p></div>
                     <a class="silat-secondary-link" href="{{ route('student.proposals.create') }}">Ajukan mitra baru</a>
                 </div>
-                <div class="grid gap-4 p-5 md:grid-cols-3">
-                    <div class="md:col-span-3">
-                        <x-input-label for="internship_place_id" value="Mitra" />
-                        <x-select-input id="internship_place_id" name="internship_place_id" class="mt-1">
-                            <option value="">Mitra belum ada / akan mengajukan baru</option>
-                            @foreach ($places as $place)
-                                <option value="{{ $place->id }}" @selected($selectedPlace == $place->id)>{{ $place->name }}</option>
-                            @endforeach
-                        </x-select-input>
-                    </div>
-                    <div>
-                        <x-input-label for="contact_student_phone" value="HP Kontak Mahasiswa" />
-                        <x-text-input id="contact_student_phone" name="contact_student_phone" class="mt-1 block w-full" :value="old('contact_student_phone', $enrollment?->contact_student_phone ?? $student->phone)" required />
-                    </div>
-                    <div>
-                        <x-input-label for="field_supervisor" value="Pembimbing Lapangan" />
-                        <x-text-input id="field_supervisor" name="field_supervisor" class="mt-1 block w-full" :value="old('field_supervisor', $enrollment?->field_supervisor)" />
-                    </div>
-                    <div>
-                        <x-input-label for="field_supervisor_phone" value="HP Pembimbing Lapangan" />
-                        <x-text-input id="field_supervisor_phone" name="field_supervisor_phone" class="mt-1 block w-full" :value="old('field_supervisor_phone', $enrollment?->field_supervisor_phone)" />
-                    </div>
-                    <div>
-                        <x-input-label for="field_supervisor_email" value="Email Pembimbing Lapangan" />
-                        <x-text-input id="field_supervisor_email" name="field_supervisor_email" type="email" class="mt-1 block w-full" :value="old('field_supervisor_email', $enrollment?->field_supervisor_email)" />
-                        <p class="mt-1 text-xs text-gray-500">Opsional saat pendaftaran. Wajib dilengkapi sebelum pengajuan seminar.</p>
+                <div class="grid gap-4 p-5">
+                    <div data-place-search data-search-url="{{ route('student.places.search') }}">
+                        <x-input-label for="internship_place_search" value="Mitra" />
+                        <input id="internship_place_id" type="hidden" name="internship_place_id" value="{{ $selectedPlaceId }}">
+                        <div class="relative mt-1">
+                            <x-text-input id="internship_place_search" type="search" class="block w-full" value="{{ $selectedPlaceLabel }}" autocomplete="off" placeholder="Ketik minimal 2 huruf nama, alamat, atau kota mitra" />
+                            <div data-place-suggestions class="absolute z-20 mt-1 hidden max-h-72 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"></div>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Kosongkan jika mitra belum ada atau akan mengajukan mitra baru.</p>
                     </div>
                 </div>
                 <div class="flex flex-wrap justify-between gap-3 border-t border-gray-100 p-5">
@@ -179,6 +163,7 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const program = document.getElementById('program_id');
                 const period = document.getElementById('internship_period_id');
+                const placeSearchRoot = document.querySelector('[data-place-search]');
                 const syncPeriods = () => {
                     [...period.options].forEach((option) => {
                         if (! option.value) return;
@@ -188,6 +173,72 @@
                 };
                 program.addEventListener('change', syncPeriods);
                 syncPeriods();
+
+                if (placeSearchRoot) {
+                    const placeInput = document.getElementById('internship_place_search');
+                    const placeHidden = document.getElementById('internship_place_id');
+                    const suggestions = placeSearchRoot.querySelector('[data-place-suggestions]');
+                    let placeTimeout;
+
+                    const renderPlaces = (places) => {
+                        suggestions.innerHTML = '';
+
+                        if (! places.length) {
+                            suggestions.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">Mitra tidak ditemukan.</div>';
+                            suggestions.classList.remove('hidden');
+                            return;
+                        }
+
+                        places.forEach((place) => {
+                            const button = document.createElement('button');
+                            button.type = 'button';
+                            button.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50';
+
+                            const name = document.createElement('span');
+                            name.className = 'font-medium text-gray-900';
+                            name.textContent = place.name;
+
+                            const meta = document.createElement('div');
+                            meta.className = 'text-xs text-gray-500';
+                            meta.textContent = [place.city, place.address].filter(Boolean).join(' · ') || 'Alamat belum diisi';
+
+                            button.append(name, meta);
+                            button.addEventListener('click', () => {
+                                placeHidden.value = place.id;
+                                placeInput.value = place.label;
+                                suggestions.classList.add('hidden');
+                            });
+
+                            suggestions.appendChild(button);
+                        });
+
+                        suggestions.classList.remove('hidden');
+                    };
+
+                    placeInput.addEventListener('input', () => {
+                        clearTimeout(placeTimeout);
+                        placeHidden.value = '';
+
+                        const query = placeInput.value.trim();
+                        if (query.length < 2) {
+                            suggestions.classList.add('hidden');
+                            return;
+                        }
+
+                        placeTimeout = setTimeout(async () => {
+                            const response = await fetch(`${placeSearchRoot.dataset.searchUrl}?q=${encodeURIComponent(query)}`, {
+                                headers: { 'Accept': 'application/json' },
+                            });
+                            renderPlaces(response.ok ? await response.json() : []);
+                        }, 250);
+                    });
+
+                    document.addEventListener('click', (event) => {
+                        if (! placeSearchRoot.contains(event.target)) {
+                            suggestions.classList.add('hidden');
+                        }
+                    });
+                }
 
                 const panels = [...document.querySelectorAll('[data-enrollment-step]')];
                 const indicators = [...document.querySelectorAll('[data-step-indicator]')];

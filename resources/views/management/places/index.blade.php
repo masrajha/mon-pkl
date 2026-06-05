@@ -39,14 +39,13 @@
                         <option value="merge">Merge ke mitra tujuan</option>
                     </select>
                 </div>
-                <div class="min-w-80 flex-1">
-                    <x-input-label for="target_place_id" value="Tujuan merge" />
-                    <select id="target_place_id" name="target_place_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
-                        <option value="">Pilih salah satu mitra yang dicentang</option>
-                        @foreach ($allPlaces as $target)
-                            <option value="{{ $target->id }}">{{ $target->name }}</option>
-                        @endforeach
-                    </select>
+                <div class="min-w-80 flex-1" data-management-place-search data-search-url="{{ route('management.places.search') }}">
+                    <x-input-label for="target_place_search" value="Tujuan merge" />
+                    <input id="target_place_id" type="hidden" name="target_place_id">
+                    <div class="relative mt-1">
+                        <x-text-input id="target_place_search" type="search" class="block w-full text-sm" autocomplete="off" placeholder="Cari salah satu mitra yang dicentang" />
+                        <div data-place-suggestions class="absolute z-20 mt-1 hidden max-h-72 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"></div>
+                    </div>
                 </div>
                 <x-primary-button>Jalankan</x-primary-button>
             </div>
@@ -60,4 +59,68 @@
             <x-table-pagination :paginator="$places" />
         </div>
     </div></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const root = document.querySelector('[data-management-place-search]');
+            if (! root) return;
+
+            const input = document.getElementById('target_place_search');
+            const hidden = document.getElementById('target_place_id');
+            const suggestions = root.querySelector('[data-place-suggestions]');
+            let timeout;
+
+            const render = (places) => {
+                suggestions.innerHTML = '';
+
+                if (! places.length) {
+                    suggestions.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">Mitra tidak ditemukan.</div>';
+                    suggestions.classList.remove('hidden');
+                    return;
+                }
+
+                places.forEach((place) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50';
+                    const name = document.createElement('span');
+                    name.className = 'font-medium text-gray-900';
+                    name.textContent = place.name;
+                    const meta = document.createElement('div');
+                    meta.className = 'text-xs text-gray-500';
+                    meta.textContent = [place.city, place.address].filter(Boolean).join(' · ') || 'Alamat belum diisi';
+                    button.append(name, meta);
+                    button.addEventListener('click', () => {
+                        hidden.value = place.id;
+                        input.value = place.label;
+                        suggestions.classList.add('hidden');
+                    });
+                    suggestions.appendChild(button);
+                });
+
+                suggestions.classList.remove('hidden');
+            };
+
+            input.addEventListener('input', () => {
+                clearTimeout(timeout);
+                hidden.value = '';
+
+                const query = input.value.trim();
+                if (query.length < 2) {
+                    suggestions.classList.add('hidden');
+                    return;
+                }
+
+                timeout = setTimeout(async () => {
+                    const response = await fetch(`${root.dataset.searchUrl}?q=${encodeURIComponent(query)}`, {
+                        headers: { 'Accept': 'application/json' },
+                    });
+                    render(response.ok ? await response.json() : []);
+                }, 250);
+            });
+
+            document.addEventListener('click', (event) => {
+                if (! root.contains(event.target)) suggestions.classList.add('hidden');
+            });
+        });
+    </script>
 </x-app-layout>

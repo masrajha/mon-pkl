@@ -570,4 +570,22 @@ class ManagementFeatureTest extends TestCase
         $this->assertDatabaseMissing('internship_places', ['id' => $sourcePlace->id]);
         $this->assertDatabaseHas('internship_places', ['id' => $targetPlace->id]);
     }
+
+    public function test_admin_can_search_places_for_management_forms(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $activePlace = InternshipPlace::query()->create(['name' => 'PT Search Management', 'address' => 'Alamat Search', 'is_active' => true]);
+        InternshipPlace::query()->create(['name' => 'PT Search Nonaktif', 'is_active' => false]);
+
+        $this->actingAs($admin)
+            ->getJson(route('management.places.search', ['q' => 'Search', 'active_only' => 1]))
+            ->assertOk()
+            ->assertJsonFragment([
+                'id' => $activePlace->id,
+                'name' => 'PT Search Management',
+            ])
+            ->assertJsonMissing([
+                'name' => 'PT Search Nonaktif',
+            ]);
+    }
 }

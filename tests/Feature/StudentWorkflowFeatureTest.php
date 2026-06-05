@@ -138,6 +138,33 @@ class StudentWorkflowFeatureTest extends TestCase
             ->assertSee('PT Data Mitra');
     }
 
+    public function test_student_can_search_active_places_for_enrollment(): void
+    {
+        $studentUser = User::factory()->create(['role' => 'mahasiswa']);
+        $program = StudyProgram::query()->create(['code' => 'ILKOM2', 'name' => 'Ilmu Komputer Search', 'is_active' => true]);
+        Student::query()->create([
+            'user_id' => $studentUser->id,
+            'study_program_id' => $program->id,
+            'npm' => '2217051772',
+            'full_name' => 'Mahasiswa Search Mitra',
+            'student_email' => 'search@example.test',
+            'phone' => '081234567890',
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'PT Suggestion Match', 'address' => 'Jalan Search', 'is_active' => true]);
+        InternshipPlace::query()->create(['name' => 'PT Nonaktif Suggestion', 'is_active' => false]);
+
+        $this->actingAs($studentUser)
+            ->getJson(route('student.places.search', ['q' => 'Suggestion']))
+            ->assertOk()
+            ->assertJsonFragment([
+                'id' => $place->id,
+                'name' => 'PT Suggestion Match',
+            ])
+            ->assertJsonMissing([
+                'name' => 'PT Nonaktif Suggestion',
+            ]);
+    }
+
     public function test_admin_can_approve_student_place_proposal(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -612,9 +639,9 @@ class StudentWorkflowFeatureTest extends TestCase
         $this->assertDatabaseHas('internship_enrollments', [
             'id' => $enrollment->id,
             'internship_place_id' => $newPlace->id,
-            'contact_student_phone' => '081299999999',
-            'field_supervisor' => 'Pembimbing Baru',
-            'field_supervisor_phone' => '081211111111',
+            'contact_student_phone' => $student->phone,
+            'field_supervisor' => null,
+            'field_supervisor_phone' => null,
             'status' => 'pending_verification',
             'admin_note' => null,
         ]);

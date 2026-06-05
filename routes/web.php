@@ -189,6 +189,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/student/orientation-events/{orientationEvent}/attendance', [StudentOrientationAttendanceController::class, 'create'])->name('student.orientation-attendances.create');
         Route::post('/student/orientation-events/{orientationEvent}/attendance', [StudentOrientationAttendanceController::class, 'store'])->name('student.orientation-attendances.store');
         Route::get('/student/places', [StudentPlaceController::class, 'index'])->name('student.places.index');
+        Route::get('/student/places/search', [StudentPlaceController::class, 'search'])->name('student.places.search');
         Route::get('/student/places/data', [StudentPlaceController::class, 'data'])->name('student.places.data');
         Route::get('/student/place-proposals', [StudentPlaceProposalController::class, 'index'])->name('student.proposals.index');
         Route::get('/student/place-proposals/create', [StudentPlaceProposalController::class, 'create'])->name('student.proposals.create');
@@ -227,6 +228,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/management/place-proposals', [ManagementPlaceProposalController::class, 'index'])->name('management.place-proposals.index');
         Route::post('/management/place-proposals/{proposal}/approve', [ManagementPlaceProposalController::class, 'approve'])->name('management.place-proposals.approve');
         Route::post('/management/place-proposals/{proposal}/reject', [ManagementPlaceProposalController::class, 'reject'])->name('management.place-proposals.reject');
+        Route::get('/management/places/search', [ManagementPlaceController::class, 'search'])->name('management.places.search');
         Route::get('/management/orientation-events', [ManagementOrientationEventController::class, 'index'])->name('management.orientation-events.index');
         Route::get('/management/orientation-events/locations/search', [ManagementOrientationEventController::class, 'locationSuggestions'])->name('management.orientation-events.locations.search');
         Route::post('/management/orientation-events', [ManagementOrientationEventController::class, 'store'])->name('management.orientation-events.store');

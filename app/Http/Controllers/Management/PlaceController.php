@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,11 +43,43 @@ class PlaceController extends Controller
             'places' => $this->applyTableSort($query, $request, ['name', 'is_active', 'id'], 'name')
                 ->paginate($this->tablePerPage($request))
                 ->withQueryString(),
-            'allPlaces' => InternshipPlace::query()->orderBy('name')->get(['id', 'name']),
             'periods' => InternshipPeriod::query()->with('program')->orderByDesc('is_active')->orderByDesc('id')->get(),
             'selectedPeriod' => $selectedPeriod,
             'selectedStatus' => $request->string('status')->toString(),
         ]);
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $search = trim($request->string('q')->toString());
+
+        if (strlen($search) < 2) {
+            return response()->json([]);
+        }
+
+        $query = InternshipPlace::query()
+            ->with('city')
+            ->when($request->boolean('active_only'), fn ($query) => $query->where('is_active', true))
+            ->where(fn ($query) => $query
+                ->where('name', 'like', '%'.$search.'%')
+                ->orWhere('address', 'like', '%'.$search.'%')
+                ->orWhereHas('city', fn ($query) => $query->where('name', 'like', '%'.$search.'%')));
+
+        return response()->json(
+            $query
+                ->orderBy('name')
+                ->limit(10)
+                ->get(['id', 'city_id', 'name', 'address', 'is_active'])
+                ->map(fn (InternshipPlace $place): array => [
+                    'id' => $place->id,
+                    'name' => $place->name,
+                    'address' => $place->address,
+                    'city' => $place->city?->name,
+                    'is_active' => $place->is_active,
+                    'label' => $place->name.($place->city?->name ? ' - '.$place->city->name : ''),
+                ])
+                ->values(),
+        );
     }
 
     public function bulk(Request $request): RedirectResponse

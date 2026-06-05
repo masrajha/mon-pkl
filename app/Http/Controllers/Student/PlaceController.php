@@ -59,6 +59,31 @@ class PlaceController extends Controller
         ]);
     }
 
+    public function search(Request $request): JsonResponse
+    {
+        $search = trim($request->string('q')->toString());
+
+        if (strlen($search) < 2) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            $this->query($request)
+                ->orderBy('name')
+                ->limit(10)
+                ->get(['id', 'city_id', 'name', 'address'])
+                ->map(fn (InternshipPlace $place): array => [
+                    'id' => $place->id,
+                    'name' => $place->name,
+                    'address' => $place->address,
+                    'city' => $place->city?->name,
+                    'label' => $place->name.($place->city?->name ? ' - '.$place->city->name : ''),
+                ])
+                ->values(),
+        );
+    }
+
+
     private function query(Request $request): Builder
     {
         $activePeriod = $this->activePeriod();

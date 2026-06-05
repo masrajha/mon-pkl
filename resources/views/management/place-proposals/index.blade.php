@@ -77,12 +77,11 @@
                                                     <option value="new">Jadikan master baru</option>
                                                     <option value="merge">Gabungkan ke master</option>
                                                 </select>
-                                                <select name="internship_place_id" class="w-56 rounded-md border-gray-300 text-xs">
-                                                    <option value="">Pilih master jika merge</option>
-                                                    @foreach ($places as $place)
-                                                        <option value="{{ $place->id }}">{{ $place->name }}</option>
-                                                    @endforeach
-                                                </select>
+                                                <div data-management-place-search data-search-url="{{ route('management.places.search') }}" class="relative w-56">
+                                                    <input type="hidden" name="internship_place_id" data-place-id>
+                                                    <input type="search" data-place-input class="w-full rounded-md border-gray-300 text-xs" autocomplete="off" placeholder="Cari master jika merge">
+                                                    <div data-place-suggestions class="absolute z-20 mt-1 hidden max-h-64 w-full overflow-auto rounded-md border border-gray-200 bg-white text-left shadow-lg"></div>
+                                                </div>
                                                 <textarea name="admin_note" rows="2" class="w-56 rounded-md border-gray-300 text-xs" placeholder="Catatan admin"></textarea>
                                                 <button class="rounded-md bg-green-700 px-3 py-1 text-xs font-semibold text-white">Setujui</button>
                                             </form>
@@ -106,4 +105,67 @@
             <x-table-pagination :paginator="$proposals" />
         </div>
     </div></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-management-place-search]').forEach((root) => {
+                const input = root.querySelector('[data-place-input]');
+                const hidden = root.querySelector('[data-place-id]');
+                const suggestions = root.querySelector('[data-place-suggestions]');
+                let timeout;
+
+                const render = (places) => {
+                    suggestions.innerHTML = '';
+
+                    if (! places.length) {
+                        suggestions.innerHTML = '<div class="px-3 py-2 text-xs text-gray-500">Mitra tidak ditemukan.</div>';
+                        suggestions.classList.remove('hidden');
+                        return;
+                    }
+
+                    places.forEach((place) => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'block w-full px-3 py-2 text-left text-xs hover:bg-gray-50 focus:bg-gray-50';
+                        const name = document.createElement('span');
+                        name.className = 'font-medium text-gray-900';
+                        name.textContent = place.name;
+                        const meta = document.createElement('div');
+                        meta.className = 'text-[11px] text-gray-500';
+                        meta.textContent = [place.city, place.address].filter(Boolean).join(' · ') || 'Alamat belum diisi';
+                        button.append(name, meta);
+                        button.addEventListener('click', () => {
+                            hidden.value = place.id;
+                            input.value = place.label;
+                            suggestions.classList.add('hidden');
+                        });
+                        suggestions.appendChild(button);
+                    });
+
+                    suggestions.classList.remove('hidden');
+                };
+
+                input.addEventListener('input', () => {
+                    clearTimeout(timeout);
+                    hidden.value = '';
+
+                    const query = input.value.trim();
+                    if (query.length < 2) {
+                        suggestions.classList.add('hidden');
+                        return;
+                    }
+
+                    timeout = setTimeout(async () => {
+                        const response = await fetch(`${root.dataset.searchUrl}?q=${encodeURIComponent(query)}`, {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        render(response.ok ? await response.json() : []);
+                    }, 250);
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (! root.contains(event.target)) suggestions.classList.add('hidden');
+                });
+            });
+        });
+    </script>
 </x-app-layout>

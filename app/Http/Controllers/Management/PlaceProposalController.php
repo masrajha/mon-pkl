@@ -46,7 +46,6 @@ class PlaceProposalController extends Controller
             'proposals' => $this->applyTableSort($query, $request, ['id', 'status', 'name'], 'id', 'desc')
                 ->paginate($this->tablePerPage($request))
                 ->withQueryString(),
-            'places' => InternshipPlace::query()->orderBy('name')->get(),
             'selectedStatus' => $request->string('status')->toString(),
         ]);
     }

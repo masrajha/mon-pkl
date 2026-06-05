@@ -1,8 +1,11 @@
 @php
     $isEdit = filled($enrollment);
     $currentStudent = $enrollment?->student ?? $selectedStudent;
+    $currentPlace = $enrollment?->internshipPlace ?? $selectedPlace;
     $currentStudyProgram = $currentStudent?->studyProgram ?? $enrollment?->studyProgram;
     $studentLabel = $currentStudent ? trim($currentStudent->full_name.' - '.$currentStudent->npm) : '';
+    $placeValue = old('internship_place_id', $enrollment?->internship_place_id);
+    $placeLabel = ((string) $currentPlace?->id === (string) $placeValue) ? $currentPlace?->name : '';
     $periodValue = old('internship_period_id', $enrollment?->internship_period_id ?? request('period_id'));
     $currentPeriod = $enrollment?->internshipPeriod ?? $periods->firstWhere('id', (int) $periodValue);
     $programName = $currentPeriod?->program?->name ?? 'Program';
@@ -50,13 +53,15 @@
     </div>
 </div>
 
-<x-input-label for="internship_place_id" value="Mitra" />
-<select id="internship_place_id" name="internship_place_id" class="block w-full rounded-md border-gray-300">
-    <option value="">Mitra belum ditentukan</option>
-    @foreach ($places as $place)
-        <option value="{{ $place->id }}" @selected((string) old('internship_place_id', $enrollment?->internship_place_id) === (string) $place->id)>{{ $place->name }}</option>
-    @endforeach
-</select>
+<div data-place-search data-search-url="{{ route('management.places.search', ['active_only' => 1]) }}">
+    <x-input-label for="internship_place_search" value="Mitra" />
+    <input id="internship_place_id" type="hidden" name="internship_place_id" value="{{ $placeValue }}">
+    <div class="relative mt-1">
+        <x-text-input id="internship_place_search" type="search" class="block w-full" value="{{ $placeLabel }}" autocomplete="off" placeholder="Ketik minimal 2 huruf nama, alamat, atau kota mitra" />
+        <div data-place-suggestions class="absolute z-20 mt-1 hidden max-h-72 w-full overflow-auto rounded-md border border-gray-200 bg-white shadow-lg"></div>
+    </div>
+    <p class="mt-1 text-xs text-gray-500">Kosongkan jika mitra belum ditentukan.</p>
+</div>
 
 <div class="rounded-md border border-blue-100 bg-blue-50 p-4">
     <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
@@ -204,6 +209,68 @@
 
                     timeout = setTimeout(async () => {
                         const response = await fetch(`${root.dataset.searchUrl}?q=${encodeURIComponent(query)}`, {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        render(response.ok ? await response.json() : []);
+                    }, 250);
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (! root.contains(event.target)) {
+                        suggestions.classList.add('hidden');
+                    }
+                });
+            });
+
+            document.querySelectorAll('[data-place-search]').forEach((root) => {
+                const input = root.querySelector('#internship_place_search');
+                const hidden = document.getElementById('internship_place_id');
+                const suggestions = root.querySelector('[data-place-suggestions]');
+                let timeout;
+
+                const render = (places) => {
+                    suggestions.innerHTML = '';
+
+                    if (! places.length) {
+                        suggestions.innerHTML = '<div class="px-3 py-2 text-sm text-gray-500">Mitra tidak ditemukan.</div>';
+                        suggestions.classList.remove('hidden');
+                        return;
+                    }
+
+                    places.forEach((place) => {
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50';
+                        const name = document.createElement('span');
+                        name.className = 'font-medium text-gray-900';
+                        name.textContent = place.name;
+                        const meta = document.createElement('div');
+                        meta.className = 'text-xs text-gray-500';
+                        meta.textContent = [place.city, place.address].filter(Boolean).join(' · ') || 'Alamat belum diisi';
+                        button.append(name, meta);
+                        button.addEventListener('click', () => {
+                            hidden.value = place.id;
+                            input.value = place.label;
+                            suggestions.classList.add('hidden');
+                        });
+                        suggestions.appendChild(button);
+                    });
+
+                    suggestions.classList.remove('hidden');
+                };
+
+                input.addEventListener('input', () => {
+                    clearTimeout(timeout);
+                    hidden.value = '';
+
+                    const query = input.value.trim();
+                    if (query.length < 2) {
+                        suggestions.classList.add('hidden');
+                        return;
+                    }
+
+                    timeout = setTimeout(async () => {
+                        const response = await fetch(`${root.dataset.searchUrl}&q=${encodeURIComponent(query)}`, {
                             headers: { 'Accept': 'application/json' },
                         });
                         render(response.ok ? await response.json() : []);
