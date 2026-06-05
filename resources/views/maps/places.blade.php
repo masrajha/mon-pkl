@@ -34,6 +34,9 @@
                             <p id="places-route-summary" class="text-xs text-gray-500">{{ __('Tentukan titik awal untuk menghitung urutan mitra.') }}</p>
                         </div>
                         <form id="places-route-form" class="grid gap-3 border-b border-gray-100 p-4 sm:grid-cols-2">
+                            <div class="sm:col-span-2">
+                                <p class="text-sm font-medium text-gray-900">{{ __('Start Awal') }}</p>
+                            </div>
                             <div>
                                 <x-input-label for="route_start_lat" :value="__('Latitude')" />
                                 <x-text-input id="route_start_lat" name="start_lat" type="text" class="mt-1 block w-full text-sm" value="-5.3642946" placeholder="-5.3642946" />

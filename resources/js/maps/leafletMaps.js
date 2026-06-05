@@ -283,12 +283,18 @@ function renderPlacesRouteTable(tableBody, stops, selectPlace) {
 
     stops.forEach((stop) => {
         const row = document.createElement('tr');
+        const directionsUrl = googleMapsCoordinateUrl(stop.lat, stop.lng);
 
         row.className = 'cursor-pointer transition hover:bg-teal-50';
         row.innerHTML = `
             <td class="silat-table-cell text-gray-700">${Number(stop.order || 0).toLocaleString('id-ID')}</td>
             <td class="silat-table-cell">
-                <div class="font-medium text-gray-900">${escapeHtml(stop.name || '-')}</div>
+                <div class="flex items-start gap-2">
+                    <div class="min-w-0 font-medium text-gray-900">${escapeHtml(stop.name || '-')}</div>
+                    <a href="${escapeHtml(directionsUrl)}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-blue-600 transition hover:text-blue-800" title="Buka di Google Maps" aria-label="Buka ${escapeHtml(stop.name || 'mitra')} di Google Maps" data-route-directions>
+                        <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i>
+                    </a>
+                </div>
                 <div class="line-clamp-2 text-xs text-gray-500">${escapeHtml(stop.city || stop.address || '-')}</div>
             </td>
             <td class="silat-table-cell text-gray-700">
@@ -296,6 +302,7 @@ function renderPlacesRouteTable(tableBody, stops, selectPlace) {
                 <div class="text-xs text-gray-500">${formatDistance(stop.cumulative_distance_meters)}</div>
             </td>
         `;
+        row.querySelector('[data-route-directions]')?.addEventListener('click', (event) => event.stopPropagation());
         row.addEventListener('click', () => selectPlace(stop.id, { scroll: true }));
         tableBody.append(row);
     });
@@ -1077,6 +1084,10 @@ function formatDuration(value) {
     }
 
     return `${minutes} menit`;
+}
+
+function googleMapsCoordinateUrl(lat, lng) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${Number(lat).toFixed(7)},${Number(lng).toFixed(7)}`;
 }
 
 function escapeHtml(value) {
