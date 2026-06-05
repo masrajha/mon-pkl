@@ -389,7 +389,7 @@ Halaman detail program memakai tab agar workflow mahasiswa tidak bercampur dalam
 | Seminar & Penilaian | Pengajuan seminar, ACC seminar, jadwal seminar, penilaian dosen via sistem, atau penilaian manual yang divalidasi admin/koordinator. |
 | Penyelesaian | Upload bukti penyerahan laporan hardcopy dan tombol cetak laporan. |
 
-Jenis unggahan progres pada tab **Pelaporan**:
+Tab **Pelaporan** hanya digunakan untuk unggahan progres laporan sampai Laporan Lengkap. Jenis unggahan progres pada tab **Pelaporan**:
 
 - Proposal Rencana Kerja.
 - Pelaporan Tahap 1: Bab 1.
@@ -397,15 +397,15 @@ Jenis unggahan progres pada tab **Pelaporan**:
 - Pelaporan Tahap 3: Bab 1, 2 dan 3.
 - Pelaporan Tahap 4/Laporan Lengkap: Bab 1 sampai 5.
 
-Bukti penyerahan laporan **Hardcopy** tidak berada di progres laporan biasa, tetapi pada tab **Penyelesaian**.
-
 Batasan file unggahan laporan:
 
 - Format file: PDF, DOC, atau DOCX.
 - Maksimal ukuran file: 10 MB.
 - Setiap unggahan disimpan dengan status review.
 
-Khusus seminar:
+### 1.16 Seminar & Penilaian
+
+Menu: **Ringkasan Program** > **Detail** > tab **Seminar & Penilaian**
 
 - Mahasiswa wajib memiliki email pembimbing lapangan pada enrollment.
 - Jika email belum ada, mahasiswa harus mengajukan pelengkapan/perubahan data pembimbing terlebih dahulu.
@@ -415,7 +415,30 @@ Khusus seminar:
 - Penilaian seminar juga memiliki dua jalur: dosen pembimbing mengisi nilai via sistem, atau mahasiswa menginput komponen nilai manual dan mengunggah berkas bukti/form penilaian untuk divalidasi admin/koordinator.
 - Setelah seminar berstatus selesai, mahasiswa masih dapat mengajukan seminar lagi jika diperlukan, misalnya untuk perbaikan/ulang sesuai keputusan akademik.
 
-### 1.16 Cara Kerja Sanksi Keterlambatan Laporan
+Komponen nilai seminar:
+
+| Komponen | Bobot |
+|----------|-------|
+| Penguasaan materi/metode | 20% |
+| Sikap ilmiah dan argumentasi | 10% |
+| Teknik penyajian dan kebahasaan | 10% |
+| Originalitas laporan | 30% |
+| Relevansi dan keterpaduan laporan | 15% |
+| Penulisan, format, dan bahasa | 15% |
+
+Sistem menghitung nilai total dari komponen tersebut. Pada jalur manual, mahasiswa menginput komponen nilai sesuai form bukti dan admin/koordinator memvalidasi kesesuaian berkasnya.
+
+### 1.17 Penyelesaian dan Hardcopy
+
+Menu: **Ringkasan Program** > **Detail** > tab **Penyelesaian**
+
+Tab **Penyelesaian** digunakan untuk tahap akhir setelah pelaporan dan seminar. Mahasiswa mengunggah bukti penyerahan laporan **hardcopy** pada tab ini.
+
+Hardcopy tidak termasuk jenis unggahan pada tab **Pelaporan**. Pemisahan ini membuat progres laporan hanya berisi tahapan akademik sampai Laporan Lengkap, sedangkan bukti penyerahan fisik menjadi bagian dari penyelesaian program.
+
+Pada tab ini mahasiswa juga dapat mencetak laporan jika data penting sudah tersedia, terutama dosen pembimbing dan pembimbing lapangan.
+
+### 1.18 Cara Kerja Sanksi Keterlambatan Laporan
 
 Setiap periode dapat memiliki deadline dan bobot sanksi sendiri.
 
@@ -444,7 +467,7 @@ Sanksi         : 15 poin
 
 Sanksi dari presensi dan laporan masuk ke total sanksi enrollment.
 
-### 1.17 Catatan Harian
+### 1.19 Catatan Harian
 
 Catatan harian dibuat otomatis dari presensi masuk dan pulang.
 
@@ -466,7 +489,7 @@ Catatan harian menampilkan:
 
 Mahasiswa dapat mencetak form catatan harian dari tab **Presensi & Catatan** untuk keperluan paraf pembimbing lapangan.
 
-### 1.18 Cetak Laporan
+### 1.20 Cetak Laporan
 
 Mahasiswa dapat mencetak laporan dari tab **Penyelesaian** pada detail program.
 
@@ -484,7 +507,7 @@ Cetak laporan memuat:
 
 Cetak laporan hanya dapat dilakukan jika data penting sudah tersedia, terutama dosen pembimbing dan pembimbing lapangan.
 
-### 1.19 Pindah Mitra
+### 1.21 Pindah Mitra
 
 Menu: **Pindah Mitra**
 
@@ -500,7 +523,7 @@ Data yang diisi:
 
 Permohonan akan diproses admin/koordinator. Jika disetujui, data mitra pada enrollment diperbarui.
 
-### 1.20 Perubahan Pembimbing
+### 1.22 Perubahan Pembimbing
 
 Menu: **Perubahan Pembimbing**
 
@@ -518,7 +541,7 @@ Data yang dapat diajukan:
 
 Minimal satu data pembimbing harus diisi. Pengajuan akan diproses admin/koordinator. Jika disetujui, data pembimbing pada enrollment diperbarui.
 
-### 1.21 Data Mitra dan Peta
+### 1.23 Data Mitra dan Peta
 
 Menu: **Data Mitra**
 
@@ -526,7 +549,7 @@ Mahasiswa dapat melihat data mitra yang tersedia, termasuk lokasi pada peta. Dat
 
 Peta menggunakan Leaflet dan tile OpenStreetMap. Lokasi dapat ditampilkan sebagai marker, dan sistem dapat memakai koordinat tersebut sebagai acuan presensi setelah enrollment aktif.
 
-### 1.22 Ringkasan Batasan Penting
+### 1.24 Ringkasan Batasan Penting
 
 | Area | Batasan |
 |------|---------|
@@ -548,7 +571,7 @@ Peta menggunakan Leaflet dan tile OpenStreetMap. Lokasi dapat ditampilkan sebaga
 | Unggah laporan | PDF/DOC/DOCX, maksimal 10 MB. |
 | Seminar | Email pembimbing lapangan wajib tersedia dan Laporan Lengkap Bab 1-5 sudah diunggah sebelum pengajuan seminar. |
 
-### 1.23 Alur Singkat Mahasiswa dari Awal sampai Selesai
+### 1.25 Alur Singkat Mahasiswa dari Awal sampai Selesai
 
 1. Login ke SiLAT.
 2. Lengkapi **Profil Saya**.
