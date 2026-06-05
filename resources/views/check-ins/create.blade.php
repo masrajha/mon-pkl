@@ -1,3 +1,9 @@
+@php
+    $programName = $enrollment->internshipPeriod?->program?->name ?? 'Program';
+    $attendanceStartsAt = $enrollment->effectiveAttendanceStartsAt();
+    $attendanceEndsAt = $enrollment->effectiveAttendanceEndsAt();
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <div>
@@ -46,6 +52,19 @@
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Mitra / Periode</p>
                         <p class="mt-1 font-semibold text-gray-900">{{ $enrollment->internshipPlace?->name ?? '-' }}</p>
                         <p class="text-sm text-gray-600">{{ $enrollment->internshipPeriod?->display_name }}</p>
+                    </div>
+                    <div class="rounded-lg border border-blue-100 bg-blue-50 p-4">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-900">Periode Pelaksanaan {{ $programName }}</p>
+                                <p class="mt-1 text-sm text-blue-900">
+                                    Presensi valid pada rentang tanggal {{ $attendanceStartsAt?->format('d/m/Y') ?: '-' }} s.d. {{ $attendanceEndsAt?->format('d/m/Y') ?: '-' }}.
+                                </p>
+                            </div>
+                            @if ($enrollment->hasAttendanceOverride())
+                                <x-badge variant="info">Khusus</x-badge>
+                            @endif
+                        </div>
                     </div>
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div><x-input-label for="student_latitude" :value="__('Latitude Anda')" /><x-text-input id="student_latitude" name="student_latitude" type="text" class="mt-1 block w-full" readonly required /></div>

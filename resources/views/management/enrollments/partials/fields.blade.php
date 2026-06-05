@@ -4,6 +4,16 @@
     $currentStudyProgram = $currentStudent?->studyProgram ?? $enrollment?->studyProgram;
     $studentLabel = $currentStudent ? trim($currentStudent->full_name.' - '.$currentStudent->npm) : '';
     $periodValue = old('internship_period_id', $enrollment?->internship_period_id ?? request('period_id'));
+    $currentPeriod = $enrollment?->internshipPeriod ?? $periods->firstWhere('id', (int) $periodValue);
+    $programName = $currentPeriod?->program?->name ?? 'Program';
+    $oldAttendanceStartsAt = old('attendance_starts_at');
+    $oldAttendanceEndsAt = old('attendance_ends_at');
+    $attendanceStartsAt = $oldAttendanceStartsAt && preg_match('/^\d{4}-\d{2}-\d{2}$/', $oldAttendanceStartsAt)
+        ? \Illuminate\Support\Carbon::parse(old('attendance_starts_at'))
+        : ($enrollment?->attendance_starts_at ?? $currentPeriod?->starts_at);
+    $attendanceEndsAt = $oldAttendanceEndsAt && preg_match('/^\d{4}-\d{2}-\d{2}$/', $oldAttendanceEndsAt)
+        ? \Illuminate\Support\Carbon::parse(old('attendance_ends_at'))
+        : ($enrollment?->attendance_ends_at ?? $currentPeriod?->ends_at);
 @endphp
 
 <div>
@@ -51,8 +61,11 @@
 <div class="rounded-md border border-blue-100 bg-blue-50 p-4">
     <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <div>
-            <h4 class="text-sm font-semibold text-gray-900">Periode Presensi Peserta</h4>
-            <p class="mt-1 text-xs text-gray-600">Kosongkan tanggal khusus untuk mengikuti Mulai/Selesai Pelaksanaan dari Periode Program.</p>
+            <h4 class="text-sm font-semibold text-gray-900">Periode Pelaksanaan {{ $programName }}</h4>
+            <p class="mt-1 text-xs text-gray-600">
+                Presensi valid pada rentang tanggal {{ $attendanceStartsAt?->format('d/m/Y') ?: '-' }} s.d. {{ $attendanceEndsAt?->format('d/m/Y') ?: '-' }}.
+                Kosongkan tanggal khusus untuk mengikuti periode pelaksanaan default.
+            </p>
         </div>
         @if ($enrollment?->hasAttendanceOverride())
             <x-badge variant="info">Khusus</x-badge>
@@ -60,11 +73,11 @@
     </div>
     <div class="mt-3 grid gap-3 sm:grid-cols-2">
         <div>
-            <x-input-label for="attendance_starts_at" value="Mulai Presensi Khusus" />
+            <x-input-label for="attendance_starts_at" value="Mulai Pelaksanaan Khusus" />
             <x-text-input id="attendance_starts_at" name="attendance_starts_at" type="date" class="block w-full" :value="old('attendance_starts_at', $enrollment?->attendance_starts_at?->toDateString())" />
         </div>
         <div>
-            <x-input-label for="attendance_ends_at" value="Selesai Presensi Khusus" />
+            <x-input-label for="attendance_ends_at" value="Selesai Pelaksanaan Khusus" />
             <x-text-input id="attendance_ends_at" name="attendance_ends_at" type="date" class="block w-full" :value="old('attendance_ends_at', $enrollment?->attendance_ends_at?->toDateString())" />
         </div>
     </div>
