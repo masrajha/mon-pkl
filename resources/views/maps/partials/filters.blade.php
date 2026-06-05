@@ -25,6 +25,20 @@
         </div>
     @endif
 
+    @if ($showCityFilter ?? false)
+        <div>
+            <x-input-label for="city_id" :value="__('Kab/Kota')" />
+            <x-select-input id="city_id" name="city_id" class="mt-1 text-sm">
+                <option value="">{{ __('Semua kab/kota') }}</option>
+                @foreach ($cities as $city)
+                    <option value="{{ $city->id }}" @selected((string) $selectedCity === (string) $city->id)>
+                        {{ $city->name }}
+                    </option>
+                @endforeach
+            </x-select-input>
+        </div>
+    @endif
+
     @if ($showCoordinatorAllStudyPrograms ?? false)
         <div class="flex items-end">
             <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">

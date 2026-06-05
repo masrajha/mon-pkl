@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CheckIn;
+use App\Models\City;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
@@ -266,5 +267,121 @@ class MapAccessTest extends TestCase
             ->assertOk()
             ->assertJsonFragment(['id' => $includedPlace->id])
             ->assertJsonFragment(['id' => $excludedPlace->id]);
+    }
+
+    public function test_places_map_can_filter_by_city(): void
+    {
+        config()->set('monpkl.routing.osrm.enabled', false);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $studyProgram = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Aktif', 'is_active' => true]);
+        $bandarLampung = City::query()->create(['name' => 'KOTA BANDAR LAMPUNG']);
+        $metro = City::query()->create(['name' => 'KOTA METRO']);
+        $includedPlace = InternshipPlace::query()->create([
+            'city_id' => $bandarLampung->id,
+            'name' => 'Mitra Bandar Lampung',
+            'latitude' => -5.3971,
+            'longitude' => 105.2668,
+            'is_active' => true,
+        ]);
+        $excludedPlace = InternshipPlace::query()->create([
+            'city_id' => $metro->id,
+            'name' => 'Mitra Metro',
+            'latitude' => -5.1130,
+            'longitude' => 105.3067,
+            'is_active' => true,
+        ]);
+        foreach ([[$includedPlace, '2217051010'], [$excludedPlace, '2217051011']] as [$place, $npm]) {
+            $student = Student::query()->create([
+                'user_id' => User::factory()->create(['role' => 'mahasiswa'])->id,
+                'study_program_id' => $studyProgram->id,
+                'npm' => $npm,
+                'full_name' => 'Mahasiswa Kota '.$npm,
+            ]);
+
+            InternshipEnrollment::query()->create([
+                'student_id' => $student->id,
+                'study_program_id' => $studyProgram->id,
+                'internship_period_id' => $period->id,
+                'internship_place_id' => $place->id,
+                'status' => 'active',
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get(route('maps.places'))
+            ->assertOk()
+            ->assertSee('Kab/Kota')
+            ->assertSee('KOTA BANDAR LAMPUNG')
+            ->assertSee('KOTA METRO');
+
+        $this->actingAs($admin)
+            ->getJson(route('maps.places.data', ['city_id' => $bandarLampung->id]))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $includedPlace->id])
+            ->assertJsonMissing(['id' => $excludedPlace->id]);
+
+        $this->actingAs($admin)
+            ->getJson(route('maps.places.route', [
+                'city_id' => $bandarLampung->id,
+                'start_lat' => -5.3900,
+                'start_lng' => 105.2600,
+            ]))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $includedPlace->id])
+            ->assertJsonMissing(['id' => $excludedPlace->id]);
+    }
+
+    public function test_places_map_city_filter_falls_back_to_address_when_city_id_is_empty(): void
+    {
+        config()->set('monpkl.routing.osrm.enabled', false);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $studyProgram = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Aktif', 'is_active' => true]);
+        $includedPlace = InternshipPlace::query()->create([
+            'name' => 'Mitra Alamat Bandar Lampung',
+            'address' => 'Jl. Wolter Monginsidi, Bandar Lampung, Lampung',
+            'latitude' => -5.3971,
+            'longitude' => 105.2668,
+            'is_active' => true,
+        ]);
+        $excludedPlace = InternshipPlace::query()->create([
+            'name' => 'Mitra Alamat Metro',
+            'address' => 'Jl. AH Nasution, Metro, Lampung',
+            'latitude' => -5.1130,
+            'longitude' => 105.3067,
+            'is_active' => true,
+        ]);
+
+        foreach ([[$includedPlace, '2217051012'], [$excludedPlace, '2217051013']] as [$place, $npm]) {
+            $student = Student::query()->create([
+                'user_id' => User::factory()->create(['role' => 'mahasiswa'])->id,
+                'study_program_id' => $studyProgram->id,
+                'npm' => $npm,
+                'full_name' => 'Mahasiswa Alamat '.$npm,
+            ]);
+
+            InternshipEnrollment::query()->create([
+                'student_id' => $student->id,
+                'study_program_id' => $studyProgram->id,
+                'internship_period_id' => $period->id,
+                'internship_place_id' => $place->id,
+                'status' => 'active',
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get(route('maps.places'))
+            ->assertOk()
+            ->assertSee('Bandar Lampung')
+            ->assertSee('Metro');
+
+        $this->actingAs($admin)
+            ->getJson(route('maps.places.data', ['city_id' => 'address:Bandar Lampung']))
+            ->assertOk()
+            ->assertJsonFragment(['id' => $includedPlace->id])
+            ->assertJsonMissing(['id' => $excludedPlace->id]);
     }
 }

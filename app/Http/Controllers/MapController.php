@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CheckIn;
+use App\Models\City;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
@@ -142,11 +143,14 @@ class MapController extends Controller
 
         return [
             'periods' => $periods,
+            'cities' => $this->availablePlaceCities($request, $forMonitoring),
             'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedCity' => $request->input('city_id'),
             'selectedAllStudyPrograms' => $this->shouldShowAllStudyPrograms($request),
             'showCoordinatorAllStudyPrograms' => ! $forMonitoring && (bool) $request->user()?->hasRole('koordinator'),
+            'showCityFilter' => ! $forMonitoring,
             'startDate' => $startDate->toDateString(),
             'endDate' => $endDate->toDateString(),
             'todayOnly' => $request->boolean('today_only'),
@@ -258,14 +262,91 @@ class MapController extends Controller
         return $query->whereHas('student', fn (Builder $query) => $query->where('user_id', $user?->id));
     }
 
-    private function placesQuery(Request $request): Builder
+    private function availablePlaceCities(Request $request, bool $forMonitoring)
+    {
+        if ($forMonitoring) {
+            return collect();
+        }
+
+        $places = $this->placesQuery($request, false)->get(['id', 'city_id', 'address']);
+        $cities = $places
+            ->map(function (InternshipPlace $place): ?object {
+                if ($place->city) {
+                    return (object) [
+                        'id' => (string) $place->city->id,
+                        'name' => $place->city->name,
+                    ];
+                }
+
+                $cityName = $this->cityNameFromAddress($place->address);
+
+                if (! $cityName) {
+                    return null;
+                }
+
+                return (object) [
+                    'id' => 'address:'.$cityName,
+                    'name' => $cityName,
+                ];
+            })
+            ->filter()
+            ->unique(fn (object $city): string => $city->id)
+            ->sortBy('name')
+            ->values();
+
+        if ($cities->isNotEmpty()) {
+            return $cities;
+        }
+
+        if (City::query()->exists()) {
+            return City::query()->orderBy('name')->get();
+        }
+
+        return collect();
+    }
+
+    private function placesQuery(Request $request, bool $applyCityFilter = true): Builder
     {
         return InternshipPlace::query()
             ->with('city')
             ->withCount(['enrollments' => fn (Builder $query) => $this->scopeEnrollments($query, $request, true)])
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
+            ->when($applyCityFilter && $request->filled('city_id'), fn (Builder $query): Builder => $this->scopeCityFilter($query, (string) $request->input('city_id')))
             ->whereHas('enrollments', fn (Builder $query) => $this->scopeEnrollments($query, $request, true));
+    }
+
+    private function scopeCityFilter(Builder $query, string $cityFilter): Builder
+    {
+        if (is_numeric($cityFilter)) {
+            return $query->where('city_id', (int) $cityFilter);
+        }
+
+        if (str_starts_with($cityFilter, 'address:')) {
+            $cityName = substr($cityFilter, strlen('address:'));
+
+            return $query->where('address', 'like', '%'.$cityName.'%');
+        }
+
+        return $query;
+    }
+
+    private function cityNameFromAddress(?string $address): ?string
+    {
+        $parts = collect(explode(',', (string) $address))
+            ->map(fn (string $part): string => trim(preg_replace('/\s+/', ' ', $part) ?: ''))
+            ->filter(fn (string $part): bool => strlen($part) > 2)
+            ->reject(fn (string $part): bool => preg_match('/^\d+$/', $part) === 1)
+            ->reject(fn (string $part): bool => in_array(strtolower($part), ['lampung', 'indonesia'], true))
+            ->values();
+
+        if ($parts->isEmpty()) {
+            return null;
+        }
+
+        $preferred = $parts->first(fn (string $part): bool => preg_match('/\b(kota|kabupaten|kab\.|bandar lampung|metro)\b/i', $part) === 1);
+
+        return $preferred ?: $parts->last();
     }
 
     private function requestWithDefaultPlacesPeriod(Request $request): Request
