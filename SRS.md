@@ -71,9 +71,10 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | ID | Kebutuhan |
 |----|-----------|
 | KS-01 | Setiap Periode PKL memiliki **konfigurasi operasional** (`internship_period_settings`), mencakup: <br> - **Jam kerja & status**: rentang waktu untuk *Masuk*, *Datang Terlambat*, *Pulang Cepat*, *Pulang* **[KONFIG]** <br> - **Durasi minimal harian** (default 6 jam) dan satuan sanksi per jam kurang **[KONFIG]** <br> - **Batas maksimum jarak** (meter) untuk validasi check‑in (opsional) **[KONFIG]** <br> - **Radius bumi** untuk Haversine (default 6371 km) **[KONFIG]** <br> - **Daftar hari libur** (dapat dikelola per periode atau nasional) **[KONFIG]** <br> - **Aturan laporan**: apakah hari Sabtu/Minggu dihitung? **[KONFIG]** <br> - **Parameter peta**: center, zoom, tile URL **[KONFIG]** <br> - **Batas upload foto**: ukuran (MB), dimensi (px) **[KONFIG]**,  <br> - Atur kuota minimal & maksimal mahasiswa per tempat PKL **[KONFIG]**|
-| KS-02 | **Deadline per periode** dikelola dalam tabel `period_deadlines` dengan jenis: <br> - Pendaftaran dibuka/ditutup <br> - Batas Proposal Rencana Kerja <br> - Batas Bab I, II, III, IV, V <br> - Batas Laporan Lengkap <br> - Batas Seminar <br> - Batas penyerahan hardcover <br> Setiap deadline dapat memiliki bobot sanksi poin **[KONFIG]** |
+| KS-02 | **Deadline per periode** dikelola dalam tabel `period_deadlines` dengan jenis: <br> - Pendaftaran dibuka/ditutup <br> - Batas Proposal Rencana Kerja <br> - Batas Bab I, II, III, IV, V <br> - Batas Laporan Lengkap <br> - Batas Seminar <br> - Batas penyerahan hardcopy <br> Setiap deadline dapat memiliki bobot sanksi poin **[KONFIG]** |
 | KS-03 | Hanya admin yang dapat mengubah konfigurasi periode. Periode terkunci (`is_locked=true`) tidak dapat diubah kecuali oleh admin super. |
 | KS-04 | Setiap program kegiatan memiliki `rule_key`. Pada implementasi awal, semua program selain Kerja Praktik boleh memakai `rule_key='kerja_praktik'` agar workflow saat ini tetap berjalan. Desain konfigurasi harus memungkinkan rule per program didefinisikan ulang di masa datang tanpa mengubah data historis. |
+| KS-05 | Admin dapat mengatur toggle pembatasan layanan mahasiswa per periode/global untuk usulan mitra, pindah mitra, dan perubahan pembimbing. Pendaftaran dibatasi oleh deadline pendaftaran, status aktif periode, dan status terkunci periode. Jika periode terkunci, layanan perubahan administratif mahasiswa ditutup, tetapi workflow pelaksanaan seperti presensi, unggah laporan, seminar, dan penyelesaian tetap mengikuti status operasional masing-masing modul. |
 
 ### 2.3 Workflow Mahasiswa (Pendaftaran & Pelaksanaan)
 
@@ -84,9 +85,9 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | WM-03 | **Usulan Tempat PKL Baru** (nama instansi, alamat, kota, koordinat, kontak pembimbing lapangan). Disimpan ke `internship_place_proposals` status `pending`. |
 | WM-04 | Admin/Koordinator **memvalidasi pendaftaran**: memilih dosen pembimbing (dari master dosen), mengisi/mengoreksi pembimbing lapangan, mengubah status enrollment (`pending_verification` → `active`/`revision_required`/`rejected`), memberi catatan. |
 | WM-05 | Status enrollment: `draft`, `pending_verification`, `revision_required`, `active`, `completed`, `cancelled`, `rejected`. |
-| WM-06 | **Pindah tempat PKL**: mahasiswa dapat mengajukan permohonan pindah instansi (alasan, bukti). Admin/Kajur menyetujui/menolak. Setelah disetujui, enrollment diperbarui. |
-| WM-07 | Hanya enrollment `active` yang dapat melakukan check‑in. |
-| WM-08 | **Laporan Saya**: mahasiswa melihat ringkasan check‑in, progres bimbingan, sanksi, dan nilai. |
+| WM-06 | **Pindah tempat PKL**: mahasiswa dapat mengajukan permohonan pindah instansi (alasan, bukti) selama layanan pindah mitra dibuka dan periode tidak terkunci. Admin/Kajur menyetujui/menolak. Setelah disetujui, enrollment diperbarui. |
+| WM-07 | Hanya enrollment `active` pada periode yang masih aktif secara operasional yang dapat melakukan check‑in. |
+| WM-08 | **Program Saya/Laporan Saya**: mahasiswa melihat daftar program yang diikuti, detail program, pembekalan, presensi dan catatan harian, progres laporan, seminar dan penilaian, penyelesaian hardcopy, sanksi, dan status nilai. |
 | WM-09 | **Cetak Laporan** (PDF) hanya diizinkan jika: dosen pembimbing terpilih DAN pembimbing lapangan terisi. |
 
 ### 2.4 Check‑In Ganda, Durasi & Sanksi
@@ -437,8 +438,9 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 |--------|---------------------|---------|
 | KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui menu **Konfigurasi Program** dan tabel `internship_period_settings`, mencakup jam check-in, peta, upload foto, hari libur laporan, aturan laporan dasar, kuota, syarat akademik, serta model sanksi deadline tetap/per hari. Syarat minimal SKS sudah dibedakan per jenjang, misalnya D3=80 dan S1=100. |
 | KS-02 | Sudah diimplementasikan | Tabel/model `period_deadlines` dan UI konfigurasi deadline per periode sudah tersedia, termasuk tanggal, poin penalti, dan flag penalti tetap. Deadline dipakai untuk menghitung sanksi unggahan progres laporan. |
-| KS-03 | Sudah diimplementasikan | Konfigurasi hanya dapat diakses admin. Periode terkunci tidak dapat diubah melalui konfigurasi kecuali oleh super admin yang tercantum pada konfigurasi. |
+| KS-03 | Sudah diimplementasikan | Konfigurasi hanya dapat diakses admin. Periode terkunci tidak dapat diubah melalui konfigurasi kecuali oleh super admin yang tercantum pada konfigurasi. Aksi **Set Selesai** pada periode mengubah enrollment aktif menjadi `completed`, menonaktifkan periode, dan mengunci periode. Checkbox `Terkunci` pada edit periode hanya mengubah status periode sehingga data peserta tidak otomatis diselesaikan. |
 | KS-04 | Sudah diimplementasikan | Program terhubung ke periode dan memiliki `rule_key`. Implementasi saat ini memakai rule `kerja_praktik` sebagai fallback terstruktur, sehingga rule program lain dapat ditambahkan tanpa mengubah data historis. |
+| KS-05 | Sudah diimplementasikan | Toggle layanan mahasiswa tersedia pada **Konfigurasi Program** untuk membatasi usulan mitra, pindah mitra, dan perubahan pembimbing. Pendaftaran tetap mengikuti deadline pendaftaran dan status periode. Jika periode terkunci, layanan administratif mahasiswa tersebut ditutup, sedangkan presensi, unggah laporan, seminar, dan penyelesaian tetap diproses sesuai syarat modul masing-masing. |
 
 ### 8.4 Workflow Mahasiswa
 
@@ -447,11 +449,11 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | WM-01 | Sudah diimplementasikan | Mahasiswa dapat melengkapi profil: NPM, nama, email student, no HP, prodi. |
 | WM-02 | Sudah diimplementasikan | Mahasiswa dapat mendaftar program melalui workflow 3 halaman: Program dan Periode, Mitra dan Pembimbing Lapangan, lalu Rule Program/Kelayakan Akademik/Dokumen. Mahasiswa memilih mitra aktif atau mengajukan mitra baru, mengisi kontak dan pembimbing lapangan, serta mengunggah satu PDF bukti akademik berisi Transkrip Sementara + KRS semester saat ini. Validasi kelayakan membaca `programs.rule_key`, `degree_level` prodi, dan konfigurasi akademik jenjang. |
 | WM-03 | Sudah diimplementasikan | Mahasiswa dapat mengajukan tempat PKL baru melalui `internship_place_proposals`. |
-| WM-04 | Sudah diimplementasikan | Admin/koordinator memiliki halaman Validasi Pendaftaran khusus untuk menyetujui, meminta revisi, atau menolak pendaftaran, termasuk menetapkan dosen pembimbing, pembimbing lapangan, email pembimbing lapangan, catatan verifikasi, dan review dokumen bukti akademik. Mahasiswa dapat memperbaiki pendaftaran saat status `revision_required`. |
-| WM-05 | Sudah diimplementasikan | Status enrollment sudah mendukung `draft`, `pending_verification`, `revision_required`, `active`, `inactive`, `completed`, `cancelled`, dan `rejected`, termasuk catatan admin. |
-| WM-06 | Sudah diimplementasikan | Mahasiswa dapat mengajukan pindah tempat PKL, admin dapat menyetujui/menolak, dan tempat enrollment diperbarui saat disetujui. |
-| WM-07 | Sudah diimplementasikan | Check-in hanya memakai enrollment `active`. |
-| WM-08 | Sudah diimplementasikan sebagian | Mahasiswa memiliki halaman Laporan Saya berisi presensi, data pembimbing, unggahan progres laporan, catatan harian, ringkasan progres bimbingan, total sanksi, dan status nilai. Modul penilaian numerik penuh masih berada pada backlog PN-01 s.d. PN-04. |
+| WM-04 | Sudah diimplementasikan | Admin/koordinator memiliki halaman Validasi Pendaftaran berbentuk tabel untuk menyetujui, meminta revisi, atau menolak pendaftaran, termasuk review dokumen bukti akademik dan catatan verifikasi. Kolom pembimbing tidak ditampilkan karena pembimbing diproses pada Peserta Periode. Halaman mendukung checkbox bulk action, check/uncheck all, dan tombol aksi ringkas berbasis Font Awesome. Mahasiswa dapat memperbaiki pendaftaran saat status `revision_required`. |
+| WM-05 | Sudah diimplementasikan | Status enrollment sudah mendukung `draft`, `pending_verification`, `revision_required`, `active`, `inactive`, `completed`, `cancelled`, dan `rejected`, termasuk catatan admin. Dashboard mahasiswa menampilkan status efektif berdasarkan kombinasi status enrollment dan status periode: enrollment aktif pada periode aktif tampil sebagai **Aktif**, enrollment aktif pada periode nonaktif tampil sebagai **Periode Nonaktif**, draft/pending/revisi pada periode nonaktif tampil sebagai **Periode Tidak Tersedia**, sedangkan completed/rejected/cancelled mengikuti status akhirnya. |
+| WM-06 | Sudah diimplementasikan | Mahasiswa dapat mengajukan pindah mitra dari kartu detail program. Form pindah mitra menerima nilai enrollment aktif dari tombol asal dan layanan dapat ditutup melalui toggle konfigurasi atau status periode terkunci. Admin/koordinator dapat menyetujui/menolak, dan mitra enrollment diperbarui saat disetujui. |
+| WM-07 | Sudah diimplementasikan | Check-in hanya memakai enrollment `active` pada periode yang masih aktif. Dashboard dan halaman ringkasan hanya menampilkan tombol presensi untuk program yang aktif secara operasional. |
+| WM-08 | Sudah diimplementasikan sebagian | Halaman mahasiswa sudah didesain ulang: dashboard menampilkan semua program aktif dalam kartu **Program Saya**, tombol **Detail** sebagai pintu masuk workflow, tombol **Presensi** untuk aksi harian, ringkasan status pendaftaran efektif, serta deadline penting. Detail program mahasiswa memakai tab **Detail Program**, **Pembekalan**, **Presensi & Catatan**, **Pelaporan**, **Seminar & Penilaian**, dan **Penyelesaian**. Modul nilai akhir penuh masih berada pada backlog PN-01 s.d. PN-04. |
 | WM-09 | Sudah diimplementasikan sebagian | Cetak laporan mahasiswa memvalidasi dosen pembimbing dan pembimbing lapangan. Output PDF resmi belum dibuat. |
 
 ### 8.5 Check-In, Peta, dan Laporan
@@ -471,12 +473,13 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | PM-04 | Sudah diimplementasikan | Peta check-in menampilkan geolocation, marker instansi, dan polyline. |
 | PM-05 | Sudah diimplementasikan | Input lokasi pada event pembekalan, master mitra, dan pengajuan mitra mahasiswa memiliki sugest lokasi dari riwayat internal, lalu fallback eksternal jika tidak ditemukan. |
 | LR-01 | Sudah diimplementasikan sebagian | Rekap Monitoring tersedia dengan filter tanggal, periode, prodi, hari libur, Sabtu, dan Minggu. Status laporan dan sanksi belum tersedia. |
+| LR-05 | Sudah diimplementasikan sebagian | Dashboard mahasiswa, dosen, dan koordinator menampilkan deadline penting dalam 7 hari ke depan berdasarkan scope role. Jika tidak ada deadline dalam 7 hari, sistem menampilkan deadline terdekat berikutnya sebagai fallback. |
 
 ### 8.6 Progres Laporan, Catatan Harian, dan Sanksi
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| PG-01 | Sudah diimplementasikan | Mahasiswa dapat mengunggah dokumen progres laporan pada halaman Laporan Saya untuk jenis Proposal, Bab I-V, Laporan Lengkap, dan Hardcopy. Jenis Seminar dipisahkan ke workflow Pengajuan Seminar agar tidak bercampur dengan progres laporan biasa. |
+| PG-01 | Sudah diimplementasikan | Mahasiswa dapat mengunggah dokumen progres laporan pada tab Pelaporan untuk jenis Proposal, Bab I-V, dan Laporan Lengkap/Pelaporan Tahap 4 Bab 1 s.d. 5. Hardcopy dipindahkan ke tab Penyelesaian. Jenis Seminar dipisahkan ke workflow Pengajuan Seminar agar tidak bercampur dengan progres laporan biasa. |
 | PG-02 | Sudah diimplementasikan | Unggahan terhubung ke `period_deadlines` berdasarkan periode enrollment dan mencatat waktu unggah. |
 | PG-03 | Sudah diimplementasikan | Sistem menghitung sanksi keterlambatan unggahan berdasarkan deadline, poin penalti, dan mode penalti tetap/per hari, lalu menambahkan poin ke total sanksi enrollment. |
 | PG-04 | Sudah diimplementasikan | Dosen pembimbing, koordinator sesuai scope, dan admin dapat memberi status `approved`, `revision`, atau `rejected` beserta catatan review. |

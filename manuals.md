@@ -40,13 +40,17 @@ Mahasiswa masuk ke sistem menggunakan akun yang sudah tersedia. Setelah login, m
 Dashboard mahasiswa menampilkan:
 
 - Status profil mahasiswa.
-- Status pendaftaran program.
-- Ringkasan program aktif.
-- Link presensi kegiatan harian jika sudah memiliki enrollment aktif.
+- Status pendaftaran efektif berdasarkan kombinasi status peserta dan status periode.
+- Panel **Program Saya** yang berisi kartu untuk semua program aktif yang sedang diikuti.
+- Tombol **Detail** sebagai pintu masuk utama workflow program.
+- Tombol **Presensi** untuk aksi presensi harian jika program aktif secara operasional.
 - Link presensi pembekalan jika ada event pembekalan yang sesuai.
-- Ringkasan usulan tempat, pindah tempat, dan laporan.
+- Deadline penting dalam 7 hari ke depan; jika tidak ada, sistem menampilkan deadline terdekat berikutnya.
+- Ringkasan usulan mitra dan akses monitoring sesuai hak role.
 
 Jika mahasiswa belum melengkapi profil atau belum memiliki program aktif, beberapa fitur seperti pendaftaran, presensi, dan laporan dapat belum tersedia.
+
+Pada dashboard, program dianggap aktif secara operasional jika status peserta adalah **Active** dan periode program masih aktif. Jika peserta masih **Active** tetapi periode program sudah nonaktif, status akan ditampilkan sebagai **Periode Nonaktif** dan program tidak diperlakukan sebagai program aktif untuk aksi harian seperti presensi.
 
 ### 1.3 Profil Saya
 
@@ -79,6 +83,8 @@ Mahasiswa memilih:
 - Program studi, mengikuti data profil mahasiswa dan tidak dipilih manual.
 
 Setelah memilih program dan periode, klik **Lanjutkan**.
+
+Periode hanya dapat dipilih jika masih tersedia untuk pendaftaran. Jika periode sudah nonaktif, terkunci, atau berada di luar rentang pendaftaran, mahasiswa tidak dapat membuat pendaftaran baru pada periode tersebut.
 
 #### Halaman 2. Mitra dan Pembimbing Lapangan
 
@@ -143,10 +149,11 @@ Catatan:
 
 Setelah dikirim, pendaftaran menunggu verifikasi admin/koordinator.
 
-Status yang dapat muncul:
+Status dasar enrollment yang dapat muncul:
 
 | Status | Arti |
 |--------|------|
+| Draft | Pendaftaran masih tersimpan sebagai draft dan belum dikirim. |
 | Pending Verification | Pendaftaran sudah dikirim dan menunggu validasi. |
 | Revision Required | Admin/koordinator meminta perbaikan data. |
 | Active | Pendaftaran disetujui dan mahasiswa dapat menjalankan program. |
@@ -156,11 +163,25 @@ Status yang dapat muncul:
 
 Jika status **Revision Required**, mahasiswa dapat membuka kembali form pendaftaran, memperbaiki data, lalu mengirim ulang.
 
+Dashboard mahasiswa memakai status efektif, yaitu gabungan status enrollment dan status periode program:
+
+| Kondisi | Tampilan di dashboard |
+|---------|-----------------------|
+| Enrollment `active` dan periode aktif | Aktif |
+| Enrollment `active` tetapi periode nonaktif | Periode Nonaktif |
+| Enrollment draft/pending/revisi pada periode nonaktif | Periode Tidak Tersedia |
+| Enrollment completed | Selesai |
+| Enrollment rejected | Ditolak |
+| Enrollment cancelled | Dibatalkan |
+| Belum punya enrollment | Belum Mendaftar |
+
+Ringkasan status hanya menampilkan kategori yang memiliki jumlah data. Contoh: jika mahasiswa memiliki 1 peserta aktif dan 1 peserta pada periode nonaktif, dashboard menampilkan **Aktif 1** dan chip **Periode Nonaktif 1**, bukan tujuh baris status kosong.
+
 ### 1.7 Usulan Mitra Baru
 
 Menu: **Usulan Mitra**
 
-Mahasiswa dapat mengajukan mitra baru jika tempat kegiatan belum tersedia pada daftar mitra.
+Mahasiswa dapat mengajukan mitra baru jika tempat kegiatan belum tersedia pada daftar mitra, layanan usulan mitra sedang dibuka, dan periode terkait tidak terkunci.
 
 Data yang diisi:
 
@@ -353,31 +374,30 @@ Agar presensi berhasil:
 
 Sistem menyimpan lokasi yang dikirim browser. Karena itu, akurasi sangat bergantung pada perangkat, browser, jaringan, dan izin lokasi pengguna.
 
-### 1.15 Laporan Saya
+### 1.15 Detail Program Saya
 
-Menu: **Laporan & Log** atau tombol **Laporan** pada dashboard.
+Menu: **Ringkasan Program**, lalu klik tombol **Detail** pada kartu program.
 
-Halaman Laporan Saya menampilkan:
+Halaman detail program memakai tab agar workflow mahasiswa tidak bercampur dalam satu halaman panjang.
 
-- Informasi enrollment.
-- Data dosen pembimbing.
-- Data pembimbing lapangan.
-- Email pembimbing lapangan.
-- Ringkasan presensi.
-- Deadline laporan.
-- Form unggah progres laporan.
-- Riwayat unggahan.
-- Catatan harian dari pasangan presensi.
-- Rekap presensi lengkap.
+| Tab | Isi utama |
+|-----|-----------|
+| Detail Program | Ringkasan pelaksanaan, data program/periode, mitra, dosen pembimbing, pembimbing lapangan, deadline periode, tombol ajukan pindah mitra, dan tombol perubahan pembimbing. |
+| Pembekalan | Event pembekalan yang sesuai program/periode dan tombol presensi pembekalan jika tersedia. |
+| Presensi & Catatan | Presensi harian, log presensi, catatan harian, dan tombol cetak catatan harian. |
+| Pelaporan | Form unggah progres laporan sampai Pelaporan Tahap 4/Laporan Lengkap Bab 1 sampai 5, status review, catatan reviewer, dan file unggahan. |
+| Seminar & Penilaian | Pengajuan seminar, ACC seminar, jadwal seminar, penilaian dosen via sistem, atau penilaian manual yang divalidasi admin/koordinator. |
+| Penyelesaian | Upload bukti penyerahan laporan hardcopy dan tombol cetak laporan. |
 
-Jenis unggahan progres laporan:
+Jenis unggahan progres pada tab **Pelaporan**:
 
 - Proposal Rencana Kerja.
 - Pelaporan Tahap 1: Bab 1.
 - Pelaporan Tahap 2: Bab 1 dan 2.
 - Pelaporan Tahap 3: Bab 1, 2 dan 3.
 - Pelaporan Tahap 4/Laporan Lengkap: Bab 1 sampai 5.
-- Hardcopy.
+
+Bukti penyerahan laporan **Hardcopy** tidak berada di progres laporan biasa, tetapi pada tab **Penyelesaian**.
 
 Batasan file unggahan laporan:
 
@@ -393,6 +413,7 @@ Khusus seminar:
 - Pengajuan seminar baru dapat dilakukan setelah mahasiswa mengunggah Pelaporan Tahap 4/Laporan Lengkap Bab 1 sampai 5.
 - ACC seminar dapat dilakukan melalui dua jalur: dosen pembimbing menyetujui lewat sistem, atau mahasiswa mengunggah berkas ACC seminar dari dosen untuk divalidasi admin/koordinator.
 - Penilaian seminar juga memiliki dua jalur: dosen pembimbing mengisi nilai via sistem, atau mahasiswa menginput komponen nilai manual dan mengunggah berkas bukti/form penilaian untuk divalidasi admin/koordinator.
+- Setelah seminar berstatus selesai, mahasiswa masih dapat mengajukan seminar lagi jika diperlukan, misalnya untuk perbaikan/ulang sesuai keputusan akademik.
 
 ### 1.16 Cara Kerja Sanksi Keterlambatan Laporan
 
@@ -443,11 +464,11 @@ Catatan harian menampilkan:
 - Rencana aktivitas.
 - Realisasi aktivitas.
 
-Mahasiswa dapat mencetak form catatan harian untuk keperluan paraf pembimbing lapangan.
+Mahasiswa dapat mencetak form catatan harian dari tab **Presensi & Catatan** untuk keperluan paraf pembimbing lapangan.
 
 ### 1.18 Cetak Laporan
 
-Mahasiswa dapat mencetak laporan dari halaman Laporan Saya.
+Mahasiswa dapat mencetak laporan dari tab **Penyelesaian** pada detail program.
 
 Cetak laporan memuat:
 
@@ -467,7 +488,9 @@ Cetak laporan hanya dapat dilakukan jika data penting sudah tersedia, terutama d
 
 Menu: **Pindah Mitra**
 
-Mahasiswa dapat mengajukan pindah mitra/tempat kegiatan jika memiliki enrollment aktif.
+Mahasiswa dapat mengajukan pindah mitra/tempat kegiatan jika memiliki enrollment aktif, periode tidak terkunci, dan layanan pindah mitra sedang dibuka oleh admin.
+
+Jika tombol **Ajukan Pindah Mitra** diklik dari tab **Detail Program**, sistem membawa nilai program/periode tersebut ke form berikutnya sebagai **Enrollment Aktif**.
 
 Data yang diisi:
 
@@ -481,10 +504,13 @@ Permohonan akan diproses admin/koordinator. Jika disetujui, data mitra pada enro
 
 Menu: **Perubahan Pembimbing**
 
-Mahasiswa dapat mengajukan perubahan atau pelengkapan data pembimbing lapangan.
+Mahasiswa dapat mengajukan perubahan atau pelengkapan data pembimbing jika memiliki enrollment aktif, periode tidak terkunci, dan layanan perubahan pembimbing sedang dibuka oleh admin.
+
+Jika tombol **Perubahan Pembimbing** diklik dari tab **Detail Program**, sistem membawa nilai program/periode tersebut ke form berikutnya sebagai **Enrollment Aktif**. Field usulan dosen pembimbing, nama pembimbing lapangan, HP, dan email pembimbing lapangan akan diisi dengan nilai lama jika data sebelumnya sudah ada, sehingga mahasiswa cukup memperbaiki bagian yang berubah.
 
 Data yang dapat diajukan:
 
+- Usulan dosen pembimbing.
 - Nama pembimbing lapangan.
 - HP pembimbing lapangan.
 - Email pembimbing lapangan.
@@ -504,12 +530,14 @@ Peta menggunakan Leaflet dan tile OpenStreetMap. Lokasi dapat ditampilkan sebaga
 
 | Area | Batasan |
 |------|---------|
-| Pendaftaran | Profil mahasiswa wajib lengkap. |
+| Pendaftaran | Profil mahasiswa wajib lengkap, periode tersedia, dan rentang pendaftaran terbuka. |
+| Periode terkunci | Pendaftaran, usulan mitra, pindah mitra, dan perubahan pembimbing ditutup untuk mahasiswa. |
+| Toggle layanan | Admin dapat menonaktifkan usulan mitra, pindah mitra, atau perubahan pembimbing melalui Konfigurasi Program tanpa menghentikan presensi, pelaporan, seminar, dan penyelesaian. |
 | Dokumen pendaftaran | PDF, maksimal 5 MB, berisi Transkrip Sementara + KRS semester saat ini. |
 | Kelayakan S1 | Default SKS minimal 100, semester minimal 6, IPK minimal 2,00. |
 | Kelayakan D3 | Default SKS minimal 80, semester minimal 4, IPK minimal 2,00. |
 | Kuota mitra | Default maksimal 3 mahasiswa per tempat, dapat diubah admin. |
-| Presensi harian | Hanya untuk enrollment aktif. |
+| Presensi harian | Hanya untuk enrollment aktif pada periode yang masih aktif secara operasional. |
 | Presensi harian per hari | Maksimal satu masuk dan satu pulang. |
 | Jam presensi default | 07:00 sampai sebelum 19:00. |
 | Durasi minimal default | 6 jam per hari. |
@@ -535,7 +563,7 @@ Peta menggunakan Leaflet dan tile OpenStreetMap. Lokasi dapat ditampilkan sebaga
 11. Jika sudah aktif, ikuti pembekalan jika tersedia.
 12. Lakukan presensi masuk dan pulang setiap hari kegiatan.
 13. Unggah progres laporan sesuai deadline.
-14. Pantau sanksi, status review, dan catatan harian di **Laporan Saya**.
+14. Pantau sanksi, status review, dan catatan harian di detail program.
 15. Lengkapi email pembimbing lapangan sebelum pengajuan seminar.
 16. Ajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
 17. Ikuti alur ACC seminar, jadwal seminar, dan penilaian sesuai arahan dosen/admin/koordinator.
@@ -577,11 +605,15 @@ Dashboard dosen menampilkan:
 
 - Jumlah mahasiswa bimbingan aktif.
 - Jumlah mahasiswa yang memerlukan bimbingan/perhatian.
-- Informasi seminar terdekat, jika modul seminar sudah diaktifkan.
-- Daftar ringkas mahasiswa bimbingan.
-- Aksi cepat menuju peta dan rekap.
+- Notifikasi aksi yang perlu diproses, seperti review laporan dan seminar/penilaian.
+- Aksi cepat menuju modul yang membutuhkan tindakan dosen.
+- Deadline mahasiswa bimbingan dalam 7 hari ke depan; jika tidak ada, sistem menampilkan deadline terdekat.
+- Daftar mahasiswa bimbingan yang dikelompokkan berdasarkan program/periode.
+- Aksi cepat per kelompok periode menuju Review Laporan, Seminar & Penilaian, Peta Monitoring, dan Rekap Bimbingan.
 
 Data mahasiswa bimbingan berasal dari enrollment mahasiswa yang sudah ditetapkan dosen pembimbingnya oleh admin/koordinator.
+
+Sidebar dosen menampilkan badge jumlah pekerjaan pada menu yang membutuhkan aksi, misalnya **Review Laporan (2)** atau **Seminar & Penilaian (5)**. Badge ini membantu dosen langsung melihat antrean pekerjaan tanpa membuka setiap menu satu per satu.
 
 ### 2.3 Daftar Mahasiswa Bimbingan
 
@@ -713,16 +745,16 @@ Rekap menampilkan:
 
 Untuk role dosen, data dibatasi pada mahasiswa bimbingan dosen tersebut. Jika dosen juga koordinator, sistem dapat memperluas data sesuai penugasan periode/prodi koordinator.
 
-### 2.9 Review Seminar dan Penilaian Seminar
+### 2.9 Seminar & Penilaian
 
-Menu: **Review Seminar**
+Menu: **Seminar & Penilaian**
 
 Dosen pembimbing dapat memproses pengajuan seminar mahasiswa bimbingannya.
 
 Alur via sistem:
 
 1. Mahasiswa mengajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
-2. Dosen membuka menu **Review Seminar**.
+2. Dosen membuka menu **Seminar & Penilaian**.
 3. Dosen memilih keputusan ACC seminar: setujui, minta revisi, atau tolak.
 4. Jika disetujui, admin/koordinator dapat menjadwalkan seminar.
 5. Setelah seminar terjadwal, dosen mengisi komponen nilai seminar via sistem.
@@ -868,7 +900,7 @@ Dosen tidak mengubah poin sanksi secara manual pada halaman review. Dosen hanya 
 5. Pilih status review: setujui, minta revisi, atau tolak.
 6. Isi catatan review, terutama jika meminta revisi atau menolak.
 7. Klik **Simpan Review**.
-8. Buka **Review Seminar** untuk memproses ACC atau nilai seminar jika mahasiswa sudah mengajukan seminar.
+8. Buka **Seminar & Penilaian** untuk memproses ACC atau nilai seminar jika mahasiswa sudah mengajukan seminar.
 9. Buka **Rekap Bimbingan** untuk memantau presensi, durasi, dan jarak mahasiswa.
 10. Gunakan **Peta Monitoring** jika perlu memeriksa lokasi presensi secara visual.
 11. Lanjutkan komunikasi akademik dengan mahasiswa berdasarkan catatan review dan rekap aktivitas.
@@ -958,16 +990,13 @@ Koordinator dapat:
 
 - Mencari pendaftaran berdasarkan nama mahasiswa, NPM, atau mitra.
 - Memfilter berdasarkan program, periode, dan prodi.
-- Membaca data mahasiswa.
-- Membaca data program, periode, prodi, dan mitra.
-- Melihat ringkasan kelayakan akademik.
+- Membaca data dalam tabel dengan kolom Program/Periode, Nama/NPM, Prodi, SKS/IPK, Lampiran, Catatan Verifikasi, dan Aksi.
 - Membuka dokumen bukti akademik.
-- Memilih dosen pembimbing.
-- Mengisi atau mengoreksi pembimbing lapangan.
-- Mengisi atau mengoreksi HP pembimbing lapangan.
-- Mengisi atau mengoreksi email pembimbing lapangan.
 - Memberi catatan verifikasi.
 - Mengambil keputusan: setujui, minta revisi, atau tolak.
+- Memilih beberapa pendaftaran dengan checkbox, memakai check/uncheck all, lalu menjalankan bulk action setujui, minta revisi, atau tolak.
+
+Kolom pembimbing tidak ditampilkan pada halaman ini. Penetapan atau koreksi pembimbing diproses melalui **Peserta Periode** agar validasi pendaftaran tetap fokus pada kelayakan dan keputusan pendaftaran.
 
 ### 3.5 Data yang Diperiksa saat Validasi
 
@@ -1644,10 +1673,11 @@ Data yang diperiksa:
 - Semester.
 - IPK.
 - Dokumen bukti akademik.
-- Dosen pembimbing.
-- Pembimbing lapangan.
-- Email pembimbing lapangan.
 - Catatan verifikasi.
+
+Halaman Validasi Pendaftaran memakai tabel dengan kolom Program/Periode, Nama/NPM, Prodi, SKS/IPK, Lampiran, Catatan Verifikasi, dan Aksi. Admin dapat memilih beberapa baris dengan checkbox, memakai check/uncheck all, lalu menjalankan bulk action **Setujui**, **Minta Revisi**, atau **Tolak**. Tombol aksi per baris dibuat ringkas dengan ikon Font Awesome.
+
+Kolom pembimbing tidak ditampilkan pada halaman validasi. Penetapan dosen pembimbing, pembimbing lapangan, HP, dan email pembimbing lapangan diproses melalui **Peserta Periode**.
 
 Dokumen bukti akademik yang direview:
 
@@ -1810,6 +1840,7 @@ Area konfigurasi:
 
 - Umum.
 - Pendaftaran dan kuota.
+- Kontrol layanan mahasiswa.
 - Deadline periode.
 - Check-in.
 - Laporan dan kalender.
@@ -1841,6 +1872,34 @@ Dampak:
 - Digunakan untuk validasi kelayakan akademik.
 - Kuota maksimal membatasi jumlah mahasiswa pada mitra.
 - Kuota minimal dapat muncul sebagai peringatan saat validasi.
+
+#### Kontrol Layanan Mahasiswa
+
+Admin dapat mengaktifkan atau menonaktifkan layanan mahasiswa berikut:
+
+- Usulan mitra.
+- Pindah mitra.
+- Perubahan pembimbing.
+
+Dampak:
+
+- Jika layanan dimatikan, mahasiswa tidak dapat membuat pengajuan baru untuk layanan tersebut.
+- Pendaftaran tetap mengikuti deadline **Pendaftaran Dibuka** dan **Pendaftaran Ditutup**.
+- Jika periode program terkunci, layanan usulan mitra, pindah mitra, dan perubahan pembimbing otomatis tertutup untuk mahasiswa.
+- Workflow lain seperti presensi, unggah laporan, seminar, dan penyelesaian tidak ikut ditutup oleh toggle ini.
+
+#### Status Periode
+
+Periode memiliki dua status penting:
+
+- **Aktif**: periode tersedia secara operasional dan dapat dipakai oleh peserta yang aktif.
+- **Terkunci**: periode sudah dikunci untuk perubahan administratif.
+
+Catatan implementasi:
+
+- Aksi **Set Selesai** pada Periode Program mengubah peserta aktif menjadi **Completed**, menonaktifkan periode, dan mengunci periode.
+- Checkbox **Terkunci** pada form edit periode hanya mengubah status periode; peserta aktif tidak otomatis diubah menjadi selesai.
+- Jika periode nonaktif tetapi peserta masih active, dashboard mahasiswa menampilkan status efektif **Periode Nonaktif**.
 
 #### Deadline Periode
 
@@ -1939,6 +1998,8 @@ Dampak:
 Menu: **Email & Notifikasi**
 
 Admin mengelola pengiriman email sistem dan konfigurasi mail server.
+
+Bagian atas halaman menampilkan ringkasan 4 kolom: status sistem, jumlah email pending, jumlah email terkirim, dan jumlah email gagal.
 
 Tab yang tersedia:
 
