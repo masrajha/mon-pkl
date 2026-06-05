@@ -202,6 +202,14 @@ class ReportController extends Controller
 
     private function authorizeEnrollment(Request $request, InternshipEnrollment $enrollment): void
     {
+        logger()->info('report auth check', [
+            'auth_id' => $request->user()?->id,
+            'auth_email' => $request->user()?->email,
+            'enrollment_id' => $enrollment->id,
+            'student_id' => $enrollment->student_id,
+            'student_user_id' => $enrollment->student?->user_id,
+        ]);
+
         abort_if($enrollment->student?->user_id !== $request->user()->id, 403);
     }
 
