@@ -24,17 +24,7 @@ class ReportController extends Controller
 
     public function show(Request $request, InternshipEnrollment $enrollment): View
     {
-        logger()->info('report show start', [
-            'enrollment_id' => $enrollment->id,
-            'auth_id' => $request->user()?->id,
-            'auth_email' => $request->user()?->email,
-        ]);
-
         $this->authorizeEnrollment($request, $enrollment);
-
-        logger()->info('report after authorize', [
-            'enrollment_id' => $enrollment->id,
-        ]);
 
         $enrollment->load([
             'student.user',
@@ -58,10 +48,6 @@ class ReportController extends Controller
             'checkIns' => fn ($query) => $query->orderBy('checked_at'),
         ]);
 
-        logger()->info('report after load', [
-            'enrollment_id' => $enrollment->id,
-        ]);
-
         $deadlineLabels = $this->deadlineLabels();
         $progressByType = $enrollment->submissionProgress
             ->groupBy('deadline_type')
@@ -82,13 +68,6 @@ class ReportController extends Controller
             ->where('is_active', true)
             ->orderByDesc('id')
             ->get();
-
-        logger()->info('report before view', [
-            'enrollment_id' => $enrollment->id,
-            'progress_count' => $enrollment->submissionProgress->count(),
-            'seminar_count' => $enrollment->seminarRequests->count(),
-            'orientation_event_count' => $orientationEvents->count(),
-        ]);
 
         return view('student.reports.show', [
             'enrollment' => $enrollment,
@@ -223,15 +202,9 @@ class ReportController extends Controller
 
     private function authorizeEnrollment(Request $request, InternshipEnrollment $enrollment): void
     {
-        logger()->info('report auth check', [
-            'auth_id' => $request->user()?->id,
-            'auth_email' => $request->user()?->email,
-            'enrollment_id' => $enrollment->id,
-            'student_id' => $enrollment->student_id,
-            'student_user_id' => $enrollment->student?->user_id,
-        ]);
+        $studentUserId = $enrollment->student?->user_id;
 
-        abort_if($enrollment->student?->user_id !== $request->user()->id, 403);
+        abort_if($studentUserId === null || (int) $studentUserId !== (int) $request->user()->id, 403);
     }
 
     private function lateSubmissionPenalty(?PeriodDeadline $deadline, $uploadedAt): int
