@@ -136,6 +136,12 @@
                                             <form method="POST" action="{{ route('management.final-assessments.store', $enrollment) }}" class="space-y-3 rounded-lg border border-gray-200 p-3">
                                                 @csrf
                                                 <div>
+                                                    <x-input-label value="Nomor Berita Acara" />
+                                                    <div class="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-900">
+                                                        {{ $finalAssessment?->document_number ?: 'Akan dibuat saat finalisasi disimpan' }}
+                                                    </div>
+                                                </div>
+                                                <div>
                                                     <x-input-label for="final_deduction_{{ $enrollment->id }}" value="Pengurangan Final" />
                                                     <x-text-input id="final_deduction_{{ $enrollment->id }}" name="final_deduction" type="number" min="0" max="100" step="0.01" class="mt-1 block w-full" :value="$deductionValue" required />
                                                 </div>

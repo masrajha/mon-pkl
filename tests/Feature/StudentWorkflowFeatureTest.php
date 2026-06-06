@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\CheckIn;
 use App\Models\FieldSupervisorAssessment;
 use App\Models\InternshipEnrollment;
+use App\Models\InternshipCoordinator;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\InternshipPlaceProposal;
@@ -1025,6 +1026,13 @@ class StudentWorkflowFeatureTest extends TestCase
         $lecturer = Lecturer::query()->create(['name' => 'Dosen Nilai', 'status' => 'active']);
         $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
         $period = InternshipPeriod::query()->create(['name' => 'Periode Final', 'academic_year' => '2026/2027']);
+        $coordinatorLecturer = Lecturer::query()->create(['name' => 'Koordinator Prodi', 'nip' => '198001012005011001', 'status' => 'active']);
+        InternshipCoordinator::query()->create([
+            'lecturer_id' => $coordinatorLecturer->id,
+            'internship_period_id' => $period->id,
+            'study_program_id' => $program->id,
+            'status' => 'active',
+        ]);
         $place = InternshipPlace::query()->create(['name' => 'PT Final', 'latitude' => -5.4, 'longitude' => 105.2]);
         $student = Student::query()->create([
             'user_id' => $user->id,
@@ -1089,14 +1097,24 @@ class StudentWorkflowFeatureTest extends TestCase
             'final_score' => 85,
             'finalized_by' => $admin->id,
             'note' => 'Pengurangan disesuaikan oleh koordinator.',
+            'coordinator_name' => 'Koordinator Prodi',
+            'coordinator_identifier' => '198001012005011001',
         ]);
 
         $this->actingAs($user)
             ->get(route('student.reports.show', ['enrollment' => $enrollment, 'tab' => 'penyelesaian']))
             ->assertOk()
             ->assertSee('Nilai Akhir')
+            ->assertSee('Cetak Berita Acara Nilai')
             ->assertSee('85,00')
             ->assertSee('Pengurangan disesuaikan oleh koordinator.');
+
+        $this->actingAs($user)
+            ->get(route('student.reports.final-assessment.print', $enrollment))
+            ->assertOk()
+            ->assertSee('Formulir Berita Acara')
+            ->assertSee('Lembar Penilaian Seminar Kerja Praktik')
+            ->assertSee('Lembar Penilaian Program');
     }
 
     private function validEnrollmentPayload(InternshipPeriod $period, StudyProgram $program, InternshipPlace $place): array

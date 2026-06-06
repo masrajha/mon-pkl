@@ -26,6 +26,7 @@ class SeminarRequestController extends Controller
                 'enrollment.internshipPeriod.program',
                 'enrollment.internshipPlace',
                 'enrollment.lecturer',
+                'enrollment.finalAssessment',
                 'lecturerApprover',
                 'manualAccValidator',
                 'assessmentValidator',
@@ -168,6 +169,7 @@ class SeminarRequestController extends Controller
     {
         $seminarRequest->loadMissing('enrollment');
         $this->authorizeSeminar($seminarRequest, $request, lecturerOnly: true);
+        $this->ensureNotFinalized($seminarRequest);
 
         if (! in_array($seminarRequest->status, ['scheduled', 'completed'], true)) {
             throw ValidationException::withMessages(['status' => 'Seminar belum terjadwal.']);
@@ -216,6 +218,7 @@ class SeminarRequestController extends Controller
     {
         $seminarRequest->loadMissing('enrollment');
         $this->authorizeSeminar($seminarRequest, $request, coordinatorOrAdminOnly: true);
+        $this->ensureNotFinalized($seminarRequest);
 
         if ($seminarRequest->status !== 'waiting_assessment_validation' || $seminarRequest->assessment_method !== 'manual') {
             throw ValidationException::withMessages(['status' => 'Pengajuan nilai manual ini tidak sedang menunggu validasi.']);
@@ -307,6 +310,17 @@ class SeminarRequestController extends Controller
                 ->exists();
 
             abort_unless($allowed, 403);
+        }
+    }
+
+    private function ensureNotFinalized(SeminarRequest $seminarRequest): void
+    {
+        $seminarRequest->loadMissing('enrollment.finalAssessment');
+
+        if ($seminarRequest->enrollment?->finalAssessment) {
+            throw ValidationException::withMessages([
+                'score' => 'Nilai dosen sudah terkunci karena nilai akhir telah difinalisasi.',
+            ]);
         }
     }
 

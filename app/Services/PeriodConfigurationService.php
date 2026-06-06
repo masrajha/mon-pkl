@@ -13,6 +13,7 @@ class PeriodConfigurationService
             'timezone' => config('monpkl.timezone'),
             'check_in' => config('monpkl.check_in'),
             'report' => config('monpkl.report'),
+            'final_assessment_document' => config('monpkl.final_assessment_document'),
             'calendar' => config('monpkl.calendar'),
             'enrollment' => config('monpkl.enrollment'),
             'distance' => config('monpkl.distance'),

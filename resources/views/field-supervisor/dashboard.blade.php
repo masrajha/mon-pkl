@@ -37,6 +37,7 @@
             @php
                 $dailyRows = $dailyRowsByEnrollment[$enrollment->id] ?? collect();
                 $assessment = $enrollment->fieldSupervisorAssessment;
+                $finalAssessment = $enrollment->finalAssessment;
                 $assessmentRubric = config('monpkl.field_supervisor_assessment_rubric', []);
                 $assessmentGroups = collect($assessmentRubric)->groupBy('group', preserveKeys: true);
                 $institutionSurvey = config('monpkl.field_supervisor_institution_feedback_survey', []);
@@ -194,7 +195,11 @@
                 </div>
 
                 <div class="p-4 sm:p-5">
-                    @if (! $canAssess)
+                    @if ($finalAssessment)
+                        <x-alert variant="info">
+                            Nilai pembimbing lapangan sudah terkunci karena nilai akhir telah difinalisasi.
+                        </x-alert>
+                    @elseif (! $canAssess)
                         <x-alert variant="warning">
                             Penilaian baru dapat dilakukan mulai tanggal akhir presensi/turun lapang pukul 00:00.
                             Batas akhir saat ini: {{ $attendanceEndsAt ? \Illuminate\Support\Carbon::parse($attendanceEndsAt)->format('d/m/Y') : 'belum ditentukan' }}.

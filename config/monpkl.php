@@ -48,6 +48,23 @@ return [
         'single_afternoon_checkin_hour' => (int) env('MONPKL_REPORT_SINGLE_AFTERNOON_CHECKIN_HOUR', 11),
     ],
 
+    'final_assessment_document' => [
+        'logo_url' => env('MONPKL_FINAL_DOC_LOGO_URL', ''),
+        'ministry' => env('MONPKL_FINAL_DOC_MINISTRY', 'KEMENTERIAN PENDIDIKAN TINGGI, SAINS DAN TEKNOLOGI'),
+        'university' => env('MONPKL_FINAL_DOC_UNIVERSITY', 'UNIVERSITAS LAMPUNG'),
+        'faculty' => env('MONPKL_FINAL_DOC_FACULTY', 'FAKULTAS MATEMATIKA DAN ILMU PENGETAHUAN ALAM'),
+        'department' => env('MONPKL_FINAL_DOC_DEPARTMENT', 'JURUSAN ILMU KOMPUTER'),
+        'address' => env('MONPKL_FINAL_DOC_ADDRESS', 'Jalan Prof. Dr. Sumantri Brojonegoro No. 1 Rajabasa Bandar Lampung 35145'),
+        'phone' => env('MONPKL_FINAL_DOC_PHONE', 'Telepon (0721) 704625'),
+        'fax' => env('MONPKL_FINAL_DOC_FAX', 'Faksimile (0721) 706625'),
+        'website' => env('MONPKL_FINAL_DOC_WEBSITE', 'https://ilkom.unila.ac.id'),
+        'email' => env('MONPKL_FINAL_DOC_EMAIL', 'ilmu.komputer@fmipa.unila.ac.id'),
+        'document_number_format' => env('MONPKL_FINAL_DOC_NUMBER_FORMAT', '{enrollment}/UN.26.7.6/KP/PKL/{year}'),
+        'city' => env('MONPKL_FINAL_DOC_CITY', 'Bandar Lampung'),
+        'chair_name' => env('MONPKL_FINAL_DOC_CHAIR_NAME', ''),
+        'chair_identifier' => env('MONPKL_FINAL_DOC_CHAIR_IDENTIFIER', ''),
+    ],
+
     'deadline_types' => [
         'registration_start' => 'Pendaftaran Dibuka',
         'registration_end' => 'Pendaftaran Ditutup',

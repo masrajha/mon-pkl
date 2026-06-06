@@ -165,6 +165,14 @@ class FieldSupervisorPortalController extends Controller
         );
 
         $enrollment->loadMissing('internshipPeriod');
+        $enrollment->loadMissing('finalAssessment');
+
+        if ($enrollment->finalAssessment) {
+            throw ValidationException::withMessages([
+                'assessment' => 'Nilai pembimbing lapangan sudah terkunci karena nilai akhir telah difinalisasi.',
+            ]);
+        }
+
         $this->storeAssessment($request, $enrollment, $email, $request->user()?->name ?: $email, 'login');
 
         return back()->with('status', 'Nilai pembimbing lapangan berhasil disimpan.');
@@ -279,6 +287,7 @@ class FieldSupervisorPortalController extends Controller
             'internshipPlace',
             'lecturer',
             'fieldSupervisorAssessment',
+            'finalAssessment',
             'internshipPeriod.setting',
             'checkIns' => fn ($query) => $query->orderBy('checked_at'),
         ];
@@ -352,6 +361,14 @@ class FieldSupervisorPortalController extends Controller
 
     private function storeAssessment(Request $request, InternshipEnrollment $enrollment, string $email, string $name, string $mode): void
     {
+        $enrollment->loadMissing('finalAssessment');
+
+        if ($enrollment->finalAssessment) {
+            throw ValidationException::withMessages([
+                'assessment' => 'Nilai pembimbing lapangan sudah terkunci karena nilai akhir telah difinalisasi.',
+            ]);
+        }
+
         if (! $this->canAssessEnrollment($enrollment)) {
             throw ValidationException::withMessages([
                 'assessment' => 'Penilaian pembimbing lapangan baru dapat dilakukan mulai tanggal akhir presensi/turun lapang.',

@@ -1,3 +1,16 @@
+@php
+    $tabs = [
+        'umum' => ['label' => 'Umum', 'icon' => 'fa-gear'],
+        'pendaftaran' => ['label' => 'Pendaftaran dan Kuota', 'icon' => 'fa-user-plus'],
+        'layanan' => ['label' => 'Kontrol Layanan Mahasiswa', 'icon' => 'fa-sliders'],
+        'deadline' => ['label' => 'Deadline Periode', 'icon' => 'fa-calendar-days'],
+        'check-in' => ['label' => 'Check-In', 'icon' => 'fa-location-dot'],
+        'laporan' => ['label' => 'Laporan dan Kalender', 'icon' => 'fa-file-lines'],
+        'dokumen' => ['label' => 'Dokumen Cetak Nilai', 'icon' => 'fa-file-signature'],
+        'peta' => ['label' => 'Peta dan Lokasi', 'icon' => 'fa-map-location-dot'],
+    ];
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -24,7 +37,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('system-configurations.update', $period) }}" class="space-y-6">
+            <form method="POST" action="{{ route('system-configurations.update', $period) }}" class="space-y-6" novalidate>
                 @csrf
                 @method('PATCH')
 
@@ -34,7 +47,18 @@
                     </div>
                 @endif
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div class="silat-card p-4">
+                    <div class="flex flex-wrap gap-2" data-config-tabs role="tablist">
+                        @foreach ($tabs as $key => $item)
+                            <button type="button" data-config-tab="{{ $key }}" class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold {{ $loop->first ? 'border-blue-700 bg-blue-700 text-white' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50' }}">
+                                <x-icon :name="$item['icon']" class="w-4" />
+                                {{ $item['label'] }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div data-config-panel="umum" class="bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Umum') }}</h3>
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
                         <div>
@@ -44,7 +68,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div data-config-panel="pendaftaran" class="hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <div class="mb-4 rounded-md border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
                         <p class="font-semibold">{{ __('Pelaksanaan / presensi periode') }}:
                             {{ $period->starts_at?->format('d/m/Y') ?: '-' }}
@@ -86,7 +110,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div data-config-panel="layanan" class="hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <div>
                         <h3 class="text-base font-semibold text-gray-900">{{ __('Kontrol Layanan Mahasiswa') }}</h3>
                         <p class="mt-1 text-sm text-gray-500">{{ __('Pendaftaran tetap mengikuti deadline Pendaftaran Dibuka dan Pendaftaran Ditutup. Toggle ini hanya membatasi layanan pengajuan oleh mahasiswa.') }}</p>
@@ -116,7 +140,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div data-config-panel="deadline" class="hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Deadline Periode') }}</h3>
                     <div class="silat-table-wrap mt-4 rounded-lg border border-gray-100">
                         <table class="silat-table">
@@ -161,7 +185,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div data-config-panel="check-in" class="hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Check-In') }}</h3>
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
                         <div>
@@ -220,7 +244,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div data-config-panel="laporan" class="hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Laporan dan Kalender') }}</h3>
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
                         <div>
@@ -242,7 +266,71 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div data-config-panel="dokumen" class="hidden bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('Dokumen Cetak Nilai') }}</h3>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('Header dan penandatangan untuk Berita Acara Nilai. Data ini disimpan sebagai snapshot saat finalisasi nilai.') }}</p>
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                            <x-input-label for="final_doc_logo_url" value="URL Logo Dokumen" />
+                            <x-text-input id="final_doc_logo_url" name="final_assessment_document[logo_url]" class="mt-1 block w-full" :value="old('final_assessment_document.logo_url', data_get($settings, 'final_assessment_document.logo_url'))" placeholder="https://... atau path logo" />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_ministry" value="Kementerian/Lembaga" />
+                            <x-text-input id="final_doc_ministry" name="final_assessment_document[ministry]" class="mt-1 block w-full" :value="old('final_assessment_document.ministry', data_get($settings, 'final_assessment_document.ministry'))" required />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_university" value="Universitas" />
+                            <x-text-input id="final_doc_university" name="final_assessment_document[university]" class="mt-1 block w-full" :value="old('final_assessment_document.university', data_get($settings, 'final_assessment_document.university'))" required />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_faculty" value="Fakultas" />
+                            <x-text-input id="final_doc_faculty" name="final_assessment_document[faculty]" class="mt-1 block w-full" :value="old('final_assessment_document.faculty', data_get($settings, 'final_assessment_document.faculty'))" required />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_department" value="Jurusan" />
+                            <x-text-input id="final_doc_department" name="final_assessment_document[department]" class="mt-1 block w-full" :value="old('final_assessment_document.department', data_get($settings, 'final_assessment_document.department'))" required />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <x-input-label for="final_doc_address" value="Alamat" />
+                            <x-text-input id="final_doc_address" name="final_assessment_document[address]" class="mt-1 block w-full" :value="old('final_assessment_document.address', data_get($settings, 'final_assessment_document.address'))" />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_phone" value="Telepon" />
+                            <x-text-input id="final_doc_phone" name="final_assessment_document[phone]" class="mt-1 block w-full" :value="old('final_assessment_document.phone', data_get($settings, 'final_assessment_document.phone'))" />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_fax" value="Faksimile" />
+                            <x-text-input id="final_doc_fax" name="final_assessment_document[fax]" class="mt-1 block w-full" :value="old('final_assessment_document.fax', data_get($settings, 'final_assessment_document.fax'))" />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_website" value="Website" />
+                            <x-text-input id="final_doc_website" name="final_assessment_document[website]" class="mt-1 block w-full" :value="old('final_assessment_document.website', data_get($settings, 'final_assessment_document.website'))" />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_email" value="Email" />
+                            <x-text-input id="final_doc_email" name="final_assessment_document[email]" class="mt-1 block w-full" :value="old('final_assessment_document.email', data_get($settings, 'final_assessment_document.email'))" />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_number_format" value="Format Nomor Berita Acara" />
+                            <x-text-input id="final_doc_number_format" name="final_assessment_document[document_number_format]" class="mt-1 block w-full" :value="old('final_assessment_document.document_number_format', data_get($settings, 'final_assessment_document.document_number_format'))" required />
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Token: {enrollment}, {period}, {student_npm}, {year}') }}</p>
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_city" value="Kota Tanda Tangan" />
+                            <x-text-input id="final_doc_city" name="final_assessment_document[city]" class="mt-1 block w-full" :value="old('final_assessment_document.city', data_get($settings, 'final_assessment_document.city'))" required />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_chair_name" value="Nama Ketua Jurusan" />
+                            <x-text-input id="final_doc_chair_name" name="final_assessment_document[chair_name]" class="mt-1 block w-full" :value="old('final_assessment_document.chair_name', data_get($settings, 'final_assessment_document.chair_name'))" />
+                        </div>
+                        <div>
+                            <x-input-label for="final_doc_chair_identifier" value="NIP Ketua Jurusan" />
+                            <x-text-input id="final_doc_chair_identifier" name="final_assessment_document[chair_identifier]" class="mt-1 block w-full" :value="old('final_assessment_document.chair_identifier', data_get($settings, 'final_assessment_document.chair_identifier'))" />
+                        </div>
+                    </div>
+                </div>
+
+                <div data-config-panel="peta" class="hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-base font-semibold text-gray-900">{{ __('Peta dan Lokasi') }}</h3>
                     <div class="mt-4 grid gap-4 sm:grid-cols-3">
                         <div>
@@ -314,4 +402,39 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = Array.from(document.querySelectorAll('[data-config-tab]'));
+            const panels = Array.from(document.querySelectorAll('[data-config-panel]'));
+
+            const activate = (key) => {
+                tabs.forEach((tab) => {
+                    const active = tab.dataset.configTab === key;
+                    tab.classList.toggle('border-blue-700', active);
+                    tab.classList.toggle('bg-blue-700', active);
+                    tab.classList.toggle('text-white', active);
+                    tab.classList.toggle('border-gray-200', ! active);
+                    tab.classList.toggle('bg-white', ! active);
+                    tab.classList.toggle('text-gray-700', ! active);
+                    tab.classList.toggle('hover:bg-gray-50', ! active);
+                    tab.setAttribute('aria-selected', active ? 'true' : 'false');
+                });
+
+                panels.forEach((panel) => {
+                    panel.classList.toggle('hidden', panel.dataset.configPanel !== key);
+                });
+
+                window.location.hash = key;
+            };
+
+            tabs.forEach((tab) => {
+                tab.setAttribute('role', 'tab');
+                tab.addEventListener('click', () => activate(tab.dataset.configTab));
+            });
+
+            const hashKey = window.location.hash.replace('#', '');
+            activate(tabs.some((tab) => tab.dataset.configTab === hashKey) ? hashKey : 'umum');
+        });
+    </script>
 </x-app-layout>

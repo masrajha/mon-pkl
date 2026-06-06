@@ -96,6 +96,13 @@ class SeminarRequestController extends Controller
     {
         $seminarRequest->loadMissing('enrollment.student');
         $this->authorizeEnrollment($request, $seminarRequest->enrollment);
+        $seminarRequest->loadMissing('enrollment.finalAssessment');
+
+        if ($seminarRequest->enrollment?->finalAssessment) {
+            throw ValidationException::withMessages([
+                'assessment' => 'Nilai dosen sudah terkunci karena nilai akhir telah difinalisasi.',
+            ]);
+        }
 
         if (! in_array($seminarRequest->status, ['scheduled', 'waiting_assessment_validation', 'assessment_revision_required'], true)) {
             throw ValidationException::withMessages([

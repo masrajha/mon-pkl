@@ -84,6 +84,7 @@
                                     $enrollment = $seminarRequest->enrollment;
                                     $canLecturerAct = auth()->user()?->hasRole('dosen') && (int) $enrollment?->lecturer_supervisor_user_id === (int) auth()->id();
                                     $canSchedule = auth()->user()?->hasRole(['admin', 'koordinator']);
+                                    $isFinalized = (bool) $enrollment?->finalAssessment;
                                 @endphp
                                 <tr>
                                     <td class="silat-table-cell">
@@ -126,6 +127,9 @@
                                             @if ($seminarRequest->assessment_file_path)
                                                 <a class="mt-1 block silat-secondary-link text-xs" href="{{ route('seminar-requests.file', [$seminarRequest, 'assessment']) }}" target="_blank">Form penilaian</a>
                                             @endif
+                                        @endif
+                                        @if ($isFinalized)
+                                            <div class="mt-1 text-xs text-blue-700">Terkunci karena nilai akhir sudah difinalisasi.</div>
                                         @endif
                                     </td>
                                     <td class="silat-table-cell">
@@ -193,7 +197,13 @@
                                                 </form>
                                             @endif
 
-                                            @if ($canSchedule && $seminarRequest->status === 'waiting_assessment_validation')
+                                            @if ($isFinalized)
+                                                <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
+                                                    Nilai dosen sudah terkunci karena nilai akhir telah difinalisasi.
+                                                </div>
+                                            @endif
+
+                                            @if (! $isFinalized && $canSchedule && $seminarRequest->status === 'waiting_assessment_validation')
                                                 <form method="POST" action="{{ route('management.seminar-requests.manual-assessment', $seminarRequest) }}" class="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
                                                     @csrf @method('PATCH')
                                                     <div>
@@ -247,7 +257,7 @@
                                                 </form>
                                             @endif
 
-                                            @if ($canLecturerAct && ($seminarRequest->status === 'scheduled' || ($seminarRequest->status === 'completed' && $seminarRequest->assessment_method === 'system')))
+                                            @if (! $isFinalized && $canLecturerAct && ($seminarRequest->status === 'scheduled' || ($seminarRequest->status === 'completed' && $seminarRequest->assessment_method === 'system')))
                                                 @php
                                                     $storedScores = $seminarRequest->assessment_scores ?? [];
                                                 @endphp
@@ -311,8 +321,10 @@
                                             @endif
 
                                             @if (! (
-                                                ($canLecturerAct && ($seminarRequest->status === 'waiting_lecturer_approval' || $seminarRequest->status === 'scheduled' || ($seminarRequest->status === 'completed' && $seminarRequest->assessment_method === 'system')))
-                                                || ($canSchedule && in_array($seminarRequest->status, ['waiting_manual_acc_validation', 'waiting_assessment_validation', 'lecturer_approved', 'manual_acc_approved', 'scheduled'], true))
+                                                ($canLecturerAct && ($seminarRequest->status === 'waiting_lecturer_approval' || (! $isFinalized && ($seminarRequest->status === 'scheduled' || ($seminarRequest->status === 'completed' && $seminarRequest->assessment_method === 'system')))))
+                                                || ($canSchedule && in_array($seminarRequest->status, ['waiting_manual_acc_validation', 'lecturer_approved', 'manual_acc_approved', 'scheduled'], true))
+                                                || (! $isFinalized && $canSchedule && $seminarRequest->status === 'waiting_assessment_validation')
+                                                || $isFinalized
                                             ))
                                                 <span class="text-xs text-gray-500">Tidak ada aksi untuk status ini.</span>
                                             @endif

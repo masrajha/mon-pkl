@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\OrientationEvent;
 use App\Models\PeriodDeadline;
@@ -10,9 +11,11 @@ use App\Models\Sanction;
 use App\Models\SubmissionProgress;
 use App\Services\PeriodConfigurationService;
 use App\Services\StudentWorkflowAccessService;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -217,6 +220,67 @@ class ReportController extends Controller
         return view('student.reports.print', compact('enrollment', 'attendanceRows', 'attendanceColorRules'));
     }
 
+    public function printFinalAssessment(Request $request, InternshipEnrollment $enrollment): View
+    {
+        $this->authorizeEnrollment($request, $enrollment);
+
+        $enrollment->load([
+            'student',
+            'studyProgram',
+            'internshipPeriod.program',
+            'internshipPeriod.setting',
+            'internshipPlace',
+            'lecturer',
+            'fieldSupervisorAssessment',
+            'finalAssessment.finalizer',
+            'seminarRequests' => fn ($query) => $query
+                ->whereNotNull('seminar_score')
+                ->latest('scored_at')
+                ->latest('id'),
+        ]);
+
+        abort_unless($enrollment->finalAssessment, 404, 'Berita acara nilai belum tersedia.');
+
+        $finalAssessment = $enrollment->finalAssessment;
+        $seminarRequest = $enrollment->seminarRequests->first();
+        $settings = app(PeriodConfigurationService::class)->forPeriod($enrollment->internshipPeriod);
+        $documentSettings = $settings['final_assessment_document'] ?? config('monpkl.final_assessment_document');
+        $header = $finalAssessment->document_header_snapshot ?: $documentSettings;
+        $coordinator = InternshipCoordinator::query()
+            ->with('lecturer')
+            ->where('internship_period_id', $enrollment->internship_period_id)
+            ->where('study_program_id', $enrollment->study_program_id)
+            ->where('status', 'active')
+            ->first();
+        $verificationToken = $finalAssessment->verification_token ?: Str::random(40);
+
+        if (! $finalAssessment->verification_token) {
+            $finalAssessment->forceFill(['verification_token' => $verificationToken])->save();
+        }
+
+        $verificationUrl = route('final-assessments.verify', $verificationToken);
+        $verificationQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='.urlencode($verificationUrl);
+
+        return view('student.reports.final-assessment-print', [
+            'enrollment' => $enrollment,
+            'finalAssessment' => $finalAssessment,
+            'seminarRequest' => $seminarRequest,
+            'header' => $header,
+            'programName' => $enrollment->internshipPeriod?->program?->name ?: $enrollment->internshipPeriod?->name ?: 'KP/PKL',
+            'documentChairName' => $finalAssessment->chair_name ?: ($documentSettings['chair_name'] ?? ''),
+            'documentChairIdentifier' => $finalAssessment->chair_identifier ?: ($documentSettings['chair_identifier'] ?? ''),
+            'documentCoordinatorName' => $finalAssessment->coordinator_name ?: ($coordinator?->lecturer?->name ?? ''),
+            'documentCoordinatorIdentifier' => $finalAssessment->coordinator_identifier ?: ($coordinator?->lecturer?->nip ?? ''),
+            'seminarSchedule' => $this->seminarSchedule($seminarRequest?->scheduled_at),
+            'verificationUrl' => $verificationUrl,
+            'verificationQrUrl' => $verificationQrUrl,
+            'seminarRubric' => config('monpkl.seminar_assessment_rubric', []),
+            'fieldSupervisorRubric' => config('monpkl.field_supervisor_assessment_rubric', []),
+            'gradeRanges' => $this->gradeRanges(),
+            'letterGrade' => $this->letterGrade((float) $finalAssessment->final_score),
+        ]);
+    }
+
     private function authorizeEnrollment(Request $request, InternshipEnrollment $enrollment): void
     {
         $studentUserId = $enrollment->student?->user_id;
@@ -308,6 +372,75 @@ class ReportController extends Controller
             'validated' => $validated,
             'pending' => max(0, $total - $validated),
         ];
+    }
+
+    private function gradeRanges(): array
+    {
+        return [
+            ['letter' => 'A', 'range' => 'Nilai >= 76'],
+            ['letter' => 'B+', 'range' => '71 <= Nilai < 76'],
+            ['letter' => 'B', 'range' => '66 <= Nilai < 71'],
+            ['letter' => 'C+', 'range' => '61 <= Nilai < 66'],
+            ['letter' => 'C', 'range' => '56 <= Nilai < 61'],
+            ['letter' => 'BL', 'range' => '50 <= Nilai < 56'],
+            ['letter' => 'BL', 'range' => 'Nilai < 50'],
+        ];
+    }
+
+    private function letterGrade(float $score): string
+    {
+        return match (true) {
+            $score >= 76 => 'A',
+            $score >= 71 => 'B+',
+            $score >= 66 => 'B',
+            $score >= 61 => 'C+',
+            $score >= 56 => 'C',
+            default => 'BL',
+        };
+    }
+
+    private function seminarSchedule(mixed $scheduledAt): array
+    {
+        if (! $scheduledAt) {
+            return [
+                'day' => '................................',
+                'date' => '................................',
+                'time' => '................',
+            ];
+        }
+
+        $date = $scheduledAt instanceof Carbon
+            ? $scheduledAt
+            : Carbon::parse($scheduledAt);
+
+        return [
+            'day' => $this->indonesianDayName((int) $date->dayOfWeek),
+            'date' => $date->format('d').' '.$this->indonesianMonthName((int) $date->month).' '.$date->format('Y'),
+            'time' => $date->format('H:i'),
+        ];
+    }
+
+    private function indonesianDayName(int $dayOfWeek): string
+    {
+        return ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][$dayOfWeek] ?? '-';
+    }
+
+    private function indonesianMonthName(int $month): string
+    {
+        return [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ][$month] ?? '-';
     }
 
     private function completionPrerequisites(InternshipEnrollment $enrollment, $dailyActivityRows): array

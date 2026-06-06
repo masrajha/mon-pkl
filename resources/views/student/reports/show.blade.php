@@ -434,11 +434,14 @@
                                     <p class="text-sm font-semibold text-gray-900">Nilai Akhir</p>
                                     <p class="mt-1 text-sm text-gray-500">Rekap nilai dosen, pembimbing lapangan, dan pengurangan sanksi.</p>
                                 </div>
-                                @if ($enrollment->finalAssessment)
-                                    <x-badge variant="success">Sudah final</x-badge>
-                                @else
-                                    <x-badge variant="neutral">Belum difinalisasi</x-badge>
-                                @endif
+                                <div class="flex flex-wrap items-center gap-2">
+                                    @if ($enrollment->finalAssessment)
+                                        <a class="silat-btn-secondary px-3 py-2 text-xs" href="{{ route('student.reports.final-assessment.print', $enrollment) }}" target="_blank"><x-icon name="fa-print" /> Cetak Berita Acara Nilai</a>
+                                        <x-badge variant="success">Sudah final</x-badge>
+                                    @else
+                                        <x-badge variant="neutral">Belum difinalisasi</x-badge>
+                                    @endif
+                                </div>
                             </div>
 
                             @if ($enrollment->finalAssessment)

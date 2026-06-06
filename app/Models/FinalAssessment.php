@@ -17,6 +17,14 @@ class FinalAssessment extends Model
         'final_deduction',
         'final_score',
         'note',
+        'document_number',
+        'document_city',
+        'chair_name',
+        'chair_identifier',
+        'coordinator_name',
+        'coordinator_identifier',
+        'document_header_snapshot',
+        'verification_token',
         'finalized_by',
         'finalized_at',
     ];
@@ -32,6 +40,7 @@ class FinalAssessment extends Model
             'suggested_deduction' => 'decimal:2',
             'final_deduction' => 'decimal:2',
             'final_score' => 'decimal:2',
+            'document_header_snapshot' => 'array',
             'finalized_at' => 'datetime',
         ];
     }

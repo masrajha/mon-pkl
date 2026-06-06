@@ -5,18 +5,25 @@ namespace App\Http\Controllers\Management;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\FinalAssessment;
+use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\SeminarRequest;
+use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class FinalAssessmentController extends Controller
 {
     use InteractsWithTableControls;
+
+    public function __construct(private readonly PeriodConfigurationService $configurations)
+    {
+    }
 
     public function index(Request $request): View
     {
@@ -87,11 +94,13 @@ class FinalAssessmentController extends Controller
     public function store(Request $request, InternshipEnrollment $enrollment): RedirectResponse
     {
         $enrollment->loadMissing([
+            'student',
             'fieldSupervisorAssessment',
             'seminarRequests' => fn ($query) => $query
                 ->whereNotNull('seminar_score')
                 ->latest('scored_at')
                 ->latest('id'),
+            'internshipPeriod.setting',
         ]);
 
         $this->authorizeEnrollment($enrollment, $request);
@@ -112,7 +121,9 @@ class FinalAssessmentController extends Controller
         $finalDeduction = round((float) $data['final_deduction'], 2);
         $finalScore = round(max(0, min(100, $summary['baseScore'] - $finalDeduction)), 2);
 
-        DB::transaction(function () use ($enrollment, $request, $summary, $data, $finalDeduction, $finalScore): void {
+        $document = $this->documentSnapshot($enrollment);
+
+        DB::transaction(function () use ($enrollment, $request, $summary, $data, $finalDeduction, $finalScore, $document): void {
             FinalAssessment::query()->updateOrCreate(
                 ['internship_enrollment_id' => $enrollment->id],
                 [
@@ -125,6 +136,14 @@ class FinalAssessmentController extends Controller
                     'final_deduction' => $finalDeduction,
                     'final_score' => $finalScore,
                     'note' => $data['note'] ?? null,
+                    'document_number' => $document['number'],
+                    'document_city' => $document['city'],
+                    'chair_name' => $document['chair_name'],
+                    'chair_identifier' => $document['chair_identifier'],
+                    'coordinator_name' => $document['coordinator_name'],
+                    'coordinator_identifier' => $document['coordinator_identifier'],
+                    'document_header_snapshot' => $document['header'],
+                    'verification_token' => Str::random(40),
                     'finalized_by' => $request->user()->id,
                     'finalized_at' => now(),
                 ]
@@ -220,5 +239,58 @@ class FinalAssessmentController extends Controller
         }
 
         return $query->get();
+    }
+
+    private function documentSnapshot(InternshipEnrollment $enrollment): array
+    {
+        $settings = $this->configurations->forPeriod($enrollment->internshipPeriod);
+        $document = $settings['final_assessment_document'] ?? config('monpkl.final_assessment_document', []);
+        $coordinator = InternshipCoordinator::query()
+            ->with('lecturer')
+            ->where('internship_period_id', $enrollment->internship_period_id)
+            ->where('study_program_id', $enrollment->study_program_id)
+            ->where('status', 'active')
+            ->first();
+
+        if (! $coordinator?->lecturer) {
+            throw ValidationException::withMessages([
+                'final_assessment' => 'Finalisasi belum dapat disimpan. Koordinator periode program aktif untuk prodi mahasiswa belum ditentukan.',
+            ]);
+        }
+
+        $header = [
+            'logo_url' => $document['logo_url'] ?? '',
+            'ministry' => $document['ministry'] ?? '',
+            'university' => $document['university'] ?? '',
+            'faculty' => $document['faculty'] ?? '',
+            'department' => $document['department'] ?? '',
+            'address' => $document['address'] ?? '',
+            'phone' => $document['phone'] ?? '',
+            'fax' => $document['fax'] ?? '',
+            'website' => $document['website'] ?? '',
+            'email' => $document['email'] ?? '',
+        ];
+
+        return [
+            'number' => $this->documentNumber((string) ($document['document_number_format'] ?? ''), $enrollment),
+            'city' => $document['city'] ?? 'Bandar Lampung',
+            'chair_name' => $document['chair_name'] ?? '',
+            'chair_identifier' => $document['chair_identifier'] ?? '',
+            'coordinator_name' => $coordinator?->lecturer?->name ?? '',
+            'coordinator_identifier' => $coordinator?->lecturer?->nip ?? '',
+            'header' => $header,
+        ];
+    }
+
+    private function documentNumber(string $format, InternshipEnrollment $enrollment): string
+    {
+        $format = $format !== '' ? $format : '{enrollment}/UN.26.7.6/KP/PKL/{year}';
+
+        return strtr($format, [
+            '{enrollment}' => (string) $enrollment->id,
+            '{period}' => (string) $enrollment->internship_period_id,
+            '{student_npm}' => (string) ($enrollment->student?->npm ?: $enrollment->student_id),
+            '{year}' => now()->format('Y'),
+        ]);
     }
 }

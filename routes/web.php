@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\EmailNotificationConfigurationController;
 use App\Http\Controllers\FieldSupervisorPortalController;
+use App\Http\Controllers\FinalAssessmentVerificationController;
 use App\Http\Controllers\InternshipPlaceController;
 use App\Http\Controllers\LocationSuggestionController;
 use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinatorController;
@@ -164,6 +165,7 @@ Route::get('/docs/{role}', [DocumentationController::class, 'show'])->name('docs
 Route::get('/field-supervisor/access/{token}', [FieldSupervisorPortalController::class, 'token'])->name('field-supervisor.token');
 Route::post('/field-supervisor/access/{token}/daily-logs/{checkIn}/validate', [FieldSupervisorPortalController::class, 'validateWithToken'])->name('field-supervisor.token.daily-logs.validate');
 Route::post('/field-supervisor/access/{token}/enrollments/{enrollment}/assessment', [FieldSupervisorPortalController::class, 'assessWithToken'])->name('field-supervisor.token.assessment.store');
+Route::get('/verify/final-assessments/{token}', [FinalAssessmentVerificationController::class, 'show'])->name('final-assessments.verify');
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -214,6 +216,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/student/supervisor-requests', [StudentSupervisorChangeRequestController::class, 'store'])->name('student.supervisor-requests.store');
         Route::patch('/student/supervisor-requests/{supervisorRequest}/cancel', [StudentSupervisorChangeRequestController::class, 'cancel'])->name('student.supervisor-requests.cancel');
         Route::get('/student/reports/{enrollment}', [StudentReportController::class, 'show'])->name('student.reports.show');
+        Route::get('/student/reports/{enrollment}/final-assessment/print', [StudentReportController::class, 'printFinalAssessment'])->name('student.reports.final-assessment.print');
         Route::post('/student/reports/{enrollment}/progress', [StudentReportController::class, 'storeProgress'])->name('student.reports.progress.store');
         Route::post('/student/reports/{enrollment}/seminar-requests', [StudentSeminarRequestController::class, 'store'])->name('student.seminar-requests.store');
         Route::patch('/student/seminar-requests/{seminarRequest}/cancel', [StudentSeminarRequestController::class, 'cancel'])->name('student.seminar-requests.cancel');
