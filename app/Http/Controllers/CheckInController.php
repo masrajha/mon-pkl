@@ -35,6 +35,14 @@ class CheckInController extends Controller
             'enrollment' => $enrollment,
             'statusPreview' => $this->checkInStatus->statusFor(now($settings['timezone']), $settings),
             'mapConfig' => $this->configurations->frontendMapConfig($enrollment->internshipPeriod),
+            'maxForgottenAttendanceRequests' => (int) data_get($settings, 'report.max_forgotten_attendance_requests', 3),
+            'usedForgottenAttendanceRequests' => $enrollment->forgottenAttendanceRequests()
+                ->whereIn('status', ['pending', 'approved'])
+                ->count(),
+            'recentForgottenAttendanceRequests' => $enrollment->forgottenAttendanceRequests()
+                ->latest('id')
+                ->limit(5)
+                ->get(),
             'recentCheckIns' => $enrollment->checkIns()
                 ->latest('checked_at')
                 ->limit((int) $settings['check_in']['recent_limit'])

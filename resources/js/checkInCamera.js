@@ -69,13 +69,13 @@ function initCheckInCamera(element) {
         const settings = stream.getVideoTracks()[0]?.getSettings?.() || {};
         const width = settings.width || video.videoWidth || 640;
         const height = settings.height || video.videoHeight || 480;
-        const maxWidth = 960;
+        const maxWidth = Number(element.dataset.cameraMaxWidth || 640);
         const ratio = Math.min(1, maxWidth / width);
 
         canvas.width = Math.round(width * ratio);
         canvas.height = Math.round(height * ratio);
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-        captureInput.value = canvas.toDataURL('image/jpeg', 0.85);
+        captureInput.value = canvas.toDataURL('image/jpeg', 0.75);
 
         video.hidden = true;
         canvas.hidden = false;

@@ -15,6 +15,8 @@ class CheckIn extends Model
         'legacy_source_file',
         'type',
         'action',
+        'source_type',
+        'forgotten_attendance_request_id',
         'note',
         'checked_at',
         'pair_id',
@@ -53,6 +55,11 @@ class CheckIn extends Model
     public function enrollment()
     {
         return $this->belongsTo(InternshipEnrollment::class, 'internship_enrollment_id');
+    }
+
+    public function forgottenAttendanceRequest()
+    {
+        return $this->belongsTo(ForgottenAttendanceRequest::class);
     }
 
     public function pair()

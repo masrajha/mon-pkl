@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CheckIn;
+use App\Models\ForgottenAttendanceRequest;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
@@ -304,6 +305,97 @@ class CheckInFeatureTest extends TestCase
             'internship_enrollment_id' => $firstEnrollment->id,
             'action' => 'check_in',
         ]);
+    }
+
+    public function test_student_can_request_forgotten_check_out_and_admin_can_approve_it(): void
+    {
+        Storage::fake('public');
+        Carbon::setTestNow(Carbon::create(2026, 6, 3, 9, 0, 0, config('monpkl.timezone')));
+
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        $admin = User::factory()->create(['role' => 'admin']);
+        [$enrollment] = $this->activeEnrollmentFor($user, [
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+        ]);
+
+        $checkIn = CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'note' => 'Menyusun rencana pengujian sistem pada pagi hari.',
+            'checked_at' => '2026-06-01 08:00:00',
+            'distance_meters' => 10,
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('student.forgotten-attendance-requests.store', $enrollment), [
+                'requested_date' => '2026-06-01',
+                'requested_time' => '16:00',
+                'action' => 'check_out',
+                'note' => 'Menyelesaikan realisasi pengujian sistem pada sore hari.',
+                'reason' => 'Lupa menekan tombol presensi pulang.',
+                'student_latitude' => -5.3972,
+                'student_longitude' => 105.2669,
+                'photo_capture' => $this->capturedPhoto(),
+            ])
+            ->assertRedirect();
+
+        $request = ForgottenAttendanceRequest::query()->firstOrFail();
+
+        $this->assertSame('pending', $request->status);
+
+        $this->actingAs($admin)
+            ->post(route('forgotten-attendance-requests.management.approve', $request), [
+                'review_note' => 'Disetujui berdasarkan konfirmasi pembimbing.',
+            ])
+            ->assertRedirect();
+
+        $request->refresh();
+        $checkOut = CheckIn::query()->where('action', 'check_out')->firstOrFail();
+
+        $this->assertSame('approved', $request->status);
+        $this->assertSame($checkOut->id, $request->created_check_in_id);
+        $this->assertSame($checkIn->id, $checkOut->pair_id);
+        $this->assertSame('forgotten_request', $checkOut->source_type);
+        $this->assertSame(480, $checkOut->duration_minutes);
+    }
+
+    public function test_forgotten_attendance_request_rejects_duplicate_pair_side(): void
+    {
+        Storage::fake('public');
+        Carbon::setTestNow(Carbon::create(2026, 6, 3, 9, 0, 0, config('monpkl.timezone')));
+
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        [$enrollment] = $this->activeEnrollmentFor($user, [
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+        ]);
+
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'note' => 'Presensi masuk sudah ada pada tanggal ini.',
+            'checked_at' => '2026-06-01 08:00:00',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('check-ins.create', ['enrollment' => $enrollment->id]))
+            ->post(route('student.forgotten-attendance-requests.store', $enrollment), [
+                'requested_date' => '2026-06-01',
+                'requested_time' => '08:30',
+                'action' => 'check_in',
+                'note' => 'Menyusun rencana pekerjaan dan koordinasi pagi ini.',
+                'reason' => 'Mengira presensi belum masuk sistem.',
+                'student_latitude' => -5.3972,
+                'student_longitude' => 105.2669,
+                'photo_capture' => $this->capturedPhoto(),
+            ])
+            ->assertRedirect(route('check-ins.create', ['enrollment' => $enrollment->id]))
+            ->assertSessionHasErrors('action');
+
+        $this->assertDatabaseCount('forgotten_attendance_requests', 0);
     }
 
     private function activeEnrollmentFor(User $user, array $periodOverrides = [], array $enrollmentOverrides = []): array

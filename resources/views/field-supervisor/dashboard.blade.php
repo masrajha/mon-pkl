@@ -111,9 +111,76 @@
                     </div>
 
                     <div x-show="activeTab === 'daily'" x-cloak class="overflow-x-auto">
+                    @if (! $isTokenAccess)
+                        @php
+                            $pendingForgottenRequests = $enrollment->forgottenAttendanceRequests->where('status', 'pending')->values();
+                        @endphp
+                        @if ($pendingForgottenRequests->isNotEmpty())
+                            <div class="border-b border-gray-100 bg-amber-50 px-5 py-4">
+                                <h3 class="text-sm font-semibold text-amber-950">Pengajuan Lupa Presensi</h3>
+                                <div class="mt-3 space-y-3">
+                                    @foreach ($pendingForgottenRequests as $requestItem)
+                                        <div class="rounded-lg border border-amber-200 bg-white p-3">
+                                            <div class="grid gap-3 lg:grid-cols-[1fr_260px]">
+                                                <div class="text-sm">
+                                                    <p class="font-semibold text-gray-900">
+                                                        {{ $requestItem->action === 'check_out' ? 'Pulang' : 'Masuk' }}
+                                                        {{ $requestItem->requested_checked_at?->format('d/m/Y H:i') }}
+                                                    </p>
+                                                    <p class="mt-1 text-gray-600"><span class="font-medium">Catatan:</span> {{ $requestItem->note }}</p>
+                                                    <p class="mt-1 text-gray-600"><span class="font-medium">Alasan:</span> {{ $requestItem->reason }}</p>
+                                                    <p class="mt-1 text-xs text-gray-500">Jarak pengajuan: {{ $requestItem->distance_meters !== null ? number_format($requestItem->distance_meters, 0, ',', '.').' m' : '-' }}</p>
+                                                </div>
+                                                <div class="space-y-2">
+                                                    <form method="POST" action="{{ route('forgotten-attendance-requests.field-supervisor.approve', $requestItem) }}" class="space-y-2">
+                                                        @csrf
+                                                        <textarea name="review_note" rows="2" class="block w-full rounded-md border-gray-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Catatan persetujuan opsional"></textarea>
+                                                        <button class="silat-btn px-3 py-2 text-xs"><x-icon name="fa-check" /> Setujui</button>
+                                                    </form>
+                                                    <form method="POST" action="{{ route('forgotten-attendance-requests.field-supervisor.reject', $requestItem) }}" class="space-y-2">
+                                                        @csrf
+                                                        <textarea name="review_note" rows="2" class="block w-full rounded-md border-gray-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Alasan penolakan opsional"></textarea>
+                                                        <button class="silat-btn-secondary px-3 py-2 text-xs"><x-icon name="fa-xmark" /> Tolak</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+                    @php
+                        $bulkValidationFormId = 'bulk-daily-validation-'.$enrollment->id.'-'.($isTokenAccess ? 'token' : 'login');
+                        $bulkValidateRoute = $isTokenAccess
+                            ? route('field-supervisor.token.daily-logs.bulk-validate', $requestToken ?? request()->route('token'))
+                            : route('field-supervisor.daily-logs.bulk-validate', $enrollment);
+                        $bulkValidationRows = $dailyRows
+                            ->filter(fn (array $row): bool => (bool) ($row['validation_check_in'] ?? null) && ! $row['validation_check_in']?->daily_log_validated_at)
+                            ->count();
+                    @endphp
+                    @if ($bulkValidationRows > 0)
+                        <div class="border-b border-gray-100 bg-blue-50 px-5 py-4">
+                            <form id="{{ $bulkValidationFormId }}" method="POST" action="{{ $bulkValidateRoute }}" class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                                @csrf
+                                <div>
+                                    <label for="bulk_daily_validation_note_{{ $enrollment->id }}" class="block text-sm font-medium text-blue-950">Catatan validasi massal</label>
+                                    <textarea id="bulk_daily_validation_note_{{ $enrollment->id }}" name="note" rows="2" class="mt-1 block w-full rounded-md border-blue-200 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Catatan opsional untuk semua baris terpilih"></textarea>
+                                </div>
+                                <button type="submit" class="silat-btn px-4 py-2.5 text-sm">
+                                    <x-icon name="fa-check-double" /> Validasi Terpilih
+                                </button>
+                            </form>
+                        </div>
+                    @endif
                     <table class="silat-table">
                         <thead class="silat-table-head">
                             <tr>
+                                <th class="silat-table-cell w-10">
+                                    @if ($bulkValidationRows > 0)
+                                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-bulk-toggle="{{ $bulkValidationFormId }}" aria-label="Pilih semua catatan harian">
+                                    @endif
+                                </th>
                                 <th class="silat-table-cell">Tanggal</th>
                                 <th class="silat-table-cell">Jam</th>
                                 <th class="silat-table-cell">Durasi</th>
@@ -133,6 +200,20 @@
                                         : null;
                                 @endphp
                                 <tr>
+                                    <td class="silat-table-cell align-top">
+                                        @if ($validationCheckIn && ! $validationCheckIn->daily_log_validated_at)
+                                            <input
+                                                type="checkbox"
+                                                name="check_in_ids[]"
+                                                value="{{ $validationCheckIn->id }}"
+                                                form="{{ $bulkValidationFormId }}"
+                                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                aria-label="Pilih catatan tanggal {{ $row['date']?->format('d/m/Y') ?: '-' }}"
+                                            >
+                                        @else
+                                            <span class="text-gray-300">-</span>
+                                        @endif
+                                    </td>
                                     <td class="silat-table-cell whitespace-nowrap">{{ $row['date']?->format('d/m/Y') ?: '-' }}</td>
                                     <td class="silat-table-cell whitespace-nowrap">
                                         <div>Masuk: {{ $row['check_in']?->checked_at?->format('H:i') ?: '-' }}</div>
@@ -172,7 +253,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="silat-table-cell">
+                                    <td colspan="7" class="silat-table-cell">
                                         <x-empty-state title="Belum ada catatan harian" icon="fa-clipboard" />
                                     </td>
                                 </tr>
@@ -331,6 +412,20 @@
         @endforelse
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('[data-bulk-toggle]').forEach((toggle) => {
+            toggle.addEventListener('change', () => {
+                const formId = toggle.dataset.bulkToggle;
+
+                document.querySelectorAll(`input[type="checkbox"][form="${formId}"][name="check_in_ids[]"]`).forEach((checkbox) => {
+                    checkbox.checked = toggle.checked;
+                });
+            });
+        });
+    });
+</script>
 
 @if ($isTokenAccess)
     </body>

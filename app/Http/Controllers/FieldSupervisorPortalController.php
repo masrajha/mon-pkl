@@ -47,6 +47,26 @@ class FieldSupervisorPortalController extends Controller
         return back()->with('status', 'Catatan harian berhasil divalidasi.');
     }
 
+    public function bulkValidateWithToken(Request $request, string $token): RedirectResponse
+    {
+        $accessToken = FieldSupervisorAccessToken::query()
+            ->with('enrollment')
+            ->where('token_hash', hash('sha256', $token))
+            ->firstOrFail();
+
+        abort_unless($accessToken->isValid(), 403, 'Token akses pembimbing lapangan tidak valid atau sudah kedaluwarsa.');
+
+        $validatedCount = $this->bulkValidateDailyLogs(
+            $request,
+            (int) $accessToken->internship_enrollment_id,
+            $accessToken->email,
+            $accessToken->enrollment?->field_supervisor ?: $accessToken->email,
+            'token'
+        );
+
+        return back()->with('status', $validatedCount.' catatan harian berhasil divalidasi.');
+    }
+
     public function assessWithToken(Request $request, string $token, InternshipEnrollment $enrollment): RedirectResponse
     {
         $accessToken = FieldSupervisorAccessToken::query()
@@ -149,6 +169,24 @@ class FieldSupervisorPortalController extends Controller
         $this->validateDailyLog($request, $checkIn, $email, $request->user()?->name ?: $email, 'login');
 
         return back()->with('status', 'Catatan harian berhasil divalidasi.');
+    }
+
+    public function bulkValidateDailyLogsForLogin(Request $request, InternshipEnrollment $enrollment): RedirectResponse
+    {
+        $email = Str::lower(trim((string) $request->user()?->email));
+
+        abort_unless(
+            (int) InternshipEnrollment::query()
+                ->whereKey($enrollment->id)
+                ->whereRaw('LOWER(field_supervisor_email) = ?', [$email])
+                ->whereNotIn('status', ['cancelled', 'rejected'])
+                ->count() === 1,
+            403
+        );
+
+        $validatedCount = $this->bulkValidateDailyLogs($request, $enrollment->id, $email, $request->user()?->name ?: $email, 'login');
+
+        return back()->with('status', $validatedCount.' catatan harian berhasil divalidasi.');
     }
 
     public function assessForLogin(Request $request, InternshipEnrollment $enrollment): RedirectResponse
@@ -288,6 +326,7 @@ class FieldSupervisorPortalController extends Controller
             'lecturer',
             'fieldSupervisorAssessment',
             'finalAssessment',
+            'forgottenAttendanceRequests' => fn ($query) => $query->latest('id'),
             'internshipPeriod.setting',
             'checkIns' => fn ($query) => $query->orderBy('checked_at'),
         ];
@@ -340,6 +379,57 @@ class FieldSupervisorPortalController extends Controller
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $this->applyDailyLogValidation($checkIn, $email, $name, $mode, $data['note'] ?? null);
+    }
+
+    private function bulkValidateDailyLogs(Request $request, int $enrollmentId, string $email, string $name, string $mode): int
+    {
+        $data = $request->validate([
+            'check_in_ids' => ['required', 'array', 'min:1'],
+            'check_in_ids.*' => ['integer'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $ids = collect($data['check_in_ids'] ?? [])
+            ->map(fn ($id): int => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            throw ValidationException::withMessages([
+                'check_in_ids' => 'Pilih minimal satu catatan harian untuk divalidasi.',
+            ]);
+        }
+
+        $checkIns = CheckIn::query()
+            ->where('internship_enrollment_id', $enrollmentId)
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
+
+        if ($checkIns->count() !== $ids->count()) {
+            abort(403);
+        }
+
+        $validatedDates = collect();
+
+        $ids->each(function (int $id) use ($checkIns, $email, $name, $mode, $data, $validatedDates): void {
+            $checkIn = $checkIns->get($id);
+            $date = $checkIn?->checked_at?->toDateString() ?: 'tanpa-tanggal-'.$id;
+
+            if ($validatedDates->contains($date)) {
+                return;
+            }
+
+            $this->applyDailyLogValidation($checkIn, $email, $name, $mode, $data['note'] ?? null);
+            $validatedDates->push($date);
+        });
+
+        return $validatedDates->count();
+    }
+
+    private function applyDailyLogValidation(CheckIn $checkIn, string $email, string $name, string $mode, ?string $note): void
+    {
         $checkedAt = $checkIn->checked_at;
         $dailyCheckIns = $checkedAt
             ? CheckIn::query()
@@ -353,7 +443,7 @@ class FieldSupervisorPortalController extends Controller
             'daily_log_validated_by_name' => $name,
             'daily_log_validated_by_email' => Str::lower(trim($email)),
             'daily_log_validation_mode' => $mode,
-            'daily_log_validation_note' => $data['note'] ?? null,
+            'daily_log_validation_note' => $note,
         ]);
 
         $dailyCheckIns->each->save();
@@ -497,6 +587,16 @@ class FieldSupervisorPortalController extends Controller
                 return isset($workingDates[$checkIn->checked_at->copy()->timezone($timezone)->toDateString()]);
             })
             ->groupBy(fn (CheckIn $checkIn): string => $checkIn->checked_at->copy()->timezone($timezone)->toDateString())
+            ->filter(function ($items): bool {
+                $checkIn = $items->firstWhere('action', 'check_in');
+                $checkOut = $items->firstWhere('action', 'check_out');
+
+                return $checkIn
+                    && $checkOut
+                    && $checkIn->checked_at
+                    && $checkOut->checked_at
+                    && $checkOut->checked_at->gt($checkIn->checked_at);
+            })
             ->count();
 
         $workingDays = $workingDates->count();

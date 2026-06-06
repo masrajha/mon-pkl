@@ -83,6 +83,7 @@ class SystemConfigurationController extends Controller
             'report.single_check_in_cutoff' => ['required', 'date_format:H:i'],
             'report.single_morning_checkout_hour' => ['required', 'integer', 'between:0,23'],
             'report.single_afternoon_checkin_hour' => ['required', 'integer', 'between:0,23'],
+            'report.max_forgotten_attendance_requests' => ['required', 'integer', 'min:0', 'max:100'],
             'final_assessment_document.logo_url' => ['nullable', 'string', 'max:2000'],
             'final_assessment_document.ministry' => ['required', 'string', 'max:255'],
             'final_assessment_document.university' => ['required', 'string', 'max:255'],

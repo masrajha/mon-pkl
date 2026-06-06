@@ -1,6 +1,19 @@
 # Manual Penggunaan SiLAT
 
+**Versi dokumen:** 2.1  
+**Tanggal pembaruan:** 6 Juni 2026  
+**Status:** Mengikuti implementasi fitur sampai Lupa Presensi, Finalisasi Nilai, Berita Acara Nilai, dan portal Pembimbing Lapangan terbaru.
+
 SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untuk mengelola pendaftaran program, presensi, pembekalan, laporan, catatan harian, perpindahan mitra, perubahan pembimbing, dan monitoring aktivitas mahasiswa.
+
+> **What's New - Versi 2.1**
+>
+> - Halaman Presensi mahasiswa kini memakai tab **Presensi** dan **Lupa Presensi**.
+> - Lupa Presensi memiliki kuota, sisa kuota, lokasi, foto realtime, alasan, dan riwayat pengajuan.
+> - Pembimbing Lapangan dapat memvalidasi catatan harian, memproses Lupa Presensi, dan mengisi nilai/feedback.
+> - Admin/koordinator dapat melakukan **Finalisasi Nilai** dengan pengurangan final dan nomor berita acara.
+> - Mahasiswa dapat melihat nilai akhir dan mencetak **Berita Acara Nilai** dengan QR verifikasi.
+> - Konfigurasi Program ditata dalam tab, termasuk tanggal libur, batas Lupa Presensi, dan dokumen cetak nilai.
 
 Dokumen ini dibagi menjadi lima bagian berdasarkan role pengguna:
 
@@ -27,11 +40,12 @@ Mahasiswa dapat menggunakan SiLAT untuk:
 - Mengunggah dokumen bukti akademik saat pendaftaran.
 - Melakukan presensi pembekalan.
 - Melakukan presensi kegiatan harian, yaitu masuk dan pulang.
+- Mengajukan **Lupa Presensi** jika lupa melakukan presensi realtime, sesuai kuota periode.
 - Mengajukan pindah tempat.
 - Mengajukan perubahan data pembimbing lapangan.
 - Mengunggah progres laporan.
 - Melihat rekap presensi, catatan harian, sanksi, dan status laporan.
-- Mencetak laporan atau form catatan harian.
+- Mencetak laporan presensi, form catatan harian, dan berita acara nilai jika nilai sudah final.
 
 ### 1.2 Login dan Dashboard
 
@@ -229,6 +243,13 @@ Menu: **Presensi**
 
 Presensi kegiatan harian hanya dapat dilakukan jika mahasiswa memiliki enrollment dengan status **Active**.
 
+Halaman Presensi memiliki dua tab:
+
+| Tab | Isi |
+|-----|-----|
+| Presensi | Peta lokasi, form presensi masuk/pulang, kamera realtime, dan tabel **Check-in Terakhir**. |
+| Lupa Presensi | Form pengajuan Lupa Presensi, info periode/mitra, koordinat lokasi pengajuan, kuota maksimal, kuota terpakai, sisa kuota, kamera realtime, dan tabel **Riwayat Pengajuan Lupa Presensi**. |
+
 Setiap hari, mahasiswa melakukan dua presensi:
 
 - **Masuk**: dilakukan saat mulai kegiatan.
@@ -249,6 +270,41 @@ Catatan aktivitas berbeda sesuai aksi:
 
 Catatan wajib diisi dan sebaiknya ditulis jelas, minimal menggambarkan pekerjaan yang benar-benar akan atau sudah dilakukan.
 
+### 1.9A Lupa Presensi
+
+Tab **Lupa Presensi** digunakan jika mahasiswa lupa melakukan presensi realtime.
+
+Data yang diisi:
+
+- Tanggal presensi yang terlupa.
+- Jam presensi.
+- Jenis presensi: **Masuk** atau **Pulang**.
+- Catatan aktivitas, yaitu rencana untuk Masuk atau realisasi untuk Pulang.
+- Alasan lupa presensi.
+- Foto bukti realtime dari kamera.
+- Koordinat GPS lokasi pengajuan.
+
+Informasi yang ditampilkan:
+
+- Mitra dan periode program.
+- Rentang tanggal presensi yang berlaku.
+- Kuota maksimal pengajuan.
+- Jumlah pengajuan yang sudah digunakan.
+- Sisa kuota.
+- Riwayat pengajuan terbaru.
+
+Aturan penting:
+
+- Pengajuan hanya bisa dibuat selama kuota masih tersedia.
+- Jika kuota maksimal diatur 0 oleh admin, fitur Lupa Presensi tidak aktif.
+- Pengajuan tidak boleh untuk tanggal masa depan.
+- Pengajuan harus berada dalam rentang tanggal presensi periode.
+- Sistem menolak pengajuan pada Sabtu, Minggu, atau tanggal libur periode.
+- Sistem menolak duplikasi jenis presensi pada tanggal yang sama.
+- Pengajuan **Pulang** hanya dapat dibuat jika sudah ada presensi **Masuk** pada tanggal tersebut.
+- Jam Pulang harus setelah jam Masuk.
+- Data baru masuk sebagai presensi resmi setelah disetujui Pembimbing Lapangan, admin, atau koordinator.
+
 ### 1.10 Cara Kerja Status Presensi
 
 Sistem menentukan status presensi berdasarkan jam server dengan zona waktu Asia/Jakarta.
@@ -268,6 +324,8 @@ Catatan:
 - Di luar rentang waktu aktif, presensi ditolak dengan pesan bahwa check-in hanya dapat dilakukan pada jam kerja.
 - Sistem membatasi satu presensi masuk dan satu presensi pulang resmi per hari.
 - Presensi pulang memerlukan presensi masuk pada hari yang sama.
+- Hari hadir hanya dihitung jika terdapat pasangan **Masuk** dan **Pulang** yang valid pada hari kerja.
+- Jika satu hari hanya memiliki satu data presensi, misalnya hanya Masuk atau hanya Pulang, hari tersebut tidak dihitung sebagai hari hadir pada nilai kehadiran dan rekap efektif.
 
 ### 1.11 Cara Kerja Penghitungan Durasi
 
@@ -352,6 +410,7 @@ Batasan foto:
 - Foto wajib diambil langsung dari kamera melalui browser.
 - Upload file foto manual tidak digunakan pada form presensi.
 - Format kamera diproses oleh sistem sebagai data gambar.
+- Foto kamera diperkecil otomatis oleh browser sebelum dikirim agar ukuran data tidak terlalu besar.
 - Ukuran foto default maksimal 4.096 KB.
 - Jika ukuran foto melebihi batas, sistem menolak presensi.
 
@@ -384,10 +443,10 @@ Halaman detail program memakai tab agar workflow mahasiswa tidak bercampur dalam
 |-----|-----------|
 | Detail Program | Ringkasan pelaksanaan, data program/periode, mitra, dosen pembimbing, pembimbing lapangan, deadline periode, tombol ajukan pindah mitra, dan tombol perubahan pembimbing. |
 | Pembekalan | Event pembekalan yang sesuai program/periode dan tombol presensi pembekalan jika tersedia. |
-| Presensi & Catatan | Presensi harian, log presensi, catatan harian, dan tombol cetak catatan harian. |
+| Presensi & Catatan | Presensi harian, log presensi, catatan harian, tombol cetak catatan harian, dan tombol cetak laporan presensi. |
 | Pelaporan | Form unggah progres laporan sampai Pelaporan Tahap 4/Laporan Lengkap Bab 1 sampai 5, status review, catatan reviewer, dan file unggahan. |
 | Seminar & Penilaian | Pengajuan seminar, ACC seminar, jadwal seminar, penilaian dosen via sistem, atau penilaian manual yang divalidasi admin/koordinator. |
-| Penyelesaian | Upload bukti penyerahan laporan hardcopy dan tombol cetak laporan. |
+| Penyelesaian | Upload bukti penyerahan laporan hardcopy, tombol cetak laporan, rekap nilai akhir setelah final, dan tombol cetak berita acara nilai jika nilai sudah final. |
 
 Tab **Pelaporan** hanya digunakan untuk unggahan progres laporan sampai Laporan Lengkap. Jenis unggahan progres pada tab **Pelaporan**:
 
@@ -437,6 +496,18 @@ Tab **Penyelesaian** digunakan untuk tahap akhir setelah pelaporan dan seminar. 
 Hardcopy tidak termasuk jenis unggahan pada tab **Pelaporan**. Pemisahan ini membuat progres laporan hanya berisi tahapan akademik sampai Laporan Lengkap, sedangkan bukti penyerahan fisik menjadi bagian dari penyelesaian program.
 
 Pada tab ini mahasiswa juga dapat mencetak laporan jika data penting sudah tersedia, terutama dosen pembimbing dan pembimbing lapangan.
+
+Jika nilai akhir sudah difinalisasi admin/koordinator, tab **Penyelesaian** menampilkan:
+
+- Nilai dosen pembimbing.
+- Nilai pembimbing lapangan.
+- Nilai dasar.
+- Pengurangan final.
+- Total nilai.
+- Status finalisasi.
+- Tombol cetak Berita Acara Nilai.
+
+Berita Acara Nilai memakai data final yang sudah disahkan sistem. Hari, tanggal, dan jam pada berita acara mengikuti waktu seminar agar dokumen konsisten dan tidak berubah berdasarkan waktu cetak.
 
 ### 1.18 Cara Kerja Sanksi Keterlambatan Laporan
 
@@ -506,6 +577,19 @@ Cetak laporan memuat:
 - Grafik/ringkasan durasi dan waktu presensi.
 
 Cetak laporan hanya dapat dilakukan jika data penting sudah tersedia, terutama dosen pembimbing dan pembimbing lapangan.
+
+Pada tab **Presensi & Catatan**, mahasiswa juga dapat mencetak:
+
+- **Cetak Catatan Harian**: daftar rencana dan realisasi harian dari pasangan presensi.
+- **Cetak Laporan Presensi**: rekap presensi masuk/pulang, durasi, jarak, dan status presensi.
+
+Jika nilai sudah final, mahasiswa dapat mencetak **Berita Acara Nilai** dari tab **Penyelesaian**. Dokumen nilai terdiri dari:
+
+- Halaman berita acara nilai.
+- Halaman nilai dosen pembimbing.
+- Halaman nilai pembimbing lapangan.
+
+Dokumen berita acara dilengkapi QR verifikasi keabsahan dokumen.
 
 ### 1.21 Pindah Mitra
 
@@ -616,7 +700,7 @@ Catatan:
 
 - Akses dosen pembimbing dibatasi pada mahasiswa yang ditetapkan sebagai bimbingannya.
 - Jika dosen juga memiliki penugasan koordinator aktif, dosen dapat memperoleh akses tambahan untuk scope periode/prodi koordinator. Akses tersebut dibahas pada Bagian 3 Role Koordinator.
-- Modul nilai akhir penuh masih berada pada backlog pengembangan berikutnya.
+- Nilai akhir difinalisasi oleh admin/koordinator setelah nilai dosen dan nilai Pembimbing Lapangan tersedia.
 
 ### 2.2 Login dan Dashboard Dosen
 
@@ -911,7 +995,7 @@ Dosen tidak mengubah poin sanksi secara manual pada halaman review. Dosen hanya 
 | File laporan | Akses file dibatasi berdasarkan relasi pembimbing atau scope koordinator. |
 | Rekap monitoring | Data dibatasi sesuai mahasiswa bimbingan atau scope koordinator. |
 | Peta monitoring | Data mengikuti hak akses role. |
-| Penilaian numerik | Nilai seminar sudah tersedia. Nilai akhir penuh belum aktif pada tahap ini. |
+| Penilaian numerik | Dosen mengisi nilai seminar/laporan sesuai workflow. Nilai akhir difinalisasi oleh admin/koordinator setelah nilai Pembimbing Lapangan tersedia. |
 | Validasi pendaftaran | Dosen pembimbing biasa tidak memvalidasi pendaftaran, kecuali memiliki role/penugasan koordinator yang sesuai. |
 
 ### 2.17 Alur Singkat Dosen Pembimbing
@@ -1333,6 +1417,48 @@ Koordinator dapat memakai data sanksi untuk:
 - Memeriksa apakah ada masalah lokasi, mitra, atau jadwal.
 - Mengambil keputusan akademik sesuai kebijakan program.
 
+### 3.18A Lupa Presensi
+
+Menu: **Lupa Presensi**
+
+Koordinator dapat memproses pengajuan Lupa Presensi dalam scope periode/prodi penugasannya.
+
+Koordinator dapat:
+
+- Mencari pengajuan berdasarkan mahasiswa, NPM, periode, atau status.
+- Melihat tanggal dan jam presensi yang diajukan.
+- Melihat jenis presensi, yaitu Masuk atau Pulang.
+- Membaca catatan aktivitas dan alasan lupa.
+- Melihat jarak/lokasi dan foto bukti pengajuan jika tersedia.
+- Menyetujui atau menolak pengajuan.
+- Memberi catatan review.
+
+Jika disetujui, sistem membuat data presensi koreksi dan memasangkannya dengan presensi pada hari yang sama jika aturan pair terpenuhi. Jika ditolak, pengajuan tidak masuk ke data presensi resmi.
+
+### 3.18B Finalisasi Nilai
+
+Menu: **Finalisasi Nilai**
+
+Koordinator dapat memfinalisasi nilai mahasiswa dalam scope periode/prodi penugasannya jika nilai dosen dan nilai Pembimbing Lapangan sudah tersedia.
+
+Alur finalisasi:
+
+1. Buka halaman **Finalisasi Nilai**.
+2. Filter periode program jika diperlukan.
+3. Periksa nilai dosen pembimbing dan nilai Pembimbing Lapangan.
+4. Periksa total sanksi dan suggest pengurangan.
+5. Isi atau koreksi **Pengurangan Final** jika diperlukan.
+6. Isi nomor berita acara jika belum ada.
+7. Tambahkan catatan koordinator/admin jika diperlukan.
+8. Klik **Simpan Finalisasi**.
+
+Setelah final:
+
+- Total nilai dan huruf mutu tersimpan.
+- Nilai dosen dan nilai Pembimbing Lapangan terkunci.
+- Mahasiswa dapat melihat nilai akhir di tab **Penyelesaian**.
+- Mahasiswa dapat mencetak Berita Acara Nilai.
+
 ### 3.19 Batasan Role Koordinator
 
 | Area | Batasan |
@@ -1345,6 +1471,8 @@ Koordinator dapat memakai data sanksi untuk:
 | Presensi pembekalan | Koordinator melihat rekap hadir/belum hadir dan jarak, tetapi mahasiswa yang melakukan presensi. |
 | Review laporan | Koordinator dapat mereview laporan dalam scope periode/prodi. |
 | Review seminar | Koordinator dapat memvalidasi ACC manual, menjadwalkan seminar, dan memvalidasi nilai manual dalam scope periode/prodi. |
+| Lupa Presensi | Koordinator dapat menyetujui/menolak pengajuan dalam scope periode/prodi. |
+| Finalisasi nilai | Koordinator dapat memfinalisasi nilai dalam scope periode/prodi jika nilai dosen dan Pembimbing Lapangan sudah tersedia. |
 | Perubahan pembimbing | Koordinator dapat memproses permohonan dalam scope. |
 | Master data | Koordinator tidak mengelola master user, prodi, program, periode, dan Konfigurasi Program. |
 | Admin global | Tindakan lintas seluruh data berada pada role admin. |
@@ -1853,6 +1981,53 @@ Alur seminar:
 5. Nilai seminar dapat diisi oleh dosen via sistem atau diinput manual oleh mahasiswa dengan bukti.
 6. Jika nilai manual, admin/koordinator memvalidasi komponen nilai dan berkas bukti.
 
+### 4.20A Lupa Presensi
+
+Menu: **Lupa Presensi**
+
+Admin dapat memproses semua pengajuan Lupa Presensi lintas periode/prodi.
+
+Admin dapat:
+
+- Memfilter pengajuan berdasarkan periode dan status.
+- Mencari mahasiswa atau NPM.
+- Membaca detail tanggal, jam, jenis presensi, catatan, alasan, lokasi, dan bukti foto.
+- Menyetujui pengajuan.
+- Menolak pengajuan.
+- Memberi catatan review.
+
+Jika pengajuan disetujui, sistem membuat record presensi koreksi dengan sumber **forgotten_request**. Record ini dipakai pada pasangan presensi, catatan harian, durasi, dan rekap jika aturan pair valid.
+
+### 4.20B Finalisasi Nilai
+
+Menu: **Finalisasi Nilai**
+
+Admin dapat memfinalisasi nilai akhir mahasiswa lintas periode/prodi.
+
+Syarat utama:
+
+- Nilai dosen pembimbing sudah tersedia.
+- Nilai Pembimbing Lapangan sudah tersedia.
+- Data seminar dan periode program sudah benar.
+
+Alur:
+
+1. Buka **Finalisasi Nilai**.
+2. Gunakan filter periode program jika diperlukan.
+3. Periksa nilai dosen, nilai Pembimbing Lapangan, nilai dasar, total sanksi, dan suggest pengurangan.
+4. Isi nomor berita acara.
+5. Isi **Pengurangan Final**. Nilai ini dapat mengikuti suggest sanksi atau disesuaikan berdasarkan keputusan admin/koordinator.
+6. Isi catatan admin/koordinator jika perlu.
+7. Klik **Simpan Finalisasi**.
+
+Dampak finalisasi:
+
+- Total nilai dan huruf mutu tersimpan.
+- Mahasiswa dapat melihat rekap nilai pada tab **Penyelesaian**.
+- Tombol cetak Berita Acara Nilai muncul pada tab **Penyelesaian**.
+- Nilai dosen dan nilai Pembimbing Lapangan tidak dapat diedit lagi.
+- Berita acara memakai Koordinator Periode Program aktif sesuai prodi mahasiswa, bukan konfigurasi manual nama koordinator.
+
 ### 4.21 Konfigurasi Program
 
 Menu: **Konfigurasi Program**
@@ -1867,7 +2042,10 @@ Area konfigurasi:
 - Deadline periode.
 - Check-in.
 - Laporan dan kalender.
+- Dokumen cetak nilai.
 - Peta dan lokasi.
+
+Halaman edit konfigurasi memakai tab agar setiap kelompok pengaturan lebih mudah ditemukan.
 
 #### Umum
 
@@ -1984,11 +2162,34 @@ Konfigurasi:
 - Infer pulang pagi.
 - Infer masuk siang.
 - Daftar tanggal libur.
+- Maksimal pengajuan Lupa Presensi.
 
 Dampak:
 
 - Membantu perhitungan laporan dan rekap.
 - Menentukan hari libur yang dapat dikecualikan atau disertakan pada rekap monitoring.
+- Menentukan batas pengajuan Lupa Presensi mahasiswa pada periode tersebut.
+
+Catatan:
+
+- Jika **Maksimal pengajuan Lupa Presensi** diisi 0, fitur Lupa Presensi tidak aktif.
+- Daftar tanggal libur dapat diganti penuh atau dikosongkan. Jika semua tanggal dihapus lalu konfigurasi disimpan, daftar libur periode menjadi kosong.
+- Field **Infer pulang pagi** dan **Infer masuk siang** disimpan sebagai konfigurasi, tetapi aturan inferensi presensi otomatis belum dijadikan dasar utama karena sistem saat ini memakai mekanisme Lupa Presensi dan validasi pair.
+
+#### Dokumen Cetak Nilai
+
+Konfigurasi:
+
+- Logo/header dokumen.
+- Website dan email header.
+- Format nomor berita acara.
+- Kota tanda tangan.
+- Nama dan NIP Ketua Jurusan.
+
+Dampak:
+
+- Digunakan pada cetak Berita Acara Nilai.
+- Nama/NIP Koordinator tidak diisi di konfigurasi ini karena berita acara mengambil Koordinator Periode Program aktif sesuai prodi mahasiswa.
 
 #### Peta dan Lokasi
 
@@ -2058,7 +2259,9 @@ Presensi harian:
 - Mahasiswa melakukan presensi masuk dan pulang.
 - Sistem memasangkan presensi berdasarkan tanggal dan enrollment.
 - Satu hari hadir dihitung jika ada masuk dan pulang.
+- Jika hanya ada satu presensi dalam satu hari, hari tersebut tidak dihitung sebagai hari hadir efektif.
 - Durasi dihitung dari pulang dikurangi masuk.
+- Presensi hasil Lupa Presensi yang disetujui diperlakukan sebagai presensi koreksi dan ikut dihitung jika pasangan harian valid.
 
 Rumus durasi:
 
@@ -2126,6 +2329,8 @@ Ekspor PDF/Excel pada halaman rekap masih dalam status belum aktif jika tombol t
 | Konfigurasi SKS/IPK | Langsung memengaruhi pendaftaran mahasiswa. |
 | Konfigurasi radius | Langsung memengaruhi diterima/ditolaknya presensi. |
 | Konfigurasi deadline | Langsung memengaruhi sanksi keterlambatan laporan. |
+| Konfigurasi Lupa Presensi | Langsung memengaruhi batas pengajuan mahasiswa; nilai 0 menonaktifkan fitur. |
+| Finalisasi nilai | Mengunci nilai dosen dan nilai Pembimbing Lapangan serta membuka cetak berita acara nilai untuk mahasiswa. |
 | Email & Notifikasi | Toggle global menghentikan pengiriman, sedangkan toggle cakupan menghentikan pembuatan antrean baru untuk workflow terkait. |
 | Mail Server | Override database dipakai saat antrean email diproses; jika kosong sistem memakai `.env`. |
 | Dokumen disetujui | Dokumen laporan yang disetujui terkunci. |
@@ -2164,14 +2369,18 @@ Alur pelaksanaan:
 6. Admin/koordinator mengirim token akses pembimbing lapangan jika diperlukan.
 7. Mahasiswa mengajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
 8. Dosen/admin/koordinator memproses ACC, jadwal, dan nilai seminar sesuai jalur sistem atau manual.
-9. Admin memantau rekap monitoring, sanksi, pembekalan, seminar, dan antrean email.
+9. Pembimbing Lapangan memvalidasi catatan harian, memproses Lupa Presensi jika ada, dan mengisi nilai lapangan.
+10. Admin/koordinator memproses pengajuan Lupa Presensi yang belum diproses Pembimbing Lapangan jika diperlukan.
+11. Admin memantau rekap monitoring, sanksi, pembekalan, seminar, dan antrean email.
 
 Alur penutupan:
 
 1. Pastikan laporan final dan hardcopy sudah sesuai.
-2. Pastikan data pembimbing dan nilai sudah lengkap saat modul penilaian aktif.
-3. Selesaikan periode jika seluruh proses sudah selesai.
-4. Gunakan rekap monitoring sebagai arsip evaluasi periode.
+2. Pastikan nilai dosen dan nilai Pembimbing Lapangan sudah lengkap.
+3. Lakukan finalisasi nilai dan isi nomor berita acara.
+4. Pastikan mahasiswa dapat melihat nilai akhir dan mencetak Berita Acara Nilai.
+5. Selesaikan periode jika seluruh proses sudah selesai.
+6. Gunakan rekap monitoring sebagai arsip evaluasi periode.
 
 ---
 
@@ -2219,19 +2428,38 @@ Jika tidak ada mahasiswa yang tampil:
 
 ### 5.4 Dashboard Pembimbing Lapangan
 
-Dashboard pembimbing lapangan menampilkan daftar mahasiswa terkait.
+Dashboard Pembimbing Lapangan menampilkan ringkasan mahasiswa yang terkait dengan email pembimbing lapangan pada enrollment.
 
-Informasi yang tersedia:
+Informasi utama:
 
-- Nama mahasiswa dan NPM.
-- Program/periode.
-- Program studi.
-- Mitra/tempat kegiatan.
-- Dosen pembimbing.
-- Ringkasan presensi.
-- Catatan aktivitas dari presensi masuk dan pulang.
+- Periode aktif.
+- Periode selesai.
+- Jumlah mahasiswa bimbingan.
+- Status pengisian nilai.
+- Akses ke daftar **Mahasiswa Bimbingan**.
 
-Pada tahap saat ini, portal berfungsi sebagai akses monitoring terbatas. Validasi catatan harian online dan pengisian nilai pembimbing lapangan masih berada pada tahap pengembangan berikutnya.
+Menu **Mahasiswa Bimbingan** menampilkan mahasiswa terkait. Pada detail mahasiswa, Pembimbing Lapangan melihat dua tab utama:
+
+| Tab | Fungsi |
+|-----|--------|
+| Catatan Harian | Melihat presensi masuk/pulang, durasi, jarak, rencana, realisasi, status validasi, tombol validasi catatan harian, dan blok pengajuan Lupa Presensi yang masih pending. |
+| Penilaian dan Feedback | Mengisi nilai Pembimbing Lapangan, catatan untuk mahasiswa, rekomendasi mahasiswa, serta feedback untuk institusi/program studi. |
+
+Pada tab **Catatan Harian**, Pembimbing Lapangan dapat memvalidasi satu baris melalui tombol **Validasi** atau memilih beberapa baris dengan checkbox lalu klik **Validasi Terpilih** untuk validasi massal.
+
+Validasi Lupa Presensi untuk Pembimbing Lapangan berada di:
+
+```text
+Mahasiswa Bimbingan -> buka mahasiswa -> tab Catatan Harian -> Pengajuan Lupa Presensi
+```
+
+Blok **Pengajuan Lupa Presensi** hanya muncul jika ada pengajuan dengan status menunggu review. Pembimbing Lapangan dapat memilih **Setujui** atau **Tolak** dan memberi catatan review.
+
+Catatan:
+
+- Approval Lupa Presensi hanya ditampilkan pada akses login Pembimbing Lapangan.
+- Akses melalui token URL dapat dipakai untuk monitoring dan validasi catatan harian, tetapi tidak menampilkan aksi approval Lupa Presensi.
+- Setelah nilai akhir mahasiswa difinalisasi admin/koordinator, form nilai Pembimbing Lapangan terkunci dan tidak dapat diedit.
 
 ### 5.5 Batasan Role Pembimbing Lapangan
 
@@ -2240,13 +2468,17 @@ Pada tahap saat ini, portal berfungsi sebagai akses monitoring terbatas. Validas
 | Scope data | Hanya data mahasiswa yang email pembimbing lapangannya sama dengan email token/login. |
 | Token | Token dapat kedaluwarsa atau dicabut admin. |
 | Login | Email login harus cocok dengan email pembimbing lapangan pada enrollment aktif. |
-| Validasi catatan harian | Belum aktif; catatan dapat dilihat sebagai bahan monitoring. |
-| Penilaian lapangan | Belum aktif; form nilai pembimbing lapangan masih backlog. |
+| Validasi catatan harian | Aktif pada portal login dan token sesuai izin rute. |
+| Lupa Presensi | Approval Lupa Presensi hanya tampil pada portal login Pembimbing Lapangan, bukan pada akses token. |
+| Penilaian lapangan | Aktif sampai nilai akhir difinalisasi. Setelah final, nilai terkunci. |
 
 ### 5.6 Alur Singkat Pembimbing Lapangan
 
 1. Terima email akses atau login dengan akun pembimbing lapangan.
 2. Buka portal Pembimbing Lapangan.
 3. Periksa daftar mahasiswa terkait.
-4. Pantau presensi, durasi, dan catatan aktivitas mahasiswa.
-5. Hubungi admin/koordinator jika data mahasiswa tidak sesuai.
+4. Buka mahasiswa pada menu **Mahasiswa Bimbingan**.
+5. Validasi catatan harian pada tab **Catatan Harian**.
+6. Proses pengajuan Lupa Presensi yang muncul pada tab **Catatan Harian** jika ada.
+7. Isi nilai dan feedback pada tab **Penilaian dan Feedback** setelah periode presensi selesai.
+8. Hubungi admin/koordinator jika data mahasiswa tidak sesuai.

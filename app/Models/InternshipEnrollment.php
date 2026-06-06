@@ -96,6 +96,11 @@ class InternshipEnrollment extends Model
         return $this->hasMany(CheckIn::class);
     }
 
+    public function forgottenAttendanceRequests()
+    {
+        return $this->hasMany(ForgottenAttendanceRequest::class, 'internship_enrollment_id');
+    }
+
     public function orientationAttendances()
     {
         return $this->hasMany(OrientationAttendance::class);

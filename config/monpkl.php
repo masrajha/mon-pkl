@@ -46,6 +46,7 @@ return [
         'single_check_in_cutoff' => env('MONPKL_REPORT_SINGLE_CHECKIN_CUTOFF', '12:00'),
         'single_morning_checkout_hour' => (int) env('MONPKL_REPORT_SINGLE_MORNING_CHECKOUT_HOUR', 13),
         'single_afternoon_checkin_hour' => (int) env('MONPKL_REPORT_SINGLE_AFTERNOON_CHECKIN_HOUR', 11),
+        'max_forgotten_attendance_requests' => (int) env('MONPKL_REPORT_MAX_FORGOTTEN_ATTENDANCE_REQUESTS', 3),
     ],
 
     'final_assessment_document' => [

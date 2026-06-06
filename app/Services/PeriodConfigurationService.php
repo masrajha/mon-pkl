@@ -25,8 +25,13 @@ class PeriodConfigurationService
     {
         $period = $this->resolvePeriod($period);
         $settings = $period?->setting?->settings ?? [];
+        $merged = array_replace_recursive($this->defaults(), $settings);
 
-        return array_replace_recursive($this->defaults(), $settings);
+        if (array_key_exists('calendar', $settings) && array_key_exists('holidays', $settings['calendar'] ?? [])) {
+            $merged['calendar']['holidays'] = $settings['calendar']['holidays'];
+        }
+
+        return $merged;
     }
 
     public function forActivePeriod(): array

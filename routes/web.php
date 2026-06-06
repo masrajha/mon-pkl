@@ -8,12 +8,14 @@ use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\EmailNotificationConfigurationController;
 use App\Http\Controllers\FieldSupervisorPortalController;
 use App\Http\Controllers\FinalAssessmentVerificationController;
+use App\Http\Controllers\ForgottenAttendanceApprovalController;
 use App\Http\Controllers\InternshipPlaceController;
 use App\Http\Controllers\LocationSuggestionController;
 use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinatorController;
 use App\Http\Controllers\Management\DashboardController as ManagementDashboardController;
 use App\Http\Controllers\Management\EnrollmentController as ManagementEnrollmentController;
 use App\Http\Controllers\Management\FinalAssessmentController as ManagementFinalAssessmentController;
+use App\Http\Controllers\Management\ForgottenAttendanceRequestController as ManagementForgottenAttendanceRequestController;
 use App\Http\Controllers\Management\FieldSupervisorAccessController as ManagementFieldSupervisorAccessController;
 use App\Http\Controllers\Management\FieldSupervisorController as ManagementFieldSupervisorController;
 use App\Http\Controllers\Management\LecturerController as ManagementLecturerController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\EnrollmentController as StudentEnrollmentController;
+use App\Http\Controllers\Student\ForgottenAttendanceRequestController as StudentForgottenAttendanceRequestController;
 use App\Http\Controllers\Student\OrientationAttendanceController as StudentOrientationAttendanceController;
 use App\Http\Controllers\Student\PlaceController as StudentPlaceController;
 use App\Http\Controllers\Student\PlaceProposalController as StudentPlaceProposalController;
@@ -164,6 +167,7 @@ Route::get('/docs', [DocumentationController::class, 'index'])->name('docs.index
 Route::get('/docs/{role}', [DocumentationController::class, 'show'])->name('docs.show');
 Route::get('/field-supervisor/access/{token}', [FieldSupervisorPortalController::class, 'token'])->name('field-supervisor.token');
 Route::post('/field-supervisor/access/{token}/daily-logs/{checkIn}/validate', [FieldSupervisorPortalController::class, 'validateWithToken'])->name('field-supervisor.token.daily-logs.validate');
+Route::post('/field-supervisor/access/{token}/daily-logs/bulk-validate', [FieldSupervisorPortalController::class, 'bulkValidateWithToken'])->name('field-supervisor.token.daily-logs.bulk-validate');
 Route::post('/field-supervisor/access/{token}/enrollments/{enrollment}/assessment', [FieldSupervisorPortalController::class, 'assessWithToken'])->name('field-supervisor.token.assessment.store');
 Route::get('/verify/final-assessments/{token}', [FinalAssessmentVerificationController::class, 'show'])->name('final-assessments.verify');
 
@@ -185,7 +189,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/field-supervisor/enrollments', [FieldSupervisorPortalController::class, 'enrollments'])->name('field-supervisor.enrollments.index');
         Route::get('/field-supervisor/enrollments/{enrollment}', [FieldSupervisorPortalController::class, 'show'])->name('field-supervisor.enrollments.show');
         Route::post('/field-supervisor/daily-logs/{checkIn}/validate', [FieldSupervisorPortalController::class, 'validateDailyLogForLogin'])->name('field-supervisor.daily-logs.validate');
+        Route::post('/field-supervisor/enrollments/{enrollment}/daily-logs/bulk-validate', [FieldSupervisorPortalController::class, 'bulkValidateDailyLogsForLogin'])->name('field-supervisor.daily-logs.bulk-validate');
         Route::post('/field-supervisor/enrollments/{enrollment}/assessment', [FieldSupervisorPortalController::class, 'assessForLogin'])->name('field-supervisor.assessment.store');
+        Route::post('/field-supervisor/forgotten-attendance-requests/{forgottenAttendanceRequest}/approve', [ForgottenAttendanceApprovalController::class, 'approveAsFieldSupervisor'])->name('forgotten-attendance-requests.field-supervisor.approve');
+        Route::post('/field-supervisor/forgotten-attendance-requests/{forgottenAttendanceRequest}/reject', [ForgottenAttendanceApprovalController::class, 'rejectAsFieldSupervisor'])->name('forgotten-attendance-requests.field-supervisor.reject');
     });
 
     Route::middleware('role:mahasiswa')->group(function () {
@@ -225,6 +232,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/student/reports/{enrollment}/print', [StudentReportController::class, 'print'])->name('student.reports.print');
         Route::get('/check-ins/create', [CheckInController::class, 'create'])->name('check-ins.create');
         Route::post('/check-ins', [CheckInController::class, 'store'])->middleware('throttle:10,1')->name('check-ins.store');
+        Route::post('/student/enrollments/{enrollment}/forgotten-attendance-requests', [StudentForgottenAttendanceRequestController::class, 'store'])->middleware('throttle:5,1')->name('student.forgotten-attendance-requests.store');
     });
 
     Route::middleware('role:koordinator')->group(function () {
@@ -238,6 +246,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/management/enrollment-validations/{enrollment}', [ManagementEnrollmentController::class, 'validateEnrollment'])->name('management.enrollment-validations.update');
         Route::get('/management/final-assessments', [ManagementFinalAssessmentController::class, 'index'])->name('management.final-assessments.index');
         Route::post('/management/final-assessments/{enrollment}', [ManagementFinalAssessmentController::class, 'store'])->name('management.final-assessments.store');
+        Route::get('/management/forgotten-attendance-requests', [ManagementForgottenAttendanceRequestController::class, 'index'])->name('management.forgotten-attendance-requests.index');
+        Route::post('/management/forgotten-attendance-requests/{forgottenAttendanceRequest}/approve', [ForgottenAttendanceApprovalController::class, 'approveAsManagement'])->name('forgotten-attendance-requests.management.approve');
+        Route::post('/management/forgotten-attendance-requests/{forgottenAttendanceRequest}/reject', [ForgottenAttendanceApprovalController::class, 'rejectAsManagement'])->name('forgotten-attendance-requests.management.reject');
         Route::get('/management/place-proposals', [ManagementPlaceProposalController::class, 'index'])->name('management.place-proposals.index');
         Route::post('/management/place-proposals/{proposal}/approve', [ManagementPlaceProposalController::class, 'approve'])->name('management.place-proposals.approve');
         Route::post('/management/place-proposals/{proposal}/reject', [ManagementPlaceProposalController::class, 'reject'])->name('management.place-proposals.reject');

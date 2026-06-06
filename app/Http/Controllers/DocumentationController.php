@@ -13,6 +13,7 @@ class DocumentationController extends Controller
     {
         return view('docs.index', [
             'roles' => $this->roles(),
+            'metadata' => $this->metadata(),
         ]);
     }
 
@@ -70,6 +71,43 @@ class DocumentationController extends Controller
                 'icon' => 'P',
             ],
         ];
+    }
+
+    private function metadata(): array
+    {
+        $manual = File::get(base_path('manuals.md'));
+        $version = $this->matchFirst('/^\*\*Versi dokumen:\*\*\s*(.+?)\s*$/m', $manual);
+        $updatedAt = $this->matchFirst('/^\*\*Tanggal pembaruan:\*\*\s*(.+?)\s*$/m', $manual);
+        $status = $this->matchFirst('/^\*\*Status:\*\*\s*(.+?)\s*$/m', $manual);
+        $whatsNew = [];
+
+        if (preg_match('/^> \*\*What\'s New[^\n]*\*\*\R(?P<body>(?:^>.*\R?)*)/m', $manual, $matches)) {
+            $lines = preg_split('/\R/', trim($matches['body']));
+
+            foreach ($lines as $line) {
+                $item = trim(preg_replace('/^>\s?-\s?/', '', $line));
+
+                if ($item !== '' && $item !== '>') {
+                    $whatsNew[] = $item;
+                }
+            }
+        }
+
+        return [
+            'version' => $version,
+            'updated_at' => $updatedAt,
+            'status' => $status,
+            'whats_new' => $whatsNew,
+        ];
+    }
+
+    private function matchFirst(string $pattern, string $subject): ?string
+    {
+        if (! preg_match($pattern, $subject, $matches)) {
+            return null;
+        }
+
+        return trim($matches[1]);
     }
 
     private function roleSection(string $heading): string

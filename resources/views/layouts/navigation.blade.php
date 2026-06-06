@@ -49,6 +49,7 @@
                 ['label' => 'Pembimbing Lapangan', 'route' => 'management.field-supervisors.index', 'icon' => 'fa-user-check', 'active' => ['management.field-supervisors.*']],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
+                ['label' => 'Lupa Presensi', 'route' => 'management.forgotten-attendance-requests.index', 'icon' => 'fa-calendar-xmark', 'active' => ['management.forgotten-attendance-requests.*']],
                 ['label' => 'Finalisasi Nilai', 'route' => 'management.final-assessments.index', 'icon' => 'fa-calculator', 'active' => ['management.final-assessments.*']],
                 ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
                 ['label' => 'Rekap Prodi', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
@@ -92,6 +93,7 @@
                 ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*'], 'badge' => 'supervisor_changes'],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
+                ['label' => 'Lupa Presensi', 'route' => 'management.forgotten-attendance-requests.index', 'icon' => 'fa-calendar-xmark', 'active' => ['management.forgotten-attendance-requests.*']],
                 ['label' => 'Finalisasi Nilai', 'route' => 'management.final-assessments.index', 'icon' => 'fa-calculator', 'active' => ['management.final-assessments.*']],
             ],
         ];

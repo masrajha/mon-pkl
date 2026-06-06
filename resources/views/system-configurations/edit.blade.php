@@ -259,6 +259,11 @@
                             <x-input-label for="afternoon_checkin" :value="__('Infer masuk siang')" />
                             <x-text-input id="afternoon_checkin" name="report[single_afternoon_checkin_hour]" type="number" class="mt-1 block w-full" :value="old('report.single_afternoon_checkin_hour', $settings['report']['single_afternoon_checkin_hour'])" required />
                         </div>
+                        <div>
+                            <x-input-label for="max_forgotten_attendance_requests" :value="__('Maksimal pengajuan lupa presensi')" />
+                            <x-text-input id="max_forgotten_attendance_requests" name="report[max_forgotten_attendance_requests]" type="number" min="0" class="mt-1 block w-full" :value="old('report.max_forgotten_attendance_requests', $settings['report']['max_forgotten_attendance_requests'] ?? 3)" required />
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Isi 0 untuk menonaktifkan fitur lupa presensi pada periode ini.') }}</p>
+                        </div>
                         <div class="sm:col-span-3">
                             <x-input-label for="holidays_text" :value="__('Tanggal libur')" />
                             <textarea id="holidays_text" name="calendar[holidays_text]" rows="8" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('calendar.holidays_text', implode("\n", $settings['calendar']['holidays'] ?? [])) }}</textarea>
