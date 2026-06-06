@@ -110,7 +110,7 @@ class FieldSupervisorDailyLogValidationFeatureTest extends TestCase
 
     public function test_field_supervisor_validation_keeps_other_daily_rows_visible(): void
     {
-        [$enrollment, $checkOut] = $this->enrollmentWithDailyLog();
+        [$enrollment, $checkOut, $checkIn] = $this->enrollmentWithDailyLog();
         $fieldSupervisor = User::factory()->create([
             'role' => 'pembimbing_lapangan',
             'email' => 'pl@example.test',
@@ -144,6 +144,55 @@ class FieldSupervisorDailyLogValidationFeatureTest extends TestCase
             ->assertSee('03/06/2026')
             ->assertSee('Tervalidasi')
             ->assertSee('Satu klik validasi satu baris.');
+    }
+
+    public function test_field_supervisor_login_can_bulk_validate_daily_logs(): void
+    {
+        [$enrollment, $checkOut, $checkIn] = $this->enrollmentWithDailyLog();
+        $fieldSupervisor = User::factory()->create([
+            'role' => 'pembimbing_lapangan',
+            'email' => 'pl@example.test',
+            'name' => 'Pembimbing Login',
+        ]);
+        $secondCheckIn = CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'note' => 'Rencana empat Juni',
+            'checked_at' => '2026-06-04 08:00:00',
+        ]);
+        $secondCheckOut = CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Pulang',
+            'action' => 'check_out',
+            'note' => 'Realisasi empat Juni',
+            'checked_at' => '2026-06-04 16:00:00',
+            'pair_id' => $secondCheckIn->id,
+            'duration_minutes' => 480,
+        ]);
+
+        $this->actingAs($fieldSupervisor)
+            ->get(route('field-supervisor.enrollments.show', $enrollment))
+            ->assertOk()
+            ->assertSee('Validasi Terpilih');
+
+        $this->actingAs($fieldSupervisor)
+            ->post(route('field-supervisor.daily-logs.bulk-validate', $enrollment), [
+                'check_in_ids' => [$checkOut->id, $secondCheckOut->id],
+                'note' => 'Validasi massal sesuai.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('status', '2 catatan harian berhasil divalidasi.');
+
+        foreach ([$checkOut->id, $checkIn->id, $secondCheckOut->id, $secondCheckIn->id] as $checkInId) {
+            $this->assertDatabaseHas('check_ins', [
+                'id' => $checkInId,
+                'daily_log_validated_by_name' => 'Pembimbing Login',
+                'daily_log_validated_by_email' => 'pl@example.test',
+                'daily_log_validation_mode' => 'login',
+                'daily_log_validation_note' => 'Validasi massal sesuai.',
+            ]);
+        }
     }
 
     public function test_field_supervisor_assessment_requires_finished_attendance_period_and_unblocks_completion(): void
