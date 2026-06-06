@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
+use App\Models\InternshipPeriod;
 use App\Models\RelocationRequest;
 use App\Services\RelocationEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
@@ -39,12 +40,19 @@ class RelocationRequestController extends Controller
         }
 
         $this->scopeByCoordinator($query, $request);
+        $selectedPeriodId = $request->integer('period_id') ?: null;
+
+        if ($selectedPeriodId) {
+            $query->whereHas('enrollment', fn ($enrollment) => $enrollment->where('internship_period_id', $selectedPeriodId));
+        }
 
         return view('management.relocations.index', [
             'requests' => $this->applyTableSort($query, $request, ['id', 'status'], 'id', 'desc')
                 ->paginate($this->tablePerPage($request))
                 ->withQueryString(),
             'selectedStatus' => $request->string('status')->toString(),
+            'selectedPeriodId' => $selectedPeriodId,
+            'periodOptions' => $this->periodOptions($request),
         ]);
     }
 
@@ -123,5 +131,24 @@ class RelocationRequestController extends Controller
             ->exists();
 
         abort_unless($allowed, 403);
+    }
+
+    private function periodOptions(Request $request)
+    {
+        $query = InternshipPeriod::query()->with('program')->orderByDesc('starts_at')->orderByDesc('id');
+        $user = $request->user();
+
+        if (! $user?->hasRole('admin')) {
+            $periodIds = $user?->lecturer?->coordinatorAssignments()
+                ->where('status', 'active')
+                ->pluck('internship_period_id')
+                ->filter()
+                ->unique()
+                ->values() ?? collect();
+
+            $query->whereIn('id', $periodIds);
+        }
+
+        return $query->get();
     }
 }

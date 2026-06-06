@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
+use App\Models\InternshipEnrollment;
+use App\Models\InternshipPeriod;
 use App\Models\SeminarRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,12 +46,19 @@ class SeminarRequestController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->string('status')->toString());
         }
+        $selectedPeriodId = $request->integer('period_id') ?: null;
+
+        if ($selectedPeriodId) {
+            $query->whereHas('enrollment', fn ($enrollment) => $enrollment->where('internship_period_id', $selectedPeriodId));
+        }
 
         return view('management.seminar-requests.index', [
             'seminarRequests' => $this->applyTableSort($query, $request, ['id', 'status', 'scheduled_at'], 'id', 'desc')
                 ->paginate($this->tablePerPage($request))
                 ->withQueryString(),
             'selectedStatus' => $request->string('status')->toString(),
+            'selectedPeriodId' => $selectedPeriodId,
+            'periodOptions' => $this->periodOptions($request),
             'statusLabels' => $this->statusLabels(),
             'seminarRubric' => $this->seminarRubric(),
         ]);
@@ -321,5 +330,31 @@ class SeminarRequestController extends Controller
     private function seminarRubric(): array
     {
         return config('monpkl.seminar_assessment_rubric', []);
+    }
+
+    private function periodOptions(Request $request)
+    {
+        $query = InternshipPeriod::query()->with('program')->orderByDesc('starts_at')->orderByDesc('id');
+        $user = $request->user();
+
+        if ($user?->hasRole('admin')) {
+            return $query->get();
+        }
+
+        $periodIds = collect();
+
+        if ($user?->role === 'dosen') {
+            $periodIds = $periodIds->merge(
+                InternshipEnrollment::query()
+                    ->where('lecturer_supervisor_user_id', $user->id)
+                    ->pluck('internship_period_id')
+            );
+        }
+
+        $periodIds = $periodIds->merge($user?->lecturer?->coordinatorAssignments()
+            ->where('status', 'active')
+            ->pluck('internship_period_id') ?? collect());
+
+        return $query->whereIn('id', $periodIds->filter()->unique()->values())->get();
     }
 }

@@ -25,6 +25,11 @@ class CheckIn extends Model
         'distance_meters',
         'duration_minutes',
         'sanction_points',
+        'daily_log_validated_at',
+        'daily_log_validated_by_name',
+        'daily_log_validated_by_email',
+        'daily_log_validation_mode',
+        'daily_log_validation_note',
         'device_info',
         'source_url',
         'photo_path',
@@ -36,6 +41,7 @@ class CheckIn extends Model
     {
         return [
             'checked_at' => 'datetime',
+            'daily_log_validated_at' => 'datetime',
             'student_latitude' => 'decimal:7',
             'student_longitude' => 'decimal:7',
             'office_latitude' => 'decimal:7',

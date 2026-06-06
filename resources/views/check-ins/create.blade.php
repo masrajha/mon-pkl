@@ -43,6 +43,7 @@
             <section class="silat-card">
                 <form method="POST" action="{{ route('check-ins.store') }}" class="space-y-5 p-5" x-data="{ action: '{{ old('action', 'check_in') }}' }">
                     @csrf
+                    <input type="hidden" name="enrollment_id" value="{{ $enrollment->id }}">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Mahasiswa</p>
                         <p class="mt-1 font-semibold text-gray-900">{{ $enrollment->student?->full_name }}</p>

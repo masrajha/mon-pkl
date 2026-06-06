@@ -12,6 +12,7 @@ use App\Http\Controllers\LocationSuggestionController;
 use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinatorController;
 use App\Http\Controllers\Management\DashboardController as ManagementDashboardController;
 use App\Http\Controllers\Management\EnrollmentController as ManagementEnrollmentController;
+use App\Http\Controllers\Management\FinalAssessmentController as ManagementFinalAssessmentController;
 use App\Http\Controllers\Management\FieldSupervisorAccessController as ManagementFieldSupervisorAccessController;
 use App\Http\Controllers\Management\FieldSupervisorController as ManagementFieldSupervisorController;
 use App\Http\Controllers\Management\LecturerController as ManagementLecturerController;
@@ -161,6 +162,8 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 Route::get('/docs', [DocumentationController::class, 'index'])->name('docs.index');
 Route::get('/docs/{role}', [DocumentationController::class, 'show'])->name('docs.show');
 Route::get('/field-supervisor/access/{token}', [FieldSupervisorPortalController::class, 'token'])->name('field-supervisor.token');
+Route::post('/field-supervisor/access/{token}/daily-logs/{checkIn}/validate', [FieldSupervisorPortalController::class, 'validateWithToken'])->name('field-supervisor.token.daily-logs.validate');
+Route::post('/field-supervisor/access/{token}/enrollments/{enrollment}/assessment', [FieldSupervisorPortalController::class, 'assessWithToken'])->name('field-supervisor.token.assessment.store');
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -177,6 +180,10 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:pembimbing_lapangan')->group(function () {
         Route::get('/field-supervisor', [FieldSupervisorPortalController::class, 'index'])->name('field-supervisor.index');
+        Route::get('/field-supervisor/enrollments', [FieldSupervisorPortalController::class, 'enrollments'])->name('field-supervisor.enrollments.index');
+        Route::get('/field-supervisor/enrollments/{enrollment}', [FieldSupervisorPortalController::class, 'show'])->name('field-supervisor.enrollments.show');
+        Route::post('/field-supervisor/daily-logs/{checkIn}/validate', [FieldSupervisorPortalController::class, 'validateDailyLogForLogin'])->name('field-supervisor.daily-logs.validate');
+        Route::post('/field-supervisor/enrollments/{enrollment}/assessment', [FieldSupervisorPortalController::class, 'assessForLogin'])->name('field-supervisor.assessment.store');
     });
 
     Route::middleware('role:mahasiswa')->group(function () {
@@ -226,6 +233,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/management/enrollment-validations/bulk', [ManagementEnrollmentController::class, 'bulkValidateEnrollments'])->name('management.enrollment-validations.bulk');
         Route::get('/management/enrollment-validations/{enrollment}/registration-document', [ManagementEnrollmentController::class, 'registrationDocument'])->name('management.enrollment-validations.document');
         Route::patch('/management/enrollment-validations/{enrollment}', [ManagementEnrollmentController::class, 'validateEnrollment'])->name('management.enrollment-validations.update');
+        Route::get('/management/final-assessments', [ManagementFinalAssessmentController::class, 'index'])->name('management.final-assessments.index');
+        Route::post('/management/final-assessments/{enrollment}', [ManagementFinalAssessmentController::class, 'store'])->name('management.final-assessments.store');
         Route::get('/management/place-proposals', [ManagementPlaceProposalController::class, 'index'])->name('management.place-proposals.index');
         Route::post('/management/place-proposals/{proposal}/approve', [ManagementPlaceProposalController::class, 'approve'])->name('management.place-proposals.approve');
         Route::post('/management/place-proposals/{proposal}/reject', [ManagementPlaceProposalController::class, 'reject'])->name('management.place-proposals.reject');

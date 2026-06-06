@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
+use App\Models\InternshipPeriod;
 use App\Models\Lecturer;
 use App\Models\SupervisorChangeRequest;
 use App\Services\SupervisorChangeEmailNotificationService;
@@ -49,6 +50,11 @@ class SupervisorChangeRequestController extends Controller
         }
 
         $this->scopeByCoordinator($query, $request);
+        $selectedPeriodId = $request->integer('period_id') ?: null;
+
+        if ($selectedPeriodId) {
+            $query->whereHas('enrollment', fn ($enrollment) => $enrollment->where('internship_period_id', $selectedPeriodId));
+        }
 
         return view('management.supervisor-requests.index', [
             'requests' => $this->applyTableSort($query, $request, ['id', 'status'], 'id', 'desc')
@@ -56,6 +62,8 @@ class SupervisorChangeRequestController extends Controller
                 ->withQueryString(),
             'lecturers' => Lecturer::query()->where('status', 'active')->orderBy('name')->get(),
             'selectedStatus' => $request->string('status')->toString(),
+            'selectedPeriodId' => $selectedPeriodId,
+            'periodOptions' => $this->periodOptions($request),
         ]);
     }
 
@@ -167,5 +175,24 @@ class SupervisorChangeRequestController extends Controller
             ->exists();
 
         abort_unless($allowed, 403);
+    }
+
+    private function periodOptions(Request $request)
+    {
+        $query = InternshipPeriod::query()->with('program')->orderByDesc('starts_at')->orderByDesc('id');
+        $user = $request->user();
+
+        if (! $user?->hasRole('admin')) {
+            $periodIds = $user?->lecturer?->coordinatorAssignments()
+                ->where('status', 'active')
+                ->pluck('internship_period_id')
+                ->filter()
+                ->unique()
+                ->values() ?? collect();
+
+            $query->whereIn('id', $periodIds);
+        }
+
+        return $query->get();
     }
 }

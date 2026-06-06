@@ -43,6 +43,8 @@ class ReportController extends Controller
             'seminarRequests.manualAccValidator',
             'seminarRequests.scheduler',
             'seminarRequests.scorer',
+            'fieldSupervisorAssessment',
+            'finalAssessment.finalizer',
             'sanctions' => fn ($query) => $query->latest('date'),
             'supervisorChangeRequests' => fn ($query) => $query->latest('id'),
             'checkIns' => fn ($query) => $query->orderBy('checked_at'),
@@ -69,17 +71,21 @@ class ReportController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $dailyActivityRows = $this->dailyActivityRows($enrollment);
+
         return view('student.reports.show', [
             'enrollment' => $enrollment,
             'progressByType' => $progressByType,
             'lockedDeadlineTypes' => $lockedDeadlineTypes,
             'uploadableDeadlineLabels' => $uploadableDeadlineLabels,
             'hardcopyProgress' => $hardcopyProgress,
-            'canUploadHardcopy' => ! $lockedDeadlineTypes->contains('hardcopy'),
+            'canUploadHardcopy' => ! $lockedDeadlineTypes->contains('hardcopy') && $this->completionPrerequisitesMet($enrollment, $dailyActivityRows),
+            'completionPrerequisites' => $this->completionPrerequisites($enrollment, $dailyActivityRows),
             'deadlineLabels' => $deadlineLabels,
             'deadlineTypeLabels' => config('monpkl.deadline_types'),
             'submissionNotes' => config('monpkl.report_submission_notes'),
-            'dailyActivityRows' => $this->dailyActivityRows($enrollment),
+            'dailyActivityRows' => $dailyActivityRows,
+            'dailyLogValidationSummary' => $this->dailyLogValidationSummary($dailyActivityRows),
             'seminarStatusLabels' => $this->seminarStatusLabels(),
             'canRequestSeminar' => $this->canRequestSeminar($enrollment),
             'seminarBlockedReason' => $this->seminarBlockedReason($enrollment),
@@ -100,6 +106,17 @@ class ReportController extends Controller
             'deadline_type' => ['required', Rule::in(array_keys($this->deadlineLabels()))],
             'file' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
+
+        if (($data['deadline_type'] ?? null) === 'hardcopy') {
+            $enrollment->loadMissing(['checkIns', 'fieldSupervisorAssessment']);
+            $dailyRows = $this->dailyActivityRows($enrollment);
+
+            if (! $this->completionPrerequisitesMet($enrollment, $dailyRows)) {
+                return back()
+                    ->withErrors(['deadline_type' => 'Penyelesaian belum dapat diproses. Validasi catatan harian dan nilai pembimbing lapangan wajib lengkap.'])
+                    ->withInput();
+            }
+        }
 
         $approvedExists = SubmissionProgress::query()
             ->where('internship_enrollment_id', $enrollment->id)
@@ -244,10 +261,16 @@ class ReportController extends Controller
                     $durationMinutes = max(0, (int) $checkIn->checked_at->diffInMinutes($checkOut->checked_at));
                 }
 
+                $validationRecord = $items
+                    ->first(fn ($item): bool => (bool) $item->daily_log_validated_at)
+                    ?: $checkIn
+                    ?: $checkOut;
+
                 return [
                     'date' => $checkIn?->checked_at ?: $checkOut?->checked_at,
                     'check_in' => $checkIn,
                     'check_out' => $checkOut,
+                    'validation_check_in' => $validationRecord,
                     'duration_minutes' => $durationMinutes,
                 ];
             })
@@ -271,6 +294,46 @@ class ReportController extends Controller
             'check_out_success_from' => $this->scheduleTime($schedule, 'Pulang', 'start', '16:00'),
             'check_out_warning_from' => $this->scheduleTime($schedule, 'Pulang Cepat', 'start', '13:00'),
         ];
+    }
+
+    private function dailyLogValidationSummary($dailyActivityRows): array
+    {
+        $total = $dailyActivityRows->count();
+        $validated = $dailyActivityRows
+            ->filter(fn (array $row): bool => (bool) ($row['validation_check_in']?->daily_log_validated_at))
+            ->count();
+
+        return [
+            'total' => $total,
+            'validated' => $validated,
+            'pending' => max(0, $total - $validated),
+        ];
+    }
+
+    private function completionPrerequisites(InternshipEnrollment $enrollment, $dailyActivityRows): array
+    {
+        $validationSummary = $this->dailyLogValidationSummary($dailyActivityRows);
+
+        return [
+            [
+                'label' => 'Catatan harian tervalidasi Pembimbing Lapangan',
+                'done' => $validationSummary['total'] > 0 && $validationSummary['pending'] === 0,
+                'description' => $validationSummary['validated'].' dari '.$validationSummary['total'].' catatan tervalidasi.',
+            ],
+            [
+                'label' => 'Nilai program Pembimbing Lapangan sudah diisi',
+                'done' => (bool) $enrollment->fieldSupervisorAssessment,
+                'description' => $enrollment->fieldSupervisorAssessment
+                    ? 'Nilai Pembimbing Lapangan: '.number_format((float) $enrollment->fieldSupervisorAssessment->final_score, 2, ',', '.')
+                    : 'Menunggu pembimbing lapangan mengisi nilai program.',
+            ],
+        ];
+    }
+
+    private function completionPrerequisitesMet(InternshipEnrollment $enrollment, $dailyActivityRows): bool
+    {
+        return collect($this->completionPrerequisites($enrollment, $dailyActivityRows))
+            ->every(fn (array $item): bool => (bool) $item['done']);
     }
 
     private function scheduleTime($schedule, string $status, string $field, string $fallback): int

@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\CheckIn;
+use App\Models\FieldSupervisorAssessment;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\InternshipPlaceProposal;
 use App\Models\Lecturer;
 use App\Models\PeriodDeadline;
+use App\Models\SeminarRequest;
 use App\Models\SubmissionProgress;
 use App\Models\Student;
 use App\Models\StudyProgram;
@@ -676,7 +678,7 @@ class StudentWorkflowFeatureTest extends TestCase
         $this->actingAs($user)
             ->get(route('student.reports.show', $enrollment))
             ->assertOk()
-            ->assertSee('Ajukan Pembimbing');
+            ->assertSee('Ajukan pelengkapan data pembimbing');
 
         $this->actingAs($user)
             ->post(route('student.supervisor-requests.store'), [
@@ -1008,6 +1010,93 @@ class StudentWorkflowFeatureTest extends TestCase
             ->assertSee('Menyusun rencana dokumentasi kebutuhan sistem hari ini.')
             ->assertSee('Realisasi:')
             ->assertSee('Merealisasikan dokumentasi kebutuhan sistem bersama pembimbing.');
+
+        $this->actingAs($user)
+            ->get(route('student.reports.show', ['enrollment' => $enrollment, 'tab' => 'presensi']))
+            ->assertOk()
+            ->assertSee('Cetak Catatan Harian')
+            ->assertSee('Cetak Laporan Presensi');
+    }
+
+    public function test_admin_can_finalize_final_score_and_student_can_see_it(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'name' => 'Admin Final']);
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        $lecturer = Lecturer::query()->create(['name' => 'Dosen Nilai', 'status' => 'active']);
+        $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Final', 'academic_year' => '2026/2027']);
+        $place = InternshipPlace::query()->create(['name' => 'PT Final', 'latitude' => -5.4, 'longitude' => 105.2]);
+        $student = Student::query()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $program->id,
+            'npm' => '2217051099',
+            'full_name' => 'Mahasiswa Nilai Akhir',
+        ]);
+        $enrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $program->id,
+            'internship_period_id' => $period->id,
+            'internship_place_id' => $place->id,
+            'lecturer_supervisor_id' => $lecturer->id,
+            'field_supervisor' => 'Pembimbing Lapangan',
+            'status' => 'active',
+            'total_sanctions_points' => 5,
+        ]);
+
+        SeminarRequest::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'title' => 'Seminar Final',
+            'mode' => 'offline',
+            'approval_method' => 'system',
+            'status' => 'completed',
+            'seminar_score' => 86,
+            'assessment_method' => 'system',
+            'scored_by' => $admin->id,
+            'scored_at' => now(),
+        ]);
+        FieldSupervisorAssessment::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'scores' => [],
+            'discipline_score' => 90,
+            'teamwork_score' => 90,
+            'performance_score' => 90,
+            'final_score' => 90,
+            'assessed_by_email' => 'pl@example.test',
+            'assessment_mode' => 'login',
+            'assessed_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('management.final-assessments.index'))
+            ->assertOk()
+            ->assertSee('Mahasiswa Nilai Akhir')
+            ->assertSee('Siap difinalisasi');
+
+        $this->actingAs($admin)
+            ->post(route('management.final-assessments.store', $enrollment), [
+                'final_deduction' => 3,
+                'note' => 'Pengurangan disesuaikan oleh koordinator.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('final_assessments', [
+            'internship_enrollment_id' => $enrollment->id,
+            'lecturer_score' => 86,
+            'field_supervisor_score' => 90,
+            'base_score' => 88,
+            'suggested_deduction' => 5,
+            'final_deduction' => 3,
+            'final_score' => 85,
+            'finalized_by' => $admin->id,
+            'note' => 'Pengurangan disesuaikan oleh koordinator.',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('student.reports.show', ['enrollment' => $enrollment, 'tab' => 'penyelesaian']))
+            ->assertOk()
+            ->assertSee('Nilai Akhir')
+            ->assertSee('85,00')
+            ->assertSee('Pengurangan disesuaikan oleh koordinator.');
     }
 
     private function validEnrollmentPayload(InternshipPeriod $period, StudyProgram $program, InternshipPlace $place): array

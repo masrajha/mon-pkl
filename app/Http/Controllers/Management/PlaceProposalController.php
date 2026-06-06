@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Management;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\City;
+use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\InternshipPlaceProposal;
 use App\Services\PlaceProposalEmailNotificationService;
@@ -41,12 +42,19 @@ class PlaceProposalController extends Controller
         }
 
         $this->scopeByCoordinator($query, $request);
+        $selectedPeriodId = $request->integer('period_id') ?: null;
+
+        if ($selectedPeriodId) {
+            $query->where('internship_period_id', $selectedPeriodId);
+        }
 
         return view('management.place-proposals.index', [
             'proposals' => $this->applyTableSort($query, $request, ['id', 'status', 'name'], 'id', 'desc')
                 ->paginate($this->tablePerPage($request))
                 ->withQueryString(),
             'selectedStatus' => $request->string('status')->toString(),
+            'selectedPeriodId' => $selectedPeriodId,
+            'periodOptions' => $this->periodOptions($request),
         ]);
     }
 
@@ -169,5 +177,24 @@ class PlaceProposalController extends Controller
             ->exists();
 
         abort_unless($allowed, 403);
+    }
+
+    private function periodOptions(Request $request)
+    {
+        $query = InternshipPeriod::query()->with('program')->orderByDesc('starts_at')->orderByDesc('id');
+        $user = $request->user();
+
+        if (! $user?->hasRole('admin')) {
+            $periodIds = $user?->lecturer?->coordinatorAssignments()
+                ->where('status', 'active')
+                ->pluck('internship_period_id')
+                ->filter()
+                ->unique()
+                ->values() ?? collect();
+
+            $query->whereIn('id', $periodIds);
+        }
+
+        return $query->get();
     }
 }

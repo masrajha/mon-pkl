@@ -39,6 +39,8 @@
             ['label' => 'Pembimbing lapangan', 'done' => filled($enrollment->field_supervisor)],
             ['label' => 'Mitra dan koordinat', 'done' => (bool) ($enrollment->internshipPlace?->latitude && $enrollment->internshipPlace?->longitude)],
             ['label' => 'Presensi', 'done' => $enrollment->checkIns->isNotEmpty()],
+            ['label' => 'Validasi catatan Pembimbing Lapangan', 'done' => ($dailyLogValidationSummary['total'] ?? 0) > 0 && ($dailyLogValidationSummary['pending'] ?? 0) === 0],
+            ['label' => 'Nilai Pembimbing Lapangan', 'done' => (bool) $enrollment->fieldSupervisorAssessment],
             ['label' => 'Laporan lengkap', 'done' => $progressByType->has('full_report')],
             ['label' => 'Seminar', 'done' => $latestSeminarRequest?->status === 'completed'],
             ['label' => 'Hardcopy', 'done' => $hardcopyProgress?->status === 'approved'],
@@ -201,19 +203,54 @@
                 <section class="silat-card">
                     <div class="silat-section-header">
                         <div><h3 class="silat-section-title">Catatan Harian</h3><p class="silat-section-description">Rencana dari presensi masuk, realisasi dari presensi pulang.</p></div>
-                        <a class="silat-btn-secondary" href="{{ route('student.reports.daily-logs.print', $enrollment) }}" target="_blank"><x-icon name="fa-print" /> Cetak Catatan Harian</a>
+                        <div class="flex flex-wrap gap-2">
+                            <a class="silat-btn-secondary" href="{{ route('student.reports.daily-logs.print', $enrollment) }}" target="_blank"><x-icon name="fa-print" /> Cetak Catatan Harian</a>
+                            @if ($missingPrintData->isEmpty())
+                                <a class="silat-btn" href="{{ route('student.reports.print', $enrollment) }}" target="_blank"><x-icon name="fa-chart-line" /> Cetak Laporan Presensi</a>
+                            @else
+                                <button type="button" class="silat-btn opacity-60" disabled title="Data belum lengkap: {{ $missingPrintData->implode(', ') }}"><x-icon name="fa-chart-line" /> Cetak Laporan Presensi</button>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="grid gap-3 px-5 pt-5 sm:grid-cols-3">
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Catatan</p>
+                            <p class="mt-1 text-xl font-bold text-gray-900">{{ number_format($dailyLogValidationSummary['total'] ?? 0, 0, ',', '.') }}</p>
+                        </div>
+                        <div class="rounded-lg border border-green-100 bg-green-50 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-green-700">Tervalidasi Pembimbing Lapangan</p>
+                            <p class="mt-1 text-xl font-bold text-green-900">{{ number_format($dailyLogValidationSummary['validated'] ?? 0, 0, ',', '.') }}</p>
+                        </div>
+                        <div class="rounded-lg border border-amber-100 bg-amber-50 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">Menunggu Pembimbing Lapangan</p>
+                            <p class="mt-1 text-xl font-bold text-amber-900">{{ number_format($dailyLogValidationSummary['pending'] ?? 0, 0, ',', '.') }}</p>
+                        </div>
                     </div>
                     <div class="overflow-x-auto p-5">
                         <table class="silat-table">
-                            <thead class="silat-table-head"><tr><th class="silat-table-cell">Tanggal</th><th class="silat-table-cell">Jam</th><th class="silat-table-cell">Jarak</th><th class="silat-table-cell">Catatan</th><th class="silat-table-cell">Paraf</th></tr></thead>
+                            <thead class="silat-table-head"><tr><th class="silat-table-cell">Tanggal</th><th class="silat-table-cell">Jam</th><th class="silat-table-cell">Jarak</th><th class="silat-table-cell">Catatan</th><th class="silat-table-cell">Validasi Pembimbing Lapangan</th></tr></thead>
                             <tbody class="divide-y divide-gray-100">
                                 @forelse ($dailyActivityRows as $row)
+                                    @php $validationCheckIn = $row['validation_check_in'] ?? null; @endphp
                                     <tr>
                                         <td class="silat-table-cell whitespace-nowrap">{{ $row['date']?->translatedFormat('l, d M Y') }}</td>
                                         <td class="silat-table-cell whitespace-nowrap"><div>Masuk: {{ $row['check_in']?->checked_at?->format('H:i:s') ?: '-' }}</div><div>Pulang: {{ $row['check_out']?->checked_at?->format('H:i:s') ?: '-' }}</div><div>Durasi: {{ $row['duration_minutes'] !== null ? number_format($row['duration_minutes'] / 60, 2, ',', '.') : '-' }}</div></td>
                                         <td class="silat-table-cell whitespace-nowrap"><div>Masuk: {{ $row['check_in']?->distance_meters !== null ? number_format($row['check_in']->distance_meters, 2, ',', '.') : '-' }}</div><div>Pulang: {{ $row['check_out']?->distance_meters !== null ? number_format($row['check_out']->distance_meters, 2, ',', '.') : '-' }}</div></td>
                                         <td class="silat-table-cell min-w-[420px]"><p><strong>Rencana:</strong> {{ $row['check_in']?->note ?: '-' }}</p><p class="mt-3"><strong>Realisasi:</strong> {{ $row['check_out']?->note ?: '-' }}</p></td>
-                                        <td class="silat-table-cell"></td>
+                                        <td class="silat-table-cell min-w-[180px]">
+                                            @if ($validationCheckIn?->daily_log_validated_at)
+                                                <x-badge variant="success">Tervalidasi</x-badge>
+                                                <div class="mt-2 text-xs text-gray-500">
+                                                    {{ $validationCheckIn->daily_log_validated_at?->format('d/m/Y H:i') }}
+                                                    <br>{{ $validationCheckIn->daily_log_validated_by_name ?: $validationCheckIn->daily_log_validated_by_email }}
+                                                </div>
+                                                @if ($validationCheckIn->daily_log_validation_note)
+                                                    <p class="mt-2 text-xs text-gray-600">{{ $validationCheckIn->daily_log_validation_note }}</p>
+                                                @endif
+                                            @else
+                                                <x-badge variant="warning">Menunggu Pembimbing Lapangan</x-badge>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="5" class="silat-table-cell"><x-empty-state title="Belum ada catatan harian" icon="fa-clipboard" /></td></tr>
@@ -283,6 +320,53 @@
                         <x-badge :variant="$seminarStatusVariants[$latestSeminarRequest->status] ?? 'neutral'">{{ $seminarStatusLabels[$latestSeminarRequest->status] ?? Str::headline($latestSeminarRequest->status) }}</x-badge>
                     @endif
                 </div>
+                <div class="border-b border-gray-100 p-5">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-900">Nilai Program Pembimbing Lapangan</p>
+                                <p class="mt-1 text-sm text-gray-500">Komponen: kedisiplinan, kerja sama, dan prestasi kerja.</p>
+                            </div>
+                            @if ($enrollment->fieldSupervisorAssessment)
+                                <x-badge variant="success">{{ number_format((float) $enrollment->fieldSupervisorAssessment->final_score, 2, ',', '.') }}</x-badge>
+                            @else
+                                <x-badge variant="warning">Menunggu Pembimbing Lapangan</x-badge>
+                            @endif
+                        </div>
+                        @if ($enrollment->fieldSupervisorAssessment)
+                            <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                                <div class="rounded-md border border-white bg-white p-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">A. Kedisiplinan</p>
+                                    <p class="mt-1 text-lg font-bold text-gray-900">{{ number_format((float) $enrollment->fieldSupervisorAssessment->discipline_score, 2, ',', '.') }}</p>
+                                </div>
+                                <div class="rounded-md border border-white bg-white p-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">B. Kerja sama</p>
+                                    <p class="mt-1 text-lg font-bold text-gray-900">{{ number_format((float) $enrollment->fieldSupervisorAssessment->teamwork_score, 2, ',', '.') }}</p>
+                                </div>
+                                <div class="rounded-md border border-white bg-white p-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">C. Prestasi kerja</p>
+                                    <p class="mt-1 text-lg font-bold text-gray-900">{{ number_format((float) $enrollment->fieldSupervisorAssessment->performance_score, 2, ',', '.') }}</p>
+                                </div>
+                            </div>
+                            <p class="mt-3 text-sm text-gray-500">
+                                Diisi {{ $enrollment->fieldSupervisorAssessment->assessed_at?->format('d/m/Y H:i') }}
+                                oleh {{ $enrollment->fieldSupervisorAssessment->assessed_by_name ?: $enrollment->fieldSupervisorAssessment->assessed_by_email }}.
+                            </p>
+                            @if ($enrollment->fieldSupervisorAssessment->student_general_note)
+                                <div class="mt-4 rounded-md border border-white bg-white p-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Catatan Umum</p>
+                                    <p class="mt-1 text-sm text-gray-700">{{ $enrollment->fieldSupervisorAssessment->student_general_note }}</p>
+                                </div>
+                            @endif
+                            @if ($enrollment->fieldSupervisorAssessment->student_recommendation)
+                                <div class="mt-3 rounded-md border border-white bg-white p-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Rekomendasi untuk Mahasiswa</p>
+                                    <p class="mt-1 text-sm text-gray-700">{{ $enrollment->fieldSupervisorAssessment->student_recommendation }}</p>
+                                </div>
+                            @endif
+                        @endif
+                    </div>
+                </div>
                 <div class="grid gap-5 p-5 lg:grid-cols-[360px_1fr]">
                     <form method="POST" action="{{ route('student.seminar-requests.store', $enrollment) }}" enctype="multipart/form-data" class="space-y-4" x-data="{ approvalMethod: 'system' }">
                         @csrf
@@ -330,6 +414,77 @@
             <section x-show="tab === 'penyelesaian'" x-cloak class="space-y-6">
                 <section class="silat-card">
                     <div class="silat-section-header"><div><h3 class="silat-section-title">Penyelesaian Program</h3><p class="silat-section-description">Upload bukti penyerahan laporan hardcopy dan cetak laporan akhir.</p></div></div>
+                    <div class="grid gap-3 px-5 pt-5 sm:grid-cols-2">
+                        @foreach ($completionPrerequisites as $item)
+                            <div class="rounded-lg border {{ $item['done'] ? 'border-green-100 bg-green-50' : 'border-amber-100 bg-amber-50' }} p-3">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="text-sm font-semibold text-gray-900">{{ $item['label'] }}</p>
+                                        <p class="mt-1 text-xs text-gray-600">{{ $item['description'] }}</p>
+                                    </div>
+                                    <x-badge :variant="$item['done'] ? 'success' : 'warning'">{{ $item['done'] ? 'OK' : 'Belum' }}</x-badge>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="px-5 pt-5">
+                        <div class="rounded-lg border border-gray-200 bg-white p-4">
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">Nilai Akhir</p>
+                                    <p class="mt-1 text-sm text-gray-500">Rekap nilai dosen, pembimbing lapangan, dan pengurangan sanksi.</p>
+                                </div>
+                                @if ($enrollment->finalAssessment)
+                                    <x-badge variant="success">Sudah final</x-badge>
+                                @else
+                                    <x-badge variant="neutral">Belum difinalisasi</x-badge>
+                                @endif
+                            </div>
+
+                            @if ($enrollment->finalAssessment)
+                                @php($finalAssessment = $enrollment->finalAssessment)
+                                <div class="mt-4 grid gap-3 md:grid-cols-5">
+                                    <div class="rounded-md bg-gray-50 p-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Dosen Pembimbing</p>
+                                        <p class="mt-1 text-xl font-semibold tabular-nums text-gray-900">{{ number_format((float) $finalAssessment->lecturer_score, 2, ',', '.') }}</p>
+                                        <p class="mt-1 text-xs text-gray-500">{{ number_format((float) $finalAssessment->lecturer_weight, 0, ',', '.') }}%</p>
+                                    </div>
+                                    <div class="rounded-md bg-gray-50 p-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pembimbing Lapangan</p>
+                                        <p class="mt-1 text-xl font-semibold tabular-nums text-gray-900">{{ number_format((float) $finalAssessment->field_supervisor_score, 2, ',', '.') }}</p>
+                                        <p class="mt-1 text-xs text-gray-500">{{ number_format((float) $finalAssessment->field_supervisor_weight, 0, ',', '.') }}%</p>
+                                    </div>
+                                    <div class="rounded-md bg-gray-50 p-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Nilai Dasar</p>
+                                        <p class="mt-1 text-xl font-semibold tabular-nums text-gray-900">{{ number_format((float) $finalAssessment->base_score, 2, ',', '.') }}</p>
+                                    </div>
+                                    <div class="rounded-md bg-amber-50 p-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">Pengurangan</p>
+                                        <p class="mt-1 text-xl font-semibold tabular-nums text-amber-900">{{ number_format((float) $finalAssessment->final_deduction, 2, ',', '.') }}</p>
+                                        <p class="mt-1 text-xs text-amber-700">Suggest {{ number_format((float) $finalAssessment->suggested_deduction, 2, ',', '.') }}</p>
+                                    </div>
+                                    <div class="rounded-md bg-blue-50 p-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Total Nilai</p>
+                                        <p class="mt-1 text-2xl font-bold tabular-nums text-blue-950">{{ number_format((float) $finalAssessment->final_score, 2, ',', '.') }}</p>
+                                    </div>
+                                </div>
+                                @if ($finalAssessment->note)
+                                    <div class="mt-3 rounded-md bg-gray-50 p-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Catatan Finalisasi</p>
+                                        <p class="mt-1 text-sm text-gray-700">{{ $finalAssessment->note }}</p>
+                                    </div>
+                                @endif
+                                <p class="mt-3 text-xs text-gray-500">
+                                    Difinalisasi {{ $finalAssessment->finalized_at?->format('d/m/Y H:i') }}
+                                    @if ($finalAssessment->finalizer)
+                                        oleh {{ $finalAssessment->finalizer->name }}
+                                    @endif
+                                </p>
+                            @else
+                                <p class="mt-4 text-sm text-gray-500">Nilai akhir akan tampil setelah admin/koordinator melakukan finalisasi.</p>
+                            @endif
+                        </div>
+                    </div>
                     <div class="grid gap-5 p-5 lg:grid-cols-[360px_1fr]">
                         <form method="POST" action="{{ route('student.reports.progress.store', $enrollment) }}" enctype="multipart/form-data" class="space-y-4">
                             @csrf
@@ -337,7 +492,7 @@
                             <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-950">{{ $submissionNotes['hardcopy'] ?? 'Upload bukti penyerahan laporan hardcopy.' }}</div>
                             <div><x-input-label for="hardcopy_file" value="Bukti Penyerahan Hardcopy" /><input id="hardcopy_file" name="file" type="file" accept=".pdf,.doc,.docx" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" required></div>
                             <x-primary-button :disabled="! $canUploadHardcopy">Upload Hardcopy</x-primary-button>
-                            @if (! $canUploadHardcopy)<p class="text-sm text-gray-500">Bukti hardcopy sudah disetujui dan terkunci.</p>@endif
+                            @if (! $canUploadHardcopy)<p class="text-sm text-gray-500">Bukti hardcopy terkunci sampai validasi catatan harian dan nilai Pembimbing Lapangan lengkap, atau bukti sudah disetujui.</p>@endif
                         </form>
                         <div class="space-y-4">
                             <div class="rounded-lg border border-gray-200 bg-white p-4">

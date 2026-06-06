@@ -33,11 +33,12 @@
                 <th style="width: 100px;">Jam</th>
                 <th style="width: 110px;">Jarak</th>
                 <th>Catatan</th>
-                <th style="width: 120px;">Paraf</th>
+                <th style="width: 140px;">Validasi Pembimbing Lapangan</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($dailyActivityRows as $row)
+                @php $validationCheckIn = $row['validation_check_in'] ?? null; @endphp
                 <tr>
                     <td class="nowrap">{{ $row['date']?->translatedFormat('l, d M Y') }}</td>
                     <td class="nowrap">
@@ -53,7 +54,15 @@
                         <p><strong>Rencana:</strong> {{ $row['check_in']?->note ?: '-' }}</p>
                         <p><strong>Realisasi:</strong> {{ $row['check_out']?->note ?: '-' }}</p>
                     </td>
-                    <td class="signature"></td>
+                    <td class="signature">
+                        @if ($validationCheckIn?->daily_log_validated_at)
+                            Tervalidasi<br>
+                            {{ $validationCheckIn->daily_log_validated_at?->format('d/m/Y H:i') }}<br>
+                            {{ $validationCheckIn->daily_log_validated_by_name ?: $validationCheckIn->daily_log_validated_by_email }}
+                        @else
+                            Menunggu validasi
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>

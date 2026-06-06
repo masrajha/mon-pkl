@@ -180,7 +180,7 @@
                         <div class="flex flex-wrap gap-2 border-t border-gray-100 p-5">
                             <a class="silat-btn" href="{{ route('student.reports.show', $enrollment) }}"><x-icon name="fa-arrow-right-to-bracket" /> Detail</a>
                             @if ($isOperationalActive)
-                                <a class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2" href="{{ route('check-ins.create') }}"><x-icon name="fa-fingerprint" /> Presensi</a>
+                                <a class="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2" href="{{ route('check-ins.create', ['enrollment' => $enrollment->id]) }}"><x-icon name="fa-fingerprint" /> Presensi</a>
                             @endif
                             @if ($enrollment->status === 'revision_required')
                                 <a class="silat-btn-secondary" href="{{ route('student.enrollments.edit', $enrollment) }}"><x-icon name="fa-pen" /> Perbaiki</a>

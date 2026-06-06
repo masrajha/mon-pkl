@@ -36,7 +36,7 @@
             @endif
 
             <section class="silat-card p-5">
-                <form method="GET" class="grid gap-4 md:grid-cols-[1fr_260px_auto]">
+                <form method="GET" class="grid gap-4 md:grid-cols-[1fr_260px_260px_auto]">
                     <div>
                         <x-input-label for="q" value="Cari" />
                         <x-text-input id="q" name="q" class="mt-1 block w-full" :value="request('q')" placeholder="Mahasiswa, NPM, judul, atau mitra" />
@@ -47,6 +47,15 @@
                             <option value="">Semua status</option>
                             @foreach ($statusLabels as $value => $label)
                                 <option value="{{ $value }}" @selected($selectedStatus === $value)>{{ $label }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div>
+                        <x-input-label for="period_id" value="Periode Program" />
+                        <x-select-input id="period_id" name="period_id" class="mt-1 block w-full">
+                            <option value="">Semua periode</option>
+                            @foreach ($periodOptions as $period)
+                                <option value="{{ $period->id }}" @selected((int) $selectedPeriodId === (int) $period->id)>{{ $period->display_name }}</option>
                             @endforeach
                         </x-select-input>
                     </div>

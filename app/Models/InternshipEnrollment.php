@@ -116,6 +116,16 @@ class InternshipEnrollment extends Model
         return $this->hasMany(FieldSupervisorAccessToken::class, 'internship_enrollment_id');
     }
 
+    public function fieldSupervisorAssessment()
+    {
+        return $this->hasOne(FieldSupervisorAssessment::class, 'internship_enrollment_id');
+    }
+
+    public function finalAssessment()
+    {
+        return $this->hasOne(FinalAssessment::class, 'internship_enrollment_id');
+    }
+
     public function sanctions()
     {
         return $this->hasMany(Sanction::class);

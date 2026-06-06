@@ -6,7 +6,12 @@
     $groups[] = [
         'label' => 'Utama',
         'items' => [
-            ['label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'fa-gauge-high', 'active' => ['dashboard']],
+            [
+                'label' => 'Dashboard',
+                'route' => $user->hasRole('pembimbing_lapangan') ? 'field-supervisor.index' : 'dashboard',
+                'icon' => 'fa-gauge-high',
+                'active' => $user->hasRole('pembimbing_lapangan') ? ['field-supervisor.index'] : ['dashboard'],
+            ],
         ],
     ];
 
@@ -44,6 +49,7 @@
                 ['label' => 'Pembimbing Lapangan', 'route' => 'management.field-supervisors.index', 'icon' => 'fa-user-check', 'active' => ['management.field-supervisors.*']],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
+                ['label' => 'Finalisasi Nilai', 'route' => 'management.final-assessments.index', 'icon' => 'fa-calculator', 'active' => ['management.final-assessments.*']],
                 ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
                 ['label' => 'Rekap Prodi', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
             ],
@@ -66,7 +72,7 @@
         $groups[] = [
             'label' => 'Pembimbing Lapangan',
             'items' => [
-                ['label' => 'Mahasiswa Bimbingan', 'route' => 'field-supervisor.index', 'icon' => 'fa-user-check', 'active' => ['field-supervisor.*']],
+                ['label' => 'Mahasiswa Bimbingan', 'route' => 'field-supervisor.enrollments.index', 'icon' => 'fa-user-check', 'active' => ['field-supervisor.enrollments.*']],
             ],
         ];
     }
@@ -86,6 +92,7 @@
                 ['label' => 'Perubahan Pembimbing', 'route' => 'management.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['management.supervisor-requests.*'], 'badge' => 'supervisor_changes'],
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
+                ['label' => 'Finalisasi Nilai', 'route' => 'management.final-assessments.index', 'icon' => 'fa-calculator', 'active' => ['management.final-assessments.*']],
             ],
         ];
 

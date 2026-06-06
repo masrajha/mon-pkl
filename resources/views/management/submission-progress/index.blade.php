@@ -10,7 +10,7 @@
     <div class="py-8">
         <div class="silat-shell space-y-6">
             <section class="silat-card p-5">
-                <form method="GET" class="grid gap-4 md:grid-cols-[1fr_220px_auto]">
+                <form method="GET" class="grid gap-4 md:grid-cols-[1fr_220px_260px_auto]">
                     <div>
                         <x-input-label for="q" :value="__('Cari')" />
                         <x-text-input id="q" name="q" class="mt-1 block w-full" :value="request('q')" placeholder="Nama, NPM, atau mitra" />
@@ -21,6 +21,15 @@
                             <option value="">Semua</option>
                             @foreach (['pending' => 'Menunggu Review', 'approved' => 'Disetujui', 'revision_required' => 'Perlu Revisi', 'rejected' => 'Ditolak'] as $value => $label)
                                 <option value="{{ $value }}" @selected($selectedStatus === $value)>{{ $label }}</option>
+                            @endforeach
+                        </x-select-input>
+                    </div>
+                    <div>
+                        <x-input-label for="period_id" value="Periode Program" />
+                        <x-select-input id="period_id" name="period_id" class="mt-1 block w-full">
+                            <option value="">Semua periode</option>
+                            @foreach ($periodOptions as $period)
+                                <option value="{{ $period->id }}" @selected((int) $selectedPeriodId === (int) $period->id)>{{ $period->display_name }}</option>
                             @endforeach
                         </x-select-input>
                     </div>

@@ -74,7 +74,7 @@ class CheckInFeatureTest extends TestCase
                 'note' => 'Menyusun rencana dokumentasi sistem hari ini.',
                 'photo_capture' => $this->capturedPhoto(),
             ])
-            ->assertRedirect(route('check-ins.create'));
+            ->assertRedirect(route('check-ins.create', ['enrollment' => $enrollment->id]));
 
         $this->assertDatabaseHas('check_ins', [
             'internship_enrollment_id' => $enrollment->id,
@@ -138,7 +138,7 @@ class CheckInFeatureTest extends TestCase
                 'note' => 'Menyusun rencana aktivitas pengujian hari ini.',
                 'photo_capture' => $this->capturedPhoto(),
             ])
-            ->assertRedirect(route('check-ins.create'));
+            ->assertRedirect(route('check-ins.create', ['enrollment' => $enrollment->id]));
 
         Carbon::setTestNow(Carbon::create(2026, 5, 31, 13, 0, 0, config('monpkl.timezone')));
         $this->actingAs($user)
@@ -149,7 +149,7 @@ class CheckInFeatureTest extends TestCase
                 'note' => 'Menyelesaikan realisasi aktivitas pengujian hari ini.',
                 'photo_capture' => $this->capturedPhoto(),
             ])
-            ->assertRedirect(route('check-ins.create'));
+            ->assertRedirect(route('check-ins.create', ['enrollment' => $enrollment->id]));
 
         $checkIn = CheckIn::query()->where('action', 'check_in')->firstOrFail();
         $checkOut = CheckIn::query()->where('action', 'check_out')->firstOrFail();
@@ -166,7 +166,7 @@ class CheckInFeatureTest extends TestCase
         Carbon::setTestNow(Carbon::create(2026, 5, 31, 8, 30, 0, config('monpkl.timezone')));
 
         $user = User::factory()->create(['role' => 'mahasiswa']);
-        $this->activeEnrollmentFor($user);
+        [$enrollment] = $this->activeEnrollmentFor($user);
 
         $payload = [
             'student_latitude' => -5.3972,
@@ -176,7 +176,7 @@ class CheckInFeatureTest extends TestCase
             'photo_capture' => $this->capturedPhoto(),
         ];
 
-        $this->actingAs($user)->post(route('check-ins.store'), $payload)->assertRedirect(route('check-ins.create'));
+        $this->actingAs($user)->post(route('check-ins.store'), $payload)->assertRedirect(route('check-ins.create', ['enrollment' => $enrollment->id]));
 
         $this->actingAs($user)
             ->from(route('check-ins.create'))
@@ -245,10 +245,63 @@ class CheckInFeatureTest extends TestCase
                 'note' => 'Menyusun rencana aktivitas pengujian hari ini.',
                 'photo_capture' => $this->capturedPhoto(),
             ])
-            ->assertRedirect(route('check-ins.create'));
+            ->assertRedirect(route('check-ins.create', ['enrollment' => $enrollment->id]));
 
         $this->assertDatabaseHas('check_ins', [
             'internship_enrollment_id' => $enrollment->id,
+            'action' => 'check_in',
+        ]);
+    }
+
+    public function test_check_in_uses_selected_enrollment_from_program_card(): void
+    {
+        Storage::fake('public');
+        Carbon::setTestNow(Carbon::create(2026, 5, 31, 8, 30, 0, config('monpkl.timezone')));
+
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        [$firstEnrollment, $student] = $this->activeEnrollmentFor($user);
+        $secondPeriod = InternshipPeriod::query()->create([
+            'name' => 'Periode Kedua',
+            'academic_year' => '2025/2026',
+            'semester' => 'Genap',
+            'is_active' => true,
+        ]);
+        $secondPlace = InternshipPlace::query()->create([
+            'name' => 'Instansi Kedua',
+            'latitude' => -5.3971,
+            'longitude' => 105.2668,
+        ]);
+        $secondEnrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $firstEnrollment->study_program_id,
+            'internship_period_id' => $secondPeriod->id,
+            'internship_place_id' => $secondPlace->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('check-ins.create', ['enrollment' => $secondEnrollment->id]))
+            ->assertOk()
+            ->assertSee('Instansi Kedua')
+            ->assertDontSee('Instansi Uji');
+
+        $this->actingAs($user)
+            ->post(route('check-ins.store'), [
+                'enrollment_id' => $secondEnrollment->id,
+                'student_latitude' => -5.3972,
+                'student_longitude' => 105.2669,
+                'action' => 'check_in',
+                'note' => 'Menyusun rencana dokumentasi sistem hari ini.',
+                'photo_capture' => $this->capturedPhoto(),
+            ])
+            ->assertRedirect(route('check-ins.create', ['enrollment' => $secondEnrollment->id]));
+
+        $this->assertDatabaseHas('check_ins', [
+            'internship_enrollment_id' => $secondEnrollment->id,
+            'action' => 'check_in',
+        ]);
+        $this->assertDatabaseMissing('check_ins', [
+            'internship_enrollment_id' => $firstEnrollment->id,
             'action' => 'check_in',
         ]);
     }

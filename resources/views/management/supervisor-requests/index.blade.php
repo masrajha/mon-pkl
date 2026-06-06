@@ -17,6 +17,15 @@
                             @endforeach
                         </select>
                     </div>
+                    <div>
+                        <x-input-label for="filter_period_id" value="Periode Program" />
+                        <select id="filter_period_id" name="period_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                            <option value="">Semua periode</option>
+                            @foreach ($periodOptions as $period)
+                                <option value="{{ $period->id }}" @selected((int) $selectedPeriodId === (int) $period->id)>{{ $period->display_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </x-slot>
             </x-table-controls>
 

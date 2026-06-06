@@ -111,6 +111,88 @@ return [
         ],
     ],
 
+    'field_supervisor_assessment_rubric' => [
+        'attendance' => [
+            'group' => 'A. Disiplin dan Kepatuhan',
+            'label' => 'Kehadiran',
+        ],
+        'rules_compliance' => [
+            'group' => 'A. Disiplin dan Kepatuhan',
+            'label' => 'Kepatuhan terhadap Tata Tertib',
+        ],
+        'group_teamwork' => [
+            'group' => 'B. Kerja Sama',
+            'label' => 'Kerja Sama dengan Anggota Kelompok',
+        ],
+        'other_teamwork' => [
+            'group' => 'B. Kerja Sama',
+            'label' => 'Kolaborasi dengan Tim/Unit Lain',
+        ],
+        'supervisor_teamwork' => [
+            'group' => 'B. Kerja Sama',
+            'label' => 'Komunikasi dan Respons terhadap Pembimbing',
+        ],
+        'innovation' => [
+            'group' => 'C. Prestasi Kerja',
+            'label' => 'Inisiatif dan Inovasi Kerja',
+        ],
+        'task_ability' => [
+            'group' => 'C. Prestasi Kerja',
+            'label' => 'Kemampuan Menyelesaikan Tugas',
+        ],
+        'seriousness' => [
+            'group' => 'C. Prestasi Kerja',
+            'label' => 'Tanggung Jawab dan Kesungguhan Kerja',
+        ],
+    ],
+
+    'field_supervisor_institution_feedback_survey' => [
+        'student_preparation' => [
+            'label' => 'Kesiapan mahasiswa sebelum turun lapang',
+            'options' => [
+                'very_good' => 'Sangat baik',
+                'good' => 'Baik',
+                'fair' => 'Cukup',
+                'needs_improvement' => 'Perlu ditingkatkan',
+            ],
+        ],
+        'competency_fit' => [
+            'label' => 'Kesesuaian kompetensi mahasiswa dengan kebutuhan mitra',
+            'options' => [
+                'very_suitable' => 'Sangat sesuai',
+                'suitable' => 'Sesuai',
+                'fair' => 'Cukup sesuai',
+                'not_suitable' => 'Belum sesuai',
+            ],
+        ],
+        'campus_communication' => [
+            'label' => 'Komunikasi kampus/prodi dengan mitra',
+            'options' => [
+                'very_good' => 'Sangat baik',
+                'good' => 'Baik',
+                'fair' => 'Cukup',
+                'needs_improvement' => 'Perlu ditingkatkan',
+            ],
+        ],
+        'supervision_support' => [
+            'label' => 'Dukungan dosen/prodi selama pelaksanaan',
+            'options' => [
+                'very_helpful' => 'Sangat membantu',
+                'helpful' => 'Membantu',
+                'fair' => 'Cukup',
+                'needs_improvement' => 'Perlu ditingkatkan',
+            ],
+        ],
+        'future_acceptance' => [
+            'label' => 'Kesediaan menerima mahasiswa lagi',
+            'options' => [
+                'yes' => 'Bersedia',
+                'conditional' => 'Bersedia dengan catatan',
+                'no' => 'Belum bersedia',
+            ],
+        ],
+    ],
+
     'calendar' => [
         'holidays' => [
             '2024-02-01', '2024-02-08', '2024-02-10', '2024-03-11', '2024-03-29',

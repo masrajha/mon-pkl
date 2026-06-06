@@ -50,6 +50,7 @@ class CheckInController extends Controller
         $settings = $this->configurations->forPeriod($enrollment->internshipPeriod);
 
         $validated = $request->validate([
+            'enrollment_id' => ['nullable', 'integer'],
             'student_latitude' => ['required', 'numeric', 'between:-90,90'],
             'student_longitude' => ['required', 'numeric', 'between:-180,180'],
             'action' => ['required', 'in:check_in,check_out'],
@@ -199,7 +200,7 @@ class CheckInController extends Controller
         }
 
         return redirect()
-            ->route('check-ins.create')
+            ->route('check-ins.create', ['enrollment' => $enrollment->id])
             ->with('status', $message);
     }
 
@@ -273,12 +274,18 @@ class CheckInController extends Controller
 
     private function currentEnrollment(Request $request): ?InternshipEnrollment
     {
-        return InternshipEnrollment::query()
+        $requestedEnrollmentId = $request->integer('enrollment') ?: $request->integer('enrollment_id');
+
+        $query = InternshipEnrollment::query()
             ->with(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace'])
             ->where('status', 'active')
             ->whereHas('internshipPeriod', fn ($query) => $query->where('is_active', true))
-            ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id))
-            ->latest('id')
-            ->first();
+            ->whereHas('student', fn ($query) => $query->where('user_id', $request->user()?->id));
+
+        if ($requestedEnrollmentId) {
+            return (clone $query)->whereKey($requestedEnrollmentId)->first();
+        }
+
+        return $query->latest('id')->first();
     }
 }
