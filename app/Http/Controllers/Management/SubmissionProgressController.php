@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\InternshipPeriod;
 use App\Models\SubmissionProgress;
+use App\Services\SubmissionProgressEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,6 +15,10 @@ use Illuminate\View\View;
 class SubmissionProgressController extends Controller
 {
     use InteractsWithTableControls;
+
+    public function __construct(private readonly SubmissionProgressEmailNotificationService $submissionEmails)
+    {
+    }
 
     public function index(Request $request): View
     {
@@ -74,6 +79,8 @@ class SubmissionProgressController extends Controller
         if ($data['status'] === 'approved' && $progress->deadline_type === 'full_report') {
             $progress->enrollment?->update(['final_report_path' => $progress->file_path]);
         }
+
+        $this->submissionEmails->reviewed($progress->refresh());
 
         return back()->with('status', 'Review progres laporan berhasil disimpan.');
     }

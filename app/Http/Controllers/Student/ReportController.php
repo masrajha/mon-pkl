@@ -11,6 +11,7 @@ use App\Models\Sanction;
 use App\Models\SubmissionProgress;
 use App\Services\PeriodConfigurationService;
 use App\Services\StudentWorkflowAccessService;
+use App\Services\SubmissionProgressEmailNotificationService;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,10 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
-    public function __construct(private readonly StudentWorkflowAccessService $workflowAccess)
+    public function __construct(
+        private readonly StudentWorkflowAccessService $workflowAccess,
+        private readonly SubmissionProgressEmailNotificationService $submissionEmails,
+    )
     {
     }
 
@@ -136,7 +140,7 @@ class ReportController extends Controller
         $uploadedAt = now();
         $filePath = $request->file('file')->store('submission-progress', 'public');
 
-        DB::transaction(function () use ($enrollment, $data, $uploadedAt, $filePath): void {
+        $progress = DB::transaction(function () use ($enrollment, $data, $uploadedAt, $filePath): SubmissionProgress {
             $existingProgress = SubmissionProgress::query()
                 ->where('internship_enrollment_id', $enrollment->id)
                 ->where('deadline_type', $data['deadline_type'])
@@ -152,7 +156,7 @@ class ReportController extends Controller
                     'reviewed_at' => null,
                 ]);
 
-                return;
+                return $existingProgress->refresh();
             }
 
             $deadline = PeriodDeadline::query()
@@ -171,7 +175,7 @@ class ReportController extends Controller
             ]);
 
             if ($sanctionPoints <= 0) {
-                return;
+                return $progress;
             }
 
             Sanction::query()->create([
@@ -184,7 +188,11 @@ class ReportController extends Controller
             ]);
 
             $enrollment->increment('total_sanctions_points', $sanctionPoints);
+
+            return $progress;
         });
+
+        $this->submissionEmails->uploaded($progress);
 
         return back()->with('status', 'Progres laporan berhasil diunggah.');
     }

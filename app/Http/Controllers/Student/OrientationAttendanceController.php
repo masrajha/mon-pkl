@@ -7,6 +7,7 @@ use App\Models\InternshipEnrollment;
 use App\Models\OrientationAttendance;
 use App\Models\OrientationEvent;
 use App\Services\DistanceService;
+use App\Services\OrientationEmailNotificationService;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,8 +39,12 @@ class OrientationAttendanceController extends Controller
         ]);
     }
 
-    public function store(Request $request, OrientationEvent $orientationEvent, DistanceService $distanceService): RedirectResponse
-    {
+    public function store(
+        Request $request,
+        OrientationEvent $orientationEvent,
+        DistanceService $distanceService,
+        OrientationEmailNotificationService $orientationEmails,
+    ): RedirectResponse {
         $enrollment = $this->eligibleEnrollment($request, $orientationEvent);
         $settings = $this->configurations->forPeriod($orientationEvent->internshipPeriod);
 
@@ -92,7 +97,7 @@ class OrientationAttendanceController extends Controller
             (int) $settings['check_in']['photo_max_kb'],
         );
 
-        OrientationAttendance::query()->create([
+        $attendance = OrientationAttendance::query()->create([
             'orientation_event_id' => $orientationEvent->id,
             'internship_enrollment_id' => $enrollment->id,
             'student_id' => $enrollment->student_id,
@@ -109,6 +114,8 @@ class OrientationAttendanceController extends Controller
             'source_url' => $request->fullUrl(),
             'photo_path' => $photoPath,
         ]);
+
+        $orientationEmails->attendanceRecorded($attendance);
 
         return redirect()
             ->route('student.dashboard')

@@ -1,5 +1,16 @@
 @php
     $isTokenAccess = $accessMode === 'token';
+    $photoUrl = function ($record): ?string {
+        if (! $record) {
+            return null;
+        }
+
+        if (filled($record->photo_path ?? null)) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->url($record->photo_path);
+        }
+
+        return filled($record->source_photo_url ?? null) ? $record->source_photo_url : null;
+    };
 @endphp
 
 @if ($isTokenAccess)
@@ -130,6 +141,14 @@
                                                     <p class="mt-1 text-gray-600"><span class="font-medium">Catatan:</span> {{ $requestItem->note }}</p>
                                                     <p class="mt-1 text-gray-600"><span class="font-medium">Alasan:</span> {{ $requestItem->reason }}</p>
                                                     <p class="mt-1 text-xs text-gray-500">Jarak pengajuan: {{ $requestItem->distance_meters !== null ? number_format($requestItem->distance_meters, 0, ',', '.').' m' : '-' }}</p>
+                                                    @if ($forgottenPhotoUrl = $photoUrl($requestItem))
+                                                        <details class="mt-3 rounded-md border border-amber-100 bg-amber-50/60 p-2">
+                                                            <summary class="cursor-pointer text-xs font-semibold text-amber-900">Foto bukti Lupa Presensi</summary>
+                                                            <a href="{{ $forgottenPhotoUrl }}" target="_blank" rel="noopener" class="mt-2 block w-fit">
+                                                                <img src="{{ $forgottenPhotoUrl }}" alt="Foto bukti Lupa Presensi {{ $requestItem->requested_checked_at?->format('d/m/Y H:i') }}" class="h-28 w-40 rounded-md border border-amber-200 object-cover">
+                                                            </a>
+                                                        </details>
+                                                    @endif
                                                 </div>
                                                 <div class="space-y-2">
                                                     <form method="POST" action="{{ route('forgotten-attendance-requests.field-supervisor.approve', $requestItem) }}" class="space-y-2">
@@ -229,6 +248,29 @@
                                     <td class="silat-table-cell min-w-[360px]">
                                         <p><span class="font-semibold">Rencana:</span> {{ $row['check_in']?->note ?: '-' }}</p>
                                         <p class="mt-2"><span class="font-semibold">Realisasi:</span> {{ $row['check_out']?->note ?: '-' }}</p>
+                                        @php
+                                            $checkInPhotoUrl = $photoUrl($row['check_in'] ?? null);
+                                            $checkOutPhotoUrl = $photoUrl($row['check_out'] ?? null);
+                                        @endphp
+                                        @if ($checkInPhotoUrl || $checkOutPhotoUrl)
+                                            <details class="mt-3 rounded-md border border-gray-200 bg-gray-50 p-2">
+                                                <summary class="cursor-pointer text-xs font-semibold text-gray-700">Foto audit presensi</summary>
+                                                <div class="mt-2 flex flex-wrap gap-2">
+                                                    @if ($checkInPhotoUrl)
+                                                        <a href="{{ $checkInPhotoUrl }}" target="_blank" rel="noopener" class="group block">
+                                                            <span class="mb-1 block text-xs font-medium text-gray-600">Masuk</span>
+                                                            <img src="{{ $checkInPhotoUrl }}" alt="Foto presensi masuk {{ $row['date']?->format('d/m/Y') ?: '' }}" class="h-24 w-32 rounded-md border border-gray-200 object-cover transition group-hover:border-blue-400">
+                                                        </a>
+                                                    @endif
+                                                    @if ($checkOutPhotoUrl)
+                                                        <a href="{{ $checkOutPhotoUrl }}" target="_blank" rel="noopener" class="group block">
+                                                            <span class="mb-1 block text-xs font-medium text-gray-600">Pulang</span>
+                                                            <img src="{{ $checkOutPhotoUrl }}" alt="Foto presensi pulang {{ $row['date']?->format('d/m/Y') ?: '' }}" class="h-24 w-32 rounded-md border border-gray-200 object-cover transition group-hover:border-blue-400">
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            </details>
+                                        @endif
                                     </td>
                                     <td class="silat-table-cell min-w-[240px]">
                                         @if ($validationCheckIn?->daily_log_validated_at)

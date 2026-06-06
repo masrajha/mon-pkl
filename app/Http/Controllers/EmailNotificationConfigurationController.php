@@ -153,8 +153,10 @@ class EmailNotificationConfigurationController extends Controller
         return collect($this->emails->categoryDefinitions())
             ->map(fn (array $category, string $key) => [
                 'key' => $key,
+                'code' => $category['code'] ?? '-',
                 'label' => $category['label'],
                 'type' => rtrim($category['prefix'], '.'),
+                'summary' => $category['summary'] ?? null,
                 'implemented' => $category['implemented'],
                 'enabled' => (bool) ($settings[$key] ?? false),
             ])

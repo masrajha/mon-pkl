@@ -87,7 +87,11 @@
                     <section class="silat-card overflow-hidden">
                         <div class="border-b border-gray-100 px-6 py-4">
                             <h3 class="text-base font-semibold text-gray-950">Cakupan Notifikasi</h3>
-                            <p class="mt-1 text-sm text-gray-500">Pilih workflow yang boleh membuat antrean email baru.</p>
+                            <p class="mt-1 text-sm text-gray-500">Pilih workflow EN-02 sampai EN-11 yang boleh membuat antrean email baru.</p>
+                            <div class="mt-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                                <span class="font-semibold">EN-01 Infrastruktur Email</span>
+                                <span class="text-blue-800"> aktif sebagai fondasi antrean, retry, toggle global, dan konfigurasi mail server.</span>
+                            </div>
                         </div>
                         <form method="POST" action="{{ route('email-notifications.coverage.update') }}">
                             @csrf
@@ -96,6 +100,7 @@
                                 <table class="silat-table">
                                     <thead class="silat-table-head">
                                         <tr>
+                                            <th class="silat-table-cell">Kode</th>
                                             <th class="silat-table-cell">Workflow</th>
                                             <th class="silat-table-cell">Prefix Event</th>
                                             <th class="silat-table-cell">Status</th>
@@ -105,7 +110,15 @@
                                     <tbody>
                                         @foreach ($categories as $category)
                                         <tr>
-                                            <td class="silat-table-cell font-medium text-gray-900">{{ $category['label'] }}</td>
+                                            <td class="silat-table-cell">
+                                                <span class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{{ $category['code'] }}</span>
+                                            </td>
+                                            <td class="silat-table-cell">
+                                                <span class="font-medium text-gray-900">{{ $category['label'] }}</span>
+                                                @if ($category['summary'])
+                                                    <p class="mt-1 max-w-xl text-xs leading-5 text-gray-500">{{ $category['summary'] }}</p>
+                                                @endif
+                                            </td>
                                             <td class="silat-table-cell text-gray-600">{{ $category['type'] }}</td>
                                             <td class="silat-table-cell">
                                                 @if (! $category['implemented'])
@@ -136,7 +149,7 @@
                                 </table>
                             </div>
                             <div class="flex items-center justify-between gap-4 border-t border-gray-100 px-6 py-4">
-                                <p class="text-xs text-gray-500">Workflow yang belum tersedia ditampilkan sebagai referensi roadmap dan belum dapat diaktifkan.</p>
+                                <p class="text-xs text-gray-500">Toggle hanya memengaruhi antrean email baru; antrean yang sudah dibuat tetap dipantau di tab Antrean Email.</p>
                                 <x-primary-button>Simpan Cakupan</x-primary-button>
                             </div>
                         </form>

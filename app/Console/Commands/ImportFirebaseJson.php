@@ -10,6 +10,7 @@ use App\Models\InternshipPlace;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Services\OperationalEmailNotificationService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -59,6 +60,7 @@ class ImportFirebaseJson extends Command
 
         if (! is_file($sourcePath)) {
             $this->error("Source file not found: {$sourcePath}");
+            app(OperationalEmailNotificationService::class)->importFailed($sourcePath, new \RuntimeException('Source file not found.'));
 
             return self::FAILURE;
         }
@@ -67,33 +69,39 @@ class ImportFirebaseJson extends Command
         $this->report['master_file'] = is_file($masterPath) ? $masterPath : null;
         $this->report['dry_run'] = (bool) $this->option('dry-run');
 
-        $source = $this->readJson($sourcePath);
-        $master = is_file($masterPath) ? $this->readJson($masterPath) : [];
-        $sourceName = basename($sourcePath);
+        try {
+            $source = $this->readJson($sourcePath);
+            $master = is_file($masterPath) ? $this->readJson($masterPath) : [];
+            $sourceName = basename($sourcePath);
 
-        $callback = function () use ($source, $master, $sourceName): void {
-            $studyProgram = $this->importStudyProgram();
-            $period = $this->importPeriod();
+            $callback = function () use ($source, $master, $sourceName): void {
+                $studyProgram = $this->importStudyProgram();
+                $period = $this->importPeriod();
 
-            $this->importCities($master['kota'] ?? $source['master']['kota'] ?? $source['kota'] ?? []);
-            $placesByKey = $this->importPlaces($source['pkl'] ?? [], $sourceName);
-            $studentsByNpm = $this->importUsersAndStudents($source['users'] ?? [], $studyProgram);
-            $this->importPlaceStudentsAsEnrollments($placesByKey, $studentsByNpm, $studyProgram, $period);
-            $this->importCheckIns($source['mon_pkl'] ?? [], $studentsByNpm, $studyProgram, $period, $sourceName);
-            $this->validateMonUser($source['mon_user'] ?? [], $source['mon_pkl'] ?? []);
-        };
+                $this->importCities($master['kota'] ?? $source['master']['kota'] ?? $source['kota'] ?? []);
+                $placesByKey = $this->importPlaces($source['pkl'] ?? [], $sourceName);
+                $studentsByNpm = $this->importUsersAndStudents($source['users'] ?? [], $studyProgram);
+                $this->importPlaceStudentsAsEnrollments($placesByKey, $studentsByNpm, $studyProgram, $period);
+                $this->importCheckIns($source['mon_pkl'] ?? [], $studentsByNpm, $studyProgram, $period, $sourceName);
+                $this->validateMonUser($source['mon_user'] ?? [], $source['mon_pkl'] ?? []);
+            };
 
-        if ($this->option('dry-run')) {
-            try {
-                DB::transaction(function () use ($callback): void {
-                    $callback();
-                    throw new DryRunRollback();
-                });
-            } catch (DryRunRollback) {
-                // Expected rollback after parsing and validating the import.
+            if ($this->option('dry-run')) {
+                try {
+                    DB::transaction(function () use ($callback): void {
+                        $callback();
+                        throw new DryRunRollback();
+                    });
+                } catch (DryRunRollback) {
+                    // Expected rollback after parsing and validating the import.
+                }
+            } else {
+                DB::transaction($callback);
             }
-        } else {
-            DB::transaction($callback);
+        } catch (\Throwable $exception) {
+            app(OperationalEmailNotificationService::class)->importFailed($sourcePath, $exception);
+
+            throw $exception;
         }
 
         return $this->finish();
@@ -567,6 +575,7 @@ class ImportFirebaseJson extends Command
     {
         $path = 'import-reports/firebase-import-'.now()->format('Ymd-His').'.json';
         Storage::disk('local')->put($path, json_encode($this->report, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        app(OperationalEmailNotificationService::class)->importFinished($this->report, $path);
 
         $this->info('Firebase import finished.');
         $this->table(['Metric', 'Count'], collect($this->report['counts'])->map(fn ($count, $metric) => [$metric, $count])->all());

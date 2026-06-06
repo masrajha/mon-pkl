@@ -73,11 +73,11 @@ class OrientationEventFeatureTest extends TestCase
 
         $event = \App\Models\OrientationEvent::query()->firstOrFail();
         $this->assertSame('Pembekalan Magang Juli 2026', $event->name);
-
-        $this->actingAs($studentUser)
-            ->get(route('student.dashboard'))
-            ->assertOk()
-            ->assertSee('Presensi Pembekalan');
+        $this->assertDatabaseHas('email_notifications', [
+            'type' => 'orientation.opened.student',
+            'recipient_email' => '2217051001@student.unila.ac.id',
+            'status' => 'pending',
+        ]);
 
         $this->actingAs($studentUser)
             ->get(route('student.orientation-attendances.create', $event))
@@ -96,6 +96,11 @@ class OrientationEventFeatureTest extends TestCase
             'orientation_event_id' => $event->id,
             'student_id' => $student->id,
             'distance_meters' => 0,
+        ]);
+        $this->assertDatabaseHas('email_notifications', [
+            'type' => 'orientation.attendance.recorded.student',
+            'recipient_email' => '2217051001@student.unila.ac.id',
+            'status' => 'pending',
         ]);
 
         $this->actingAs($studentUser)
@@ -175,8 +180,88 @@ class OrientationEventFeatureTest extends TestCase
         $this->actingAs($studentUser)
             ->getJson(route('locations.search', ['q' => 'aula fmipa']))
             ->assertOk()
-            ->assertJsonPath('data.0.source', 'Usulan tempat')
+            ->assertJsonPath('data.0.source', 'Usulan mitra')
             ->assertJsonPath('data.0.name', 'Aula FMIPA Unila');
+    }
+
+    public function test_orientation_notification_command_queues_reminders_and_closed_summary(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'email' => 'admin@example.test']);
+        $studentUser = User::factory()->create(['role' => 'mahasiswa']);
+        $activityProgram = Program::query()->create([
+            'code' => 'KP-REMINDER',
+            'name' => 'Kerja Praktik',
+            'rule_key' => 'kerja_praktik',
+            'is_active' => true,
+        ]);
+        $studyProgram = StudyProgram::query()->create([
+            'code' => 'ILKOM',
+            'name' => 'S1 Ilmu Komputer',
+            'degree_level' => 'S1',
+            'is_active' => true,
+        ]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $activityProgram->id,
+            'name' => 'Juni 2026',
+            'academic_year' => '2025/2026',
+            'is_active' => true,
+        ]);
+        $student = Student::query()->create([
+            'user_id' => $studentUser->id,
+            'study_program_id' => $studyProgram->id,
+            'npm' => '2217051010',
+            'full_name' => 'Mahasiswa Reminder',
+            'student_email' => 'reminder@student.unila.ac.id',
+        ]);
+        InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $studyProgram->id,
+            'internship_period_id' => $period->id,
+            'status' => 'active',
+        ]);
+
+        OrientationEvent::query()->create([
+            'internship_period_id' => $period->id,
+            'program_id' => $activityProgram->id,
+            'study_program_id' => $studyProgram->id,
+            'name' => 'Pembekalan Kerja Praktik Juni 2026',
+            'location_name' => 'Aula FMIPA',
+            'latitude' => -5.3640000,
+            'longitude' => 105.2430000,
+            'starts_at' => now()->addHours(12),
+            'ends_at' => now()->addMinutes(30),
+            'is_active' => true,
+            'created_by' => $admin->id,
+        ]);
+
+        OrientationEvent::query()->create([
+            'internship_period_id' => $period->id,
+            'program_id' => $activityProgram->id,
+            'study_program_id' => $studyProgram->id,
+            'name' => 'Pembekalan Selesai',
+            'location_name' => 'Aula FMIPA',
+            'latitude' => -5.3640000,
+            'longitude' => 105.2430000,
+            'ends_at' => now()->subHour(),
+            'is_active' => true,
+            'created_by' => $admin->id,
+        ]);
+
+        $this->artisan('silat:orientation-notifications:queue --hours-before=24 --closing-minutes=60 --summary-hours=24')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseHas('email_notifications', [
+            'type' => 'orientation.reminder.before.student',
+            'recipient_email' => 'reminder@student.unila.ac.id',
+        ]);
+        $this->assertDatabaseHas('email_notifications', [
+            'type' => 'orientation.reminder.closing.student',
+            'recipient_email' => 'reminder@student.unila.ac.id',
+        ]);
+        $this->assertDatabaseHas('email_notifications', [
+            'type' => 'orientation.closed.summary.reviewer',
+            'recipient_email' => 'admin@example.test',
+        ]);
     }
 
     public function test_admin_updates_and_deletes_orientation_events_without_attendance_only(): void

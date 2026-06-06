@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\SeminarRequest;
+use App\Services\AssessmentEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,10 @@ use Illuminate\View\View;
 class SeminarRequestController extends Controller
 {
     use InteractsWithTableControls;
+
+    public function __construct(private readonly AssessmentEmailNotificationService $assessmentEmails)
+    {
+    }
 
     public function index(Request $request): View
     {
@@ -162,6 +167,8 @@ class SeminarRequestController extends Controller
             'scheduled_by' => $request->user()->id,
         ]);
 
+        $this->assessmentEmails->seminarScheduled($seminarRequest->refresh());
+
         return back()->with('status', 'Jadwal seminar berhasil disimpan.');
     }
 
@@ -211,6 +218,8 @@ class SeminarRequestController extends Controller
             'scored_at' => now(),
         ]);
 
+        $this->assessmentEmails->lecturerScoreStored($seminarRequest->refresh());
+
         return back()->with('status', 'Nilai seminar via sistem berhasil disimpan.');
     }
 
@@ -249,6 +258,10 @@ class SeminarRequestController extends Controller
             'scored_by' => $data['decision'] === 'approve' ? $request->user()->id : null,
             'scored_at' => $data['decision'] === 'approve' ? now() : null,
         ]);
+
+        if ($data['decision'] === 'approve') {
+            $this->assessmentEmails->lecturerScoreStored($seminarRequest->refresh());
+        }
 
         return back()->with('status', 'Validasi nilai manual seminar berhasil disimpan.');
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPeriodSetting;
 use App\Models\PeriodDeadline;
+use App\Services\OperationalEmailNotificationService;
 use App\Services\PeriodConfigurationService;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,10 @@ class SystemConfigurationController extends Controller
 {
     use InteractsWithTableControls;
 
-    public function __construct(private readonly PeriodConfigurationService $configurations)
+    public function __construct(
+        private readonly PeriodConfigurationService $configurations,
+        private readonly OperationalEmailNotificationService $operationalEmails,
+    )
     {
     }
 
@@ -162,6 +166,8 @@ class SystemConfigurationController extends Controller
                     );
                 });
         });
+
+        $this->operationalEmails->configurationUpdated($period->refresh(), $request->user());
 
         return redirect()
             ->route('system-configurations.edit', $period)

@@ -8,6 +8,7 @@ use App\Models\InternshipPeriod;
 use App\Models\OrientationEvent;
 use App\Models\StudyProgram;
 use App\Services\LocationSuggestionService;
+use App\Services\OrientationEmailNotificationService;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +22,7 @@ class OrientationEventController extends Controller
     public function __construct(
         private readonly PeriodConfigurationService $configurations,
         private readonly LocationSuggestionService $locations,
+        private readonly OrientationEmailNotificationService $orientationEmails,
     )
     {
     }
@@ -66,13 +68,15 @@ class OrientationEventController extends Controller
         $period = InternshipPeriod::query()->with('program')->findOrFail($data['internship_period_id']);
         $this->authorizeEventScope($request, $period->id, $data['study_program_id'] ?? null);
 
-        OrientationEvent::query()->create([
+        $event = OrientationEvent::query()->create([
             ...$data,
             'program_id' => $period->program_id,
             'name' => $this->eventName($period),
             'is_active' => (bool) ($data['is_active'] ?? false),
             'created_by' => $request->user()?->id,
         ]);
+
+        $this->orientationEmails->eventOpened($event);
 
         return back()->with('status', 'Event pembekalan berhasil dibuat.');
     }
@@ -100,12 +104,18 @@ class OrientationEventController extends Controller
         $period = InternshipPeriod::query()->with('program')->findOrFail($data['internship_period_id']);
         $this->authorizeEventScope($request, $period->id, $data['study_program_id'] ?? null);
 
+        $wasActive = (bool) $orientationEvent->is_active;
+
         $orientationEvent->update([
             ...$data,
             'program_id' => $period->program_id,
             'name' => $this->eventName($period),
             'is_active' => (bool) ($data['is_active'] ?? false),
         ]);
+
+        if (! $wasActive && $orientationEvent->is_active) {
+            $this->orientationEmails->eventOpened($orientationEvent);
+        }
 
         return redirect()
             ->route('management.orientation-events.index')

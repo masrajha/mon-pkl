@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\SystemNotificationMail;
 use App\Models\EmailNotification;
+use App\Models\User;
 use App\Services\EmailNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -59,7 +60,7 @@ class EmailNotificationFeatureTest extends TestCase
         ]);
 
         $this->artisan('silat:email-notifications:process')
-            ->expectsOutput('Email notifications processed. Sent: 1. Failed: 0.')
+            ->expectsOutput('Email notifications processed. Sent: 1. Failed: 0. Skipped: 0.')
             ->assertExitCode(0);
 
         Mail::assertSent(SystemNotificationMail::class, function (SystemNotificationMail $mail): bool {
@@ -71,5 +72,25 @@ class EmailNotificationFeatureTest extends TestCase
             'event_key' => 'due-notification',
             'status' => 'sent',
         ]);
+    }
+
+    public function test_status_page_shows_implemented_en_coverage(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)
+            ->get(route('email-notifications.index', ['tab' => 'status']));
+
+        $response->assertOk();
+        $response->assertSee('EN-01 Infrastruktur Email');
+
+        foreach (['EN-02', 'EN-03', 'EN-04', 'EN-05', 'EN-06', 'EN-07', 'EN-08', 'EN-09', 'EN-10', 'EN-11'] as $code) {
+            $response->assertSee($code);
+        }
+
+        $response->assertSee('Penilaian dan Finalisasi');
+        $response->assertSee('Operasional Sistem');
+        $response->assertDontSee('Belum tersedia');
+        $response->assertDontSee('seminar.');
     }
 }

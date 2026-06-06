@@ -528,10 +528,15 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | EN-01 | Sudah diimplementasikan sebagian | Fondasi notifikasi email berbasis event tersedia melalui tabel `email_notifications`, `EmailNotificationService`, mailable `SystemNotificationMail`, command `silat:email-notifications:process`, dan scheduler tiap menit. Email memiliki subjek, penerima, body line terstruktur, tombol/link aksi, relasi `notifiable`, `event_key` idempotent, status pengiriman, retry manual untuk status gagal, serta pencatatan error. Menu **Email & Notifikasi** sudah tersedia dengan tab Status Notifikasi, Antrean Email, dan Mail Server. Pengaturan global aktif/nonaktif, cakupan workflow aktif/nonaktif, dan override SMTP disimpan di tabel `system_settings`; password SMTP disimpan terenkripsi. Jika pengiriman global nonaktif, event tetap berada di antrean dan tidak dikirim. Jika cakupan workflow nonaktif, event baru untuk prefix workflow tersebut tidak dibuat. |
 | EN-02 | Sudah diimplementasikan | Email pendaftaran program dikirim kepada mahasiswa saat pendaftaran dikirim, revisi dikirim ulang, disetujui, diminta revisi, ditolak, atau data peserta diperbarui admin. Admin dan koordinator sesuai scope periode/prodi menerima email saat pendaftaran baru/revisi masuk serta reminder pendaftaran pending mendekati batas pendaftaran. |
 | EN-03 | Sudah diimplementasikan | Email usulan mitra dikirim kepada mahasiswa saat usulan dikirim, disetujui sebagai master baru, digabung ke master mitra, atau ditolak. Admin menerima email saat ada usulan baru dan reminder untuk usulan pending minimal 48 jam. |
+| EN-04 | Sudah diimplementasikan | Email pembekalan dikirim kepada mahasiswa saat event pembekalan aktif dibuka, reminder H-1/sebelum kegiatan, reminder ketika presensi belum tercatat mendekati waktu tutup, dan konfirmasi ketika presensi pembekalan berhasil dicatat. Admin dan koordinator sesuai scope periode/prodi menerima rekap setelah event ditutup berisi jumlah peserta, hadir, dan tidak hadir. Command `silat:orientation-notifications:queue` dijadwalkan hourly. |
+| EN-05 | Sudah diimplementasikan | Digest presensi mingguan dikirim tanpa email per check-in/check-out. Mahasiswa menerima ringkasan hari tercatat, hari lengkap, durasi, jarak rata-rata, dan sanksi. Dosen pembimbing dan koordinator menerima digest mahasiswa dengan pola bermasalah seperti presensi tidak berpasangan, terlambat, durasi kurang, jarak tidak wajar, atau sanksi. Command `silat:attendance-digests:queue` dijadwalkan tiap Senin pukul 07.00. |
+| EN-06 | Sudah diimplementasikan | Email laporan dikirim kepada mahasiswa saat upload berhasil, laporan disetujui, diminta revisi, atau ditolak. Jika upload melewati deadline, body email memuat sanksi keterlambatan yang tercatat. Dosen pembimbing menerima email saat ada laporan baru menunggu review dan reminder jika pending review melewati threshold. Mahasiswa menerima reminder deadline H-7/H-3/H-1/hari H untuk jenis laporan yang belum diunggah/masih kosong. Admin dan koordinator menerima rekap laporan belum unggah, pending review, dan sanksi tertinggi. Command `silat:submission-progress-notifications:queue` dijadwalkan hourly. |
 | EN-07 | Sudah diimplementasikan | Email perubahan pembimbing dikirim kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Admin dan koordinator sesuai scope periode/prodi menerima email saat ada permohonan baru serta reminder untuk permohonan pending minimal 48 jam. Saat permohonan disetujui dan dosen berubah, dosen pembimbing baru menerima notifikasi penugasan, sedangkan dosen pembimbing lama menerima notifikasi bahwa mahasiswa tidak lagi menjadi bimbingannya. |
 | EN-08 | Sudah diimplementasikan | Email pindah tempat dikirim kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Admin dan koordinator sesuai scope periode/prodi menerima email saat ada permohonan baru serta reminder untuk permohonan pending minimal 48 jam. Saat permohonan disetujui, dosen pembimbing mahasiswa menerima notifikasi bahwa mahasiswa bimbingannya pindah mitra/tempat kegiatan. Modul pindah tempat juga dapat diakses koordinator dengan pembatasan data sesuai penugasan aktif. |
-| EN-09 | Sudah diimplementasikan sebagian | Admin dapat membuat token akses pembimbing lapangan dari Peserta Periode. Sistem membuat token unik, masa berlaku 30 hari, dapat dicabut, dan mengantrekan email berisi URL portal pembimbing lapangan ke email yang tercatat pada enrollment. Reminder validasi catatan harian dan reminder pemberian nilai pembimbing lapangan belum tersedia. |
-| NF-09 | Sudah diimplementasikan sebagian | Infrastruktur notifikasi otomatis dan scheduler sudah tersedia. Reminder otomatis yang sudah berjalan mencakup pendaftaran pending mendekati deadline serta reminder pending untuk usulan mitra, perubahan pembimbing, dan pindah tempat. Reminder deadline laporan H-7/H-3/H-1/hari H masih berada pada backlog EN-06. |
+| EN-09 | Sudah diimplementasikan | Admin dapat membuat token akses pembimbing lapangan dari Peserta Periode. Sistem membuat token unik, masa berlaku 30 hari, dapat dicabut, dan mengantrekan email berisi URL portal Pembimbing Lapangan. Jika token lama kedaluwarsa dan belum ada token valid, command dapat membuat token baru dan mengantrekan email akses. Pembimbing Lapangan menerima reminder validasi catatan harian, reminder pengisian nilai, dan konfirmasi nilai berhasil disimpan. Admin dan koordinator menerima alert jika nilai belum diisi setelah form dapat dibuka atau token kedaluwarsa. Command `silat:field-supervisor-notifications:queue` dijadwalkan harian. |
+| EN-10 | Sudah diimplementasikan | Email penilaian dikirim kepada dosen pembimbing saat seminar dijadwalkan sehingga mahasiswa siap dinilai, reminder pengisian nilai seminar jika jadwal sudah lewat tetapi nilai belum tersimpan, dan konfirmasi saat nilai seminar tersimpan. Admin menerima email saat nilai dosen dan nilai Pembimbing Lapangan lengkap dan mahasiswa siap difinalisasi. Admin/koordinator menerima alert jika komponen nilai belum lengkap mendekati akhir periode. Command `silat:assessment-notifications:queue` dijadwalkan harian. |
+| EN-11 | Sudah diimplementasikan | Email operasional dikirim kepada admin saat periode dibuat, diperbarui, diselesaikan/dikunci, konfigurasi program diperbarui, import Firebase selesai, import Firebase gagal, dan ada email sistem gagal dikirim. Command `silat:operational-notifications:queue` dijadwalkan hourly untuk digest error pengiriman email. |
+| NF-09 | Sudah diimplementasikan | Infrastruktur notifikasi otomatis dan scheduler sudah tersedia. Reminder otomatis yang sudah berjalan mencakup pendaftaran pending mendekati deadline, usulan mitra, perubahan pembimbing, pindah tempat, pembekalan, laporan/deadline, digest presensi, Pembimbing Lapangan, penilaian, dan operasional produksi. |
 
 ### 8.10 Seminar dan Penilaian Seminar
 
@@ -552,6 +557,8 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | PL-02 | Sudah diimplementasikan | Role `pembimbing_lapangan` tersedia. Login Google/email pembimbing lapangan diizinkan jika email tersebut tercatat pada enrollment aktif sebagai `field_supervisor_email`. Akses portal saat login tetap dibatasi berdasarkan email pembimbing lapangan pada enrollment. |
 | PL-03 | Sudah diimplementasikan | Dashboard Pembimbing Lapangan menampilkan ringkasan periode aktif dan periode selesai, sedangkan menu **Mahasiswa Bimbingan** menampilkan daftar mahasiswa terkait. Istilah PL tidak dipakai pada UI; sistem memakai **Pembimbing Lapangan**. |
 | PL-04 | Sudah diimplementasikan | Portal Pembimbing Lapangan memiliki tab **Catatan Harian** untuk validasi catatan harian dan approval Lupa Presensi, serta tab **Penilaian dan Feedback** untuk nilai dan masukan institusi. |
+| PL-05 | Sudah diimplementasikan | Reminder email Pembimbing Lapangan tersedia untuk catatan harian belum divalidasi, pengajuan Lupa Presensi pending, nilai Pembimbing Lapangan belum diisi, serta reminder H-7/H-3/H-1 sebelum deadline `full_report` untuk validasi catatan harian dan pengisian nilai jika belum lengkap. |
+| PL-06 | Sudah diimplementasikan | Portal Pembimbing Lapangan menampilkan detail foto audit pada tab Catatan Harian. Foto presensi masuk/pulang dapat dibuka dari baris catatan harian, sedangkan foto bukti Lupa Presensi tampil pada blok pengajuan Lupa Presensi pending. |
 
 ---
 
@@ -570,35 +577,36 @@ Bagian ini hanya mencatat kebutuhan SRS yang belum tersedia atau masih perlu dis
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| EN-04 | Kirim email pembekalan kepada mahasiswa saat event dibuka, reminder H-1 atau beberapa jam sebelum kegiatan, presensi berhasil dicatat, dan belum presensi mendekati waktu tutup. Kirim email kepada admin/koordinator berisi rekap setelah event ditutup, termasuk jumlah hadir dan tidak hadir. | Tinggi |
-| EN-05 | Kirim digest presensi, bukan email untuk setiap check-in/check-out. Digest dikirim mingguan kepada mahasiswa berisi ringkasan presensi, durasi, jarak, dan sanksi. Digest kepada dosen pembimbing/koordinator berisi mahasiswa dengan pola bermasalah seperti durasi kurang, sering terlambat, atau jarak presensi tidak wajar. | Menengah |
-| EN-06 | Kirim email laporan dan deadline kepada mahasiswa untuk reminder H-7, H-3, H-1, dan hari H; upload berhasil; laporan disetujui; laporan diminta revisi; laporan ditolak; dan sanksi keterlambatan. Kirim email kepada dosen pembimbing saat ada laporan baru menunggu review atau laporan pending review melewati batas waktu. Kirim email rekap kepada admin/koordinator untuk laporan belum diunggah, pending review, dan sanksi tertinggi. | Tinggi |
-| EN-09 | Lengkapi email pembimbing lapangan untuk token baru jika token lama kedaluwarsa, reminder validasi catatan harian, reminder pemberian nilai kegiatan, dan konfirmasi nilai berhasil dikirim. Kirim email kepada admin/koordinator jika pembimbing lapangan belum mengisi nilai mendekati deadline atau token gagal/expired berulang. Email token akses awal sudah tercatat pada Bagian 8. | Tinggi |
-| EN-10 | Kirim email penilaian kepada dosen pembimbing saat mahasiswa sudah memenuhi syarat untuk dinilai, reminder pengisian nilai laporan/seminar, dan konfirmasi nilai tersimpan. Kirim email kepada admin saat semua komponen nilai sudah lengkap dan siap disahkan atau ada nilai belum lengkap mendekati penutupan periode. | Tinggi |
-| EN-11 | Kirim email operasional kepada admin/super admin saat periode baru dibuat, periode dikunci/diselesaikan, konfigurasi penting berubah, import data selesai/gagal, atau terjadi error penting pada pengiriman email, storage, dan integrasi. | Menengah |
-| EN-12 | Implementasi lanjutan diprioritaskan berurutan: deadline dan review laporan; pembekalan; token akses pembimbing lapangan; reminder validasi catatan harian dan nilai; lalu digest mingguan presensi/sanksi. Pendaftaran, usulan mitra, perubahan pembimbing, dan pindah tempat sudah tercatat pada Bagian 8. | Tinggi |
+| EN-12 | Implementasi email utama EN-01 sampai EN-11 sudah tercatat pada Bagian 8. Pengembangan lanjutan berfokus pada audit granular, preferensi penerima per role, template email per institusi, dan observabilitas produksi. | Menengah |
 
 ### 9.3 Role Pembimbing Lapangan
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| PL-05 | Tambahkan reminder email untuk Pembimbing Lapangan yang belum memvalidasi catatan harian, belum memproses Lupa Presensi, atau belum mengisi nilai mendekati akhir periode. | Menengah |
-| PL-06 | Tambahkan tampilan detail foto presensi dan foto Lupa Presensi pada portal jika dibutuhkan untuk audit visual. | Menengah |
 
 ### 9.4 Laporan, Export, dan Operasional Produksi
 
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
-| LR-01 | Lengkapi Rekap Monitoring dengan status laporan dan sanksi. | Menengah |
-| LR-02 | Buat Rekap Pelanggaran dan Sanksi. | Tinggi |
-| LR-03 | Buat Rekap Nilai Akhir. | Tinggi |
-| LR-04 | Tambahkan export PDF/Excel untuk laporan utama. | Tinggi |
-| NF-06 | Perketat akses file foto agar tidak terbuka publik tanpa otorisasi jika produksi membutuhkan. | Menengah |
+| LR-06 | Buat **Dashboard Progres Peserta Kegiatan** berbasis filter periode, program, prodi, mitra, dosen pembimbing, status peserta, dan rentang tanggal. Dashboard menampilkan kartu ringkasan total peserta, peserta aktif/selesai, presensi belum lengkap, catatan harian belum divalidasi, laporan terlambat, seminar belum diajukan, nilai belum lengkap, nilai final, dan sanksi tertinggi. | Tinggi |
+| LR-07 | Tambahkan **progress funnel** pelaksanaan: pendaftaran disetujui → presensi aktif → laporan lengkap → seminar dijadwalkan/selesai → nilai dosen masuk → nilai Pembimbing Lapangan masuk → nilai final. Funnel dipakai untuk membaca bottleneck proses. | Tinggi |
+| LR-08 | Tambahkan **risk scoring peserta** dengan kategori Aman, Perlu Dipantau, Berisiko, dan Kritis. Indikator mencakup presensi tidak lengkap, tidak hadir beruntun, Lupa Presensi pending, catatan harian belum divalidasi, laporan terlambat/revisi berulang, seminar belum diajukan, nilai belum lengkap, dan total sanksi. | Tinggi |
+| LR-09 | Tambahkan tabel **Peserta Perlu Tindak Lanjut** yang dapat di-drill-down dari kartu/grafik. Tabel memuat mahasiswa, prodi, mitra, dosen, status risiko, masalah utama, sanksi, dan aksi cepat menuju presensi, laporan, seminar, Lupa Presensi, atau finalisasi nilai. | Tinggi |
+| LR-10 | Tambahkan visualisasi **heatmap kehadiran** per mahasiswa dan tanggal. Warna membedakan hadir valid, presensi satu sisi/tidak valid, tidak hadir, Lupa Presensi disetujui, Sabtu/Minggu, dan hari libur. | Tinggi |
+| LR-11 | Lengkapi grafik operasional: tren presensi harian, stacked bar status peserta per prodi, donut status laporan, bar chart top sanksi, dan progress status nilai dosen/Pembimbing Lapangan/final. | Tinggi |
+| LR-02 | Buat Rekap Pelanggaran dan Sanksi dengan pemisahan sumber sanksi presensi, keterlambatan laporan, dan pengurangan final. | Tinggi |
+| LR-03 | Buat Rekap Nilai Akhir yang memuat nilai dosen, nilai Pembimbing Lapangan, nilai dasar, pengurangan final, total nilai, huruf mutu, nomor berita acara, dan status final. | Tinggi |
+| LR-12 | Tambahkan drill-down dari chart/grafik ke daftar mahasiswa terkait agar admin/koordinator dapat langsung melakukan tindak lanjut tanpa berpindah konteks manual. | Tinggi |
+| LR-01 | Lengkapi Rekap Monitoring dengan status laporan, seminar, nilai, Lupa Presensi, validasi catatan harian, dan sanksi. | Menengah |
+| LR-04 | Tambahkan export PDF/Excel/CSV untuk laporan utama: Rekap Monitoring, Presensi dan Catatan Harian, Sanksi, Progres Laporan, Status Seminar, Nilai Akhir, dan Finalisasi Nilai. | Menengah |
+| LR-13 | Tambahkan export **snapshot dashboard** ke PDF yang berisi filter aktif, kartu ringkasan, grafik utama, peserta berisiko, tanggal cetak, dan nama pencetak. | Menengah |
+| NF-11 | Siapkan strategi backup database harian, retensi backup, uji restore berkala, dan dokumentasi prosedur pemulihan. | Menengah |
+| NF-10 | Buat audit log perubahan konfigurasi, sanksi, nilai, finalisasi, pembatalan finalisasi jika diizinkan, master data, enrollment, dan approval Lupa Presensi. | Menengah |
 | NF-09 | Lengkapi reminder otomatis khusus deadline laporan/progres sesuai EN-06. Fondasi email otomatis sudah tercatat pada Bagian 8. | Menengah |
-| NF-10 | Buat audit log perubahan konfigurasi, sanksi, nilai, master data, dan enrollment. | Menengah |
-| NF-11 | Siapkan strategi backup database harian. | Tinggi |
-| NF-12 | Uji dan rapikan responsif untuk tablet/desktop pada semua halaman baru. | Menengah |
-| NF-13 | Standarkan semua pesan validasi dalam Bahasa Indonesia. | Menengah |
+| NF-06 | Perketat akses file foto agar tidak terbuka publik tanpa otorisasi jika produksi membutuhkan. | Menengah |
+| NF-12 | Uji dan rapikan responsif untuk tablet/desktop pada semua halaman dashboard, chart, tabel drill-down, dan export. | Menengah |
+| NF-13 | Standarkan semua pesan validasi dalam Bahasa Indonesia. | Rendah |
+| LR-14 | Tambahkan preferensi tampilan dashboard per role, misalnya pilihan chart favorit, kolom tabel default, dan penyimpanan filter terakhir. | Rendah |
 
 ### 9.5 Cutover dan Penghapusan Ketergantungan Lama
 

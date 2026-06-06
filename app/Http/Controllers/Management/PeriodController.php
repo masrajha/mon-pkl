@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\Program;
+use App\Services\OperationalEmailNotificationService;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,10 @@ class PeriodController extends Controller
 {
     use InteractsWithTableControls;
 
-    public function __construct(private readonly PeriodConfigurationService $configurations)
+    public function __construct(
+        private readonly PeriodConfigurationService $configurations,
+        private readonly OperationalEmailNotificationService $operationalEmails,
+    )
     {
     }
 
@@ -62,6 +66,7 @@ class PeriodController extends Controller
     {
         $period = InternshipPeriod::query()->create($this->validated($request));
         $this->configurations->seedMissing($request->user()?->id);
+        $this->operationalEmails->periodChanged($period, 'created', $request->user());
 
         return redirect()->route('management.periods.edit', $period)->with('status', 'Periode berhasil ditambahkan.');
     }
@@ -77,11 +82,12 @@ class PeriodController extends Controller
     public function update(Request $request, InternshipPeriod $period): RedirectResponse
     {
         $period->update($this->validated($request, $period));
+        $this->operationalEmails->periodChanged($period->refresh(), 'updated', $request->user());
 
         return redirect()->route('management.periods.index')->with('status', 'Periode berhasil diperbarui.');
     }
 
-    public function complete(InternshipPeriod $period): RedirectResponse
+    public function complete(Request $request, InternshipPeriod $period): RedirectResponse
     {
         $completedCount = 0;
 
@@ -96,6 +102,10 @@ class PeriodController extends Controller
                 'is_locked' => true,
             ]);
         });
+
+        $this->operationalEmails->periodChanged($period->refresh(), 'completed', $request->user(), [
+            "{$completedCount} peserta aktif diubah menjadi selesai.",
+        ]);
 
         return redirect()
             ->route('management.periods.index')

@@ -23,13 +23,76 @@ class EmailNotificationService
     public function categoryDefinitions(): array
     {
         return [
-            'enrollment' => ['label' => 'Pendaftaran', 'prefix' => 'enrollment.', 'implemented' => true],
-            'place_proposal' => ['label' => 'Usulan Mitra', 'prefix' => 'place_proposal.', 'implemented' => true],
-            'relocation' => ['label' => 'Pindah Mitra', 'prefix' => 'relocation.', 'implemented' => true],
-            'supervisor_change' => ['label' => 'Perubahan Pembimbing', 'prefix' => 'supervisor_change.', 'implemented' => true],
-            'field_supervisor' => ['label' => 'Pembimbing Lapangan', 'prefix' => 'field_supervisor.', 'implemented' => true],
-            'submission_progress' => ['label' => 'Laporan', 'prefix' => 'submission_progress.', 'implemented' => false],
-            'seminar' => ['label' => 'Seminar', 'prefix' => 'seminar.', 'implemented' => false],
+            'enrollment' => [
+                'code' => 'EN-02',
+                'label' => 'Pendaftaran Program',
+                'prefix' => 'enrollment.',
+                'summary' => 'Pengajuan pendaftaran, validasi, penolakan, dan reminder pendaftaran pending.',
+                'implemented' => true,
+            ],
+            'place_proposal' => [
+                'code' => 'EN-03',
+                'label' => 'Usulan Mitra',
+                'prefix' => 'place_proposal.',
+                'summary' => 'Usulan mitra baru, keputusan review, dan pengingat usulan belum diproses.',
+                'implemented' => true,
+            ],
+            'orientation' => [
+                'code' => 'EN-04',
+                'label' => 'Pembekalan',
+                'prefix' => 'orientation.',
+                'summary' => 'Event dibuka, reminder H-1/jam dekat kegiatan, presensi berhasil, belum presensi, dan rekap penutupan.',
+                'implemented' => true,
+            ],
+            'attendance_digest' => [
+                'code' => 'EN-05',
+                'label' => 'Digest Presensi',
+                'prefix' => 'attendance_digest.',
+                'summary' => 'Digest mingguan mahasiswa dan ringkasan pola presensi bermasalah untuk pembimbing/koordinator.',
+                'implemented' => true,
+            ],
+            'submission_progress' => [
+                'code' => 'EN-06',
+                'label' => 'Laporan dan Deadline',
+                'prefix' => 'submission_progress.',
+                'summary' => 'Reminder H-7/H-3/H-1/hari H, upload, review, revisi, penolakan, sanksi, dan rekap admin.',
+                'implemented' => true,
+            ],
+            'supervisor_change' => [
+                'code' => 'EN-07',
+                'label' => 'Perubahan Pembimbing',
+                'prefix' => 'supervisor_change.',
+                'summary' => 'Pengajuan perubahan pembimbing, keputusan review, dan reminder pengajuan belum diproses.',
+                'implemented' => true,
+            ],
+            'relocation' => [
+                'code' => 'EN-08',
+                'label' => 'Pindah Mitra',
+                'prefix' => 'relocation.',
+                'summary' => 'Pengajuan pindah mitra, keputusan review, dan reminder pengajuan belum diproses.',
+                'implemented' => true,
+            ],
+            'field_supervisor' => [
+                'code' => 'EN-09',
+                'label' => 'Pembimbing Lapangan',
+                'prefix' => 'field_supervisor.',
+                'summary' => 'Token akses, reminder validasi catatan harian, Lupa Presensi, pengisian nilai, dan konfirmasi nilai.',
+                'implemented' => true,
+            ],
+            'assessment' => [
+                'code' => 'EN-10',
+                'label' => 'Penilaian dan Finalisasi',
+                'prefix' => 'assessment.',
+                'summary' => 'Reminder penilaian dosen, konfirmasi nilai, kelengkapan komponen nilai, dan kesiapan finalisasi.',
+                'implemented' => true,
+            ],
+            'operational' => [
+                'code' => 'EN-11',
+                'label' => 'Operasional Sistem',
+                'prefix' => 'operational.',
+                'summary' => 'Periode dibuat/dikunci, konfigurasi penting berubah, import selesai/gagal, dan error pengiriman.',
+                'implemented' => true,
+            ],
         ];
     }
 

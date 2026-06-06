@@ -2241,7 +2241,13 @@ Kontrol global:
 Cakupan notifikasi:
 
 - Admin dapat mengaktifkan/menonaktifkan workflow yang boleh membuat antrean email baru.
-- Workflow yang sudah tersedia: pendaftaran, usulan mitra, pindah mitra, perubahan pembimbing, dan pembimbing lapangan.
+- Workflow yang sudah tersedia: pendaftaran, usulan mitra, pindah mitra, perubahan pembimbing, pembimbing lapangan, pembekalan, digest presensi, laporan, penilaian, dan operasional.
+- Pembekalan mengirim email saat event dibuka, reminder sebelum kegiatan, reminder mendekati waktu tutup jika belum presensi, konfirmasi presensi berhasil, dan rekap hadir/tidak hadir kepada admin/koordinator setelah event ditutup.
+- Digest presensi dikirim mingguan, bukan setiap check-in/check-out. Mahasiswa menerima ringkasan presensi pribadi, sedangkan dosen pembimbing dan koordinator menerima daftar mahasiswa dengan pola presensi yang perlu perhatian.
+- Laporan mengirim email upload berhasil, hasil review, reminder deadline H-7/H-3/H-1/hari H, reminder review dosen, dan rekap admin/koordinator untuk laporan kosong, pending review, serta sanksi tertinggi.
+- Pembimbing Lapangan mengirim email token akses, token pengganti jika token lama kedaluwarsa, reminder validasi catatan harian, reminder pengajuan Lupa Presensi pending, reminder H-7/H-3/H-1 sebelum deadline Laporan Lengkap untuk validasi catatan dan nilai, reminder pengisian nilai, konfirmasi nilai tersimpan, dan alert admin/koordinator untuk nilai/token yang perlu ditindaklanjuti.
+- Penilaian mengirim email kepada dosen saat seminar dijadwalkan, reminder nilai seminar yang belum diisi, konfirmasi nilai tersimpan, serta alert admin/koordinator ketika nilai siap finalisasi atau belum lengkap mendekati akhir periode.
+- Operasional mengirim email kepada admin untuk perubahan periode, penguncian/penyelesaian periode, perubahan konfigurasi program, hasil import Firebase, kegagalan import, dan digest email gagal.
 - Workflow yang belum tersedia tampil sebagai referensi dan checkbox-nya tidak dapat diaktifkan.
 
 Mail server:
@@ -2446,6 +2452,8 @@ Menu **Mahasiswa Bimbingan** menampilkan mahasiswa terkait. Pada detail mahasisw
 | Penilaian dan Feedback | Mengisi nilai Pembimbing Lapangan, catatan untuk mahasiswa, rekomendasi mahasiswa, serta feedback untuk institusi/program studi. |
 
 Pada tab **Catatan Harian**, Pembimbing Lapangan dapat memvalidasi satu baris melalui tombol **Validasi** atau memilih beberapa baris dengan checkbox lalu klik **Validasi Terpilih** untuk validasi massal.
+
+Jika foto presensi tersedia, baris catatan harian menampilkan bagian **Foto audit presensi** untuk membuka foto masuk dan/atau pulang. Pengajuan Lupa Presensi pending juga menampilkan **Foto bukti Lupa Presensi** jika mahasiswa mengirim foto bukti.
 
 Validasi Lupa Presensi untuk Pembimbing Lapangan berada di:
 

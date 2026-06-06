@@ -6,6 +6,8 @@ use App\Models\CheckIn;
 use App\Models\FieldSupervisorAccessToken;
 use App\Models\FieldSupervisorAssessment;
 use App\Models\InternshipEnrollment;
+use App\Services\AssessmentEmailNotificationService;
+use App\Services\FieldSupervisorEmailNotificationService;
 use App\Services\PeriodConfigurationService;
 use Carbon\CarbonPeriod;
 use DateTimeInterface;
@@ -515,7 +517,7 @@ class FieldSupervisorPortalController extends Controller
         $performanceScore = $this->averageScores($scores, ['innovation', 'task_ability', 'seriousness']);
         $finalScore = round(($disciplineScore + $teamworkScore + $performanceScore) / 3, 2);
 
-        FieldSupervisorAssessment::query()->updateOrCreate(
+        $assessment = FieldSupervisorAssessment::query()->updateOrCreate(
             ['internship_enrollment_id' => $enrollment->id],
             [
                 'scores' => $scores,
@@ -534,6 +536,10 @@ class FieldSupervisorPortalController extends Controller
                 'assessed_at' => now(),
             ]
         );
+
+        $enrollment->setRelation('fieldSupervisorAssessment', $assessment);
+        app(FieldSupervisorEmailNotificationService::class)->assessmentStored($enrollment);
+        app(AssessmentEmailNotificationService::class)->fieldSupervisorScoreStored($enrollment);
     }
 
     private function averageScores(array $scores, array $keys): float
