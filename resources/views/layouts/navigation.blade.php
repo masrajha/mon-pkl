@@ -1,5 +1,6 @@
 @php
     $user = Auth::user();
+    $userAvatarUrl = \App\Support\PublicStorage::url($user->avatar_url);
     $actionRequiredSummary ??= [];
     $groups = [];
 
@@ -52,7 +53,6 @@
                 ['label' => 'Lupa Presensi', 'route' => 'management.forgotten-attendance-requests.index', 'icon' => 'fa-calendar-xmark', 'active' => ['management.forgotten-attendance-requests.*']],
                 ['label' => 'Finalisasi Nilai', 'route' => 'management.final-assessments.index', 'icon' => 'fa-calculator', 'active' => ['management.final-assessments.*']],
                 ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
-                ['label' => 'Rekap Prodi', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
             ],
         ];
     }
@@ -111,11 +111,24 @@
         ];
     }
 
+    if ($user->hasRole(['admin', 'koordinator'])) {
+        $groups[] = [
+            'label' => 'Analisis & Laporan',
+            'items' => [
+                ['label' => 'Progress Funnel', 'route' => 'reports.progress-funnel', 'icon' => 'fa-chart-simple', 'active' => ['reports.progress-funnel']],
+                ['label' => 'Rekap Monitoring', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
+            ],
+        ];
+    }
+
     $monitoringItems = [
         ['label' => 'Peta & Rute Mitra', 'route' => 'maps.places', 'icon' => 'fa-map', 'active' => ['maps.places']],
         ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
-        ['label' => 'Rekap Monitoring', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
     ];
+
+    if (! $user->hasRole(['admin', 'koordinator'])) {
+        $monitoringItems[] = ['label' => 'Rekap Monitoring', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']];
+    }
 
     if ($user->hasRole(['admin', 'dosen'])) {
         $monitoringItems[] = ['label' => 'Input Lokasi Mitra', 'route' => 'internship-places.create', 'icon' => 'fa-location-crosshairs', 'active' => ['internship-places.*']];
@@ -201,8 +214,12 @@
                 </span>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-sm font-semibold text-blue-800 shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            {{ strtoupper(Str::substr($user->name, 0, 1)) }}
+                        <button class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white text-sm font-semibold text-blue-800 shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            @if ($userAvatarUrl)
+                                <img src="{{ $userAvatarUrl }}" alt="Foto profil {{ $user->name }}" class="h-full w-full object-cover">
+                            @else
+                                {{ strtoupper(Str::substr($user->name, 0, 1)) }}
+                            @endif
                         </button>
                     </x-slot>
                     <x-slot name="content">
@@ -264,8 +281,17 @@
             </nav>
 
             <div class="border-t border-gray-200 p-4">
-                <p class="font-semibold text-gray-900">{{ $user->name }}</p>
-                <p class="text-sm text-gray-500">{{ $user->email }}</p>
+                <div class="flex items-center gap-3">
+                    @if ($userAvatarUrl)
+                        <img src="{{ $userAvatarUrl }}" alt="Foto profil {{ $user->name }}" class="h-10 w-10 rounded-full object-cover">
+                    @else
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-sm font-semibold text-blue-700">{{ strtoupper(Str::substr($user->name, 0, 1)) }}</div>
+                    @endif
+                    <div class="min-w-0">
+                        <p class="truncate font-semibold text-gray-900">{{ $user->name }}</p>
+                        <p class="truncate text-sm text-gray-500">{{ $user->email }}</p>
+                    </div>
+                </div>
             </div>
         </aside>
     </div>

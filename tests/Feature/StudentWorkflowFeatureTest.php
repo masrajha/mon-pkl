@@ -322,9 +322,14 @@ class StudentWorkflowFeatureTest extends TestCase
             'duration_minutes' => 480,
         ]);
 
+        Storage::fake('public');
+        Storage::disk('public')->put('profile-photos/report-print.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII='));
+        $user->forceFill(['avatar_url' => 'profile-photos/report-print.png'])->save();
+
         $this->actingAs($user)
             ->get(route('student.reports.print', $enrollment))
             ->assertOk()
+            ->assertSee(route('media.public', ['path' => 'profile-photos/report-print.png']))
             ->assertSee('Grafik Kehadiran')
             ->assertSee('Jam Masuk')
             ->assertSee('Jam Pulang')

@@ -910,14 +910,22 @@ function renderMonitoringTable(tableBody, checkIns, onSelect) {
     checkIns.forEach((checkIn) => {
         const row = document.createElement('tr');
         const distance = checkIn.distance_meters === null ? '-' : `${Number(checkIn.distance_meters).toLocaleString('id-ID')} m`;
+        const photo = checkIn.photo_url
+            ? `<img src="${escapeHtml(checkIn.photo_url)}" alt="Foto presensi ${escapeHtml(checkIn.student?.name || '')}" class="rounded-md border border-gray-200 object-cover" style="max-width:20%;height:auto;">`
+            : '<div class="flex h-14 w-14 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 text-[10px] font-semibold uppercase text-gray-400">Foto</div>';
 
         row.dataset.checkInId = checkIn.id;
         row.className = 'cursor-pointer transition hover:bg-blue-50';
         row.innerHTML = `
             <td class="silat-table-cell">
-                <div class="font-medium text-gray-900">${escapeHtml(checkIn.student?.name || '-')}</div>
-                <div class="text-xs text-gray-500">${escapeHtml(checkIn.student?.npm || '-')} &middot; ${escapeHtml(checkIn.place?.name || '-')}</div>
-                <div class="text-xs text-gray-500">${escapeHtml(checkIn.period || '-')}</div>
+                <div class="flex items-start gap-3">
+                    ${photo}
+                    <div class="min-w-0">
+                        <div class="font-medium text-gray-900">${escapeHtml(checkIn.student?.name || '-')}</div>
+                        <div class="text-xs text-gray-500">${escapeHtml(checkIn.student?.npm || '-')} &middot; ${escapeHtml(checkIn.place?.name || '-')}</div>
+                        <div class="text-xs text-gray-500">${escapeHtml(checkIn.period || '-')}</div>
+                    </div>
+                </div>
             </td>
             <td class="silat-table-cell">
                 <span class="inline-flex rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">${escapeHtml(checkIn.type || '-')}</span>
@@ -1018,9 +1026,13 @@ function placePopup(props) {
 
 function checkInPopup(checkIn) {
     const distance = checkIn.distance_meters === null ? '-' : `${Number(checkIn.distance_meters).toLocaleString('id-ID')} m`;
+    const photo = checkIn.photo_url
+        ? `<a href="${escapeHtml(checkIn.photo_url)}" target="_blank" rel="noopener" class="mt-2 block"><img src="${escapeHtml(checkIn.photo_url)}" alt="Foto presensi ${escapeHtml(checkIn.student?.name || '')}" style="max-width:20%;height:auto;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></a>`
+        : '';
 
     return `
         <div class="monpkl-popup">
+            ${photo}
             <strong>${escapeHtml(checkIn.student?.name || '-')}</strong>
             <span>${escapeHtml(checkIn.student?.npm || '-')}</span>
             <span>${escapeHtml(checkIn.type || '-')} - ${formatDate(checkIn.checked_at)}</span>

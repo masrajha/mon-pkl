@@ -6,7 +6,7 @@
         }
 
         if (filled($record->photo_path ?? null)) {
-            return \Illuminate\Support\Facades\Storage::disk('public')->url($record->photo_path);
+            return \App\Support\PublicStorage::url($record->photo_path);
         }
 
         return filled($record->source_photo_url ?? null) ? $record->source_photo_url : null;

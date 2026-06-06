@@ -68,6 +68,85 @@ class ReportController extends Controller
         ]);
     }
 
+    public function progressFunnel(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+
+        $baseQuery = InternshipEnrollment::query()
+            ->with(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace'])
+            ->whereIn('status', ['active', 'completed']);
+
+        $this->scopeEnrollments($baseQuery, $request);
+
+        $total = (clone $baseQuery)->count();
+        $stageDefinitions = $this->progressFunnelStages();
+        $previousCount = null;
+
+        $stages = collect($stageDefinitions)
+            ->map(function (array $stage) use ($baseQuery, $total, &$previousCount): array {
+                $query = clone $baseQuery;
+                ($stage['constraint'])($query);
+
+                $count = $query->count();
+                $dropFromPrevious = $previousCount === null ? 0 : max(0, $previousCount - $count);
+                $conversionFromPrevious = $previousCount === null || $previousCount === 0
+                    ? 100
+                    : round(($count / $previousCount) * 100, 1);
+                $previousCount = $count;
+
+                return [
+                    'key' => $stage['key'],
+                    'label' => $stage['label'],
+                    'description' => $stage['description'],
+                    'count' => $count,
+                    'percent_of_total' => $total > 0 ? round(($count / $total) * 100, 1) : 0,
+                    'conversion_from_previous' => $conversionFromPrevious,
+                    'drop_from_previous' => $dropFromPrevious,
+                ];
+            })
+            ->values();
+
+        $bottleneck = $stages
+            ->skip(1)
+            ->sortByDesc('drop_from_previous')
+            ->first();
+
+        $breakdownRows = StudyProgram::query()
+            ->whereIn('id', (clone $baseQuery)->select('study_program_id')->distinct())
+            ->orderBy('name')
+            ->get()
+            ->map(function (StudyProgram $studyProgram) use ($baseQuery): array {
+                $studyProgramQuery = (clone $baseQuery)->where('study_program_id', $studyProgram->id);
+                $total = (clone $studyProgramQuery)->count();
+
+                return [
+                    'name' => $studyProgram->name,
+                    'total' => $total,
+                    'active_attendance' => $this->countStage($studyProgramQuery, 'active_attendance'),
+                    'full_report' => $this->countStage($studyProgramQuery, 'full_report'),
+                    'seminar' => $this->countStage($studyProgramQuery, 'seminar'),
+                    'lecturer_score' => $this->countStage($studyProgramQuery, 'lecturer_score'),
+                    'field_supervisor_score' => $this->countStage($studyProgramQuery, 'field_supervisor_score'),
+                    'final_score' => $this->countStage($studyProgramQuery, 'final_score'),
+                ];
+            })
+            ->filter(fn (array $row): bool => $row['total'] > 0)
+            ->values();
+
+        return view('reports.progress-funnel', [
+            'periods' => $periods,
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'stages' => $stages,
+            'total' => $total,
+            'bottleneck' => $bottleneck,
+            'breakdownRows' => $breakdownRows,
+        ]);
+    }
+
     private function periodOptions(Request $request): array
     {
         $user = $request->user();
@@ -204,28 +283,42 @@ class ReportController extends Controller
             return $query;
         }
 
-        if ($user?->hasRole('dosen')) {
+        if ($user?->hasRole(['dosen', 'koordinator'])) {
             $coordinatorAssignments = $user->lecturer?->coordinatorAssignments()
                 ->where('status', 'active')
                 ->get(['internship_period_id', 'study_program_id']) ?? collect();
 
             return $query->where(function (Builder $query) use ($user, $coordinatorAssignments): void {
-                $query->where(function (Builder $query) use ($user): void {
-                    if ($user->lecturer?->id) {
-                        $query->where('lecturer_supervisor_id', $user->lecturer->id);
-                    }
+                $hasCondition = false;
 
-                    $query->orWhere('lecturer_supervisor_user_id', $user->id)
-                        ->orWhere('lecturer_supervisor', $user->name)
-                        ->orWhere('lecturer_supervisor', $user->email);
-                });
+                if ($user->role === 'dosen') {
+                    $query->where(function (Builder $query) use ($user): void {
+                        if ($user->lecturer?->id) {
+                            $query->where('lecturer_supervisor_id', $user->lecturer->id);
+                        }
 
-                $coordinatorAssignments->each(function ($assignment) use ($query): void {
-                    $query->orWhere(function (Builder $query) use ($assignment): void {
+                        $query->orWhere('lecturer_supervisor_user_id', $user->id)
+                            ->orWhere('lecturer_supervisor', $user->name)
+                            ->orWhere('lecturer_supervisor', $user->email);
+                    });
+
+                    $hasCondition = true;
+                }
+
+                $coordinatorAssignments->each(function ($assignment) use ($query, &$hasCondition): void {
+                    $method = $hasCondition ? 'orWhere' : 'where';
+
+                    $query->{$method}(function (Builder $query) use ($assignment): void {
                         $query->where('internship_period_id', $assignment->internship_period_id)
                             ->where('study_program_id', $assignment->study_program_id);
                     });
+
+                    $hasCondition = true;
                 });
+
+                if (! $hasCondition) {
+                    $query->whereRaw('1 = 0');
+                }
             });
         }
 
@@ -285,5 +378,71 @@ class ReportController extends Controller
         }
 
         return gmdate('H:i:s', (int) $seconds);
+    }
+
+    private function progressFunnelStages(): array
+    {
+        return [
+            [
+                'key' => 'approved',
+                'label' => 'Pendaftaran Disetujui',
+                'description' => 'Enrollment berstatus aktif atau selesai.',
+                'constraint' => fn (Builder $query) => $query,
+            ],
+            [
+                'key' => 'active_attendance',
+                'label' => 'Presensi Aktif',
+                'description' => 'Peserta sudah memiliki minimal satu data presensi.',
+                'constraint' => fn (Builder $query) => $query->whereHas('checkIns'),
+            ],
+            [
+                'key' => 'full_report',
+                'label' => 'Laporan Lengkap',
+                'description' => 'Laporan akhir sudah disetujui.',
+                'constraint' => fn (Builder $query) => $query->whereHas('submissionProgress', fn (Builder $progress) => $progress
+                    ->where('deadline_type', 'full_report')
+                    ->where('status', 'approved')),
+            ],
+            [
+                'key' => 'seminar',
+                'label' => 'Seminar Dijadwalkan/Selesai',
+                'description' => 'Seminar sudah dijadwalkan atau selesai.',
+                'constraint' => fn (Builder $query) => $query->whereHas('seminarRequests', fn (Builder $seminar) => $seminar
+                    ->where(function (Builder $seminar): void {
+                        $seminar->whereIn('status', ['scheduled', 'completed'])
+                            ->orWhereNotNull('scheduled_at')
+                            ->orWhereNotNull('completed_at');
+                    })),
+            ],
+            [
+                'key' => 'lecturer_score',
+                'label' => 'Nilai Dosen Masuk',
+                'description' => 'Nilai seminar/laporan dari dosen sudah tersimpan.',
+                'constraint' => fn (Builder $query) => $query->whereHas('seminarRequests', fn (Builder $seminar) => $seminar->whereNotNull('seminar_score')),
+            ],
+            [
+                'key' => 'field_supervisor_score',
+                'label' => 'Nilai Pembimbing Lapangan Masuk',
+                'description' => 'Form nilai pembimbing lapangan sudah dikirim.',
+                'constraint' => fn (Builder $query) => $query->whereHas('fieldSupervisorAssessment', fn (Builder $assessment) => $assessment->whereNotNull('final_score')),
+            ],
+            [
+                'key' => 'final_score',
+                'label' => 'Nilai Final',
+                'description' => 'Finalisasi nilai sudah disahkan.',
+                'constraint' => fn (Builder $query) => $query->whereHas('finalAssessment', fn (Builder $assessment) => $assessment
+                    ->whereNotNull('final_score')
+                    ->whereNotNull('finalized_at')),
+            ],
+        ];
+    }
+
+    private function countStage(Builder $query, string $stageKey): int
+    {
+        $stage = collect($this->progressFunnelStages())->firstWhere('key', $stageKey);
+        $stageQuery = clone $query;
+        ($stage['constraint'])($stageQuery);
+
+        return $stageQuery->count();
     }
 }

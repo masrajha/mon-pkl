@@ -19,6 +19,8 @@
         ['patterns' => ['management.programs.*'], 'group' => 'Master Data', 'label' => 'Program Kegiatan'],
         ['patterns' => ['management.periods.*'], 'group' => 'Master Data', 'label' => 'Periode Program'],
         ['patterns' => ['management.places.*'], 'group' => 'Master Data', 'label' => 'Mitra'],
+        ['patterns' => ['reports.progress-funnel'], 'group' => 'Analisis & Laporan', 'label' => 'Progress Funnel'],
+        ['patterns' => ['reports.monitoring'], 'group' => 'Analisis & Laporan', 'label' => 'Rekap Monitoring'],
         ['patterns' => ['system-configurations.*'], 'group' => 'Konfigurasi', 'label' => 'Konfigurasi Program'],
         ['patterns' => ['email-notifications.*'], 'group' => 'Konfigurasi', 'label' => 'Email & Notifikasi'],
     ];

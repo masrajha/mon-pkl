@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Management;
 
+use App\Http\Controllers\Concerns\ManagesUserAvatar;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\User;
@@ -13,6 +14,7 @@ use Illuminate\View\View;
 class UserController extends Controller
 {
     use InteractsWithTableControls;
+    use ManagesUserAvatar;
 
     public function index(Request $request): View
     {
@@ -40,7 +42,9 @@ class UserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        User::query()->create($this->validated($request));
+        $user = new User($this->validated($request));
+        $this->applyAvatarInput($request, $user);
+        $user->save();
 
         return back()->with('status', 'User berhasil ditambahkan.');
     }
@@ -52,7 +56,9 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
-        $user->update($this->validated($request, $user));
+        $user->fill($this->validated($request, $user));
+        $this->applyAvatarInput($request, $user);
+        $user->save();
 
         return redirect()->route('management.users.index')->with('status', 'User berhasil diperbarui.');
     }
@@ -66,7 +72,11 @@ class UserController extends Controller
                 ? ['admin', 'dosen', 'mahasiswa', 'pembimbing_lapangan']
                 : ['admin', 'dosen', 'mahasiswa'])],
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:8'],
+            'avatar_photo' => ['nullable', 'image', 'max:2048'],
+            'remove_avatar' => ['nullable', 'boolean'],
         ]);
+
+        unset($data['avatar_photo'], $data['remove_avatar']);
 
         if (empty($data['password'])) {
             unset($data['password']);

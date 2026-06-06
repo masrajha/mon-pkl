@@ -32,6 +32,7 @@ use App\Http\Controllers\Management\SupervisorChangeRequestController as Managem
 use App\Http\Controllers\Management\UserController as ManagementUserController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicStorageFileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\EnrollmentController as StudentEnrollmentController;
@@ -174,6 +175,10 @@ Route::get('/verify/final-assessments/{token}', [FinalAssessmentVerificationCont
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/media/public/{path}', PublicStorageFileController::class)
+        ->where('path', '.*')
+        ->name('media.public');
+
     Route::get('/maps/places', [MapController::class, 'places'])->name('maps.places');
     Route::get('/maps/places/data', [MapController::class, 'placesData'])->name('maps.places.data');
     Route::get('/maps/places/route', [MapController::class, 'placesRoute'])->name('maps.places.route');
@@ -240,6 +245,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:admin,koordinator')->group(function () {
+        Route::get('/reports/progress-funnel', [ReportController::class, 'progressFunnel'])->name('reports.progress-funnel');
         Route::get('/management/enrollment-validations', [ManagementEnrollmentController::class, 'validations'])->name('management.enrollment-validations.index');
         Route::post('/management/enrollment-validations/bulk', [ManagementEnrollmentController::class, 'bulkValidateEnrollments'])->name('management.enrollment-validations.bulk');
         Route::get('/management/enrollment-validations/{enrollment}/registration-document', [ManagementEnrollmentController::class, 'registrationDocument'])->name('management.enrollment-validations.document');

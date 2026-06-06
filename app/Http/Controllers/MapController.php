@@ -10,6 +10,7 @@ use App\Models\InternshipPlace;
 use App\Models\StudyProgram;
 use App\Services\MapRouteService;
 use App\Services\PeriodConfigurationService;
+use App\Support\PublicStorage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -107,6 +108,7 @@ class MapController extends Controller
                 'id' => $checkIn->id,
                 'type' => $checkIn->type,
                 'note' => $checkIn->note,
+                'photo_url' => PublicStorage::url($checkIn->photo_path),
                 'checked_at' => $checkIn->checked_at?->toIso8601String(),
                 'distance_meters' => $checkIn->distance_meters,
                 'student' => [

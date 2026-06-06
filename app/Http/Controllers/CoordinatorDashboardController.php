@@ -8,13 +8,17 @@ use App\Models\InternshipEnrollment;
 use App\Models\OrientationEvent;
 use App\Models\PeriodDeadline;
 use App\Services\ActionRequiredSummaryService;
+use App\Services\ParticipantProgressDashboardService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CoordinatorDashboardController extends Controller
 {
-    public function __construct(private readonly ActionRequiredSummaryService $actions)
+    public function __construct(
+        private readonly ActionRequiredSummaryService $actions,
+        private readonly ParticipantProgressDashboardService $progressDashboard,
+    )
     {
     }
 
@@ -119,6 +123,7 @@ class CoordinatorDashboardController extends Controller
             'highestSanctions' => $highestSanctions,
             'orientationEvents' => $orientationEvents,
             'importantDeadlines' => $this->importantDeadlinesForAssignments($assignments),
+            'participantProgress' => $this->progressDashboard->build($request, $request->user()),
             'actionRequiredSummary' => $this->actions->forUser($request->user()),
         ]);
     }

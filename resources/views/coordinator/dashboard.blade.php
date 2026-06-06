@@ -35,6 +35,8 @@
 
         @include('management.partials.action-required', ['summary' => $actionRequiredSummary])
 
+        @include('management.partials.participant-progress-dashboard', ['participantProgress' => $participantProgress])
+
         @include('partials.important-deadlines', [
             'deadlines' => $importantDeadlines,
             'title' => 'Deadline Scope Koordinator',

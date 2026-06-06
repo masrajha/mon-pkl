@@ -14,15 +14,20 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
 use App\Services\ActionRequiredSummaryService;
+use App\Services\ParticipantProgressDashboardService;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __construct(private readonly ActionRequiredSummaryService $actions)
+    public function __construct(
+        private readonly ActionRequiredSummaryService $actions,
+        private readonly ParticipantProgressDashboardService $progressDashboard,
+    )
     {
     }
 
-    public function __invoke(): View
+    public function __invoke(Request $request): View
     {
         $activeEnrollments = InternshipEnrollment::query()->where('status', 'active')->count();
         $todayCheckIns = CheckIn::query()
@@ -79,7 +84,8 @@ class DashboardController extends Controller
                 ->limit(4)
                 ->get(),
             'orientationEvents' => $orientationEvents,
-            'actionRequiredSummary' => $this->actions->forUser(request()->user()),
+            'participantProgress' => $this->progressDashboard->build($request, $request->user()),
+            'actionRequiredSummary' => $this->actions->forUser($request->user()),
         ]);
     }
 }

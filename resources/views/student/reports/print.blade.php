@@ -15,6 +15,9 @@
         td.bg-success, span.bg-success { background: #16a34a; color: #ffffff; font-weight: 700; }
         td.bg-warning, span.bg-warning { background: #f59e0b; color: #111827; font-weight: 700; }
         td.bg-danger, span.bg-danger { background: #dc2626; color: #ffffff; font-weight: 700; }
+        .identity { margin-top: 18px; display: grid; grid-template-columns: 92px 1fr; gap: 18px; align-items: start; }
+        .profile-photo { width: 88px; height: 112px; border: 1px solid #d1d5db; object-fit: cover; }
+        .profile-placeholder { width: 88px; height: 112px; border: 1px solid #d1d5db; display: flex; align-items: center; justify-content: center; background: #f3f4f6; color: #64748b; font-size: 28px; font-weight: 700; }
         .meta { margin-top: 16px; display: grid; grid-template-columns: 180px 1fr; gap: 6px; font-size: 13px; }
         .charts { margin-top: 28px; display: grid; gap: 18px; }
         .chart { width: 100%; height: 260px; border: 1px solid #e5e7eb; border-radius: 8px; }
@@ -26,6 +29,7 @@
 </head>
 <body>
     @php
+        $studentPhotoUrl = \App\Support\PublicStorage::url($enrollment->student?->user?->avatar_url);
         $chartRows = $attendanceRows->map(function (array $row) {
             $checkIn = $row['check_in'];
             $checkOut = $row['check_out'];
@@ -49,13 +53,23 @@
     <button onclick="window.print()">Cetak</button>
     <h1>Laporan Monitoring Program</h1>
     <p>{{ $enrollment->internshipPeriod?->display_name }} &middot; {{ $enrollment->studyProgram?->name }}</p>
-    <div class="meta">
-        <strong>Mahasiswa</strong><span>{{ $enrollment->student?->full_name }} / {{ $enrollment->student?->npm }}</span>
-        <strong>Mitra</strong><span>{{ $enrollment->internshipPlace?->name }}</span>
-        <strong>Alamat</strong><span>{{ $enrollment->internshipPlace?->address }}</span>
-        <strong>Dosen Pembimbing</strong><span>{{ $enrollment->lecturer?->name }}</span>
-        <strong>Pembimbing Lapangan</strong><span>{{ $enrollment->field_supervisor }}</span>
-        <strong>Email Pembimbing Lapangan</strong><span>{{ $enrollment->field_supervisor_email ?: '-' }}</span>
+
+    <div class="identity">
+        <div>
+            @if ($studentPhotoUrl)
+                <img src="{{ $studentPhotoUrl }}" alt="Foto {{ $enrollment->student?->full_name }}" class="profile-photo">
+            @else
+                <div class="profile-placeholder">{{ Str::of($enrollment->student?->full_name ?: 'M')->substr(0, 1)->upper() }}</div>
+            @endif
+        </div>
+        <div class="meta">
+            <strong>Mahasiswa</strong><span>{{ $enrollment->student?->full_name }} / {{ $enrollment->student?->npm }}</span>
+            <strong>Mitra</strong><span>{{ $enrollment->internshipPlace?->name }}</span>
+            <strong>Alamat</strong><span>{{ $enrollment->internshipPlace?->address }}</span>
+            <strong>Dosen Pembimbing</strong><span>{{ $enrollment->lecturer?->name }}</span>
+            <strong>Pembimbing Lapangan</strong><span>{{ $enrollment->field_supervisor }}</span>
+            <strong>Email Pembimbing Lapangan</strong><span>{{ $enrollment->field_supervisor_email ?: '-' }}</span>
+        </div>
     </div>
     <h2>Grafik Kehadiran</h2>
     @if ($attendanceRows->isNotEmpty())

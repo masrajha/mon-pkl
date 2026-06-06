@@ -3,11 +3,16 @@
 namespace Tests\Feature;
 
 use App\Models\CheckIn;
+use App\Models\FieldSupervisorAssessment;
+use App\Models\FinalAssessment;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
+use App\Models\Program;
+use App\Models\SeminarRequest;
 use App\Models\Student;
 use App\Models\StudyProgram;
+use App\Models\SubmissionProgress;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -124,5 +129,114 @@ class MonitoringReportTest extends TestCase
             ->assertOk()
             ->assertSee('Instansi Lama')
             ->assertDontSee('Instansi Aktif');
+    }
+
+    public function test_admin_can_access_progress_funnel_report(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $studyProgram = StudyProgram::query()->firstOrCreate(['code' => 'ILKOM'], ['name' => 'S1 Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Juni 2026',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+            'is_active' => true,
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Funnel']);
+
+        $completeEnrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051002', 'Mahasiswa Lengkap');
+        $stalledEnrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051003', 'Mahasiswa Tertahan');
+
+        $checkIn = CheckIn::query()->create([
+            'internship_enrollment_id' => $completeEnrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-02 08:00:00',
+        ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $completeEnrollment->id,
+            'type' => 'Pulang',
+            'action' => 'check_out',
+            'pair_id' => $checkIn->id,
+            'checked_at' => '2026-06-02 16:00:00',
+        ]);
+        SubmissionProgress::query()->create([
+            'internship_enrollment_id' => $completeEnrollment->id,
+            'deadline_type' => 'full_report',
+            'file_path' => 'reports/full.pdf',
+            'uploaded_at' => now(),
+            'status' => 'approved',
+        ]);
+        SeminarRequest::query()->create([
+            'internship_enrollment_id' => $completeEnrollment->id,
+            'title' => 'Seminar Funnel',
+            'status' => 'completed',
+            'scheduled_at' => now(),
+            'completed_at' => now(),
+            'seminar_score' => 82,
+        ]);
+        FieldSupervisorAssessment::query()->create([
+            'internship_enrollment_id' => $completeEnrollment->id,
+            'scores' => [],
+            'discipline_score' => 84,
+            'teamwork_score' => 84,
+            'performance_score' => 84,
+            'final_score' => 84,
+            'assessed_by_name' => 'Pembimbing Lapangan',
+            'assessed_by_email' => 'pl@example.test',
+            'assessment_mode' => 'login',
+            'assessed_at' => now(),
+        ]);
+        FinalAssessment::query()->create([
+            'internship_enrollment_id' => $completeEnrollment->id,
+            'lecturer_score' => 82,
+            'field_supervisor_score' => 84,
+            'base_score' => 83,
+            'final_score' => 83,
+            'finalized_by' => $admin->id,
+            'finalized_at' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('reports.progress-funnel', ['period_id' => $period->id]));
+
+        $response->assertOk()
+            ->assertSee('Progress Funnel Pelaksanaan')
+            ->assertSee('Pendaftaran Disetujui')
+            ->assertSee('Presensi Aktif')
+            ->assertSee('Laporan Lengkap')
+            ->assertSee('Nilai Pembimbing Lapangan Masuk')
+            ->assertSee('Nilai Final')
+            ->assertSee('1 peserta belum mencapai tahap ini')
+            ->assertSee('S1 Ilmu Komputer');
+    }
+
+    public function test_student_cannot_access_progress_funnel_report(): void
+    {
+        $student = User::factory()->create(['role' => 'mahasiswa']);
+
+        $this->actingAs($student)
+            ->get(route('reports.progress-funnel'))
+            ->assertForbidden();
+    }
+
+    private function createFunnelEnrollment(StudyProgram $studyProgram, InternshipPeriod $period, InternshipPlace $place, string $npm, string $name): InternshipEnrollment
+    {
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        $student = Student::query()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $studyProgram->id,
+            'npm' => $npm,
+            'full_name' => $name,
+        ]);
+
+        return InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $studyProgram->id,
+            'internship_period_id' => $period->id,
+            'internship_place_id' => $place->id,
+            'status' => 'active',
+        ]);
     }
 }

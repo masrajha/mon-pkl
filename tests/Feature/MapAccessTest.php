@@ -95,6 +95,7 @@ class MapAccessTest extends TestCase
             'checked_at' => '2026-03-02 08:00:00',
             'student_latitude' => -5.3972,
             'student_longitude' => 105.2669,
+            'photo_path' => 'check-in-photos/map-presensi.jpg',
         ]);
         $excluded = CheckIn::query()->create([
             'internship_enrollment_id' => $enrollment->id,
@@ -112,6 +113,7 @@ class MapAccessTest extends TestCase
             ]))
             ->assertOk()
             ->assertJsonPath('check_ins.0.id', $included->id)
+            ->assertJsonPath('check_ins.0.photo_url', route('media.public', ['path' => 'check-in-photos/map-presensi.jpg']))
             ->assertJsonMissing(['id' => $excluded->id]);
     }
 

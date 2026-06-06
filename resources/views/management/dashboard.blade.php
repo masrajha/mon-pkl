@@ -36,6 +36,8 @@
 
             @include('management.partials.action-required', ['summary' => $actionRequiredSummary])
 
+            @include('management.partials.participant-progress-dashboard', ['participantProgress' => $participantProgress])
+
             <section class="silat-card border-l-4 border-l-red-500">
                 <div class="silat-section-header">
                     <div class="flex items-center gap-3">

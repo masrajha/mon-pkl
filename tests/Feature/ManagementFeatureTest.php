@@ -25,7 +25,11 @@ class ManagementFeatureTest extends TestCase
     {
         $admin = User::factory()->create(['role' => 'admin']);
 
-        $this->actingAs($admin)->get(route('management.dashboard'))->assertOk();
+        $this->actingAs($admin)->get(route('management.dashboard'))
+            ->assertOk()
+            ->assertSee('Dashboard Progres Peserta Kegiatan')
+            ->assertSee('Presensi Belum Lengkap')
+            ->assertSee('Nilai Belum Lengkap');
         $this->actingAs($admin)->get(route('management.users.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.students.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.lecturers.index'))->assertOk();
@@ -416,7 +420,11 @@ class ManagementFeatureTest extends TestCase
         ]);
         $this->assertTrue($lecturerUser->fresh()->hasRole('dosen'));
         $this->assertTrue($lecturerUser->fresh()->hasRole('koordinator'));
-        $this->actingAs($lecturerUser)->get(route('coordinator.dashboard'))->assertOk();
+        $this->actingAs($lecturerUser)->get(route('coordinator.dashboard'))
+            ->assertOk()
+            ->assertSee('Dashboard Progres Peserta Kegiatan')
+            ->assertSee('Catatan Harian Belum Divalidasi')
+            ->assertSee('Seminar Belum Diajukan');
     }
 
     public function test_admin_can_complete_period_and_complete_active_enrollments(): void
