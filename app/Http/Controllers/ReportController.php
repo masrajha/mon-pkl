@@ -413,6 +413,188 @@ class ReportController extends Controller
         ]);
     }
 
+    public function sanctions(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        [$startDate, $endDate] = $this->dateRange($request, $selectedPeriod);
+
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'checkIns' => fn ($query) => $query
+                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->where('sanction_points', '>', 0)
+                    ->orderBy('checked_at'),
+                'submissionProgress' => fn ($query) => $query
+                    ->where('sanction_points', '>', 0)
+                    ->whereBetween('uploaded_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->orderBy('uploaded_at'),
+                'sanctions' => fn ($query) => $query
+                    ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orderBy('date'),
+                'finalAssessment',
+            ]);
+
+        $this->scopeEnrollments($query, $request);
+
+        $rows = $query->get()
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->sanctionReportRow($enrollment, $startDate, $endDate))
+            ->filter(fn (array $row): bool => $row['total'] > 0 || ! $request->boolean('only_with_sanctions', true))
+            ->sortByDesc('total')
+            ->values();
+
+        $totals = [
+            'students' => $rows->count(),
+            'attendance' => $rows->sum('attendance_sanctions'),
+            'reports' => $rows->sum('report_sanctions'),
+            'final_deduction' => $rows->sum('final_deduction'),
+            'total' => $rows->sum('total'),
+        ];
+
+        return view('reports.sanctions', [
+            'periods' => $periods,
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'startDate' => $startDate->toDateString(),
+            'endDate' => $endDate->toDateString(),
+            'onlyWithSanctions' => $request->boolean('only_with_sanctions', true),
+            'rows' => $rows,
+            'totals' => $totals,
+        ]);
+    }
+
+    public function finalScores(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        $status = $request->string('status')->toString();
+
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'lecturerSupervisor',
+                'finalAssessment',
+                'fieldSupervisorAssessment',
+                'seminarRequests' => fn ($query) => $query->latest('scheduled_at'),
+            ])
+            ->whereIn('status', ['active', 'completed']);
+
+        $this->scopeEnrollments($query, $request);
+
+        $rows = $query->get()
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->finalScoreReportRow($enrollment))
+            ->when($status === 'finalized', fn (Collection $rows): Collection => $rows->where('is_final', true)->values())
+            ->when($status === 'pending', fn (Collection $rows): Collection => $rows->where('is_final', false)->values())
+            ->sortBy([
+                ['is_final', 'asc'],
+                ['student', 'asc'],
+            ])
+            ->values();
+
+        $totals = [
+            'students' => $rows->count(),
+            'finalized' => $rows->where('is_final', true)->count(),
+            'pending' => $rows->where('is_final', false)->count(),
+            'average_final_score' => round((float) $rows->where('is_final', true)->pluck('final_score')->filter(fn ($score) => $score !== null)->avg(), 2),
+        ];
+
+        return view('reports.final-scores', [
+            'periods' => $periods,
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedStatus' => $status,
+            'rows' => $rows,
+            'totals' => $totals,
+        ]);
+    }
+
+    private function sanctionReportRow(InternshipEnrollment $enrollment, Carbon $startDate, Carbon $endDate): array
+    {
+        $attendanceSanctions = (float) $enrollment->checkIns->sum('sanction_points');
+        $reportSanctions = (float) max(
+            $enrollment->sanctions->sum('points_deducted'),
+            $enrollment->submissionProgress->sum('sanction_points'),
+        );
+        $finalAssessment = $enrollment->finalAssessment;
+        $finalDeduction = $finalAssessment?->finalized_at
+            && $finalAssessment->finalized_at->betweenIncluded($startDate->copy()->startOfDay(), $endDate->copy()->endOfDay())
+                ? (float) $finalAssessment->final_deduction
+                : 0.0;
+
+        return [
+            'enrollment' => $enrollment,
+            'student' => $enrollment->student?->full_name ?: '-',
+            'npm' => $enrollment->student?->npm ?: '-',
+            'study_program' => $enrollment->studyProgram?->name ?: '-',
+            'period' => $enrollment->internshipPeriod?->display_name ?: '-',
+            'place' => $enrollment->internshipPlace?->name ?: '-',
+            'attendance_sanctions' => $attendanceSanctions,
+            'report_sanctions' => $reportSanctions,
+            'final_deduction' => $finalDeduction,
+            'total' => $attendanceSanctions + $reportSanctions + $finalDeduction,
+            'attendance_count' => $enrollment->checkIns->count(),
+            'report_count' => max($enrollment->sanctions->count(), $enrollment->submissionProgress->count()),
+            'finalized_at' => $finalAssessment?->finalized_at,
+        ];
+    }
+
+    private function finalScoreReportRow(InternshipEnrollment $enrollment): array
+    {
+        $finalAssessment = $enrollment->finalAssessment;
+        $latestSeminar = $enrollment->seminarRequests
+            ->whereNotNull('seminar_score')
+            ->sortByDesc('scored_at')
+            ->sortByDesc('completed_at')
+            ->first();
+        $finalScore = $finalAssessment?->final_score !== null ? (float) $finalAssessment->final_score : null;
+
+        return [
+            'enrollment' => $enrollment,
+            'student' => $enrollment->student?->full_name ?: '-',
+            'npm' => $enrollment->student?->npm ?: '-',
+            'study_program' => $enrollment->studyProgram?->name ?: '-',
+            'period' => $enrollment->internshipPeriod?->display_name ?: '-',
+            'place' => $enrollment->internshipPlace?->name ?: '-',
+            'lecturer' => $enrollment->lecturerSupervisor?->name ?: $enrollment->lecturer_supervisor ?: '-',
+            'lecturer_score' => $finalAssessment?->lecturer_score !== null
+                ? (float) $finalAssessment->lecturer_score
+                : ($latestSeminar?->seminar_score !== null ? (float) $latestSeminar->seminar_score : null),
+            'field_supervisor_score' => $finalAssessment?->field_supervisor_score !== null
+                ? (float) $finalAssessment->field_supervisor_score
+                : ($enrollment->fieldSupervisorAssessment?->final_score !== null ? (float) $enrollment->fieldSupervisorAssessment->final_score : null),
+            'base_score' => $finalAssessment?->base_score !== null ? (float) $finalAssessment->base_score : null,
+            'final_deduction' => $finalAssessment?->final_deduction !== null ? (float) $finalAssessment->final_deduction : null,
+            'final_score' => $finalScore,
+            'letter_grade' => $finalAssessment?->letter_grade ?: ($finalScore !== null ? $this->letterGrade($finalScore) : null),
+            'document_number' => $finalAssessment?->document_number,
+            'finalized_at' => $finalAssessment?->finalized_at,
+            'is_final' => (bool) $finalAssessment?->finalized_at,
+        ];
+    }
+
+    private function letterGrade(float $score): string
+    {
+        return match (true) {
+            $score >= 76 => 'A',
+            $score >= 71 => 'B+',
+            $score >= 66 => 'B',
+            $score >= 61 => 'C+',
+            $score >= 56 => 'C',
+            default => 'BL',
+        };
+    }
+
     private function periodOptions(Request $request): array
     {
         $user = $request->user();

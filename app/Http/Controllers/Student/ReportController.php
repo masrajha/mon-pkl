@@ -230,7 +230,7 @@ class ReportController extends Controller
 
     public function printFinalAssessment(Request $request, InternshipEnrollment $enrollment): View
     {
-        $this->authorizeEnrollment($request, $enrollment);
+        $this->authorizeFinalAssessmentPrint($request, $enrollment);
 
         $enrollment->load([
             'student',
@@ -294,6 +294,29 @@ class ReportController extends Controller
         $studentUserId = $enrollment->student?->user_id;
 
         abort_if($studentUserId === null || (int) $studentUserId !== (int) $request->user()->id, 403);
+    }
+
+    private function authorizeFinalAssessmentPrint(Request $request, InternshipEnrollment $enrollment): void
+    {
+        $user = $request->user();
+
+        if ($user?->hasRole('admin')) {
+            return;
+        }
+
+        if ($user?->hasRole('koordinator')) {
+            $allowed = $user->lecturer?->coordinatorAssignments()
+                ->where('status', 'active')
+                ->where('internship_period_id', $enrollment->internship_period_id)
+                ->where('study_program_id', $enrollment->study_program_id)
+                ->exists();
+
+            if ($allowed) {
+                return;
+            }
+        }
+
+        $this->authorizeEnrollment($request, $enrollment);
     }
 
     private function lateSubmissionPenalty(?PeriodDeadline $deadline, $uploadedAt): int

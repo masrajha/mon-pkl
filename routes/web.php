@@ -250,6 +250,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/risk-scoring', [ReportController::class, 'riskScoring'])->name('reports.risk-scoring');
         Route::get('/reports/attendance-heatmap', [ReportController::class, 'attendanceHeatmap'])->name('reports.attendance-heatmap');
         Route::get('/reports/operational-charts', [ReportController::class, 'operationalCharts'])->name('reports.operational-charts');
+        Route::get('/reports/sanctions', [ReportController::class, 'sanctions'])->name('reports.sanctions');
+        Route::get('/reports/final-scores', [ReportController::class, 'finalScores'])->name('reports.final-scores');
+        Route::get('/reports/final-scores/{enrollment}/print', [StudentReportController::class, 'printFinalAssessment'])->name('reports.final-scores.print');
         Route::get('/management/enrollment-validations', [ManagementEnrollmentController::class, 'validations'])->name('management.enrollment-validations.index');
         Route::post('/management/enrollment-validations/bulk', [ManagementEnrollmentController::class, 'bulkValidateEnrollments'])->name('management.enrollment-validations.bulk');
         Route::get('/management/enrollment-validations/{enrollment}/registration-document', [ManagementEnrollmentController::class, 'registrationDocument'])->name('management.enrollment-validations.document');

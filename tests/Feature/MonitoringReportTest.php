@@ -11,6 +11,7 @@ use App\Models\InternshipPeriod;
 use App\Models\InternshipPeriodSetting;
 use App\Models\InternshipPlace;
 use App\Models\Program;
+use App\Models\Sanction;
 use App\Models\SeminarRequest;
 use App\Models\Student;
 use App\Models\StudyProgram;
@@ -418,12 +419,140 @@ class MonitoringReportTest extends TestCase
             ->assertSee('Progress Status Nilai');
     }
 
+    public function test_admin_can_access_sanctions_report_with_separated_sources(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $studyProgram = StudyProgram::query()->firstOrCreate(['code' => 'ILKOM'], ['name' => 'S1 Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Sanksi 2026',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+            'is_active' => true,
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Sanksi']);
+        $enrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051771', 'Mahasiswa Sanksi');
+
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Pulang Cepat',
+            'action' => 'check_out',
+            'checked_at' => '2026-06-03 14:00:00',
+            'sanction_points' => 2,
+        ]);
+        $progress = SubmissionProgress::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'deadline_type' => 'full_report',
+            'file_path' => 'reports/sanksi.pdf',
+            'uploaded_at' => '2026-06-04 09:00:00',
+            'status' => 'approved',
+            'sanction_points' => 5,
+        ]);
+        Sanction::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'submission_progress_id' => $progress->id,
+            'sanction_type' => 'late_submission',
+            'points_deducted' => 5,
+            'reason' => 'Terlambat unggah laporan.',
+            'date' => '2026-06-04',
+        ]);
+        FinalAssessment::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'lecturer_score' => 80,
+            'field_supervisor_score' => 84,
+            'base_score' => 82,
+            'final_deduction' => 3,
+            'final_score' => 79,
+            'finalized_by' => $admin->id,
+            'finalized_at' => '2026-06-05 10:00:00',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('reports.sanctions', [
+                'period_id' => $period->id,
+                'start_date' => '2026-06-01',
+                'end_date' => '2026-06-30',
+            ]))
+            ->assertOk()
+            ->assertSee('Rekap Pelanggaran & Sanksi', false)
+            ->assertSee('Mahasiswa Sanksi')
+            ->assertSee('Sanksi Presensi')
+            ->assertSee('Sanksi Laporan')
+            ->assertSee('Pengurangan Final')
+            ->assertSee('10,00');
+    }
+
+    public function test_admin_can_access_final_scores_report(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $studyProgram = StudyProgram::query()->firstOrCreate(['code' => 'ILKOM'], ['name' => 'S1 Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Nilai 2026',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+            'is_active' => true,
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Nilai']);
+        $finalEnrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051772', 'Mahasiswa Final');
+        $pendingEnrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051773', 'Mahasiswa Pending');
+
+        FinalAssessment::query()->create([
+            'internship_enrollment_id' => $finalEnrollment->id,
+            'lecturer_score' => 80,
+            'field_supervisor_score' => 84.33,
+            'base_score' => 82.17,
+            'final_deduction' => 0,
+            'final_score' => 82.17,
+            'document_number' => '2/UN.26/KP/2026',
+            'finalized_by' => $admin->id,
+            'finalized_at' => '2026-06-05 10:00:00',
+        ]);
+        SeminarRequest::query()->create([
+            'internship_enrollment_id' => $pendingEnrollment->id,
+            'title' => 'Seminar Pending',
+            'status' => 'completed',
+            'seminar_score' => 78,
+            'scored_at' => '2026-06-05 09:00:00',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('reports.final-scores', ['period_id' => $period->id]))
+            ->assertOk()
+            ->assertSee('Rekap Nilai Akhir')
+            ->assertSee('Mahasiswa Final')
+            ->assertSee('Mahasiswa Pending')
+            ->assertSee('2/UN.26/KP/2026')
+            ->assertSee('82,17')
+            ->assertSee('A');
+
+        $this->actingAs($admin)
+            ->get(route('reports.final-scores.print', $finalEnrollment))
+            ->assertOk()
+            ->assertSee('Formulir Berita Acara');
+    }
+
     public function test_student_cannot_access_operational_charts_report(): void
     {
         $student = User::factory()->create(['role' => 'mahasiswa']);
 
         $this->actingAs($student)
             ->get(route('reports.operational-charts'))
+            ->assertForbidden();
+    }
+
+    public function test_student_cannot_access_sanctions_and_final_scores_reports(): void
+    {
+        $student = User::factory()->create(['role' => 'mahasiswa']);
+
+        $this->actingAs($student)
+            ->get(route('reports.sanctions'))
+            ->assertForbidden();
+
+        $this->actingAs($student)
+            ->get(route('reports.final-scores'))
             ->assertForbidden();
     }
 
