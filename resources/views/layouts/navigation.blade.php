@@ -122,6 +122,8 @@
             'label' => 'Analisis & Laporan',
             'items' => [
                 ['label' => 'Progress Funnel', 'route' => 'reports.progress-funnel', 'icon' => 'fa-chart-simple', 'active' => ['reports.progress-funnel']],
+                ['label' => 'Risk Scoring', 'route' => 'reports.risk-scoring', 'icon' => 'fa-triangle-exclamation', 'active' => ['reports.risk-scoring']],
+                ['label' => 'Heatmap Kehadiran', 'route' => 'reports.attendance-heatmap', 'icon' => 'fa-table-cells', 'active' => ['reports.attendance-heatmap']],
                 ['label' => 'Rekap Monitoring', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
             ],
         ];

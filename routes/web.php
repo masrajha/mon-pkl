@@ -246,6 +246,8 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin,koordinator')->group(function () {
         Route::get('/reports/progress-funnel', [ReportController::class, 'progressFunnel'])->name('reports.progress-funnel');
+        Route::get('/reports/risk-scoring', [ReportController::class, 'riskScoring'])->name('reports.risk-scoring');
+        Route::get('/reports/attendance-heatmap', [ReportController::class, 'attendanceHeatmap'])->name('reports.attendance-heatmap');
         Route::get('/management/enrollment-validations', [ManagementEnrollmentController::class, 'validations'])->name('management.enrollment-validations.index');
         Route::post('/management/enrollment-validations/bulk', [ManagementEnrollmentController::class, 'bulkValidateEnrollments'])->name('management.enrollment-validations.bulk');
         Route::get('/management/enrollment-validations/{enrollment}/registration-document', [ManagementEnrollmentController::class, 'registrationDocument'])->name('management.enrollment-validations.document');

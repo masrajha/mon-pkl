@@ -20,6 +20,8 @@
         ['patterns' => ['management.periods.*'], 'group' => 'Master Data', 'label' => 'Periode Program'],
         ['patterns' => ['management.places.*'], 'group' => 'Master Data', 'label' => 'Mitra'],
         ['patterns' => ['reports.progress-funnel'], 'group' => 'Analisis & Laporan', 'label' => 'Progress Funnel'],
+        ['patterns' => ['reports.risk-scoring'], 'group' => 'Analisis & Laporan', 'label' => 'Risk Scoring'],
+        ['patterns' => ['reports.attendance-heatmap'], 'group' => 'Analisis & Laporan', 'label' => 'Heatmap Kehadiran'],
         ['patterns' => ['reports.monitoring'], 'group' => 'Analisis & Laporan', 'label' => 'Rekap Monitoring'],
         ['patterns' => ['system-configurations.*'], 'group' => 'Konfigurasi', 'label' => 'Konfigurasi Program'],
         ['patterns' => ['email-notifications.*'], 'group' => 'Konfigurasi', 'label' => 'Email & Notifikasi'],

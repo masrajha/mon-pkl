@@ -8,15 +8,20 @@ use App\Models\CheckIn;
 use App\Models\Program;
 use App\Models\StudyProgram;
 use App\Services\PeriodConfigurationService;
+use App\Services\ParticipantRiskScoringService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class ReportController extends Controller
 {
-    public function __construct(private readonly PeriodConfigurationService $configurations)
+    public function __construct(
+        private readonly PeriodConfigurationService $configurations,
+        private readonly ParticipantRiskScoringService $riskScoring,
+    )
     {
     }
 
@@ -147,6 +152,105 @@ class ReportController extends Controller
         ]);
     }
 
+    public function riskScoring(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'lecturer',
+                'lecturerSupervisor',
+                'checkIns',
+                'forgottenAttendanceRequests',
+                'submissionProgress',
+                'seminarRequests',
+                'fieldSupervisorAssessment',
+                'finalAssessment',
+            ])
+            ->whereIn('status', ['active', 'completed']);
+
+        $this->scopeEnrollments($query, $request);
+
+        $allRows = $query->get()
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->riskScoring->score($enrollment))
+            ->sortByDesc('score')
+            ->values();
+
+        $summary = collect(['safe', 'watch', 'risky', 'critical'])
+            ->mapWithKeys(fn (string $key): array => [$key => $allRows->where('category_key', $key)->count()])
+            ->all();
+        $rows = $request->filled('risk')
+            ? $allRows->where('category_key', $request->string('risk')->toString())->values()
+            : $allRows->reject(fn (array $row): bool => $row['category_key'] === 'safe')->values();
+
+        return view('reports.risk-scoring', [
+            'periods' => $periods,
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedRisk' => $request->string('risk')->toString(),
+            'rows' => $rows,
+            'totalRows' => $allRows->count(),
+            'summary' => $summary,
+        ]);
+    }
+
+    public function attendanceHeatmap(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        [$startDate, $endDate] = $this->heatmapDateRange($request, $selectedPeriod, $periods);
+        $dates = collect(CarbonPeriod::create($startDate, $endDate))
+            ->map(fn (Carbon $date): Carbon => $date->copy())
+            ->values();
+
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'checkIns' => fn ($query) => $query
+                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->orderBy('checked_at'),
+                'forgottenAttendanceRequests' => fn ($query) => $query
+                    ->whereBetween('requested_date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orderBy('requested_date'),
+            ])
+            ->whereIn('status', ['active', 'completed']);
+
+        $this->scopeEnrollments($query, $request);
+
+        $rows = $query->get()
+            ->sortBy(fn (InternshipEnrollment $enrollment): string => $enrollment->student?->full_name ?? '')
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->heatmapRow($enrollment, $dates))
+            ->values();
+        $summary = $rows
+            ->flatMap(fn (array $row): Collection => $row['cells'])
+            ->countBy('status')
+            ->all();
+
+        return view('reports.attendance-heatmap', [
+            'periods' => $periods,
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'startDate' => $startDate->toDateString(),
+            'endDate' => $endDate->toDateString(),
+            'dates' => $dates,
+            'rows' => $rows,
+            'summary' => $summary,
+            'legend' => $this->heatmapLegend(),
+        ]);
+    }
+
     private function periodOptions(Request $request): array
     {
         $user = $request->user();
@@ -260,6 +364,106 @@ class ReportController extends Controller
             'check_out_seconds' => $this->secondsOfDay($checkOut),
             'duration_hours' => round($checkIn->diffInMinutes($checkOut) / 60, 2),
             'distance_meters' => $checkIns->pluck('distance_meters')->filter(fn ($distance) => $distance !== null)->avg(),
+        ];
+    }
+
+    private function heatmapDateRange(Request $request, ?InternshipPeriod $selectedPeriod, $periods): array
+    {
+        $referencePeriod = $selectedPeriod
+            ?? $periods->firstWhere('is_active', true)
+            ?? $periods->first();
+        $today = now()->copy()->startOfDay();
+        $start = $request->date('start_date')
+            ?? $referencePeriod?->starts_at?->copy()
+            ?? $today->copy()->subDays(13);
+        $end = $request->date('end_date')
+            ?? $referencePeriod?->ends_at?->copy()
+            ?? $today->copy();
+
+        if (! $request->filled('end_date') && $end->greaterThan($today)) {
+            $end = $today->copy();
+        }
+
+        if ($end->lessThan($start)) {
+            $end = $start->copy();
+        }
+
+        return [$start->startOfDay(), $end->startOfDay()];
+    }
+
+    private function heatmapRow(InternshipEnrollment $enrollment, Collection $dates): array
+    {
+        $settings = $this->configurations->forPeriod($enrollment->internshipPeriod);
+        $holidays = collect($settings['calendar']['holidays'] ?? [])->filter()->flip();
+        $checkInsByDate = $enrollment->checkIns
+            ->filter(fn (CheckIn $checkIn): bool => filled($checkIn->checked_at))
+            ->groupBy(fn (CheckIn $checkIn): string => $checkIn->checked_at->toDateString());
+        $forgottenByDate = $enrollment->forgottenAttendanceRequests
+            ->where('status', 'approved')
+            ->groupBy(fn ($request): string => $request->requested_date?->toDateString() ?? (string) $request->requested_date);
+
+        $cells = $dates->map(function (Carbon $date) use ($checkInsByDate, $forgottenByDate, $holidays): array {
+            $dateKey = $date->toDateString();
+            $checkIns = $checkInsByDate->get($dateKey, collect());
+            $status = $this->heatmapStatus($date, $checkIns, $forgottenByDate->has($dateKey), $holidays->has($dateKey));
+            $meta = $this->heatmapLegend()[$status];
+
+            return [
+                'date' => $dateKey,
+                'day' => $date->format('d'),
+                'status' => $status,
+                'label' => $meta['label'],
+                'class' => $meta['class'],
+                'check_in' => $checkIns->firstWhere('action', 'check_in')?->checked_at?->format('H:i'),
+                'check_out' => $checkIns->firstWhere('action', 'check_out')?->checked_at?->format('H:i'),
+            ];
+        });
+
+        return [
+            'enrollment' => $enrollment,
+            'cells' => $cells,
+            'valid_days' => $cells->where('status', 'present')->count() + $cells->where('status', 'forgotten_approved')->count(),
+            'problem_days' => $cells->whereIn('status', ['incomplete', 'absent'])->count(),
+        ];
+    }
+
+    private function heatmapStatus(Carbon $date, Collection $checkIns, bool $hasApprovedForgottenAttendance, bool $isHoliday): string
+    {
+        if ($isHoliday) {
+            return 'holiday';
+        }
+
+        if ($date->isWeekend()) {
+            return 'weekend';
+        }
+
+        if ($hasApprovedForgottenAttendance || $checkIns->contains('source_type', 'forgotten_request')) {
+            return 'forgotten_approved';
+        }
+
+        $hasCheckIn = $checkIns->contains('action', 'check_in');
+        $hasCheckOut = $checkIns->contains('action', 'check_out');
+
+        if (($hasCheckIn && $hasCheckOut) || (! $hasCheckIn && ! $hasCheckOut && $checkIns->whereNull('action')->count() >= 2)) {
+            return 'present';
+        }
+
+        if ($checkIns->isNotEmpty()) {
+            return 'incomplete';
+        }
+
+        return 'absent';
+    }
+
+    private function heatmapLegend(): array
+    {
+        return [
+            'present' => ['label' => 'Hadir valid', 'class' => 'bg-emerald-500 text-white ring-emerald-600'],
+            'incomplete' => ['label' => 'Presensi satu sisi/tidak valid', 'class' => 'bg-amber-400 text-amber-950 ring-amber-500'],
+            'absent' => ['label' => 'Tidak hadir', 'class' => 'bg-red-100 text-red-800 ring-red-200'],
+            'forgotten_approved' => ['label' => 'Lupa Presensi disetujui', 'class' => 'bg-sky-500 text-white ring-sky-600'],
+            'weekend' => ['label' => 'Sabtu/Minggu', 'class' => 'bg-slate-200 text-slate-600 ring-slate-300'],
+            'holiday' => ['label' => 'Hari libur', 'class' => 'bg-violet-100 text-violet-800 ring-violet-200'],
         ];
     }
 

@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\CheckIn;
 use App\Models\FieldSupervisorAssessment;
 use App\Models\FinalAssessment;
+use App\Models\ForgottenAttendanceRequest;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
+use App\Models\InternshipPeriodSetting;
 use App\Models\InternshipPlace;
 use App\Models\Program;
 use App\Models\SeminarRequest;
@@ -14,6 +16,7 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\SubmissionProgress;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -218,6 +221,150 @@ class MonitoringReportTest extends TestCase
 
         $this->actingAs($student)
             ->get(route('reports.progress-funnel'))
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_access_risk_scoring_report(): void
+    {
+        Carbon::setTestNow('2026-06-07 08:00:00');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $studyProgram = StudyProgram::query()->firstOrCreate(['code' => 'ILKOM'], ['name' => 'S1 Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Risk 2026',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-06',
+            'is_active' => true,
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Risiko']);
+        $criticalEnrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051999', 'Mahasiswa Risiko');
+
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $criticalEnrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-01 08:00:00',
+            'note' => 'Rencana kerja tanpa pulang.',
+            'sanction_points' => 5,
+        ]);
+        ForgottenAttendanceRequest::query()->create([
+            'internship_enrollment_id' => $criticalEnrollment->id,
+            'action' => 'check_out',
+            'requested_date' => '2026-06-01',
+            'requested_time' => '16:00:00',
+            'requested_checked_at' => '2026-06-01 16:00:00',
+            'note' => 'Pulang lupa presensi.',
+            'reason' => 'Lupa presensi pulang.',
+            'status' => 'pending',
+        ]);
+        SubmissionProgress::query()->create([
+            'internship_enrollment_id' => $criticalEnrollment->id,
+            'deadline_type' => 'full_report',
+            'file_path' => 'reports/full-risk.pdf',
+            'uploaded_at' => now(),
+            'status' => 'approved',
+            'sanction_points' => 10,
+        ]);
+        $criticalEnrollment->update(['total_sanctions_points' => 15]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('reports.risk-scoring', ['period_id' => $period->id]));
+
+        Carbon::setTestNow();
+
+        $response->assertOk()
+            ->assertSee('Risk Scoring Peserta')
+            ->assertSee('Mahasiswa Risiko')
+            ->assertSee('Kritis')
+            ->assertSee('Tidak hadir beruntun')
+            ->assertSee('Laporan terlambat')
+            ->assertSee('Sanksi');
+    }
+
+    public function test_student_cannot_access_risk_scoring_report(): void
+    {
+        $student = User::factory()->create(['role' => 'mahasiswa']);
+
+        $this->actingAs($student)
+            ->get(route('reports.risk-scoring'))
+            ->assertForbidden();
+    }
+
+    public function test_admin_can_access_attendance_heatmap_report(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $studyProgram = StudyProgram::query()->firstOrCreate(['code' => 'ILKOM'], ['name' => 'S1 Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Heatmap 2026',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-06',
+            'is_active' => true,
+        ]);
+        InternshipPeriodSetting::query()->create([
+            'internship_period_id' => $period->id,
+            'settings' => ['calendar' => ['holidays' => ['2026-06-05']]],
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Heatmap']);
+        $enrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051888', 'Mahasiswa Heatmap');
+
+        $checkIn = CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-01 08:00:00',
+        ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Pulang',
+            'action' => 'check_out',
+            'pair_id' => $checkIn->id,
+            'checked_at' => '2026-06-01 16:00:00',
+        ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-02 08:05:00',
+        ]);
+        ForgottenAttendanceRequest::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'action' => 'check_out',
+            'requested_date' => '2026-06-03',
+            'requested_time' => '16:00:00',
+            'requested_checked_at' => '2026-06-03 16:00:00',
+            'note' => 'Koreksi pulang.',
+            'reason' => 'Lupa presensi pulang.',
+            'status' => 'approved',
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('reports.attendance-heatmap', [
+                'period_id' => $period->id,
+                'start_date' => '2026-06-01',
+                'end_date' => '2026-06-06',
+            ]));
+
+        $response->assertOk()
+            ->assertSee('Heatmap Kehadiran')
+            ->assertSee('Mahasiswa Heatmap')
+            ->assertSee('Hadir valid')
+            ->assertSee('Presensi satu sisi/tidak valid')
+            ->assertSee('Lupa Presensi disetujui')
+            ->assertSee('Tidak hadir')
+            ->assertSee('Hari libur')
+            ->assertSee('Sabtu/Minggu');
+    }
+
+    public function test_student_cannot_access_attendance_heatmap_report(): void
+    {
+        $student = User::factory()->create(['role' => 'mahasiswa']);
+
+        $this->actingAs($student)
+            ->get(route('reports.attendance-heatmap'))
             ->assertForbidden();
     }
 

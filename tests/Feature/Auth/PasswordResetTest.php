@@ -30,6 +30,20 @@ class PasswordResetTest extends TestCase
         Notification::assertSentTo($user, ResetPassword::class);
     }
 
+    public function test_reset_password_throttle_is_shown_as_status_message(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->post('/forgot-password', ['email' => $user->email])
+            ->assertSessionHasNoErrors();
+
+        $this->post('/forgot-password', ['email' => $user->email])
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', 'Link reset password sudah dikirim. Silakan cek email Anda, atau tunggu 60 detik sebelum meminta link baru.');
+    }
+
     public function test_reset_password_screen_can_be_rendered(): void
     {
         Notification::fake();
