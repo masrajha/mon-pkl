@@ -1,19 +1,22 @@
 # Manual Penggunaan SiLAT
 
-**Versi dokumen:** 2.1  
-**Tanggal pembaruan:** 6 Juni 2026  
-**Status:** Mengikuti implementasi fitur sampai Lupa Presensi, Finalisasi Nilai, Berita Acara Nilai, dan portal Pembimbing Lapangan terbaru.
+**Versi dokumen:** 2.2
+**Tanggal pembaruan:** 7 Juni 2026
+**Status:** Mengikuti implementasi fitur sampai snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Finalisasi Nilai, Berita Acara Nilai, dan portal Pembimbing Lapangan terbaru.
 
 SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untuk mengelola pendaftaran program, presensi, pembekalan, laporan, catatan harian, perpindahan mitra, perubahan pembimbing, dan monitoring aktivitas mahasiswa.
 
-> **What's New - Versi 2.1**
+> **What's New - Versi 2.2**
 >
+> - Presensi harian memakai **snapshot GPS server-side** sehingga koordinat final tidak bergantung pada field form yang dapat diedit dari browser.
+> - Sistem menolak presensi jika koordinat form berbeda jauh dari snapshot GPS atau jika snapshot GPS berada di luar radius mitra.
+> - Check-out tanpa check-in tetap dapat disimpan sebagai presensi belum berpasangan dan diarahkan untuk pengajuan **Lupa Presensi Masuk** jika kuota tersedia.
 > - Halaman Presensi mahasiswa kini memakai tab **Presensi** dan **Lupa Presensi**.
 > - Lupa Presensi memiliki kuota, sisa kuota, lokasi, foto realtime, alasan, dan riwayat pengajuan.
-> - Pembimbing Lapangan dapat memvalidasi catatan harian, memproses Lupa Presensi, dan mengisi nilai/feedback.
-> - Admin/koordinator dapat melakukan **Finalisasi Nilai** dengan pengurangan final dan nomor berita acara.
-> - Mahasiswa dapat melihat nilai akhir dan mencetak **Berita Acara Nilai** dengan QR verifikasi.
-> - Konfigurasi Program ditata dalam tab, termasuk tanggal libur, batas Lupa Presensi, dan dokumen cetak nilai.
+> - Foto profil pengguna dapat diunggah dari Profil Saya atau dikelola admin pada Manajemen User.
+> - Master Mahasiswa dan Dosen mendukung pembuatan/penautan akun login otomatis dari email sehingga input data tidak perlu dilakukan dua kali.
+> - Konfigurasi Program menyediakan batas akurasi GPS, umur snapshot lokasi, toleransi beda koordinat, tanggal libur, batas Lupa Presensi, rubrik penilaian, survey institusi, dan dokumen cetak nilai.
+> - Menu **Analisis & Laporan** untuk admin/koordinator memuat dashboard progres, funnel, risk scoring, heatmap kehadiran, dan Grafik Operasional.
 
 Dokumen ini dibagi menjadi lima bagian berdasarkan role pengguna:
 
@@ -79,8 +82,11 @@ Data yang diisi:
 - Email mahasiswa.
 - Nomor HP.
 - Program studi.
+- Foto profil, jika ingin menampilkan avatar personal pada navigasi dan dokumen tertentu.
 
 Program studi menentukan jenjang mahasiswa, misalnya D3 atau S1. Jenjang ini dipakai sistem untuk membaca syarat akademik yang sesuai saat pendaftaran program.
+
+Foto profil memakai file gambar JPG, PNG, atau WebP dengan batas ukuran yang ditentukan sistem. Jika foto profil dihapus, sistem kembali memakai inisial nama pengguna.
 
 ### 1.4 Pendaftaran Program
 
@@ -258,7 +264,8 @@ Setiap hari, mahasiswa melakukan dua presensi:
 Data yang dikirim saat presensi:
 
 - Aksi presensi, yaitu masuk atau pulang.
-- Koordinat GPS mahasiswa.
+- Snapshot GPS mahasiswa yang tersimpan di server.
+- Koordinat form sebagai tampilan peta dan pembanding audit.
 - Foto realtime dari kamera.
 - Catatan aktivitas.
 - Device info dan IP yang dicatat otomatis oleh server.
@@ -304,6 +311,7 @@ Aturan penting:
 - Pengajuan **Pulang** hanya dapat dibuat jika sudah ada presensi **Masuk** pada tanggal tersebut.
 - Jam Pulang harus setelah jam Masuk.
 - Data baru masuk sebagai presensi resmi setelah disetujui Pembimbing Lapangan, admin, atau koordinator.
+- Jika mahasiswa melakukan presensi **Pulang** tanpa presensi **Masuk**, data pulang tetap tersimpan sebagai presensi belum berpasangan. Hari tersebut belum dihitung valid sampai presensi masuk dilengkapi melalui Lupa Presensi dan disetujui.
 
 ### 1.10 Cara Kerja Status Presensi
 
@@ -323,7 +331,8 @@ Catatan:
 - Jadwal dapat diubah oleh admin pada **Konfigurasi Program**.
 - Di luar rentang waktu aktif, presensi ditolak dengan pesan bahwa check-in hanya dapat dilakukan pada jam kerja.
 - Sistem membatasi satu presensi masuk dan satu presensi pulang resmi per hari.
-- Presensi pulang memerlukan presensi masuk pada hari yang sama.
+- Presensi pulang tanpa presensi masuk tetap dapat disimpan, tetapi berstatus belum berpasangan dan tidak dihitung sebagai hari hadir valid.
+- Jika presensi pulang tanpa presensi masuk tersimpan, sistem menawarkan pengajuan Lupa Presensi Masuk selama kuota masih tersedia.
 - Hari hadir hanya dihitung jika terdapat pasangan **Masuk** dan **Pulang** yang valid pada hari kerja.
 - Jika satu hari hanya memiliki satu data presensi, misalnya hanya Masuk atau hanya Pulang, hari tersebut tidak dihitung sebagai hari hadir pada nilai kehadiran dan rekap efektif.
 
@@ -429,9 +438,14 @@ Agar presensi berhasil:
 - GPS/perizinan lokasi perangkat harus aktif.
 - Koneksi internet harus stabil.
 - Lokasi yang dikirim harus berada dalam rentang latitude -90 sampai 90 dan longitude -180 sampai 180.
-- Jika akurasi GPS kurang baik, tunggu beberapa saat lalu muat ulang halaman.
+- Sistem menyimpan snapshot GPS ke server saat lokasi berhasil terbaca. Snapshot ini menjadi sumber koordinat final saat presensi disimpan.
+- Snapshot GPS harus masih segar sesuai konfigurasi periode. Jika sudah kedaluwarsa, ambil ulang lokasi atau muat ulang halaman.
+- Jika koordinat form berbeda jauh dari snapshot GPS server, presensi ditolak karena berpotensi dimanipulasi.
+- Jika snapshot GPS berada di luar radius lokasi mitra, presensi ditolak.
+- Jika akurasi GPS kurang baik tetapi masih dalam radius, presensi dapat tersimpan dengan penanda audit lokasi.
+- Jika titik peta kurang pas, tunggu beberapa saat lalu muat ulang halaman agar sistem membuat snapshot GPS baru.
 
-Sistem menyimpan lokasi yang dikirim browser. Karena itu, akurasi sangat bergantung pada perangkat, browser, jaringan, dan izin lokasi pengguna.
+Sistem menyimpan snapshot GPS, akurasi, jarak Haversine ke mitra, dan flag audit. Akurasi tetap bergantung pada perangkat, browser, jaringan, dan izin lokasi pengguna.
 
 ### 1.15 Detail Program Saya
 
@@ -1035,6 +1049,7 @@ Koordinator dapat menggunakan SiLAT untuk:
 - Memvalidasi ACC seminar manual, menjadwalkan seminar, dan memvalidasi nilai seminar manual pada scope tugasnya.
 - Melihat peta monitoring dan rekap monitoring pada scope tugasnya.
 - Memantau mahasiswa dengan sanksi tertinggi.
+- Membuka **Analisis & Laporan** pada scope periode/prodi penugasannya untuk membaca dashboard progres, funnel, risiko, heatmap, dan grafik operasional.
 
 Batas utama koordinator:
 
@@ -1428,6 +1443,7 @@ Koordinator dapat:
 - Mencari pengajuan berdasarkan mahasiswa, NPM, periode, atau status.
 - Melihat tanggal dan jam presensi yang diajukan.
 - Melihat jenis presensi, yaitu Masuk atau Pulang.
+- Melihat jarak, foto bukti, akurasi/indikasi audit lokasi jika tersedia, catatan aktivitas, dan alasan lupa.
 - Membaca catatan aktivitas dan alasan lupa.
 - Melihat jarak/lokasi dan foto bukti pengajuan jika tersedia.
 - Menyetujui atau menolak pengajuan.
@@ -1492,7 +1508,8 @@ Setelah final:
 11. Buka **Review Laporan** untuk meninjau unggahan mahasiswa.
 12. Buka **Review Seminar** untuk memvalidasi ACC manual, menjadwalkan seminar, atau memvalidasi nilai manual.
 13. Buka **Rekap Monitoring** dan **Peta Monitoring** untuk memantau presensi, durasi, jarak, dan sanksi.
-14. Tindak lanjuti mahasiswa dengan sanksi tinggi atau presensi tidak wajar.
+14. Buka **Analisis & Laporan** untuk membaca progres, risiko, heatmap, dan grafik operasional pada scope penugasan.
+15. Tindak lanjuti mahasiswa dengan sanksi tinggi atau presensi tidak wajar.
 
 ---
 
@@ -1557,6 +1574,7 @@ Data user:
 - Email.
 - Role.
 - Password.
+- Foto profil.
 
 Role yang tersedia:
 
@@ -1572,6 +1590,8 @@ Catatan:
 - Role koordinator dihitung dari penugasan koordinator aktif pada data dosen, bukan sekadar role user biasa.
 - Jika dosen harus menjadi koordinator, buat/tautkan user dosen terlebih dahulu, lalu buat penugasan pada menu **Koordinator Program**.
 - Akun Pembimbing Lapangan sebaiknya dibuat/ditautkan dari menu **Pembimbing Lapangan**, bukan langsung dari Manajemen User, agar email akun pasti terkait data pembimbing lapangan pada enrollment aktif.
+- Jika memilih role **Mahasiswa** atau **Dosen** dari form User, form menampilkan field profil yang relevan. Email user menjadi email akun login dan dipakai sebagai email profil terkait agar tidak terjadi input email ganda.
+- Admin dapat mengunggah atau menghapus foto profil user. Foto ini dipakai sebagai avatar pada navigasi, daftar user, dan tampilan/dokumen yang mendukung foto profil.
 
 ### 4.4 Manajemen Mahasiswa
 
@@ -1588,6 +1608,16 @@ Data mahasiswa:
 - Email dan kontak jika tersedia pada profil.
 
 Program studi mahasiswa penting karena sistem menggunakan prodi dan `degree_level` untuk menentukan aturan akademik pendaftaran.
+
+Mode akun login:
+
+| Mode | Fungsi |
+|------|--------|
+| Buat/tautkan otomatis dari email | Sistem mencari akun user dengan email tersebut. Jika belum ada, sistem membuat user role Mahasiswa dan menautkannya ke data mahasiswa. |
+| Tautkan akun yang sudah ada | Admin memilih user role Mahasiswa yang sudah tersedia dan belum tertaut ke mahasiswa lain. |
+| Belum dihubungkan | Data mahasiswa disimpan tanpa akun login. Mode ini dipakai jika akun akan dibuat belakangan. |
+
+Jika memakai mode otomatis, email login juga menjadi email profil mahasiswa. Dengan cara ini admin cukup mengisi satu pintu data dan tidak perlu membuat user terlebih dahulu lalu kembali menautkannya ke mahasiswa.
 
 ### 4.5 Manajemen Dosen
 
@@ -1610,6 +1640,16 @@ Dosen yang aktif dapat dipilih sebagai:
 - Dosen pembimbing mahasiswa.
 - Dosen koordinator program.
 - Reviewer laporan sesuai relasi bimbingan atau scope koordinator.
+
+Mode akun login pada form Dosen sama seperti Mahasiswa:
+
+| Mode | Fungsi |
+|------|--------|
+| Buat/tautkan otomatis dari email | Sistem mencari user role Dosen berdasarkan email. Jika belum ada, sistem membuat user dan menautkannya ke data dosen. |
+| Tautkan akun yang sudah ada | Admin memilih user role Dosen yang belum tertaut ke dosen lain. |
+| Belum dihubungkan | Data dosen disimpan sebagai master tanpa akun login. |
+
+Email pada data dosen menjadi email utama dosen sekaligus acuan akun login saat mode otomatis dipakai.
 
 ### 4.6 Manajemen Pembimbing Lapangan
 
@@ -1992,6 +2032,7 @@ Admin dapat:
 - Memfilter pengajuan berdasarkan periode dan status.
 - Mencari mahasiswa atau NPM.
 - Membaca detail tanggal, jam, jenis presensi, catatan, alasan, lokasi, dan bukti foto.
+- Mempertimbangkan jarak, akurasi/indikasi audit lokasi, foto bukti, pola pengajuan, dan kuota sebelum menyetujui atau menolak.
 - Menyetujui pengajuan.
 - Menolak pengajuan.
 - Memberi catatan review.
@@ -2028,7 +2069,34 @@ Dampak finalisasi:
 - Nilai dosen dan nilai Pembimbing Lapangan tidak dapat diedit lagi.
 - Berita acara memakai Koordinator Periode Program aktif sesuai prodi mahasiswa, bukan konfigurasi manual nama koordinator.
 
-### 4.21 Konfigurasi Program
+### 4.21 Analisis & Laporan
+
+Menu: **Analisis & Laporan**
+
+Admin dan koordinator memakai menu ini untuk membaca progres pelaksanaan dalam bentuk indikator, tabel tindak lanjut, dan grafik. Admin melihat data lintas periode/prodi, sedangkan koordinator hanya melihat data sesuai scope penugasannya.
+
+Halaman yang tersedia:
+
+| Halaman | Fungsi |
+|---------|--------|
+| Dashboard Progres | Menampilkan kartu ringkasan peserta aktif/selesai, presensi belum lengkap, catatan harian belum divalidasi, laporan terlambat, seminar belum diajukan, nilai belum lengkap, nilai final, dan sanksi tertinggi. |
+| Progress Funnel | Menampilkan alur peserta dari pendaftaran disetujui sampai nilai final untuk menemukan bottleneck proses. |
+| Risk Scoring | Mengelompokkan peserta menjadi Aman, Perlu Dipantau, Berisiko, atau Kritis berdasarkan indikator presensi, laporan, seminar, nilai, Lupa Presensi, dan sanksi. |
+| Heatmap Kehadiran | Menampilkan status kehadiran per mahasiswa dan tanggal, termasuk hadir valid, presensi satu sisi, Lupa Presensi disetujui, akhir pekan, dan hari libur. |
+| Grafik Operasional | Menampilkan tren presensi harian, stacked bar status peserta per prodi, donut status laporan lengkap, top sanksi, dan progres nilai dosen/Pembimbing Lapangan/final. |
+
+Filter umum:
+
+- Periode program.
+- Program kegiatan.
+- Program studi.
+- Mitra atau dosen pembimbing jika tersedia pada halaman terkait.
+- Status peserta atau kategori risiko.
+- Rentang tanggal.
+
+Gunakan halaman analisis sebagai pintu tindak lanjut. Jika ada mahasiswa berisiko, buka detail/aksi cepat menuju presensi, laporan, seminar, Lupa Presensi, atau finalisasi nilai sesuai masalah utama yang muncul.
+
+### 4.22 Konfigurasi Program
 
 Menu: **Konfigurasi Program**
 
@@ -2042,6 +2110,7 @@ Area konfigurasi:
 - Deadline periode.
 - Check-in.
 - Laporan dan kalender.
+- Komponen penilaian dan survey.
 - Dokumen cetak nilai.
 - Peta dan lokasi.
 
@@ -2133,6 +2202,9 @@ Konfigurasi check-in:
 - Jumlah riwayat check-in yang ditampilkan.
 - Maksimal ukuran foto.
 - Radius maksimum meter.
+- Batas akurasi GPS meter.
+- Maksimal umur snapshot lokasi dalam menit.
+- Toleransi beda koordinat form dengan snapshot GPS dalam meter.
 - Durasi minimal harian dalam menit.
 - Sanksi per jam kurang.
 - Pesan jam tidak aktif.
@@ -2175,6 +2247,23 @@ Catatan:
 - Jika **Maksimal pengajuan Lupa Presensi** diisi 0, fitur Lupa Presensi tidak aktif.
 - Daftar tanggal libur dapat diganti penuh atau dikosongkan. Jika semua tanggal dihapus lalu konfigurasi disimpan, daftar libur periode menjadi kosong.
 - Field **Infer pulang pagi** dan **Infer masuk siang** disimpan sebagai konfigurasi, tetapi aturan inferensi presensi otomatis belum dijadikan dasar utama karena sistem saat ini memakai mekanisme Lupa Presensi dan validasi pair.
+
+#### Komponen Penilaian dan Survey
+
+Konfigurasi:
+
+- Komponen Penilaian Dosen.
+- Komponen Penilaian Pembimbing Lapangan.
+- Pertanyaan Survey Institusi.
+
+Format pengaturan memakai JSON terstruktur. Gunakan format yang sudah tersedia sebagai acuan dan ubah label, bobot, atau pilihan jawaban dengan hati-hati.
+
+Dampak:
+
+- Rubrik dosen dipakai pada form nilai seminar/laporan.
+- Rubrik Pembimbing Lapangan dipakai pada tab **Penilaian dan Feedback** portal Pembimbing Lapangan.
+- Survey institusi dipakai untuk feedback institusi/program studi dari Pembimbing Lapangan.
+- Saat nilai disimpan, sistem menyimpan snapshot rubrik/survey yang sedang berlaku. Perubahan konfigurasi setelah itu tidak mengubah struktur nilai historis yang sudah tersimpan.
 
 #### Dokumen Cetak Nilai
 
@@ -2256,7 +2345,7 @@ Mail server:
 - Jika belum ada konfigurasi database, sistem memakai konfigurasi dari `.env`.
 - Password SMTP disimpan terenkripsi.
 
-### 4.23 Cara Kerja Presensi dan Jarak dari Sisi Admin
+### 4.24 Cara Kerja Presensi dan Jarak dari Sisi Admin
 
 Admin perlu memahami cara sistem menghitung presensi.
 
@@ -2264,10 +2353,20 @@ Presensi harian:
 
 - Mahasiswa melakukan presensi masuk dan pulang.
 - Sistem memasangkan presensi berdasarkan tanggal dan enrollment.
+- Presensi pulang tanpa presensi masuk dapat tersimpan sebagai data belum berpasangan, tetapi tidak dihitung hadir efektif.
 - Satu hari hadir dihitung jika ada masuk dan pulang.
 - Jika hanya ada satu presensi dalam satu hari, hari tersebut tidak dihitung sebagai hari hadir efektif.
 - Durasi dihitung dari pulang dikurangi masuk.
 - Presensi hasil Lupa Presensi yang disetujui diperlakukan sebagai presensi koreksi dan ikut dihitung jika pasangan harian valid.
+
+Validasi lokasi presensi harian:
+
+- Browser mengirim snapshot GPS ke server melalui endpoint khusus sebelum presensi disimpan.
+- Submit presensi memakai `location_sample_id`; server memakai koordinat snapshot sebagai sumber lokasi final.
+- Field koordinat pada form hanya menjadi tampilan dan pembanding audit, bukan sumber utama yang dipercaya.
+- Jika koordinat form berbeda jauh dari snapshot GPS, presensi ditolak.
+- Jika snapshot GPS berada di luar radius mitra, presensi ditolak.
+- Jika akurasi snapshot GPS rendah atau mendekati radius, presensi dapat disimpan dengan status audit lokasi.
 
 Rumus durasi:
 
@@ -2290,7 +2389,7 @@ Jarak:
 
 Jika radius maksimum diisi 0, pembatasan radius dapat dianggap tidak aktif.
 
-### 4.24 Peta dan Rekap Monitoring
+### 4.25 Peta dan Rekap Monitoring
 
 Admin dapat membuka:
 
@@ -2321,7 +2420,7 @@ Rekap Monitoring:
 
 Ekspor PDF/Excel pada halaman rekap masih dalam status belum aktif jika tombol tampil disabled.
 
-### 4.25 Batasan dan Kehati-hatian Admin
+### 4.26 Batasan dan Kehati-hatian Admin
 
 | Area | Batasan/Kehati-hatian |
 |------|-----------------------|
@@ -2336,13 +2435,14 @@ Ekspor PDF/Excel pada halaman rekap masih dalam status belum aktif jika tombol t
 | Konfigurasi radius | Langsung memengaruhi diterima/ditolaknya presensi. |
 | Konfigurasi deadline | Langsung memengaruhi sanksi keterlambatan laporan. |
 | Konfigurasi Lupa Presensi | Langsung memengaruhi batas pengajuan mahasiswa; nilai 0 menonaktifkan fitur. |
+| Konfigurasi rubrik penilaian | Perubahan hanya memengaruhi nilai baru. Nilai yang sudah tersimpan memakai snapshot rubrik/survey saat penilaian dilakukan. |
 | Finalisasi nilai | Mengunci nilai dosen dan nilai Pembimbing Lapangan serta membuka cetak berita acara nilai untuk mahasiswa. |
 | Email & Notifikasi | Toggle global menghentikan pengiriman, sedangkan toggle cakupan menghentikan pembuatan antrean baru untuk workflow terkait. |
 | Mail Server | Override database dipakai saat antrean email diproses; jika kosong sistem memakai `.env`. |
 | Dokumen disetujui | Dokumen laporan yang disetujui terkunci. |
 | Periode terkunci | Konfigurasi periode terkunci hanya dapat diubah oleh admin khusus/super admin. |
 
-### 4.26 Alur Operasional Admin
+### 4.27 Alur Operasional Admin
 
 Alur awal setup:
 
@@ -2377,7 +2477,7 @@ Alur pelaksanaan:
 8. Dosen/admin/koordinator memproses ACC, jadwal, dan nilai seminar sesuai jalur sistem atau manual.
 9. Pembimbing Lapangan memvalidasi catatan harian, memproses Lupa Presensi jika ada, dan mengisi nilai lapangan.
 10. Admin/koordinator memproses pengajuan Lupa Presensi yang belum diproses Pembimbing Lapangan jika diperlukan.
-11. Admin memantau rekap monitoring, sanksi, pembekalan, seminar, dan antrean email.
+11. Admin memantau rekap monitoring, dashboard analisis, sanksi, pembekalan, seminar, dan antrean email.
 
 Alur penutupan:
 
@@ -2461,7 +2561,7 @@ Validasi Lupa Presensi untuk Pembimbing Lapangan berada di:
 Mahasiswa Bimbingan -> buka mahasiswa -> tab Catatan Harian -> Pengajuan Lupa Presensi
 ```
 
-Blok **Pengajuan Lupa Presensi** hanya muncul jika ada pengajuan dengan status menunggu review. Pembimbing Lapangan dapat memilih **Setujui** atau **Tolak** dan memberi catatan review.
+Blok **Pengajuan Lupa Presensi** hanya muncul jika ada pengajuan dengan status menunggu review. Pembimbing Lapangan dapat memilih **Setujui** atau **Tolak** dan memberi catatan review. Saat memproses, Pembimbing Lapangan sebaiknya memeriksa jarak, foto bukti, akurasi/indikasi audit lokasi jika tersedia, catatan aktivitas, dan alasan lupa.
 
 Catatan:
 

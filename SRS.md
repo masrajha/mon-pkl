@@ -42,6 +42,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | Enrollment | Penempatan resmi mahasiswa pada suatu periode PKL. |
 | Check‑in Masuk | Presensi pagi (status *Masuk* atau *Datang Terlambat*). |
 | Check‑in Pulang | Presensi sore (status *Pulang* atau *Pulang Cepat*). |
+| Snapshot GPS | Sampel lokasi browser yang disimpan server sebelum submit presensi. Snapshot menjadi sumber koordinat final presensi realtime. |
 | Lupa Presensi | Pengajuan koreksi presensi oleh mahasiswa jika lupa melakukan presensi realtime. Data baru masuk ke `check_ins` setelah disetujui. |
 | Durasi Harian | Selisih waktu antara check‑in pulang dan check‑in masuk (minimal 6 jam). |
 | Progres Laporan | Unggah dokumen sesuai tahapan (Bab I, II, dst) dengan deadline. |
@@ -60,13 +61,13 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | ID | Kebutuhan |
 |----|-----------|
 | MF-01 | CRUD Program Studi (kode, nama, fakultas, is_active). |
-| MF-02 | CRUD Mahasiswa (NPM, nama, email, no HP, prodi, user_id). |
-| MF-03 | CRUD Dosen (nama, email, NIP, NIDN, prodi, status aktif, user_id). |
+| MF-02 | CRUD Mahasiswa (NPM, nama, email, no HP, prodi, user_id) dengan opsi membuat/menautkan akun login otomatis dari email agar input tidak perlu dilakukan dua kali. |
+| MF-03 | CRUD Dosen (nama, email, NIP, NIDN, prodi, status aktif, user_id) dengan opsi membuat/menautkan akun login otomatis dari email agar input tidak perlu dilakukan dua kali. |
 | MF-03A | CRUD Program Kegiatan (kode, nama, deskripsi, rule_key, is_active). Contoh program: Kerja Praktik, Magang, Riset, Studi Independen. |
 | MF-04 | CRUD Periode PKL (nama, tahun akademik, semester, batch, starts_at, ends_at, is_active, is_locked). |
 | MF-05 | CRUD Master Tempat PKL (nama, alamat, kota, provinsi, koordinat, kontak umum, is_active). |
 | MF-06 | Bulk action pada Master Tempat PKL: hapus (jika tidak ada enrollment), merge ke tujuan. |
-| MF-07 | CRUD User (akun login dengan role `admin`, `dosen`, `mahasiswa`, `pembimbing_lapangan`). |
+| MF-07 | CRUD User (akun login dengan role `admin`, `dosen`, `mahasiswa`, `pembimbing_lapangan`), termasuk foto profil/avatar dan field profil mahasiswa/dosen yang menyesuaikan role. |
 | MF-08 | Manajemen Koordinator PKL (dosen, periode, prodi, status aktif). Satu periode‑prodi hanya boleh satu koordinator. |
 | MF-09 | **[KONFIG]** Atur **kuota minimal & maksimal mahasiswa per tempat PKL** (default min=2, max=3). Sistem menolak enrollment jika melebihi max. |
 
@@ -74,7 +75,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 
 | ID | Kebutuhan |
 |----|-----------|
-| KS-01 | Setiap Periode PKL memiliki **konfigurasi operasional** (`internship_period_settings`), mencakup: <br> - **Jam kerja & status**: rentang waktu untuk *Masuk*, *Datang Terlambat*, *Pulang Cepat*, *Pulang* **[KONFIG]** <br> - **Durasi minimal harian** (default 6 jam) dan satuan sanksi per jam kurang **[KONFIG]** <br> - **Batas maksimum jarak** (meter) untuk validasi check‑in (opsional) **[KONFIG]** <br> - **Radius bumi** untuk Haversine (default 6371 km) **[KONFIG]** <br> - **Daftar hari libur** yang dapat diganti/dikosongkan per periode **[KONFIG]** <br> - **Aturan laporan**: apakah hari Sabtu/Minggu dihitung? **[KONFIG]** <br> - **Batas maksimal pengajuan Lupa Presensi**; nilai 0 menonaktifkan fitur **[KONFIG]** <br> - **Parameter peta**: center, zoom, tile URL **[KONFIG]** <br> - **Batas upload foto**: ukuran (MB), dimensi (px) **[KONFIG]** <br> - Atur kuota minimal & maksimal mahasiswa per tempat PKL **[KONFIG]** <br> - Konfigurasi dokumen cetak nilai: logo/header, format nomor berita acara, kota tanda tangan, Ketua Jurusan, dan dokumen pendukung lainnya **[KONFIG]** |
+| KS-01 | Setiap Periode PKL memiliki **konfigurasi operasional** (`internship_period_settings`), mencakup: <br> - **Jam kerja & status**: rentang waktu untuk *Masuk*, *Datang Terlambat*, *Pulang Cepat*, *Pulang* **[KONFIG]** <br> - **Durasi minimal harian** (default 6 jam) dan satuan sanksi per jam kurang **[KONFIG]** <br> - **Batas maksimum jarak** (meter) untuk validasi check‑in (opsional) **[KONFIG]** <br> - **Batas akurasi GPS**, maksimal umur snapshot lokasi, dan toleransi beda koordinat form terhadap snapshot GPS **[KONFIG]** <br> - **Radius bumi** untuk Haversine (default 6371 km) **[KONFIG]** <br> - **Daftar hari libur** yang dapat diganti/dikosongkan per periode **[KONFIG]** <br> - **Aturan laporan**: apakah hari Sabtu/Minggu dihitung? **[KONFIG]** <br> - **Batas maksimal pengajuan Lupa Presensi**; nilai 0 menonaktifkan fitur **[KONFIG]** <br> - **Komponen penilaian dosen, komponen penilaian Pembimbing Lapangan, dan pertanyaan survey institusi** **[KONFIG]** <br> - **Parameter peta**: center, zoom, tile URL **[KONFIG]** <br> - **Batas upload foto**: ukuran (MB), dimensi (px) **[KONFIG]** <br> - Atur kuota minimal & maksimal mahasiswa per tempat PKL **[KONFIG]** <br> - Konfigurasi dokumen cetak nilai: logo/header, format nomor berita acara, kota tanda tangan, Ketua Jurusan, dan dokumen pendukung lainnya **[KONFIG]** |
 | KS-02 | **Deadline per periode** dikelola dalam tabel `period_deadlines` dengan jenis: <br> - Pendaftaran dibuka/ditutup <br> - Batas Proposal Rencana Kerja <br> - Batas Bab I, II, III, IV, V <br> - Batas Laporan Lengkap <br> - Batas Seminar <br> - Batas penyerahan hardcopy <br> Setiap deadline dapat memiliki bobot sanksi poin **[KONFIG]** |
 | KS-03 | Hanya admin yang dapat mengubah konfigurasi periode. Periode terkunci (`is_locked=true`) tidak dapat diubah kecuali oleh admin super. |
 | KS-04 | Setiap program kegiatan memiliki `rule_key`. Pada implementasi awal, semua program selain Kerja Praktik boleh memakai `rule_key='kerja_praktik'` agar workflow saat ini tetap berjalan. Desain konfigurasi harus memungkinkan rule per program didefinisikan ulang di masa datang tanpa mengubah data historis. |
@@ -99,11 +100,11 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | ID | Kebutuhan |
 |----|-----------|
 | CI-01 | Mahasiswa melakukan **check‑in masuk** (pagi) dan **check‑in pulang** (sore) pada hari yang sama. Sistem mengenali pasangan berdasarkan tanggal dan enrollment. |
-| CI-02 | Setiap request check‑in mengirim: koordinat GPS, catatan (opsional), foto (opsional). Server menentukan status (Masuk/Datang Terlambat/Pulang Cepat/Pulang) berdasarkan jam dan konfigurasi periode. |
-| CI-03 | Setelah check‑in pulang, sistem menghitung **durasi harian** = waktu_pulang - waktu_masuk. Jika durasi < [durasi_minimal] (default 6 jam), maka catat **sanksi** dengan poin = (durasi_minimal - durasi_aktual) dalam jam. |
-| CI-04 | Jika dalam satu hari hanya terdapat satu check‑in (misal hanya masuk), hari itu **tidak dihitung sebagai hari hadir** dan tidak dipasangkan. |
+| CI-02 | Setiap presensi realtime memakai `location_sample_id` dari snapshot GPS server-side, catatan, foto realtime, dan aksi masuk/pulang. Server menentukan status (Masuk/Datang Terlambat/Pulang Cepat/Pulang) berdasarkan jam dan konfigurasi periode. |
+| CI-03 | Setelah check‑in pulang memiliki pasangan masuk, sistem menghitung **durasi harian** = waktu_pulang - waktu_masuk. Jika durasi < [durasi_minimal] (default 6 jam), maka catat **sanksi** dengan poin = (durasi_minimal - durasi_aktual) dalam jam. |
+| CI-04 | Jika dalam satu hari hanya terdapat satu check‑in (misal hanya masuk atau hanya pulang), hari itu **tidak dihitung sebagai hari hadir**. Check-out tanpa check-in tetap boleh tersimpan sebagai data belum berpasangan dan mahasiswa diarahkan menggunakan Lupa Presensi Masuk jika kuota tersedia. |
 | CI-05 | Server menyimpan device_info (user agent, IP), jarak (Haversine), dan path foto. |
-| CI-06 | **Anti‑spoofing**: batas radius maksimum (opsional, lihat KS-01), rate limit (10 request/menit). |
+| CI-06 | **Anti‑spoofing**: batas radius maksimum (opsional, lihat KS-01), rate limit (10 request/menit), snapshot GPS server-side, validasi umur snapshot, validasi jarak snapshot ke mitra, dan validasi beda koordinat form terhadap snapshot GPS. |
 | CI-07 | **Cek kuota harian** : tidak ada pembatasan jumlah check‑in per hari selain satu pasang. |
 | CI-08 | **Lupa Presensi**: mahasiswa dapat mengajukan koreksi presensi dengan tanggal, jam, jenis masuk/pulang, koordinat GPS, foto realtime, catatan aktivitas, dan alasan lupa. Pengajuan dibatasi kuota per periode, tidak boleh untuk tanggal masa depan, tanggal di luar periode presensi, Sabtu/Minggu, atau tanggal libur. |
 | CI-09 | Pengajuan Lupa Presensi harus tetap memenuhi validasi pasangan: tidak boleh menggandakan aksi pada tanggal yang sama; pengajuan pulang membutuhkan presensi masuk pada tanggal tersebut; jam pulang harus setelah jam masuk. Pengajuan yang disetujui menghasilkan record `check_ins` dengan sumber koreksi dan dapat dipakai pada catatan harian/perhitungan durasi. |
@@ -123,8 +124,8 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 
 | ID | Kebutuhan |
 |----|-----------|
-| PN-01 | **Form nilai pembimbing lapangan** (skala 0–100) dengan komponen: <br> - **A. Disiplin dan Kepatuhan**: Kehadiran (otomatis dari hari hadir valid/jumlah hari kerja efektif), Kepatuhan terhadap Tata Tertib <br> - **B. Kerja Sama**: Kerja Sama dengan Anggota Kelompok, Kolaborasi dengan Tim/Unit Lain, Komunikasi dan Respons terhadap Pembimbing <br> - **C. Prestasi Kerja**: Inisiatif dan Inovasi Kerja, Kemampuan Menyelesaikan Tugas, Tanggung Jawab dan Kesungguhan Kerja <br> - **Nilai lapangan** = rata-rata seluruh komponen yang berlaku. |
-| PN-02 | **Form nilai dosen pembimbing** : nilai laporan (0–100) dan nilai seminar (0–100). Bobot dapat dikonfigurasi (default laporan 60%, seminar 40%). |
+| PN-01 | **Form nilai pembimbing lapangan** (skala 0–100) dengan komponen yang dapat dikonfigurasi per periode. Default: <br> - **A. Disiplin dan Kepatuhan**: Kehadiran (otomatis dari hari hadir valid/jumlah hari kerja efektif), Kepatuhan terhadap Tata Tertib <br> - **B. Kerja Sama**: Kerja Sama dengan Anggota Kelompok, Kolaborasi dengan Tim/Unit Lain, Komunikasi dan Respons terhadap Pembimbing <br> - **C. Prestasi Kerja**: Inisiatif dan Inovasi Kerja, Kemampuan Menyelesaikan Tugas, Tanggung Jawab dan Kesungguhan Kerja <br> - **Nilai lapangan** = rata-rata seluruh komponen yang berlaku. Rubrik dan survey institusi disimpan sebagai snapshot saat nilai disimpan. |
+| PN-02 | **Form nilai dosen pembimbing**: nilai laporan/seminar berdasarkan rubrik yang dapat dikonfigurasi per periode. Bobot default laporan 60% dan seminar 40%. Rubrik disimpan sebagai snapshot saat nilai disimpan agar histori nilai tetap konsisten meskipun konfigurasi berubah. |
 | PN-03 | **Nilai akhir KP/PKL** = (nilai lapangan × bobot_lapangan) + (nilai dosen × bobot_dosen) - pengurangan final. Sistem memberi suggest pengurangan dari total sanksi, tetapi admin/koordinator dapat menyesuaikan sebelum finalisasi. Nilai akhir dikonversi ke huruf mutu sesuai aturan Unila. |
 | PN-04 | Hanya dosen pembimbing yang dapat mengisi nilai seminar/laporan via sistem. Pembimbing Lapangan mengisi nilai lapangan. Admin/koordinator mengesahkan nilai akhir sesuai scope. Setelah nilai akhir final, nilai dosen dan nilai pembimbing lapangan terkunci. |
 | PN-05 | Setelah nilai final, mahasiswa dapat melihat rekap nilai akhir pada tab Penyelesaian dan mencetak Berita Acara Nilai. Dokumen cetak terdiri dari Berita Acara, Nilai Dosen, dan Nilai Pembimbing Lapangan, serta memuat QR verifikasi dokumen. |
@@ -346,6 +347,8 @@ Kolom `rule_key` disiapkan agar setiap program dapat memakai rule berbeda di mas
 - Tambahkan `pair_id INTEGER NULL` (referensi ke check‑in pasangan, atau gunakan logika query grouping per tanggal)
 - Tambahkan `source_type VARCHAR DEFAULT 'realtime'` untuk membedakan presensi realtime dan koreksi dari Lupa Presensi.
 - Tambahkan `forgotten_attendance_request_id INTEGER NULL` sebagai referensi ke pengajuan Lupa Presensi yang disetujui.
+- Tambahkan `check_in_location_sample_id INTEGER NULL` sebagai referensi snapshot GPS realtime yang dipakai saat presensi.
+- Tambahkan `student_location_accuracy_meters INTEGER NULL`, `location_status VARCHAR`, dan `location_flags JSON` untuk audit lokasi.
 
 ### 4.6 Tabel Implementasi Tambahan Saat Ini
 
@@ -353,13 +356,15 @@ Implementasi saat ini juga menambahkan tabel/struktur berikut:
 
 | Tabel/Struktur | Fungsi |
 |----------------|--------|
+| `users.avatar_url` | Foto profil/avatar pengguna yang dipakai pada navigasi, profil, manajemen user, dan dokumen/tampilan yang mendukung foto profil. |
 | `email_notifications` | Antrean email event-driven, status pengiriman, attempt, error, relasi notifiable, dan idempotency melalui `event_key`. |
 | `system_settings` | Penyimpanan pengaturan global berbasis key/value JSON, termasuk toggle email, cakupan workflow notifikasi, dan override mail server. |
 | `field_supervisor_access_tokens` | Token portal Pembimbing Lapangan, terhubung ke enrollment, email, hash token, masa berlaku, pencabutan, pembuat, dan waktu akses terakhir. |
-| `seminar_requests` | Workflow seminar: pengajuan seminar, jalur ACC sistem/manual, validasi ACC manual, jadwal seminar, penilaian seminar sistem/manual, validasi nilai manual, dan berkas pendukung. |
-| `field_supervisor_assessments` | Nilai pembimbing lapangan, skor komponen, catatan untuk mahasiswa, rekomendasi mahasiswa, feedback institusi, mode akses, dan identitas penilai. |
+| `seminar_requests` | Workflow seminar: pengajuan seminar, jalur ACC sistem/manual, validasi ACC manual, jadwal seminar, penilaian seminar sistem/manual, validasi nilai manual, berkas pendukung, dan snapshot rubrik penilaian dosen. |
+| `field_supervisor_assessments` | Nilai pembimbing lapangan, skor komponen, snapshot rubrik, catatan untuk mahasiswa, rekomendasi mahasiswa, feedback institusi, snapshot survey, mode akses, dan identitas penilai. |
 | `final_assessments` | Rekap nilai dosen, nilai pembimbing lapangan, pengurangan final, total nilai, huruf mutu, nomor berita acara, snapshot dokumen, token verifikasi, dan identitas finalisasi. |
 | `forgotten_attendance_requests` | Pengajuan Lupa Presensi mahasiswa, termasuk tanggal/jam diminta, jenis masuk/pulang, lokasi, foto, catatan, alasan, status review, reviewer, dan relasi ke `check_ins` hasil koreksi. |
+| `check_in_location_samples` | Snapshot GPS realtime sebelum submit presensi, berisi user, enrollment, koordinat GPS, akurasi, waktu tangkap, waktu pakai, dan device info. |
 
 ---
 
@@ -380,6 +385,9 @@ Semua nilai yang bersifat **aturan operasional** dan dapat berbeda antar periode
 | **Bobot nilai** | Bobot nilai lapangan dan dosen | `period_settings.field_supervisor_weight`, `lecturer_weight` | 0.5, 0.5 |
 | **Hari libur** | Daftar tanggal libur periode | `period_settings.report.holidays` | Dapat diganti penuh atau dikosongkan oleh admin |
 | **Lupa Presensi** | Batas maksimal pengajuan koreksi presensi | `period_settings.report.max_forgotten_attendance_requests` | 3; 0 menonaktifkan fitur |
+| **Presensi** | Batas akurasi GPS yang masih dianggap normal | `period_settings.check_in.max_location_accuracy_meters` | 100 meter |
+| **Presensi** | Maksimal umur snapshot GPS yang boleh dipakai submit | `period_settings.check_in.location_sample_max_age_minutes` | 5 menit |
+| **Presensi** | Toleransi beda koordinat form terhadap snapshot GPS | `period_settings.check_in.location_sample_mismatch_tolerance_meters` | 100 meter |
 | **Kuota tempat PKL** | Minimal & maksimal mahasiswa per tempat | Global config (atau per periode) | min=2, max=3 |
 | **Deadline** | Tanggal dan poin sanksi per jenis | Tabel `period_deadlines` | Ditentukan admin per periode |
 | **Dokumen nilai** | Logo/header, nomor berita acara, kota tanda tangan, Ketua Jurusan | `period_settings.assessment_document.*` | Dipakai pada cetak berita acara nilai |
@@ -436,13 +444,13 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
 | MF-01 | Sudah diimplementasikan | CRUD Prodi tersedia di menu Manajemen. Prodi memiliki `degree_level` seperti D3, S1, S2, dan dipakai untuk membedakan aturan akademik. |
-| MF-02 | Sudah diimplementasikan sebagian | CRUD Mahasiswa tersedia; profil mahasiswa juga dapat dilengkapi oleh mahasiswa sendiri. |
-| MF-03 | Sudah diimplementasikan | Tabel dan CRUD Dosen tersedia, termasuk NIP, NIDN, prodi, status, dan relasi user. |
+| MF-02 | Sudah diimplementasikan | CRUD Mahasiswa tersedia; profil mahasiswa juga dapat dilengkapi oleh mahasiswa sendiri. Form admin mendukung mode buat/tautkan akun login otomatis dari email, tautkan user yang sudah ada, atau simpan tanpa akun login. |
+| MF-03 | Sudah diimplementasikan | Tabel dan CRUD Dosen tersedia, termasuk NIP, NIDN, prodi, status, dan relasi user. Form admin mendukung mode buat/tautkan akun login otomatis dari email, tautkan user yang sudah ada, atau simpan tanpa akun login. |
 | MF-03A | Sudah diimplementasikan | Master Program Kegiatan tersedia dengan `code`, `name`, `description`, `rule_key`, dan `is_active`. Seed awal mencakup Kerja Praktik, Magang, dan Riset dengan fallback rule `kerja_praktik`. |
 | MF-04 | Sudah diimplementasikan | CRUD Periode PKL tersedia dan periode terhubung ke Program Kegiatan. |
 | MF-05 | Sudah diimplementasikan | Master Tempat PKL tersedia dengan input/edit lokasi Leaflet. Field `is_active` sudah tersedia dan tempat aktif dipakai pada pendaftaran serta permohonan pindah tempat. |
 | MF-06 | Sudah diimplementasikan | Bulk hapus dan merge Master Tempat PKL tersedia. |
-| MF-07 | Sudah diimplementasikan | CRUD User tersedia untuk role `admin`, `dosen`, `mahasiswa`, dan `pembimbing_lapangan`. Akun pembimbing lapangan direkomendasikan dibuat/ditautkan dari menu Pembimbing Lapangan agar emailnya pasti terkait enrollment aktif, bukan dibuat bebas dari Manajemen User. |
+| MF-07 | Sudah diimplementasikan | CRUD User tersedia untuk role `admin`, `dosen`, `mahasiswa`, dan `pembimbing_lapangan`, termasuk foto profil/avatar. Jika role Mahasiswa atau Dosen dipilih, form user menampilkan field profil terkait dan memakai email user sebagai email profil agar tidak ada input email ganda. Akun pembimbing lapangan direkomendasikan dibuat/ditautkan dari menu Pembimbing Lapangan agar emailnya pasti terkait enrollment aktif, bukan dibuat bebas dari Manajemen User. |
 | MF-08 | Sudah diimplementasikan | Penugasan Koordinator PKL per periode/prodi tersedia dan dibatasi satu koordinator per periode-prodi. Form tambah koordinator mendukung multi-select prodi untuk membuat beberapa penugasan sekaligus pada periode yang sama. |
 | MF-09 | Sudah diimplementasikan sebagian | Kuota minimal dan maksimal tersedia di konfigurasi periode. Kuota maksimal sudah divalidasi pada pendaftaran mahasiswa dan input peserta admin; kuota minimal ditampilkan sebagai indikator peringatan pada validasi pendaftaran. |
 
@@ -450,7 +458,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui menu **Konfigurasi Program** dan tabel `internship_period_settings`, mencakup jam check-in, peta, upload foto, hari libur laporan, aturan laporan dasar, kuota, syarat akademik, serta model sanksi deadline tetap/per hari. Syarat minimal SKS sudah dibedakan per jenjang, misalnya D3=80 dan S1=100. |
+| KS-01 | Sudah diimplementasikan sebagian | Konfigurasi per periode tersedia melalui menu **Konfigurasi Program** dan tabel `internship_period_settings`, mencakup jam check-in, radius presensi, batas akurasi GPS, umur snapshot lokasi, toleransi beda koordinat, peta, upload foto, hari libur laporan, aturan laporan dasar, kuota, syarat akademik, komponen penilaian dosen, komponen penilaian Pembimbing Lapangan, survey institusi, serta model sanksi deadline tetap/per hari. Syarat minimal SKS sudah dibedakan per jenjang, misalnya D3=80 dan S1=100. |
 | KS-02 | Sudah diimplementasikan | Tabel/model `period_deadlines` dan UI konfigurasi deadline per periode sudah tersedia, termasuk tanggal, poin penalti, dan flag penalti tetap. Deadline dipakai untuk menghitung sanksi unggahan progres laporan. |
 | KS-03 | Sudah diimplementasikan | Konfigurasi hanya dapat diakses admin. Periode terkunci tidak dapat diubah melalui konfigurasi kecuali oleh super admin yang tercantum pada konfigurasi. Aksi **Set Selesai** pada periode mengubah enrollment aktif menjadi `completed`, menonaktifkan periode, dan mengunci periode. Checkbox `Terkunci` pada edit periode hanya mengubah status periode sehingga data peserta tidak otomatis diselesaikan. |
 | KS-04 | Sudah diimplementasikan | Program terhubung ke periode dan memiliki `rule_key`. Implementasi saat ini memakai rule `kerja_praktik` sebagai fallback terstruktur, sehingga rule program lain dapat ditambahkan tanpa mengubah data historis. |
@@ -475,11 +483,11 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
 | CI-01 | Sudah diimplementasikan | Check-in memakai aksi eksplisit `check_in` dan `check_out`, lalu dipasangkan melalui `pair_id` pada hari/enrollment yang sama. |
-| CI-02 | Sudah diimplementasikan sebagian | Server menentukan status berdasarkan jam konfigurasi dan menyimpan lokasi, catatan, foto opsional. |
-| CI-03 | Sudah diimplementasikan | Saat check-out, sistem menghitung durasi harian, menyimpan `duration_minutes`, menghitung poin sanksi jika durasi kurang, dan menambahkan poin ke total sanksi enrollment. |
-| CI-04 | Sudah diimplementasikan | Laporan monitoring dan ringkasan dashboard hanya menghitung hari hadir jika terdapat pasangan check-in masuk dan pulang. |
-| CI-05 | Sudah diimplementasikan | Device info, jarak Haversine, lokasi kantor, lokasi mahasiswa, dan foto disimpan. |
-| CI-06 | Sudah diimplementasikan sebagian | Radius maksimum check-in dapat dikonfigurasi dan route submit check-in dibatasi rate limit 10 request/menit. Validasi anti-spoofing lanjutan masih dapat diperkuat pada fase produksi. |
+| CI-02 | Sudah diimplementasikan | Server menentukan status berdasarkan jam konfigurasi dan presensi realtime memakai snapshot GPS server-side (`location_sample_id`) sebagai sumber koordinat final, disertai catatan dan foto realtime. |
+| CI-03 | Sudah diimplementasikan | Saat check-out memiliki pasangan check-in, sistem menghitung durasi harian, menyimpan `duration_minutes`, menghitung poin sanksi jika durasi kurang, dan menambahkan poin ke total sanksi enrollment. Check-out tanpa pasangan belum menghitung durasi/sanksi. |
+| CI-04 | Sudah diimplementasikan | Laporan monitoring dan ringkasan dashboard hanya menghitung hari hadir jika terdapat pasangan check-in masuk dan pulang. Check-out tanpa check-in dapat tersimpan sebagai data belum berpasangan dan diarahkan ke Lupa Presensi Masuk jika kuota tersedia. |
+| CI-05 | Sudah diimplementasikan | Device info, jarak Haversine dari snapshot GPS ke mitra, lokasi kantor, lokasi mahasiswa, akurasi GPS, flag audit lokasi, dan foto disimpan. |
+| CI-06 | Sudah diimplementasikan | Radius maksimum check-in dapat dikonfigurasi, route submit check-in dibatasi rate limit 10 request/menit, snapshot GPS disimpan server-side, snapshot kedaluwarsa ditolak, dan koordinat form yang berbeda jauh dari snapshot GPS ditolak sebagai indikasi manipulasi. |
 | CI-07 | Sudah diimplementasikan | Sistem membatasi satu `check_in` dan satu `check_out` resmi per enrollment per hari. |
 | CI-08 | Sudah diimplementasikan | Halaman presensi mahasiswa memiliki tab **Presensi** dan **Lupa Presensi**. Lupa Presensi menampilkan periode/mitra, kuota maksimal, kuota terpakai, sisa kuota, koordinat lokasi, kamera realtime, alasan, dan riwayat pengajuan. |
 | CI-09 | Sudah diimplementasikan | Approval Lupa Presensi tersedia untuk admin/koordinator melalui menu **Lupa Presensi** dan untuk Pembimbing Lapangan login melalui blok **Pengajuan Lupa Presensi** di tab Catatan Harian. Pengajuan yang disetujui membuat `check_ins` koreksi dengan `source_type='forgotten_request'`. |
@@ -542,8 +550,8 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| PN-01 | Sudah diimplementasikan | Pembimbing Lapangan dapat mengisi nilai lapangan pada tab **Penilaian dan Feedback**. Nilai Kehadiran dihitung otomatis dari hari hadir valid/jumlah hari kerja efektif, mengabaikan Sabtu/Minggu dan hari libur. Label komponen sudah diperbarui menjadi A. Disiplin dan Kepatuhan, B. Kerja Sama, dan C. Prestasi Kerja. |
-| PN-02 | Sudah diimplementasikan sebagian | Workflow seminar menyediakan penilaian seminar oleh dosen pembimbing via sistem dan jalur manual. Pada jalur sistem, dosen mengisi komponen nilai seminar/laporan sesuai bobot form seminar dan sistem menghitung total. Pada jalur manual, mahasiswa menginput komponen nilai, mengunggah berkas bukti/form penilaian, lalu admin/koordinator memvalidasi. Nilai dosen dipakai pada finalisasi nilai akhir. |
+| PN-01 | Sudah diimplementasikan | Pembimbing Lapangan dapat mengisi nilai lapangan pada tab **Penilaian dan Feedback**. Nilai Kehadiran dihitung otomatis dari hari hadir valid/jumlah hari kerja efektif, mengabaikan Sabtu/Minggu dan hari libur. Komponen penilaian dan pertanyaan survey institusi dapat dikonfigurasi per periode dan disimpan sebagai snapshot saat nilai tersimpan. |
+| PN-02 | Sudah diimplementasikan sebagian | Workflow seminar menyediakan penilaian seminar oleh dosen pembimbing via sistem dan jalur manual. Pada jalur sistem, dosen mengisi komponen nilai seminar/laporan sesuai rubrik konfigurasi periode dan sistem menghitung total. Pada jalur manual, mahasiswa menginput komponen nilai, mengunggah berkas bukti/form penilaian, lalu admin/koordinator memvalidasi. Rubrik disimpan sebagai snapshot saat nilai tersimpan. Nilai dosen dipakai pada finalisasi nilai akhir. |
 | PN-03 | Sudah diimplementasikan | Halaman **Finalisasi Nilai** menghitung nilai dasar dari nilai dosen dan pembimbing lapangan masing-masing 50%, memberi suggest pengurangan dari sanksi, memungkinkan admin/koordinator menyimpan pengurangan final dan nomor berita acara, lalu menghasilkan total nilai dan huruf mutu. |
 | PN-04 | Sudah diimplementasikan | Setelah nilai akhir final, nilai dosen dan nilai pembimbing lapangan dikunci agar tidak dapat diedit. |
 | PN-05 | Sudah diimplementasikan | Cetak Berita Acara Nilai tersedia setelah nilai final. Dokumen memuat halaman berita acara, nilai dosen, nilai pembimbing lapangan, nomor berita acara, data Ketua Jurusan dari konfigurasi, data Koordinator Periode Program sesuai prodi mahasiswa, dan QR verifikasi memakai API QR server. |
