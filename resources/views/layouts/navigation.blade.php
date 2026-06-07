@@ -80,9 +80,15 @@
 
     if ($user->hasRole('admin')) {
         $groups[] = [
+            'label' => 'Manajemen',
+            'items' => [
+                ['label' => 'Dashboard Manajemen', 'route' => 'management.dashboard', 'icon' => 'fa-chart-line', 'active' => ['management.dashboard']],
+            ],
+        ];
+
+        $groups[] = [
             'label' => 'Workflow Akademik',
             'items' => [
-                ['label' => 'Ringkasan Manajemen', 'route' => 'management.dashboard', 'icon' => 'fa-chart-line', 'active' => ['management.dashboard']],
                 ['label' => 'Program Kegiatan', 'route' => 'management.programs.index', 'icon' => 'fa-layer-group', 'active' => ['management.programs.*']],
                 ['label' => 'Periode Program', 'route' => 'management.periods.index', 'icon' => 'fa-calendar-days', 'active' => ['management.periods.*']],
                 ['label' => 'Koordinator Program', 'route' => 'management.coordinators.index', 'icon' => 'fa-user-gear', 'active' => ['management.coordinators.*']],

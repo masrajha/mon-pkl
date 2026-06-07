@@ -1,6 +1,6 @@
 @php
     $items = [
-        ['patterns' => ['management.dashboard'], 'group' => 'Manajemen', 'label' => 'Ringkasan'],
+        ['patterns' => ['management.dashboard'], 'group' => 'Manajemen', 'label' => 'Dashboard Manajemen'],
         ['patterns' => ['management.enrollment-validations.*'], 'group' => 'Workflow Akademik', 'label' => 'Validasi Pendaftaran'],
         ['patterns' => ['management.place-proposals.*'], 'group' => 'Workflow Akademik', 'label' => 'Usulan Mitra'],
         ['patterns' => ['management.relocations.*'], 'group' => 'Workflow Akademik', 'label' => 'Pindah Mitra'],

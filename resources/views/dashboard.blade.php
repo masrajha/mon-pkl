@@ -278,7 +278,7 @@
                             <h3 class="silat-section-title">{{ __('Administrasi Sistem') }}</h3>
                             <p class="silat-section-description">{{ __('Indikator utama master data, penempatan, dan proses validasi.') }}</p>
                         </div>
-                        <a class="silat-btn" href="{{ route('management.dashboard') }}"><x-icon name="fa-chart-line" /> Buka Manajemen</a>
+                        <a class="silat-btn" href="{{ route('management.dashboard') }}"><x-icon name="fa-chart-line" /> Buka Dashboard Manajemen</a>
                     </div>
                     <div class="p-5">
                         <div class="silat-stat-grid">
