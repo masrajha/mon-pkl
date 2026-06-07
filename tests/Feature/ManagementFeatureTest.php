@@ -311,6 +311,80 @@ class ManagementFeatureTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_create_same_period_identity_for_different_programs(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $kp = Program::query()->where('code', 'KP')->firstOrFail();
+        $magang = Program::query()->where('code', 'MAGANG')->firstOrFail();
+
+        InternshipPeriod::query()->create([
+            'program_id' => $kp->id,
+            'name' => 'Juli 2026',
+            'academic_year' => '2026/2027',
+            'semester' => 'Ganjil',
+            'batch' => 'I',
+            'starts_at' => '2026-06-08',
+            'ends_at' => '2026-07-03',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('management.periods.store'), [
+                'program_id' => $magang->id,
+                'name' => 'Juli 2026',
+                'academic_year' => '2026/2027',
+                'semester' => 'Ganjil',
+                'batch' => 'I',
+                'starts_at' => '2026-06-08',
+                'ends_at' => '2026-07-03',
+                'is_active' => 1,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('internship_periods', [
+            'program_id' => $magang->id,
+            'name' => 'Juli 2026',
+            'academic_year' => '2026/2027',
+            'semester' => 'Ganjil',
+            'batch' => 'I',
+        ]);
+    }
+
+    public function test_admin_cannot_create_duplicate_period_identity_for_same_program(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $kp = Program::query()->where('code', 'KP')->firstOrFail();
+
+        InternshipPeriod::query()->create([
+            'program_id' => $kp->id,
+            'name' => 'Juli 2026',
+            'academic_year' => '2026/2027',
+            'semester' => 'Ganjil',
+            'batch' => 'I',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('management.periods.store'), [
+                'program_id' => $kp->id,
+                'name' => 'Juli 2026',
+                'academic_year' => '2026/2027',
+                'semester' => 'Ganjil',
+                'batch' => 'I',
+                'starts_at' => '2026-06-08',
+                'ends_at' => '2026-07-03',
+                'is_active' => 1,
+            ])
+            ->assertSessionHasErrors('name');
+
+        $this->assertSame(1, InternshipPeriod::query()
+            ->where('program_id', $kp->id)
+            ->where('name', 'Juli 2026')
+            ->where('academic_year', '2026/2027')
+            ->where('semester', 'Ganjil')
+            ->where('batch', 'I')
+            ->count());
+    }
+
     public function test_admin_can_validate_pending_enrollment_from_validation_page(): void
     {
         Storage::fake('public');

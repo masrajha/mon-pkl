@@ -12,7 +12,7 @@ use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PeriodController extends Controller
@@ -127,7 +127,39 @@ class PeriodController extends Controller
         ]) + ['is_active' => false, 'is_locked' => false];
 
         $data['program_id'] ??= Program::query()->where('code', 'KP')->value('id');
+        $this->ensureUniquePeriodScope($data, $period);
 
         return $data;
+    }
+
+    private function ensureUniquePeriodScope(array $data, ?InternshipPeriod $period = null): void
+    {
+        $exists = InternshipPeriod::query()
+            ->when($period, fn ($query) => $query->whereKeyNot($period->id))
+            ->where('program_id', $data['program_id'])
+            ->where('name', $data['name'])
+            ->where($this->nullableColumn('academic_year', $data['academic_year'] ?? null))
+            ->where($this->nullableColumn('semester', $data['semester'] ?? null))
+            ->where($this->nullableColumn('batch', $data['batch'] ?? null))
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                'name' => 'Periode dengan nama, tahun akademik, semester, dan gelombang yang sama sudah ada untuk program ini.',
+            ]);
+        }
+    }
+
+    private function nullableColumn(string $column, ?string $value): \Closure
+    {
+        return function ($query) use ($column, $value): void {
+            if ($value === null || $value === '') {
+                $query->whereNull($column);
+
+                return;
+            }
+
+            $query->where($column, $value);
+        };
     }
 }

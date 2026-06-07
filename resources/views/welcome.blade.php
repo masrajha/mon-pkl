@@ -206,7 +206,10 @@
                     <p class="font-bold">SiLAT</p>
                     <p class="mt-1 text-sm text-slate-300">Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik</p>
                 </div>
-                <p class="text-sm text-slate-300">FMIPA Universitas Lampung</p>
+                <div class="text-sm text-slate-300 md:text-right">
+                    <p>FMIPA Universitas Lampung</p>
+                    <p class="mt-1">Dikembangkan oleh @didikunila</p>
+                </div>
             </div>
         </footer>
     </body>
