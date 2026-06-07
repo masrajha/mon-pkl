@@ -136,6 +136,110 @@ class ManagementFeatureTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_create_student_with_login_account_from_student_menu(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = StudyProgram::query()->create(['code' => 'TI', 'name' => 'Teknik Informatika', 'is_active' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('management.students.store'), [
+                'account_mode' => 'auto',
+                'login_email' => 'mahasiswa.auto@example.test',
+                'study_program_id' => $program->id,
+                'npm' => '2217051777',
+                'full_name' => 'Mahasiswa Auto',
+                'student_email' => 'mahasiswa.auto@example.test',
+                'phone' => '081234567000',
+            ])
+            ->assertRedirect();
+
+        $user = User::query()->where('email', 'mahasiswa.auto@example.test')->firstOrFail();
+
+        $this->assertSame('mahasiswa', $user->role);
+        $this->assertDatabaseHas('students', [
+            'user_id' => $user->id,
+            'npm' => '2217051777',
+            'full_name' => 'Mahasiswa Auto',
+            'study_program_id' => $program->id,
+        ]);
+    }
+
+    public function test_admin_can_create_lecturer_with_login_account_from_lecturer_menu(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = StudyProgram::query()->create(['code' => 'SI', 'name' => 'Sistem Informasi', 'is_active' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('management.lecturers.store'), [
+                'account_mode' => 'auto',
+                'login_email' => 'dosen.auto@example.test',
+                'study_program_id' => $program->id,
+                'name' => 'Dosen Auto',
+                'email' => 'dosen.auto@example.test',
+                'nip' => '198801012020121001',
+                'nidn' => '0010018801',
+                'status' => 'active',
+            ])
+            ->assertRedirect();
+
+        $user = User::query()->where('email', 'dosen.auto@example.test')->firstOrFail();
+
+        $this->assertSame('dosen', $user->role);
+        $this->assertDatabaseHas('lecturers', [
+            'user_id' => $user->id,
+            'name' => 'Dosen Auto',
+            'study_program_id' => $program->id,
+            'nip' => '198801012020121001',
+        ]);
+    }
+
+    public function test_admin_user_form_creates_role_profile_for_student_and_lecturer(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = StudyProgram::query()->create(['code' => 'IF', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+
+        $this->actingAs($admin)
+            ->post(route('management.users.store'), [
+                'name' => 'User Mahasiswa Profil',
+                'email' => 'user.mahasiswa.profil@example.test',
+                'role' => 'mahasiswa',
+                'password' => 'password123',
+                'student_npm' => '2217051666',
+                'student_study_program_id' => $program->id,
+                'student_email' => 'user.mahasiswa.profil@example.test',
+            ])
+            ->assertRedirect();
+
+        $studentUser = User::query()->where('email', 'user.mahasiswa.profil@example.test')->firstOrFail();
+
+        $this->assertDatabaseHas('students', [
+            'user_id' => $studentUser->id,
+            'npm' => '2217051666',
+            'full_name' => 'User Mahasiswa Profil',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('management.users.store'), [
+                'name' => 'User Dosen Profil',
+                'email' => 'user.dosen.profil@example.test',
+                'role' => 'dosen',
+                'password' => 'password123',
+                'lecturer_study_program_id' => $program->id,
+                'lecturer_email' => 'user.dosen.profil@example.test',
+                'lecturer_nip' => '198701012020121001',
+                'lecturer_status' => 'active',
+            ])
+            ->assertRedirect();
+
+        $lecturerUser = User::query()->where('email', 'user.dosen.profil@example.test')->firstOrFail();
+
+        $this->assertDatabaseHas('lecturers', [
+            'user_id' => $lecturerUser->id,
+            'name' => 'User Dosen Profil',
+            'nip' => '198701012020121001',
+        ]);
+    }
+
     public function test_admin_enrollment_student_search_and_store_use_student_study_program(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -227,7 +331,7 @@ class ManagementFeatureTest extends TestCase
         $this->actingAs($admin)
             ->get(route('management.enrollment-validations.index'))
             ->assertOk()
-            ->assertSee('Buka dokumen');
+            ->assertSee('Buka');
 
         $this->actingAs($admin)
             ->get(route('management.enrollment-validations.document', $enrollment))
@@ -360,7 +464,7 @@ class ManagementFeatureTest extends TestCase
             ->get(route('coordinator.dashboard'))
             ->assertOk()
             ->assertSee('Tindakan Diperlukan')
-            ->assertSee('Usulan Tempat')
+            ->assertSee('Usulan Mitra')
             ->assertSee('1 pengajuan menunggu tindakan.');
 
         $this->actingAs($coordinatorUser)

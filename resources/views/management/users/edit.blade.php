@@ -5,7 +5,7 @@
     <div class="py-10"><div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
         @include('management.partials.nav')
         @if ($errors->any())<div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{{ $errors->first() }}</div>@endif
-        <form method="POST" action="{{ route('management.users.update', $user) }}" class="space-y-4 bg-white p-6 shadow-sm sm:rounded-lg" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('management.users.update', $user) }}" class="space-y-4 bg-white p-6 shadow-sm sm:rounded-lg" enctype="multipart/form-data" x-data="{ role: @js(old('role', $user->role)) }">
             @csrf @method('PATCH')
             <div>
                 <x-input-label for="avatar_photo" value="Foto Profil" />
@@ -31,9 +31,38 @@
             <x-input-label for="name" value="Nama" /><x-text-input id="name" name="name" class="block w-full" :value="$user->name" required />
             <x-input-label for="email" value="Email" /><x-text-input id="email" name="email" type="email" class="block w-full" :value="$user->email" required />
             <x-input-label for="role" value="Role" />
-            <select id="role" name="role" class="block w-full rounded-md border-gray-300">
+            <select id="role" name="role" class="block w-full rounded-md border-gray-300" x-model="role">
                 @foreach (['admin' => 'Admin', 'dosen' => 'Dosen', 'mahasiswa' => 'Mahasiswa'] + ($user->role === 'pembimbing_lapangan' ? ['pembimbing_lapangan' => 'Pembimbing Lapangan'] : []) as $role => $label)<option value="{{ $role }}" @selected($user->role === $role)>{{ $label }}</option>@endforeach
             </select>
+            <div x-show="role === 'mahasiswa'" class="space-y-3 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+                <p class="text-sm font-semibold text-blue-900">Profil Mahasiswa</p>
+                <x-input-label for="student_npm" value="NPM" /><x-text-input id="student_npm" name="student_npm" class="block w-full" :value="old('student_npm', $user->student?->npm)" />
+                <x-input-label for="student_study_program_id" value="Prodi" />
+                <select id="student_study_program_id" name="student_study_program_id" class="block w-full rounded-md border-gray-300">
+                    <option value="">Pilih prodi</option>
+                    @foreach ($studyPrograms as $program)<option value="{{ $program->id }}" @selected((string) old('student_study_program_id', $user->student?->study_program_id) === (string) $program->id)>{{ $program->name }}</option>@endforeach
+                </select>
+                <x-input-label for="student_phone" value="No HP" /><x-text-input id="student_phone" name="student_phone" class="block w-full" :value="old('student_phone', $user->student?->phone)" />
+                <p class="text-xs text-blue-700">Email profil mahasiswa mengikuti email akun login di atas.</p>
+            </div>
+            <div x-show="role === 'dosen'" class="space-y-3 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+                <p class="text-sm font-semibold text-blue-900">Profil Dosen</p>
+                <x-input-label for="lecturer_study_program_id" value="Prodi" />
+                <select id="lecturer_study_program_id" name="lecturer_study_program_id" class="block w-full rounded-md border-gray-300">
+                    <option value="">Belum ditentukan</option>
+                    @foreach ($studyPrograms as $program)<option value="{{ $program->id }}" @selected((string) old('lecturer_study_program_id', $user->lecturer?->study_program_id) === (string) $program->id)>{{ $program->name }}</option>@endforeach
+                </select>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div><x-input-label for="lecturer_nip" value="NIP" /><x-text-input id="lecturer_nip" name="lecturer_nip" class="block w-full" :value="old('lecturer_nip', $user->lecturer?->nip)" /></div>
+                    <div><x-input-label for="lecturer_nidn" value="NIDN" /><x-text-input id="lecturer_nidn" name="lecturer_nidn" class="block w-full" :value="old('lecturer_nidn', $user->lecturer?->nidn)" /></div>
+                </div>
+                <p class="text-xs text-blue-700">Email profil dosen mengikuti email akun login di atas.</p>
+                <x-input-label for="lecturer_status" value="Status Dosen" />
+                <select id="lecturer_status" name="lecturer_status" class="block w-full rounded-md border-gray-300">
+                    <option value="active" @selected(old('lecturer_status', $user->lecturer?->status ?? 'active') === 'active')>Aktif</option>
+                    <option value="inactive" @selected(old('lecturer_status', $user->lecturer?->status ?? 'active') === 'inactive')>Nonaktif</option>
+                </select>
+            </div>
             <x-input-label for="password" value="Password baru" /><x-text-input id="password" name="password" type="password" class="block w-full" />
             <x-primary-button>Simpan Perubahan</x-primary-button>
         </form>

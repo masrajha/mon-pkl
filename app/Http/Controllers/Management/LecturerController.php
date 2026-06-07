@@ -7,8 +7,11 @@ use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\Lecturer;
 use App\Models\StudyProgram;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -48,10 +51,13 @@ class LecturerController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $lecturer = Lecturer::query()->create($this->validated($request));
-        $this->syncUserRole($lecturer);
+        DB::transaction(function () use ($request): void {
+            $data = $this->validated($request);
+            $lecturer = Lecturer::query()->create($this->lecturerPayload($data));
+            $this->syncLoginAccount($lecturer, $data);
+        });
 
-        return back()->with('status', 'Dosen berhasil ditambahkan.');
+        return back()->with('status', 'Dosen dan akun login berhasil diproses.');
     }
 
     public function edit(Lecturer $lecturer): View
@@ -61,16 +67,21 @@ class LecturerController extends Controller
 
     public function update(Request $request, Lecturer $lecturer): RedirectResponse
     {
-        $lecturer->update($this->validated($request, $lecturer));
-        $this->syncUserRole($lecturer);
+        DB::transaction(function () use ($request, $lecturer): void {
+            $data = $this->validated($request, $lecturer);
+            $lecturer->update($this->lecturerPayload($data));
+            $this->syncLoginAccount($lecturer, $data);
+        });
 
         return redirect()->route('management.lecturers.index')->with('status', 'Dosen berhasil diperbarui.');
     }
 
     private function validated(Request $request, ?Lecturer $lecturer = null): array
     {
-        return $request->validate([
-            'user_id' => ['nullable', Rule::exists('users', 'id'), Rule::unique('lecturers')->ignore($lecturer)],
+        $data = $request->validate([
+            'account_mode' => ['nullable', Rule::in(['auto', 'link', 'none'])],
+            'user_id' => ['nullable', 'required_if:account_mode,link', Rule::exists('users', 'id'), Rule::unique('lecturers')->ignore($lecturer)],
+            'login_email' => ['nullable', 'required_if:account_mode,auto', 'email', 'max:255'],
             'study_program_id' => ['nullable', 'exists:study_programs,id'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
@@ -78,6 +89,14 @@ class LecturerController extends Controller
             'nidn' => ['nullable', 'string', 'max:50', Rule::unique('lecturers')->ignore($lecturer)],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ]);
+
+        $data['account_mode'] ??= filled($data['user_id'] ?? null) ? 'link' : 'auto';
+
+        if ($data['account_mode'] === 'auto' && blank($data['login_email'] ?? null)) {
+            throw ValidationException::withMessages(['login_email' => 'Email login wajib diisi untuk membuat akun otomatis.']);
+        }
+
+        return $data;
     }
 
     private function formData(): array
@@ -88,10 +107,71 @@ class LecturerController extends Controller
         ];
     }
 
-    private function syncUserRole(Lecturer $lecturer): void
+    private function lecturerPayload(array $data): array
     {
-        if ($lecturer->user_id) {
-            $lecturer->user()->update(['role' => 'dosen']);
+        $email = match ($data['account_mode'] ?? 'auto') {
+            'auto' => $data['login_email'] ?? null,
+            'none' => $data['email'] ?? null,
+            default => null,
+        };
+
+        return [
+            'user_id' => $data['user_id'] ?? null,
+            'study_program_id' => $data['study_program_id'] ?? null,
+            'name' => $data['name'],
+            'email' => $email,
+            'nip' => $data['nip'] ?? null,
+            'nidn' => $data['nidn'] ?? null,
+            'status' => $data['status'],
+        ];
+    }
+
+    private function syncLoginAccount(Lecturer $lecturer, array $data): void
+    {
+        $mode = $data['account_mode'] ?? 'auto';
+
+        if ($mode === 'none') {
+            $lecturer->update(['user_id' => null]);
+
+            return;
         }
+
+        if ($mode === 'link') {
+            $user = User::query()->whereKey($data['user_id'] ?? null)->firstOrFail();
+            if ($user->role !== 'dosen') {
+                throw ValidationException::withMessages(['user_id' => 'Akun yang ditautkan harus berperan Dosen.']);
+            }
+            $lecturer->update([
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+
+            return;
+        }
+
+        $email = Str::lower(trim((string) ($data['login_email'] ?? '')));
+        $user = User::query()->where('email', $email)->first();
+
+        if ($user) {
+            if ($user->role !== 'dosen') {
+                throw ValidationException::withMessages(['login_email' => 'Email sudah digunakan oleh akun dengan role lain.']);
+            }
+            if (Lecturer::query()->where('user_id', $user->id)->whereKeyNot($lecturer->id)->exists()) {
+                throw ValidationException::withMessages(['login_email' => 'Email sudah tertaut ke dosen lain.']);
+            }
+            $user->update(['name' => $data['name'], 'role' => 'dosen']);
+        } else {
+            $user = User::query()->create([
+                'name' => $data['name'],
+                'email' => $email,
+                'role' => 'dosen',
+                'password' => Str::password(16),
+            ]);
+        }
+
+        $lecturer->update([
+            'user_id' => $user->id,
+            'email' => $user->email,
+        ]);
     }
 }

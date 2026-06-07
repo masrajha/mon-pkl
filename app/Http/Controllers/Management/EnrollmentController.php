@@ -325,10 +325,29 @@ class EnrollmentController extends Controller
 
         $data = $request->validate([
             'status' => ['required', Rule::in(['active', 'revision_required', 'rejected'])],
+            'lecturer_supervisor_id' => ['nullable', Rule::exists('lecturers', 'id')->where('status', 'active')],
+            'field_supervisor' => ['nullable', 'string', 'max:255'],
+            'field_supervisor_phone' => ['nullable', 'string', 'max:50'],
+            'field_supervisor_email' => ['nullable', 'email', 'max:255'],
             'admin_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $this->processValidation($enrollment, $data['status'], $data['admin_note'] ?? null);
+        $updates = collect($data)
+            ->only(['field_supervisor', 'field_supervisor_phone', 'field_supervisor_email'])
+            ->filter(fn ($value) => filled($value))
+            ->all();
+
+        if (array_key_exists('lecturer_supervisor_id', $data)) {
+            $lecturer = filled($data['lecturer_supervisor_id'])
+                ? Lecturer::query()->where('status', 'active')->find($data['lecturer_supervisor_id'])
+                : null;
+
+            $updates['lecturer_supervisor_id'] = $lecturer?->id;
+            $updates['lecturer_supervisor_user_id'] = $lecturer?->user_id;
+            $updates['lecturer_supervisor'] = $lecturer?->name;
+        }
+
+        $this->processValidation($enrollment, $data['status'], $data['admin_note'] ?? null, $updates);
 
         return back()->with('status', 'Validasi pendaftaran berhasil diproses.');
     }
@@ -448,9 +467,9 @@ class EnrollmentController extends Controller
         abort_unless($allowed, 403);
     }
 
-    private function processValidation(InternshipEnrollment $enrollment, string $status, ?string $adminNote): void
+    private function processValidation(InternshipEnrollment $enrollment, string $status, ?string $adminNote, array $updates = []): void
     {
-        $enrollment->update([
+        $enrollment->update($updates + [
             'status' => $status,
             'admin_note' => $adminNote,
         ]);
