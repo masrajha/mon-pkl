@@ -236,6 +236,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/student/reports/{enrollment}/daily-logs/print', [StudentReportController::class, 'printDailyLogs'])->name('student.reports.daily-logs.print');
         Route::get('/student/reports/{enrollment}/print', [StudentReportController::class, 'print'])->name('student.reports.print');
         Route::get('/check-ins/create', [CheckInController::class, 'create'])->name('check-ins.create');
+        Route::post('/check-ins/location-samples', [CheckInController::class, 'storeLocationSample'])->middleware('throttle:30,1')->name('check-ins.location-samples.store');
         Route::post('/check-ins', [CheckInController::class, 'store'])->middleware('throttle:10,1')->name('check-ins.store');
         Route::post('/student/enrollments/{enrollment}/forgotten-attendance-requests', [StudentForgottenAttendanceRequestController::class, 'store'])->middleware('throttle:5,1')->name('student.forgotten-attendance-requests.store');
     });
@@ -248,6 +249,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/progress-funnel', [ReportController::class, 'progressFunnel'])->name('reports.progress-funnel');
         Route::get('/reports/risk-scoring', [ReportController::class, 'riskScoring'])->name('reports.risk-scoring');
         Route::get('/reports/attendance-heatmap', [ReportController::class, 'attendanceHeatmap'])->name('reports.attendance-heatmap');
+        Route::get('/reports/operational-charts', [ReportController::class, 'operationalCharts'])->name('reports.operational-charts');
         Route::get('/management/enrollment-validations', [ManagementEnrollmentController::class, 'validations'])->name('management.enrollment-validations.index');
         Route::post('/management/enrollment-validations/bulk', [ManagementEnrollmentController::class, 'bulkValidateEnrollments'])->name('management.enrollment-validations.bulk');
         Route::get('/management/enrollment-validations/{enrollment}/registration-document', [ManagementEnrollmentController::class, 'registrationDocument'])->name('management.enrollment-validations.document');

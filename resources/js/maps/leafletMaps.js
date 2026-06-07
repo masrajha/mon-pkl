@@ -404,9 +404,20 @@ function initCheckInMap(element) {
     const layer = L.layerGroup().addTo(map);
     const latInput = document.getElementById(element.dataset.latInput);
     const lngInput = document.getElementById(element.dataset.lngInput);
+    const accuracyInput = element.dataset.accuracyInput ? document.getElementById(element.dataset.accuracyInput) : null;
+    const sampleInput = element.dataset.sampleInput ? document.getElementById(element.dataset.sampleInput) : null;
+    const sampleStatus = document.getElementById('location_sample_status');
     const officeLat = Number(element.dataset.officeLat);
     const officeLng = Number(element.dataset.officeLng);
     let studentMarker = null;
+    const setSampleStatus = (message, state = 'muted') => {
+        if (!sampleStatus) {
+            return;
+        }
+
+        sampleStatus.textContent = message;
+        sampleStatus.className = `text-xs ${state === 'error' ? 'text-red-600' : state === 'ok' ? 'text-emerald-700' : 'text-gray-500'}`;
+    };
 
     if (Number.isFinite(officeLat) && Number.isFinite(officeLng)) {
         L.circleMarker([officeLat, officeLng], {
@@ -426,12 +437,19 @@ function initCheckInMap(element) {
     navigator.geolocation.getCurrentPosition((position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
+        const accuracy = Number(position.coords.accuracy);
 
         latInput.value = lat.toFixed(7);
         lngInput.value = lng.toFixed(7);
+        if (accuracyInput && Number.isFinite(accuracy)) {
+            accuracyInput.value = Math.round(accuracy);
+        }
+        if (sampleInput) {
+            sampleInput.value = '';
+        }
 
         studentMarker = L.marker([lat, lng], { icon: checkInIcon('Masuk') })
-            .bindPopup('Lokasi Anda')
+            .bindPopup(Number.isFinite(accuracy) ? `Lokasi Anda<br>Akurasi: ${Math.round(accuracy).toLocaleString('id-ID')} m` : 'Lokasi Anda')
             .addTo(layer);
 
         if (Number.isFinite(officeLat) && Number.isFinite(officeLng)) {
@@ -444,10 +462,45 @@ function initCheckInMap(element) {
         } else {
             map.setView([lat, lng], config.currentLocationZoom);
         }
+
+        if (element.dataset.locationSampleUrl && sampleInput) {
+            setSampleStatus('Menyimpan snapshot lokasi GPS...');
+            fetch(element.dataset.locationSampleUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+                body: JSON.stringify({
+                    enrollment_id: element.dataset.enrollmentId,
+                    gps_latitude: lat,
+                    gps_longitude: lng,
+                    gps_accuracy: Number.isFinite(accuracy) ? accuracy : null,
+                    captured_at: new Date().toISOString(),
+                }),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Snapshot lokasi gagal disimpan.');
+                    }
+
+                    return response.json();
+                })
+                .then((data) => {
+                    sampleInput.value = data.id;
+                    setSampleStatus(`Snapshot lokasi tersimpan. Akurasi ${Number(data.gps_accuracy_meters || 0).toLocaleString('id-ID')} m.`, 'ok');
+                })
+                .catch(() => {
+                    sampleInput.value = '';
+                    setSampleStatus('Snapshot lokasi belum tersimpan. Muat ulang halaman atau coba ambil ulang lokasi.', 'error');
+                });
+        }
     }, () => {
         if (Number.isFinite(officeLat) && Number.isFinite(officeLng)) {
             map.setView([officeLat, officeLng], config.officeZoom);
         }
+        setSampleStatus('Lokasi GPS belum dapat diambil.', 'error');
     }, {
         enableHighAccuracy: Boolean(config.geolocation?.enable_high_accuracy ?? true),
         timeout: Number(config.geolocation?.timeout_ms ?? 12000),

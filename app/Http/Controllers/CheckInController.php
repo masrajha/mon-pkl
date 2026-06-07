@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\CheckIn;
+use App\Models\CheckInLocationSample;
 use App\Models\InternshipEnrollment;
 use App\Services\CheckInStatusService;
 use App\Services\DistanceService;
+use Illuminate\Http\JsonResponse;
 use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,6 +41,7 @@ class CheckInController extends Controller
             'usedForgottenAttendanceRequests' => $enrollment->forgottenAttendanceRequests()
                 ->whereIn('status', ['pending', 'approved'])
                 ->count(),
+            'forgottenAttendanceSuggestedDate' => now($settings['timezone'])->toDateString(),
             'recentForgottenAttendanceRequests' => $enrollment->forgottenAttendanceRequests()
                 ->latest('id')
                 ->limit(5)
@@ -47,6 +50,43 @@ class CheckInController extends Controller
                 ->latest('checked_at')
                 ->limit((int) $settings['check_in']['recent_limit'])
                 ->get(),
+        ]);
+    }
+
+    public function storeLocationSample(Request $request): JsonResponse
+    {
+        $enrollment = $this->currentEnrollment($request);
+
+        abort_if(! $enrollment, 403, 'Akun ini belum terhubung dengan enrollment program aktif.');
+
+        $validated = $request->validate([
+            'enrollment_id' => ['nullable', 'integer'],
+            'gps_latitude' => ['required', 'numeric', 'between:-90,90'],
+            'gps_longitude' => ['required', 'numeric', 'between:-180,180'],
+            'gps_accuracy' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
+            'captured_at' => ['nullable', 'date'],
+        ]);
+
+        $sample = CheckInLocationSample::query()->create([
+            'user_id' => $request->user()->id,
+            'internship_enrollment_id' => $enrollment->id,
+            'gps_latitude' => $validated['gps_latitude'],
+            'gps_longitude' => $validated['gps_longitude'],
+            'gps_accuracy_meters' => isset($validated['gps_accuracy']) ? (int) round((float) $validated['gps_accuracy']) : null,
+            'captured_at' => now($this->configurations->forPeriod($enrollment->internshipPeriod)['timezone']),
+            'device_info' => [
+                'user_agent' => $request->userAgent(),
+                'ip' => $request->ip(),
+                'browser_captured_at' => $validated['captured_at'] ?? null,
+            ],
+        ]);
+
+        return response()->json([
+            'id' => $sample->id,
+            'gps_latitude' => (float) $sample->gps_latitude,
+            'gps_longitude' => (float) $sample->gps_longitude,
+            'gps_accuracy_meters' => $sample->gps_accuracy_meters,
+            'captured_at' => $sample->captured_at?->toIso8601String(),
         ]);
     }
 
@@ -59,8 +99,10 @@ class CheckInController extends Controller
 
         $validated = $request->validate([
             'enrollment_id' => ['nullable', 'integer'],
+            'location_sample_id' => ['required', 'integer'],
             'student_latitude' => ['required', 'numeric', 'between:-90,90'],
             'student_longitude' => ['required', 'numeric', 'between:-180,180'],
+            'student_location_accuracy' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'action' => ['required', 'in:check_in,check_out'],
             'note' => ['required', 'string', 'max:1000'],
             'photo_capture' => ['required', 'string'],
@@ -105,10 +147,25 @@ class CheckInController extends Controller
         }
 
         $this->validateActionForStatus($validated['action'], $type);
-
-        $distanceMeters = $distanceService->meters(
+        $locationSample = $this->validLocationSample($request, $enrollment, (int) $validated['location_sample_id'], $settings);
+        $submittedMismatchMeters = $distanceService->meters(
             (float) $validated['student_latitude'],
             (float) $validated['student_longitude'],
+            (float) $locationSample->gps_latitude,
+            (float) $locationSample->gps_longitude,
+            (int) $settings['distance']['earth_radius_meters'],
+        );
+        $mismatchTolerance = (int) data_get($settings, 'check_in.location_sample_mismatch_tolerance_meters', 100);
+
+        if ($mismatchTolerance > 0 && $submittedMismatchMeters > $mismatchTolerance) {
+            throw ValidationException::withMessages([
+                'student_latitude' => 'Koordinat form berbeda jauh dari snapshot GPS yang tersimpan di server. Ambil ulang lokasi lalu coba simpan kembali.',
+            ]);
+        }
+
+        $distanceMeters = $distanceService->meters(
+            (float) $locationSample->gps_latitude,
+            (float) $locationSample->gps_longitude,
             (float) $place->latitude,
             (float) $place->longitude,
             (int) $settings['distance']['earth_radius_meters'],
@@ -121,6 +178,12 @@ class CheckInController extends Controller
                 'student_latitude' => 'Lokasi Anda berada di luar radius presensi yang diizinkan. Jarak terhitung '.number_format($distanceMeters, 0, ',', '.').' meter.',
             ]);
         }
+        $locationAudit = $this->locationAudit(
+            $locationSample->gps_accuracy_meters,
+            $distanceMeters,
+            $settings,
+            $submittedMismatchMeters,
+        );
 
         $dayStart = $checkedAt->copy()->startOfDay();
         $dayEnd = $checkedAt->copy()->endOfDay();
@@ -146,12 +209,6 @@ class CheckInController extends Controller
         } else {
             $pairedCheckIn = $dailyCheckIns->firstWhere('action', 'check_in');
 
-            if (! $pairedCheckIn) {
-                throw ValidationException::withMessages([
-                    'action' => 'Check-in masuk harus dilakukan sebelum check-out pulang.',
-                ]);
-            }
-
             if ($dailyCheckIns->contains('action', 'check_out')) {
                 throw ValidationException::withMessages([
                     'action' => 'Check-out pulang hari ini sudah tercatat.',
@@ -171,28 +228,41 @@ class CheckInController extends Controller
             (int) $settings['check_in']['photo_max_kb'],
         );
 
-        DB::transaction(function () use ($enrollment, $type, $validated, $checkedAt, $place, $distanceMeters, $request, $photoPath, $pairedCheckIn, $durationMinutes, $sanctionPoints): void {
+        DB::transaction(function () use ($enrollment, $type, $validated, $checkedAt, $place, $distanceMeters, $locationAudit, $request, $photoPath, $pairedCheckIn, $durationMinutes, $sanctionPoints, $locationSample, $submittedMismatchMeters): void {
             CheckIn::query()->create([
                 'internship_enrollment_id' => $enrollment->id,
                 'type' => $type,
                 'action' => $validated['action'],
+                'check_in_location_sample_id' => $locationSample->id,
                 'note' => $validated['note'] ?? null,
                 'checked_at' => $checkedAt,
                 'pair_id' => $pairedCheckIn?->id,
-                'student_latitude' => $validated['student_latitude'],
-                'student_longitude' => $validated['student_longitude'],
+                'student_latitude' => $locationSample->gps_latitude,
+                'student_longitude' => $locationSample->gps_longitude,
                 'office_latitude' => $place->latitude,
                 'office_longitude' => $place->longitude,
                 'distance_meters' => $distanceMeters,
+                'student_location_accuracy_meters' => $locationAudit['accuracy'],
+                'location_status' => $locationAudit['status'],
+                'location_flags' => $locationAudit['flags'],
                 'duration_minutes' => $durationMinutes,
                 'sanction_points' => $sanctionPoints,
                 'device_info' => [
                     'user_agent' => $request->userAgent(),
                     'ip' => $request->ip(),
+                    'location_accuracy_meters' => $locationAudit['accuracy'],
+                    'location_status' => $locationAudit['status'],
+                    'location_flags' => $locationAudit['flags'],
+                    'submitted_latitude' => $validated['student_latitude'],
+                    'submitted_longitude' => $validated['student_longitude'],
+                    'submitted_sample_mismatch_meters' => $submittedMismatchMeters,
+                    'location_sample_id' => $locationSample->id,
                 ],
                 'source_url' => $request->fullUrl(),
                 'photo_path' => $photoPath,
             ]);
+
+            $locationSample->forceFill(['used_at' => now()])->save();
 
             if ($sanctionPoints > 0) {
                 $enrollment->increment('total_sanctions_points', $sanctionPoints);
@@ -207,9 +277,18 @@ class CheckInController extends Controller
             $message .= ' Durasi harian kurang dari batas minimal, sanksi '.$sanctionPoints.' poin dicatat.';
         }
 
+        if ($validated['action'] === 'check_out' && ! $pairedCheckIn) {
+            $message .= ' Presensi pulang tersimpan tanpa pasangan masuk, sehingga hari ini belum dihitung valid. Ajukan Lupa Presensi Masuk jika masih memiliki kuota.';
+        }
+
+        if ($locationAudit['status'] === 'suspicious') {
+            $message .= ' Akurasi lokasi rendah dan ditandai untuk audit.';
+        }
+
         return redirect()
             ->route('check-ins.create', ['enrollment' => $enrollment->id])
-            ->with('status', $message);
+            ->with('status', $message)
+            ->with('suggest_forgotten_check_in', $validated['action'] === 'check_out' && ! $pairedCheckIn);
     }
 
     private function validateActionForStatus(string $action, string $status): void
@@ -248,6 +327,60 @@ class CheckInController extends Controller
         $penaltyPerHour = (int) ($settings['check_in']['insufficient_duration_penalty_per_hour'] ?? 1);
 
         return (int) ceil(($minimum - $durationMinutes) / 60) * $penaltyPerHour;
+    }
+
+    private function validLocationSample(Request $request, InternshipEnrollment $enrollment, int $sampleId, array $settings): CheckInLocationSample
+    {
+        $sample = CheckInLocationSample::query()
+            ->whereKey($sampleId)
+            ->where('user_id', $request->user()->id)
+            ->where('internship_enrollment_id', $enrollment->id)
+            ->first();
+
+        if (! $sample) {
+            throw ValidationException::withMessages([
+                'student_latitude' => 'Snapshot lokasi tidak valid. Ambil ulang lokasi lalu coba simpan kembali.',
+            ]);
+        }
+
+        $maxAgeMinutes = (int) data_get($settings, 'check_in.location_sample_max_age_minutes', 5);
+        if ($sample->captured_at && $sample->captured_at->lt(now($settings['timezone'])->subMinutes($maxAgeMinutes))) {
+            throw ValidationException::withMessages([
+                'student_latitude' => 'Snapshot lokasi sudah kedaluwarsa. Ambil ulang lokasi lalu coba simpan kembali.',
+            ]);
+        }
+
+        return $sample;
+    }
+
+    private function locationAudit(null|float|int|string $accuracy, int $distanceMeters, array $settings, int|float $submittedMismatchMeters = 0): array
+    {
+        $flags = [];
+        $accuracyMeters = $accuracy === null || $accuracy === ''
+            ? null
+            : (int) round((float) $accuracy);
+        $maxAccuracy = (int) data_get($settings, 'check_in.max_location_accuracy_meters', 100);
+        $maxDistance = (int) data_get($settings, 'check_in.max_distance_meters', 0);
+
+        if ($accuracyMeters === null) {
+            $flags[] = 'missing_accuracy';
+        } elseif ($maxAccuracy > 0 && $accuracyMeters > $maxAccuracy) {
+            $flags[] = 'low_accuracy';
+        }
+
+        if ($maxDistance > 0 && $distanceMeters > (int) floor($maxDistance * 0.8)) {
+            $flags[] = 'near_radius_limit';
+        }
+
+        if ($submittedMismatchMeters > 0) {
+            $flags[] = 'submitted_coordinate_adjusted';
+        }
+
+        return [
+            'accuracy' => $accuracyMeters,
+            'status' => $flags === [] ? 'valid' : 'suspicious',
+            'flags' => $flags,
+        ];
     }
 
     private function storeCapturedPhoto(string $dataUrl, string $directory, string $disk, int $maxKb): string

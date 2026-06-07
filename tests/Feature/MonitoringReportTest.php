@@ -368,6 +368,65 @@ class MonitoringReportTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_admin_can_access_operational_charts_report(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $studyProgram = StudyProgram::query()->create(['code' => 'IFG', 'name' => 'S1 Ilmu Komputer Grafik', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Grafik',
+            'academic_year' => '2026',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+            'is_active' => true,
+        ]);
+        $student = Student::query()->create([
+            'npm' => '220001',
+            'full_name' => 'Mahasiswa Grafik',
+            'study_program_id' => $studyProgram->id,
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Grafik', 'city' => 'Bandar Lampung']);
+        $enrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $studyProgram->id,
+            'internship_period_id' => $period->id,
+            'internship_place_id' => $place->id,
+            'status' => 'active',
+            'total_sanctions_points' => 12,
+        ]);
+
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'action' => 'check_in',
+            'type' => 'Tepat Waktu',
+            'checked_at' => '2026-06-02 08:00:00',
+            'note' => 'Masuk',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('reports.operational-charts', [
+                'period_id' => $period->id,
+                'start_date' => '2026-06-01',
+                'end_date' => '2026-06-07',
+            ]))
+            ->assertOk()
+            ->assertSee('Grafik Operasional')
+            ->assertSee('Tren Presensi Harian')
+            ->assertSee('Status Peserta per Prodi')
+            ->assertSee('Top Sanksi')
+            ->assertSee('Progress Status Nilai');
+    }
+
+    public function test_student_cannot_access_operational_charts_report(): void
+    {
+        $student = User::factory()->create(['role' => 'mahasiswa']);
+
+        $this->actingAs($student)
+            ->get(route('reports.operational-charts'))
+            ->assertForbidden();
+    }
+
     private function createFunnelEnrollment(StudyProgram $studyProgram, InternshipPeriod $period, InternshipPlace $place, string $npm, string $name): InternshipEnrollment
     {
         $user = User::factory()->create(['role' => 'mahasiswa']);

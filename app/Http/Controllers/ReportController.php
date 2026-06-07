@@ -251,6 +251,168 @@ class ReportController extends Controller
         ]);
     }
 
+    public function operationalCharts(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        [$startDate, $endDate] = $this->dateRange($request, $selectedPeriod);
+        $dates = collect(CarbonPeriod::create($startDate, $endDate))
+            ->map(fn (Carbon $date): Carbon => $date->copy())
+            ->values();
+
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'lecturerSupervisor',
+                'checkIns' => fn ($query) => $query
+                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->orderBy('checked_at'),
+                'submissionProgress',
+                'seminarRequests',
+                'fieldSupervisorAssessment',
+                'finalAssessment',
+            ]);
+
+        $this->scopeEnrollments($query, $request);
+        $enrollments = $query->get();
+
+        $attendanceTrend = $dates
+            ->map(function (Carbon $date) use ($enrollments): array {
+                $dateKey = $date->toDateString();
+                $daily = $enrollments->flatMap(fn (InternshipEnrollment $enrollment): Collection => $enrollment->checkIns)
+                    ->filter(fn (CheckIn $checkIn): bool => $checkIn->checked_at?->toDateString() === $dateKey);
+
+                return [
+                    'date' => $dateKey,
+                    'label' => $date->translatedFormat('d M'),
+                    'check_in' => $daily->where('action', 'check_in')->pluck('internship_enrollment_id')->unique()->count(),
+                    'check_out' => $daily->where('action', 'check_out')->pluck('internship_enrollment_id')->unique()->count(),
+                    'valid_pairs' => $daily->groupBy('internship_enrollment_id')
+                        ->filter(fn (Collection $items): bool => $items->where('action', 'check_in')->isNotEmpty() && $items->where('action', 'check_out')->isNotEmpty())
+                        ->count(),
+                ];
+            })
+            ->all();
+
+        $statusKeys = ['pending_verification', 'revision_required', 'active', 'completed', 'rejected', 'cancelled'];
+        $statusLabels = [
+            'pending_verification' => 'Menunggu',
+            'revision_required' => 'Revisi',
+            'active' => 'Aktif',
+            'completed' => 'Selesai',
+            'rejected' => 'Ditolak',
+            'cancelled' => 'Batal',
+        ];
+        $statusByStudyProgram = $enrollments
+            ->groupBy(fn (InternshipEnrollment $enrollment): string => $enrollment->studyProgram?->name ?: 'Tanpa Prodi')
+            ->map(function (Collection $items, string $name) use ($statusKeys): array {
+                return [
+                    'name' => $name,
+                    'total' => $items->count(),
+                    'statuses' => collect($statusKeys)
+                        ->mapWithKeys(fn (string $status): array => [$status => $items->where('status', $status)->count()])
+                        ->all(),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values()
+            ->all();
+
+        $reportStatusLabels = [
+            'not_uploaded' => 'Belum unggah',
+            'pending' => 'Menunggu review',
+            'revision_required' => 'Perlu revisi',
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+        ];
+        $reportStatus = collect(array_keys($reportStatusLabels))
+            ->mapWithKeys(fn (string $status): array => [$status => 0])
+            ->all();
+        foreach ($enrollments as $enrollment) {
+            $fullReport = $enrollment->submissionProgress
+                ->where('deadline_type', 'full_report')
+                ->sortByDesc('uploaded_at')
+                ->first();
+            $status = $fullReport?->status ?: 'not_uploaded';
+            $reportStatus[$status] = ($reportStatus[$status] ?? 0) + 1;
+        }
+        $reportColors = [
+            'not_uploaded' => '#94a3b8',
+            'pending' => '#f59e0b',
+            'revision_required' => '#fb923c',
+            'approved' => '#10b981',
+            'rejected' => '#ef4444',
+        ];
+        $reportTotal = max(1, array_sum($reportStatus));
+        $reportOffset = 0;
+        $reportGradient = collect($reportStatus)
+            ->map(function (int $value, string $key) use (&$reportOffset, $reportTotal, $reportColors): string {
+                $start = $reportOffset;
+                $reportOffset += $value / $reportTotal * 100;
+
+                return ($reportColors[$key] ?? '#64748b').' '.$start.'% '.$reportOffset.'%';
+            })
+            ->implode(', ');
+
+        $topSanctions = $enrollments
+            ->filter(fn (InternshipEnrollment $enrollment): bool => (int) $enrollment->total_sanctions_points > 0)
+            ->sortByDesc('total_sanctions_points')
+            ->take(10)
+            ->map(fn (InternshipEnrollment $enrollment): array => [
+                'student' => $enrollment->student?->full_name ?: '-',
+                'npm' => $enrollment->student?->npm ?: '-',
+                'study_program' => $enrollment->studyProgram?->name ?: '-',
+                'points' => (int) $enrollment->total_sanctions_points,
+            ])
+            ->values()
+            ->all();
+
+        $assessmentProgress = [
+            [
+                'label' => 'Nilai Dosen',
+                'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => $enrollment->seminarRequests->whereNotNull('seminar_score')->isNotEmpty())->count(),
+            ],
+            [
+                'label' => 'Nilai Pembimbing Lapangan',
+                'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => (bool) $enrollment->fieldSupervisorAssessment?->final_score)->count(),
+            ],
+            [
+                'label' => 'Nilai Final',
+                'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => (bool) $enrollment->finalAssessment?->finalized_at)->count(),
+            ],
+        ];
+        $assessmentProgress = collect($assessmentProgress)
+            ->map(fn (array $row): array => $row + [
+                'missing' => max(0, $enrollments->count() - $row['done']),
+                'percent' => $enrollments->count() > 0 ? round($row['done'] / $enrollments->count() * 100, 1) : 0,
+            ])
+            ->all();
+
+        return view('reports.operational-charts', [
+            'periods' => $periods,
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'startDate' => $startDate->toDateString(),
+            'endDate' => $endDate->toDateString(),
+            'totalEnrollments' => $enrollments->count(),
+            'attendanceTrend' => $attendanceTrend,
+            'statusKeys' => $statusKeys,
+            'statusLabels' => $statusLabels,
+            'statusByStudyProgram' => $statusByStudyProgram,
+            'reportStatus' => $reportStatus,
+            'reportStatusLabels' => $reportStatusLabels,
+            'reportColors' => $reportColors,
+            'reportGradient' => $reportGradient,
+            'topSanctions' => $topSanctions,
+            'assessmentProgress' => $assessmentProgress,
+        ]);
+    }
+
     private function periodOptions(Request $request): array
     {
         $user = $request->user();

@@ -124,6 +124,7 @@
                 ['label' => 'Progress Funnel', 'route' => 'reports.progress-funnel', 'icon' => 'fa-chart-simple', 'active' => ['reports.progress-funnel']],
                 ['label' => 'Risk Scoring', 'route' => 'reports.risk-scoring', 'icon' => 'fa-triangle-exclamation', 'active' => ['reports.risk-scoring']],
                 ['label' => 'Heatmap Kehadiran', 'route' => 'reports.attendance-heatmap', 'icon' => 'fa-table-cells', 'active' => ['reports.attendance-heatmap']],
+                ['label' => 'Grafik Operasional', 'route' => 'reports.operational-charts', 'icon' => 'fa-chart-pie', 'active' => ['reports.operational-charts']],
                 ['label' => 'Rekap Monitoring', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
             ],
         ];

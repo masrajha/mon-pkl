@@ -204,6 +204,21 @@
                             <p class="mt-1 text-xs text-gray-500">{{ __('Isi 0 untuk menonaktifkan pembatasan radius.') }}</p>
                         </div>
                         <div>
+                            <x-input-label for="max_location_accuracy_meters" :value="__('Batas akurasi GPS meter')" />
+                            <x-text-input id="max_location_accuracy_meters" name="check_in[max_location_accuracy_meters]" type="number" class="mt-1 block w-full" :value="old('check_in.max_location_accuracy_meters', data_get($settings, 'check_in.max_location_accuracy_meters', 100))" required />
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Jika akurasi lebih besar dari nilai ini, presensi disimpan dengan penanda audit.') }}</p>
+                        </div>
+                        <div>
+                            <x-input-label for="location_sample_max_age_minutes" :value="__('Maks. umur snapshot lokasi menit')" />
+                            <x-text-input id="location_sample_max_age_minutes" name="check_in[location_sample_max_age_minutes]" type="number" class="mt-1 block w-full" :value="old('check_in.location_sample_max_age_minutes', data_get($settings, 'check_in.location_sample_max_age_minutes', 5))" required />
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Presensi ditolak jika snapshot GPS yang dipakai sudah lebih lama dari nilai ini.') }}</p>
+                        </div>
+                        <div>
+                            <x-input-label for="location_sample_mismatch_tolerance_meters" :value="__('Toleransi beda koordinat meter')" />
+                            <x-text-input id="location_sample_mismatch_tolerance_meters" name="check_in[location_sample_mismatch_tolerance_meters]" type="number" class="mt-1 block w-full" :value="old('check_in.location_sample_mismatch_tolerance_meters', data_get($settings, 'check_in.location_sample_mismatch_tolerance_meters', 100))" required />
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Jika koordinat form berbeda jauh dari snapshot GPS server, presensi ditolak.') }}</p>
+                        </div>
+                        <div>
                             <x-input-label for="min_daily_duration_minutes" :value="__('Durasi minimal harian menit')" />
                             <x-text-input id="min_daily_duration_minutes" name="check_in[min_daily_duration_minutes]" type="number" class="mt-1 block w-full" :value="old('check_in.min_daily_duration_minutes', $settings['check_in']['min_daily_duration_minutes'])" required />
                         </div>

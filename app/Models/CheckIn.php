@@ -17,6 +17,7 @@ class CheckIn extends Model
         'action',
         'source_type',
         'forgotten_attendance_request_id',
+        'check_in_location_sample_id',
         'note',
         'checked_at',
         'pair_id',
@@ -25,6 +26,9 @@ class CheckIn extends Model
         'office_latitude',
         'office_longitude',
         'distance_meters',
+        'student_location_accuracy_meters',
+        'location_status',
+        'location_flags',
         'duration_minutes',
         'sanction_points',
         'daily_log_validated_at',
@@ -48,6 +52,7 @@ class CheckIn extends Model
             'student_longitude' => 'decimal:7',
             'office_latitude' => 'decimal:7',
             'office_longitude' => 'decimal:7',
+            'location_flags' => 'array',
             'device_info' => 'array',
         ];
     }
@@ -60,6 +65,11 @@ class CheckIn extends Model
     public function forgottenAttendanceRequest()
     {
         return $this->belongsTo(ForgottenAttendanceRequest::class);
+    }
+
+    public function locationSample()
+    {
+        return $this->belongsTo(CheckInLocationSample::class, 'check_in_location_sample_id');
     }
 
     public function pair()
