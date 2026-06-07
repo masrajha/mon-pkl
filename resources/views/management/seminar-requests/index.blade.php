@@ -223,8 +223,10 @@
                                                             <tbody class="divide-y divide-gray-100">
                                                                 @php
                                                                     $storedScores = $seminarRequest->assessment_scores ?? [];
+                                                                    $rowSeminarRubric = $seminarRequest->assessment_rubric_snapshot
+                                                                        ?: data_get($seminarRubricsByPeriod ?? [], $seminarRequest->enrollment?->internship_period_id, $seminarRubric);
                                                                 @endphp
-                                                                @foreach ($seminarRubric as $key => $item)
+                                                                @foreach ($rowSeminarRubric as $key => $item)
                                                                     @php
                                                                         $scoreValue = data_get($storedScores, $key.'.score');
                                                                     @endphp
@@ -260,6 +262,8 @@
                                             @if (! $isFinalized && $canLecturerAct && ($seminarRequest->status === 'scheduled' || ($seminarRequest->status === 'completed' && $seminarRequest->assessment_method === 'system')))
                                                 @php
                                                     $storedScores = $seminarRequest->assessment_scores ?? [];
+                                                    $rowSeminarRubric = $seminarRequest->assessment_rubric_snapshot
+                                                        ?: data_get($seminarRubricsByPeriod ?? [], $seminarRequest->enrollment?->internship_period_id, $seminarRubric);
                                                 @endphp
                                                 <form method="POST" action="{{ route('management.seminar-requests.score', $seminarRequest) }}" class="space-y-3 rounded-lg border border-gray-200 p-3">
                                                     @csrf @method('PATCH')
@@ -280,7 +284,7 @@
                                                                 @php
                                                                     $currentGroup = null;
                                                                 @endphp
-                                                                @foreach ($seminarRubric as $key => $item)
+                                                                @foreach ($rowSeminarRubric as $key => $item)
                                                                     @if ($currentGroup !== $item['group'])
                                                                         @php
                                                                             $currentGroup = $item['group'];

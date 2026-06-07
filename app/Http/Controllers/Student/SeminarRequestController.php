@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\InternshipEnrollment;
 use App\Models\SeminarRequest;
 use App\Models\SubmissionProgress;
+use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,6 +14,10 @@ use Illuminate\Validation\ValidationException;
 
 class SeminarRequestController extends Controller
 {
+    public function __construct(private readonly PeriodConfigurationService $configurations)
+    {
+    }
+
     public function store(Request $request, InternshipEnrollment $enrollment): RedirectResponse
     {
         $this->authorizeEnrollment($request, $enrollment);
@@ -110,7 +115,7 @@ class SeminarRequestController extends Controller
             ]);
         }
 
-        $rubric = $this->seminarRubric();
+        $rubric = $this->seminarRubric($seminarRequest);
         $rules = [
             'assessment_file' => [
                 Rule::requiredIf(fn () => ! $seminarRequest->assessment_file_path),
@@ -153,6 +158,7 @@ class SeminarRequestController extends Controller
             'seminar_score_note' => $data['seminar_score_note'] ?? null,
             'assessment_method' => 'manual',
             'assessment_scores' => $assessmentScores,
+            'assessment_rubric_snapshot' => $rubric,
             'assessment_file_path' => $assessmentFilePath,
             'assessment_validated_by' => null,
             'assessment_validated_at' => null,
@@ -187,8 +193,8 @@ class SeminarRequestController extends Controller
         }
     }
 
-    private function seminarRubric(): array
+    private function seminarRubric(?SeminarRequest $seminarRequest = null): array
     {
-        return config('monpkl.seminar_assessment_rubric', []);
+        return $this->configurations->lecturerRubric($seminarRequest?->enrollment?->internshipPeriod);
     }
 }

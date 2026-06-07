@@ -88,6 +88,9 @@ class SystemConfigurationController extends Controller
             'report.single_morning_checkout_hour' => ['required', 'integer', 'between:0,23'],
             'report.single_afternoon_checkin_hour' => ['required', 'integer', 'between:0,23'],
             'report.max_forgotten_attendance_requests' => ['required', 'integer', 'min:0', 'max:100'],
+            'assessment.lecturer_rubric_json' => ['nullable', 'string'],
+            'assessment.field_supervisor_rubric_json' => ['nullable', 'string'],
+            'assessment.institution_survey_json' => ['nullable', 'string'],
             'final_assessment_document.logo_url' => ['nullable', 'string', 'max:2000'],
             'final_assessment_document.ministry' => ['required', 'string', 'max:255'],
             'final_assessment_document.university' => ['required', 'string', 'max:255'],
@@ -125,6 +128,7 @@ class SystemConfigurationController extends Controller
         ]);
 
         $defaults = $this->configurations->defaults();
+        $currentSettings = $this->configurations->forPeriod($period);
         $settings = array_replace_recursive($defaults, $validated);
         unset($settings['deadlines']);
         if ($settings['enrollment']['min_place_quota'] > $settings['enrollment']['max_place_quota']) {
@@ -140,6 +144,13 @@ class SystemConfigurationController extends Controller
         $settings['check_in']['photo_disk'] = $defaults['check_in']['photo_disk'];
         $settings['check_in']['photo_directory'] = $defaults['check_in']['photo_directory'];
         $settings['map']['geolocation']['enable_high_accuracy'] = $request->boolean('map.geolocation.enable_high_accuracy');
+        $settings['assessment'] = [
+            'lecturer_rubric' => $this->parseJsonSetting($request, 'assessment.lecturer_rubric_json', 'Rubrik penilaian dosen', data_get($currentSettings, 'assessment.lecturer_rubric', [])),
+            'field_supervisor_rubric' => $this->parseJsonSetting($request, 'assessment.field_supervisor_rubric_json', 'Rubrik penilaian pembimbing lapangan', data_get($currentSettings, 'assessment.field_supervisor_rubric', [])),
+            'institution_survey' => $this->parseJsonSetting($request, 'assessment.institution_survey_json', 'Survey institusi', data_get($currentSettings, 'assessment.institution_survey', [])),
+            'locked_at' => data_get($currentSettings, 'assessment.locked_at'),
+            'locked_by' => data_get($currentSettings, 'assessment.locked_by'),
+        ];
 
         DB::transaction(function () use ($period, $request, $settings): void {
             InternshipPeriodSetting::query()->updateOrCreate(
@@ -182,6 +193,23 @@ class SystemConfigurationController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function parseJsonSetting(Request $request, string $key, string $label, array $fallback): array
+    {
+        if (! $request->has($key)) {
+            return $fallback;
+        }
+
+        $decoded = json_decode((string) $request->input($key), true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                str_replace('.', '_', $key) => $label.' harus berupa JSON object/array yang valid.',
+            ]);
+        }
+
+        return $decoded;
     }
 
     private function deadlineTypes(): array

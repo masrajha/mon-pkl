@@ -6,6 +6,7 @@
         'deadline' => ['label' => 'Deadline Periode', 'icon' => 'fa-calendar-days'],
         'check-in' => ['label' => 'Check-In', 'icon' => 'fa-location-dot'],
         'laporan' => ['label' => 'Laporan dan Kalender', 'icon' => 'fa-file-lines'],
+        'penilaian' => ['label' => 'Rubrik dan Survey', 'icon' => 'fa-star-half-stroke'],
         'dokumen' => ['label' => 'Dokumen Cetak Nilai', 'icon' => 'fa-file-signature'],
         'peta' => ['label' => 'Peta dan Lokasi', 'icon' => 'fa-map-location-dot'],
     ];
@@ -267,6 +268,31 @@
                         <div class="sm:col-span-3">
                             <x-input-label for="holidays_text" :value="__('Tanggal libur')" />
                             <textarea id="holidays_text" name="calendar[holidays_text]" rows="8" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('calendar.holidays_text', implode("\n", $settings['calendar']['holidays'] ?? [])) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-config-panel="penilaian" class="hidden bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h3 class="text-base font-semibold text-gray-900">{{ __('Rubrik dan Survey') }}</h3>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('Rubrik disimpan per periode. Nilai yang sudah masuk menyimpan snapshot agar dokumen lama tetap konsisten.') }}</p>
+
+                    <div class="mt-4 space-y-5">
+                        <div>
+                            <x-input-label for="lecturer_rubric_json" value="Komponen Penilaian Dosen" />
+                            <textarea id="lecturer_rubric_json" name="assessment[lecturer_rubric_json]" rows="12" class="mt-1 block w-full rounded-md border-gray-300 font-mono text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('assessment.lecturer_rubric_json', json_encode(data_get($settings, 'assessment.lecturer_rubric', []), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) }}</textarea>
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Format item: key => {group, label, weight}. Total weight sebaiknya 100.') }}</p>
+                        </div>
+
+                        <div>
+                            <x-input-label for="field_supervisor_rubric_json" value="Komponen Penilaian Pembimbing Lapangan" />
+                            <textarea id="field_supervisor_rubric_json" name="assessment[field_supervisor_rubric_json]" rows="12" class="mt-1 block w-full rounded-md border-gray-300 font-mono text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('assessment.field_supervisor_rubric_json', json_encode(data_get($settings, 'assessment.field_supervisor_rubric', []), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) }}</textarea>
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Format item: key => {group, label}. Key attendance dipakai untuk nilai kehadiran otomatis.') }}</p>
+                        </div>
+
+                        <div>
+                            <x-input-label for="institution_survey_json" value="Pertanyaan Survey Institusi" />
+                            <textarea id="institution_survey_json" name="assessment[institution_survey_json]" rows="12" class="mt-1 block w-full rounded-md border-gray-300 font-mono text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('assessment.institution_survey_json', json_encode(data_get($settings, 'assessment.institution_survey', []), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) }}</textarea>
+                            <p class="mt-1 text-xs text-gray-500">{{ __('Format item: key => {label, options}. Options berisi pasangan value => label jawaban.') }}</p>
                         </div>
                     </div>
                 </div>

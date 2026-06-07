@@ -8,6 +8,7 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\SeminarRequest;
 use App\Services\AssessmentEmailNotificationService;
+use App\Services\PeriodConfigurationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,10 @@ class SeminarRequestController extends Controller
 {
     use InteractsWithTableControls;
 
-    public function __construct(private readonly AssessmentEmailNotificationService $assessmentEmails)
+    public function __construct(
+        private readonly AssessmentEmailNotificationService $assessmentEmails,
+        private readonly PeriodConfigurationService $configurations,
+    )
     {
     }
 
@@ -58,15 +62,24 @@ class SeminarRequestController extends Controller
             $query->whereHas('enrollment', fn ($enrollment) => $enrollment->where('internship_period_id', $selectedPeriodId));
         }
 
-        return view('management.seminar-requests.index', [
-            'seminarRequests' => $this->applyTableSort($query, $request, ['id', 'status', 'scheduled_at'], 'id', 'desc')
+        $seminarRequests = $this->applyTableSort($query, $request, ['id', 'status', 'scheduled_at'], 'id', 'desc')
                 ->paginate($this->tablePerPage($request))
-                ->withQueryString(),
+                ->withQueryString();
+        $seminarRubricsByPeriod = $seminarRequests->getCollection()
+            ->pluck('enrollment.internshipPeriod')
+            ->filter()
+            ->unique('id')
+            ->mapWithKeys(fn (InternshipPeriod $period): array => [$period->id => $this->configurations->lecturerRubric($period)])
+            ->all();
+
+        return view('management.seminar-requests.index', [
+            'seminarRequests' => $seminarRequests,
             'selectedStatus' => $request->string('status')->toString(),
             'selectedPeriodId' => $selectedPeriodId,
             'periodOptions' => $this->periodOptions($request),
             'statusLabels' => $this->statusLabels(),
             'seminarRubric' => $this->seminarRubric(),
+            'seminarRubricsByPeriod' => $seminarRubricsByPeriod,
         ]);
     }
 
@@ -182,15 +195,17 @@ class SeminarRequestController extends Controller
             throw ValidationException::withMessages(['status' => 'Seminar belum terjadwal.']);
         }
 
+        $rubric = $this->seminarRubric($seminarRequest);
+
         $data = $request->validate([
             'seminar_score_note' => ['nullable', 'string', 'max:3000'],
             'assessment_method' => ['required', Rule::in(['system'])],
             'assessment_scores' => ['required', 'array'],
-        ] + collect($this->seminarRubric())
+        ] + collect($rubric)
             ->mapWithKeys(fn (array $item, string $key) => ['assessment_scores.'.$key => ['required', 'numeric', 'min:0', 'max:100']])
             ->all());
 
-        $assessmentScores = collect($this->seminarRubric())
+        $assessmentScores = collect($rubric)
             ->mapWithKeys(function (array $item, string $key) use ($data) {
                 $score = (float) data_get($data, 'assessment_scores.'.$key);
 
@@ -211,6 +226,7 @@ class SeminarRequestController extends Controller
             'seminar_score_note' => $data['seminar_score_note'] ?? null,
             'assessment_method' => 'system',
             'assessment_scores' => $assessmentScores,
+            'assessment_rubric_snapshot' => $rubric,
             'assessment_file_path' => null,
             'assessment_validated_by' => null,
             'assessment_validated_at' => null,
@@ -354,9 +370,9 @@ class SeminarRequestController extends Controller
         ];
     }
 
-    private function seminarRubric(): array
+    private function seminarRubric(?SeminarRequest $seminarRequest = null): array
     {
-        return config('monpkl.seminar_assessment_rubric', []);
+        return $this->configurations->lecturerRubric($seminarRequest?->enrollment?->internshipPeriod);
     }
 
     private function periodOptions(Request $request)

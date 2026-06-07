@@ -9,6 +9,7 @@ class FieldSupervisorAssessment extends Model
     protected $fillable = [
         'internship_enrollment_id',
         'scores',
+        'rubric_snapshot',
         'discipline_score',
         'teamwork_score',
         'performance_score',
@@ -17,6 +18,7 @@ class FieldSupervisorAssessment extends Model
         'student_general_note',
         'student_recommendation',
         'institution_feedback',
+        'survey_snapshot',
         'institution_note',
         'assessed_by_name',
         'assessed_by_email',
@@ -28,7 +30,9 @@ class FieldSupervisorAssessment extends Model
     {
         return [
             'scores' => 'array',
+            'rubric_snapshot' => 'array',
             'institution_feedback' => 'array',
+            'survey_snapshot' => 'array',
             'discipline_score' => 'decimal:2',
             'teamwork_score' => 'decimal:2',
             'performance_score' => 'decimal:2',

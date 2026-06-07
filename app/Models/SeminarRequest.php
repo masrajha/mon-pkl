@@ -32,6 +32,7 @@ class SeminarRequest extends Model
         'seminar_score_note',
         'assessment_method',
         'assessment_scores',
+        'assessment_rubric_snapshot',
         'assessment_file_path',
         'assessment_validated_by',
         'assessment_validated_at',
@@ -49,6 +50,7 @@ class SeminarRequest extends Model
             'completed_at' => 'datetime',
             'seminar_score' => 'decimal:2',
             'assessment_scores' => 'array',
+            'assessment_rubric_snapshot' => 'array',
             'assessment_validated_at' => 'datetime',
             'scored_at' => 'datetime',
         ];

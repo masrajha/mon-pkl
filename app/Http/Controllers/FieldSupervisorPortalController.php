@@ -467,8 +467,9 @@ class FieldSupervisorPortalController extends Controller
             ]);
         }
 
-        $rubric = config('monpkl.field_supervisor_assessment_rubric', []);
-        $survey = config('monpkl.field_supervisor_institution_feedback_survey', []);
+        $periodConfigurations = app(PeriodConfigurationService::class);
+        $rubric = $periodConfigurations->fieldSupervisorRubric($enrollment->internshipPeriod);
+        $survey = $periodConfigurations->institutionSurvey($enrollment->internshipPeriod);
         $attendanceScore = $this->attendanceScore($enrollment);
         $rules = [
             'note' => ['nullable', 'string', 'max:3000'],
@@ -521,6 +522,7 @@ class FieldSupervisorPortalController extends Controller
             ['internship_enrollment_id' => $enrollment->id],
             [
                 'scores' => $scores,
+                'rubric_snapshot' => $rubric,
                 'discipline_score' => $disciplineScore,
                 'teamwork_score' => $teamworkScore,
                 'performance_score' => $performanceScore,
@@ -529,6 +531,7 @@ class FieldSupervisorPortalController extends Controller
                 'student_general_note' => $data['student_general_note'] ?? null,
                 'student_recommendation' => $data['student_recommendation'] ?? null,
                 'institution_feedback' => $institutionFeedback,
+                'survey_snapshot' => $survey,
                 'institution_note' => $data['institution_note'] ?? null,
                 'assessed_by_name' => $name,
                 'assessed_by_email' => Str::lower(trim($email)),

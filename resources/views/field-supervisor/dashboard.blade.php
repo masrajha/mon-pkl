@@ -49,9 +49,10 @@
                 $dailyRows = $dailyRowsByEnrollment[$enrollment->id] ?? collect();
                 $assessment = $enrollment->fieldSupervisorAssessment;
                 $finalAssessment = $enrollment->finalAssessment;
-                $assessmentRubric = config('monpkl.field_supervisor_assessment_rubric', []);
+                $periodConfigurations = app(\App\Services\PeriodConfigurationService::class);
+                $assessmentRubric = $periodConfigurations->fieldSupervisorRubric($enrollment->internshipPeriod);
                 $assessmentGroups = collect($assessmentRubric)->groupBy('group', preserveKeys: true);
-                $institutionSurvey = config('monpkl.field_supervisor_institution_feedback_survey', []);
+                $institutionSurvey = $periodConfigurations->institutionSurvey($enrollment->internshipPeriod);
                 $attendanceScore = $attendanceScoresByEnrollment[$enrollment->id] ?? ['score' => 0, 'present_days' => 0, 'working_days' => 0];
                 $attendanceEndsAt = $enrollment->effectiveAttendanceEndsAt();
                 $assessmentTimezone = config('monpkl.timezone') ?: 'Asia/Jakarta';

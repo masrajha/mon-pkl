@@ -13,6 +13,13 @@ class PeriodConfigurationService
             'timezone' => config('monpkl.timezone'),
             'check_in' => config('monpkl.check_in'),
             'report' => config('monpkl.report'),
+            'assessment' => [
+                'lecturer_rubric' => config('monpkl.seminar_assessment_rubric', []),
+                'field_supervisor_rubric' => config('monpkl.field_supervisor_assessment_rubric', []),
+                'institution_survey' => config('monpkl.field_supervisor_institution_feedback_survey', []),
+                'locked_at' => null,
+                'locked_by' => null,
+            ],
             'final_assessment_document' => config('monpkl.final_assessment_document'),
             'calendar' => config('monpkl.calendar'),
             'enrollment' => config('monpkl.enrollment'),
@@ -43,6 +50,24 @@ class PeriodConfigurationService
                 ->orderByDesc('id')
                 ->first()
         );
+    }
+
+    public function lecturerRubric(null|int|InternshipPeriod $period): array
+    {
+        return $this->forPeriod($period)['assessment']['lecturer_rubric']
+            ?? config('monpkl.seminar_assessment_rubric', []);
+    }
+
+    public function fieldSupervisorRubric(null|int|InternshipPeriod $period): array
+    {
+        return $this->forPeriod($period)['assessment']['field_supervisor_rubric']
+            ?? config('monpkl.field_supervisor_assessment_rubric', []);
+    }
+
+    public function institutionSurvey(null|int|InternshipPeriod $period): array
+    {
+        return $this->forPeriod($period)['assessment']['institution_survey']
+            ?? config('monpkl.field_supervisor_institution_feedback_survey', []);
     }
 
     public function frontendMapConfig(null|int|InternshipPeriod $period): array
