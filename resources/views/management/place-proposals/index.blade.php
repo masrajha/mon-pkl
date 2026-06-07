@@ -37,7 +37,7 @@
                             <th class="silat-table-cell"><x-sortable-heading column="name" label="Mitra Usulan" /></th>
                             <th class="silat-table-cell">Lokasi Mitra</th>
                             <th class="silat-table-cell"><x-sortable-heading column="status" label="Status" /></th>
-                            <th class="silat-table-cell text-right">Aksi</th>
+                            <th class="silat-table-cell">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,27 +77,41 @@
                                         <div class="mt-1 text-xs text-green-700">Master: {{ $proposal->approvedPlace->name }}</div>
                                     @endif
                                 </td>
-                                <td class="silat-table-cell">
+                                <td class="silat-table-cell min-w-[24rem]">
                                     @if ($proposal->status === 'pending')
-                                        <div class="grid gap-3 xl:grid-cols-2">
-                                            <form method="POST" action="{{ route('management.place-proposals.approve', $proposal) }}" class="space-y-2">
+                                        <div class="space-y-3 text-left">
+                                            <form method="POST" action="{{ route('management.place-proposals.approve', $proposal) }}" class="rounded-lg border border-emerald-100 bg-emerald-50/40 p-3">
                                                 @csrf
-                                                <select name="mode" class="w-56 rounded-md border-gray-300 text-xs">
-                                                    <option value="new">Jadikan master baru</option>
-                                                    <option value="merge">Gabungkan ke master</option>
-                                                </select>
-                                                <div data-management-place-search data-search-url="{{ route('management.places.search') }}" class="relative w-56">
-                                                    <input type="hidden" name="internship_place_id" data-place-id>
-                                                    <input type="search" data-place-input class="w-full rounded-md border-gray-300 text-xs" autocomplete="off" placeholder="Cari master jika merge">
-                                                    <div data-place-suggestions class="absolute z-20 mt-1 hidden max-h-64 w-full overflow-auto rounded-md border border-gray-200 bg-white text-left shadow-lg"></div>
+                                                <div class="grid gap-2 sm:grid-cols-2">
+                                                    <div>
+                                                        <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Keputusan</label>
+                                                        <select name="mode" class="silat-field h-9 text-xs">
+                                                            <option value="new">Jadikan master baru</option>
+                                                            <option value="merge">Gabungkan ke master</option>
+                                                        </select>
+                                                    </div>
+                                                    <div data-management-place-search data-search-url="{{ route('management.places.search') }}" class="relative">
+                                                        <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Master Mitra</label>
+                                                        <input type="hidden" name="internship_place_id" data-place-id>
+                                                        <input type="search" data-place-input class="silat-field h-9 text-xs" autocomplete="off" placeholder="Cari jika digabung">
+                                                        <div data-place-suggestions class="absolute z-20 mt-1 hidden max-h-64 w-full overflow-auto rounded-md border border-gray-200 bg-white text-left shadow-lg"></div>
+                                                    </div>
                                                 </div>
-                                                <textarea name="admin_note" rows="2" class="w-56 rounded-md border-gray-300 text-xs" placeholder="Catatan admin"></textarea>
-                                                <button class="rounded-md bg-green-700 px-3 py-1 text-xs font-semibold text-white">Setujui</button>
+                                                <div class="mt-2">
+                                                    <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Catatan</label>
+                                                    <textarea name="admin_note" rows="2" class="silat-field text-xs" placeholder="Catatan admin opsional"></textarea>
+                                                </div>
+                                                <div class="mt-2 flex justify-end">
+                                                    <button class="silat-btn px-3 py-2 text-xs"><x-icon name="fa-check" /> Setujui</button>
+                                                </div>
                                             </form>
-                                            <form method="POST" action="{{ route('management.place-proposals.reject', $proposal) }}" class="space-y-2">
+                                            <form method="POST" action="{{ route('management.place-proposals.reject', $proposal) }}" class="rounded-lg border border-red-100 bg-red-50/40 p-3">
                                                 @csrf
-                                                <textarea name="admin_note" rows="4" class="w-56 rounded-md border-gray-300 text-xs" placeholder="Alasan penolakan" required></textarea>
-                                                <button class="rounded-md bg-red-700 px-3 py-1 text-xs font-semibold text-white">Tolak</button>
+                                                <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-red-700">Alasan Penolakan</label>
+                                                <div class="flex flex-col gap-2 sm:flex-row sm:items-start">
+                                                    <textarea name="admin_note" rows="2" class="silat-field min-h-16 text-xs" placeholder="Alasan penolakan" required></textarea>
+                                                    <button class="silat-btn-danger shrink-0 px-3 py-2 text-xs"><x-icon name="fa-xmark" /> Tolak</button>
+                                                </div>
                                             </form>
                                         </div>
                                     @else
