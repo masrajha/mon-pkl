@@ -1,13 +1,18 @@
 # Manual Penggunaan SiLAT
 
-**Versi dokumen:** 2.2
-**Tanggal pembaruan:** 7 Juni 2026
-**Status:** Mengikuti implementasi fitur sampai snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Finalisasi Nilai, Berita Acara Nilai, dan portal Pembimbing Lapangan terbaru.
+**Versi dokumen:** 2.3
+**Tanggal pembaruan:** 8 Juni 2026
+**Status:** Mengikuti implementasi fitur sampai snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Viewer Laporan berbasis organisasi, Finalisasi Nilai, Berita Acara Nilai, dan portal Pembimbing Lapangan terbaru.
 
 SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untuk mengelola pendaftaran program, presensi, pembekalan, laporan, catatan harian, perpindahan mitra, perubahan pembimbing, dan monitoring aktivitas mahasiswa.
 
-> **What's New - Versi 2.2**
+> **What's New - Versi 2.3**
 >
+> - Tersedia struktur **Organisasi** untuk scope laporan: Universitas Lampung → FMIPA → Jurusan Ilmu Komputer, dengan semua prodi saat ini ditautkan ke Jurusan Ilmu Komputer.
+> - Admin dapat menugaskan dosen aktif sebagai **Viewer Laporan** pada level universitas, fakultas, jurusan, atau prodi tanpa mengubah role utama dosen.
+> - Menu **Analisis & Laporan** kini dapat diakses admin, koordinator, dan Viewer Laporan sesuai scope; Viewer Laporan bersifat baca dan tidak memiliki aksi workflow operasional.
+> - Periode Program memakai keunikan berdasarkan program. Nama periode, tahun akademik, semester, dan gelombang yang sama boleh dipakai pada program berbeda, tetapi tidak boleh duplikat pada program yang sama.
+> - Summary email progres laporan untuk admin, koordinator, dan dosen pembimbing hanya dikirim setelah tanggal **Mulai Pelaksanaan / Presensi** periode tercapai.
 > - Presensi harian memakai **snapshot GPS server-side** sehingga koordinat final tidak bergantung pada field form yang dapat diedit dari browser.
 > - Sistem menolak presensi jika koordinat form berbeda jauh dari snapshot GPS atau jika snapshot GPS berada di luar radius mitra.
 > - Check-out tanpa check-in tetap dapat disimpan sebagai presensi belum berpasangan dan diarahkan untuk pengajuan **Lupa Presensi Masuk** jika kuota tersedia.
@@ -16,15 +21,17 @@ SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untu
 > - Foto profil pengguna dapat diunggah dari Profil Saya atau dikelola admin pada Manajemen User.
 > - Master Mahasiswa dan Dosen mendukung pembuatan/penautan akun login otomatis dari email sehingga input data tidak perlu dilakukan dua kali.
 > - Konfigurasi Program menyediakan batas akurasi GPS, umur snapshot lokasi, toleransi beda koordinat, tanggal libur, batas Lupa Presensi, rubrik penilaian, survey institusi, dan dokumen cetak nilai.
-> - Menu **Analisis & Laporan** untuk admin/koordinator memuat dashboard progres, funnel, risk scoring, heatmap kehadiran, dan Grafik Operasional.
+> - Menu **Analisis & Laporan** memuat dashboard progres, funnel, risk scoring, heatmap kehadiran, Grafik Operasional, Rekap Sanksi, dan Rekap Nilai Akhir.
 
-Dokumen ini dibagi menjadi lima bagian berdasarkan role pengguna:
+Dokumen ini dibagi menjadi lima bagian utama berdasarkan role pengguna, ditambah catatan khusus untuk Viewer Laporan:
 
 1. Role Mahasiswa
 2. Role Dosen Pembimbing
 3. Role Koordinator
 4. Role Admin
 5. Role Pembimbing Lapangan
+
+Viewer Laporan adalah akses tambahan untuk dosen yang hanya perlu membaca Analisis & Laporan sesuai scope organisasi/prodi, tanpa memproses workflow.
 
 Dokumentasi publik pada `/docs` membaca isi file ini, sehingga perubahan manual di sini otomatis menjadi sumber halaman dokumentasi aplikasi.
 
@@ -1530,6 +1537,7 @@ Admin dapat menggunakan sistem untuk:
 - Mengelola program kegiatan.
 - Mengelola periode program.
 - Mengelola koordinator program.
+- Mengelola Viewer Laporan.
 - Mengelola master mitra.
 - Memvalidasi usulan mitra.
 - Memproses pindah tempat.
@@ -1589,6 +1597,7 @@ Catatan:
 
 - Role koordinator dihitung dari penugasan koordinator aktif pada data dosen, bukan sekadar role user biasa.
 - Jika dosen harus menjadi koordinator, buat/tautkan user dosen terlebih dahulu, lalu buat penugasan pada menu **Koordinator Program**.
+- Akses Viewer Laporan juga dihitung dari penugasan aktif pada data dosen, bukan role user dasar. Buat/tautkan user dosen terlebih dahulu, lalu buat penugasan pada menu **Viewer Laporan**.
 - Akun Pembimbing Lapangan sebaiknya dibuat/ditautkan dari menu **Pembimbing Lapangan**, bukan langsung dari Manajemen User, agar email akun pasti terkait data pembimbing lapangan pada enrollment aktif.
 - Jika memilih role **Mahasiswa** atau **Dosen** dari form User, form menampilkan field profil yang relevan. Email user menjadi email akun login dan dipakai sebagai email profil terkait agar tidak terjadi input email ganda.
 - Admin dapat mengunggah atau menghapus foto profil user. Foto ini dipakai sebagai avatar pada navigasi, daftar user, dan tampilan/dokumen yang mendukung foto profil.
@@ -1639,6 +1648,7 @@ Dosen yang aktif dapat dipilih sebagai:
 
 - Dosen pembimbing mahasiswa.
 - Dosen koordinator program.
+- Viewer Laporan.
 - Reviewer laporan sesuai relasi bimbingan atau scope koordinator.
 
 Mode akun login pada form Dosen sama seperti Mahasiswa:
@@ -1687,10 +1697,11 @@ Data prodi:
 - Kode.
 - Nama prodi.
 - Jenjang atau `degree_level`, misalnya D3, S1, S2.
+- Organisasi induk, jika sudah ditautkan untuk kebutuhan scope laporan.
 - Fakultas.
 - Status aktif/nonaktif.
 
-`degree_level` berpengaruh pada validasi pendaftaran mahasiswa.
+`degree_level` berpengaruh pada validasi pendaftaran mahasiswa. Organisasi induk dipakai untuk membatasi scope Viewer Laporan pada level universitas, fakultas, atau jurusan.
 
 Contoh:
 
@@ -1742,6 +1753,8 @@ Data periode:
 - Status aktif.
 - Status terkunci.
 
+Keunikan periode dihitung dalam scope program kegiatan. Kombinasi nama periode, tahun akademik, semester, dan batch yang sama boleh dipakai pada program berbeda, tetapi ditolak jika sudah ada pada program yang sama.
+
 Periode menjadi acuan untuk:
 
 - Pendaftaran mahasiswa.
@@ -1750,6 +1763,7 @@ Periode menjadi acuan untuk:
 - Pembekalan.
 - Rekap monitoring.
 - Scope koordinator.
+- Scope laporan.
 
 Admin juga dapat menyelesaikan periode. Saat periode diselesaikan, peserta aktif pada periode tersebut dapat diubah menjadi selesai sesuai proses yang tersedia pada sistem.
 
@@ -1773,6 +1787,46 @@ Ketentuan:
 - Satu kombinasi periode-prodi hanya boleh memiliki satu koordinator aktif.
 - Jika prodi sudah memiliki koordinator pada periode yang sama, sistem menolak duplikasi.
 - Koordinator hanya dapat mengakses data pada scope periode/prodi penugasannya.
+
+### 4.10A Viewer Laporan
+
+Menu: **Viewer Laporan**
+
+Viewer Laporan dipakai untuk memberi akses baca Analisis & Laporan kepada dosen yang memiliki kebutuhan pemantauan, misalnya Ketua Jurusan, Sekretaris Jurusan, Ketua Program Studi, atau pimpinan fakultas/universitas.
+
+Prinsip utama:
+
+- Viewer Laporan diambil dari daftar dosen aktif.
+- Role utama dosen tidak berubah. Dosen tetap dapat berperan sebagai dosen pembimbing jika memang memiliki mahasiswa bimbingan.
+- Akses Viewer Laporan hanya membuka menu **Analisis & Laporan** sesuai scope.
+- Viewer Laporan tidak dapat melakukan aksi workflow seperti validasi pendaftaran, memproses Lupa Presensi, review laporan, review seminar, atau finalisasi nilai.
+
+Level scope yang tersedia:
+
+| Level | Cakupan |
+|-------|---------|
+| Universitas | Semua prodi di bawah organisasi universitas yang dipilih. |
+| Fakultas | Semua prodi di bawah fakultas dan turunannya. |
+| Jurusan | Semua prodi di bawah jurusan. |
+| Prodi | Satu prodi spesifik. |
+
+Data penugasan:
+
+- Dosen.
+- Level akses.
+- Organisasi atau prodi sesuai level.
+- Status aktif/nonaktif.
+- Tanggal mulai dan selesai, jika masa akses ingin dibatasi.
+
+Seeder awal membuat hirarki:
+
+```text
+Universitas Lampung
+└── FMIPA
+    └── Jurusan Ilmu Komputer
+```
+
+Semua prodi yang sudah ada saat ini ditautkan ke **Jurusan Ilmu Komputer**. Jika struktur fakultas/jurusan/prodi berkembang, admin dapat menyesuaikan data organisasi dan relasi prodi.
 
 ### 4.11 Manajemen Master Mitra
 
@@ -2073,7 +2127,7 @@ Dampak finalisasi:
 
 Menu: **Analisis & Laporan**
 
-Admin dan koordinator memakai menu ini untuk membaca progres pelaksanaan dalam bentuk indikator, tabel tindak lanjut, dan grafik. Admin melihat data lintas periode/prodi, sedangkan koordinator hanya melihat data sesuai scope penugasannya.
+Admin, koordinator, dan Viewer Laporan memakai menu ini untuk membaca progres pelaksanaan dalam bentuk indikator, tabel tindak lanjut, dan grafik. Admin melihat data lintas periode/prodi, koordinator hanya melihat data sesuai scope penugasannya, sedangkan Viewer Laporan melihat data sesuai scope organisasi/prodi yang diberikan admin.
 
 Halaman yang tersedia:
 
@@ -2095,6 +2149,13 @@ Filter umum:
 - Rentang tanggal.
 
 Gunakan halaman analisis sebagai pintu tindak lanjut. Jika ada mahasiswa berisiko, buka detail/aksi cepat menuju presensi, laporan, seminar, Lupa Presensi, atau finalisasi nilai sesuai masalah utama yang muncul.
+
+Catatan untuk Viewer Laporan:
+
+- Filter periode dan prodi dibatasi oleh scope penugasan viewer.
+- Viewer dapat membaca rekap, grafik, heatmap, risk scoring, sanksi, dan nilai akhir sesuai scope.
+- Aksi operasional tetap mengikuti role asli pengguna. Jika dosen hanya memiliki akses Viewer Laporan, tautan aksi yang bersifat finalisasi atau validasi tidak diberikan.
+- Cetak Berita Acara Nilai dapat dibuka jika data mahasiswa berada dalam scope viewer dan nilai sudah final.
 
 ### 4.22 Konfigurasi Program
 
@@ -2333,7 +2394,8 @@ Cakupan notifikasi:
 - Workflow yang sudah tersedia: pendaftaran, usulan mitra, pindah mitra, perubahan pembimbing, pembimbing lapangan, pembekalan, digest presensi, laporan, penilaian, dan operasional.
 - Pembekalan mengirim email saat event dibuka, reminder sebelum kegiatan, reminder mendekati waktu tutup jika belum presensi, konfirmasi presensi berhasil, dan rekap hadir/tidak hadir kepada admin/koordinator setelah event ditutup.
 - Digest presensi dikirim mingguan, bukan setiap check-in/check-out. Mahasiswa menerima ringkasan presensi pribadi, sedangkan dosen pembimbing dan koordinator menerima daftar mahasiswa dengan pola presensi yang perlu perhatian.
-- Laporan mengirim email upload berhasil, hasil review, reminder deadline H-7/H-3/H-1/hari H, reminder review dosen, dan rekap admin/koordinator untuk laporan kosong, pending review, serta sanksi tertinggi.
+- Laporan mengirim email upload berhasil, hasil review, reminder deadline H-7/H-3/H-1/hari H, reminder review dosen, summary mahasiswa bimbingan untuk dosen, dan rekap admin/koordinator untuk laporan kosong, pending review, serta sanksi tertinggi.
+- Summary laporan untuk admin, koordinator, dan dosen pembimbing hanya dibuat setelah periode mencapai tanggal **Mulai Pelaksanaan / Presensi**. Periode masa depan belum memicu summary laporan walaupun deadline sudah dikonfigurasi.
 - Pembimbing Lapangan mengirim email token akses, token pengganti jika token lama kedaluwarsa, reminder validasi catatan harian, reminder pengajuan Lupa Presensi pending, reminder H-7/H-3/H-1 sebelum deadline Laporan Lengkap untuk validasi catatan dan nilai, reminder pengisian nilai, konfirmasi nilai tersimpan, dan alert admin/koordinator untuk nilai/token yang perlu ditindaklanjuti.
 - Penilaian mengirim email kepada dosen saat seminar dijadwalkan, reminder nilai seminar yang belum diisi, konfirmasi nilai tersimpan, serta alert admin/koordinator ketika nilai siap finalisasi atau belum lengkap mendekati akhir periode.
 - Operasional mengirim email kepada admin untuk perubahan periode, penguncian/penyelesaian periode, perubahan konfigurasi program, hasil import Firebase, kegagalan import, dan digest email gagal.
@@ -2427,8 +2489,9 @@ Ekspor PDF/Excel pada halaman rekap masih dalam status belum aktif jika tombol t
 | User | Perubahan role berdampak ke akses sistem. |
 | Prodi | `degree_level` memengaruhi validasi akademik mahasiswa. |
 | Program | `rule_key` memengaruhi aturan workflow program. |
-| Periode | Periode menjadi acuan pendaftaran, deadline, pembekalan, dan monitoring. |
+| Periode | Periode menjadi acuan pendaftaran, deadline, pembekalan, monitoring, dan scope laporan. Kombinasi nama/tahun akademik/semester/batch unik dalam program yang sama. |
 | Koordinator | Satu periode-prodi hanya boleh satu koordinator aktif. |
+| Viewer Laporan | Beri scope paling kecil yang dibutuhkan karena akses ini membuka data Analisis & Laporan sesuai organisasi/prodi. |
 | Mitra | Koordinat mitra menjadi acuan jarak presensi harian. |
 | Merge mitra | Pastikan tujuan merge benar karena enrollment akan merujuk ke master tujuan. |
 | Konfigurasi SKS/IPK | Langsung memengaruhi pendaftaran mahasiswa. |
@@ -2454,7 +2517,8 @@ Alur awal setup:
 6. Atur konfigurasi periode melalui **Konfigurasi Program**.
 7. Tambahkan master mitra jika sudah tersedia.
 8. Buat penugasan koordinator program.
-9. Periksa **Email & Notifikasi** jika sistem akan mengirim email otomatis.
+9. Buat penugasan **Viewer Laporan** jika pimpinan prodi/jurusan/fakultas/universitas perlu akses baca Analisis & Laporan.
+10. Periksa **Email & Notifikasi** jika sistem akan mengirim email otomatis.
 
 Alur pendaftaran:
 

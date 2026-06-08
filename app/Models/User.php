@@ -68,9 +68,23 @@ class User extends Authenticatable
             ->exists();
     }
 
+    public function isReportViewer(): bool
+    {
+        return $this->lecturer()
+            ->whereHas('reportViewerAssignments', fn ($query) => $query
+                ->where('status', 'active')
+                ->where(fn ($query) => $query->whereNull('starts_at')->orWhereDate('starts_at', '<=', now()->toDateString()))
+                ->where(fn ($query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', now()->toDateString())))
+            ->exists();
+    }
+
     public function hasRole(string|array $roles): bool
     {
         if (in_array('koordinator', (array) $roles, true) && $this->isCoordinator()) {
+            return true;
+        }
+
+        if (in_array('report_viewer', (array) $roles, true) && $this->isReportViewer()) {
             return true;
         }
 

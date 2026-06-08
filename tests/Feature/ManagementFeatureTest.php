@@ -8,7 +8,9 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlace;
 use App\Models\InternshipPlaceProposal;
 use App\Models\Lecturer;
+use App\Models\Organization;
 use App\Models\Program;
+use App\Models\ReportViewerAssignment;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
@@ -34,6 +36,7 @@ class ManagementFeatureTest extends TestCase
         $this->actingAs($admin)->get(route('management.students.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.lecturers.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.coordinators.index'))->assertOk();
+        $this->actingAs($admin)->get(route('management.report-viewers.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.study-programs.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.programs.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.periods.index'))->assertOk();
@@ -603,6 +606,45 @@ class ManagementFeatureTest extends TestCase
             ->assertSee('Dashboard Progres Peserta Kegiatan')
             ->assertSee('Catatan Harian Belum Divalidasi')
             ->assertSee('Seminar Belum Diajukan');
+    }
+
+    public function test_admin_can_assign_lecturer_as_report_viewer_without_changing_dosen_role(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $lecturerUser = User::factory()->create(['role' => 'dosen']);
+        $organization = Organization::query()->create([
+            'type' => 'department',
+            'code' => 'JUR-VIEWER',
+            'name' => 'Jurusan Viewer',
+            'is_active' => true,
+        ]);
+        $lecturer = Lecturer::query()->create([
+            'user_id' => $lecturerUser->id,
+            'name' => $lecturerUser->name,
+            'email' => $lecturerUser->email,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('management.report-viewers.store'), [
+                'lecturer_id' => $lecturer->id,
+                'level' => 'department',
+                'organization_id' => $organization->id,
+                'status' => 'active',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('report_viewer_assignments', [
+            'lecturer_id' => $lecturer->id,
+            'organization_id' => $organization->id,
+            'level' => 'department',
+            'status' => 'active',
+        ]);
+        $this->assertTrue($lecturerUser->fresh()->hasRole('dosen'));
+        $this->assertTrue($lecturerUser->fresh()->hasRole('report_viewer'));
+        $this->actingAs($lecturerUser)
+            ->get(route('reports.progress-funnel'))
+            ->assertOk();
     }
 
     public function test_admin_can_complete_period_and_complete_active_enrollments(): void

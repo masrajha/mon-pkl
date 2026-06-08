@@ -43,6 +43,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(StudyProgramSeeder::class);
+        $this->call(OrganizationSeeder::class);
 
         InternshipPeriod::firstOrCreate(
             [

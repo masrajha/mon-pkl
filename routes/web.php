@@ -25,6 +25,7 @@ use App\Http\Controllers\Management\PlaceController as ManagementPlaceController
 use App\Http\Controllers\Management\PlaceProposalController as ManagementPlaceProposalController;
 use App\Http\Controllers\Management\ProgramController as ManagementProgramController;
 use App\Http\Controllers\Management\RelocationRequestController as ManagementRelocationRequestController;
+use App\Http\Controllers\Management\ReportViewerController as ManagementReportViewerController;
 use App\Http\Controllers\Management\StudentController as ManagementStudentController;
 use App\Http\Controllers\Management\StudyProgramController as ManagementStudyProgramController;
 use App\Http\Controllers\Management\SubmissionProgressController as ManagementSubmissionProgressController;
@@ -245,7 +246,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/coordinator', CoordinatorDashboardController::class)->name('coordinator.dashboard');
     });
 
-    Route::middleware('role:admin,koordinator')->group(function () {
+    Route::middleware('role:admin,koordinator,report_viewer')->group(function () {
         Route::get('/reports/progress-funnel', [ReportController::class, 'progressFunnel'])->name('reports.progress-funnel');
         Route::get('/reports/risk-scoring', [ReportController::class, 'riskScoring'])->name('reports.risk-scoring');
         Route::get('/reports/attendance-heatmap', [ReportController::class, 'attendanceHeatmap'])->name('reports.attendance-heatmap');
@@ -253,6 +254,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sanctions', [ReportController::class, 'sanctions'])->name('reports.sanctions');
         Route::get('/reports/final-scores', [ReportController::class, 'finalScores'])->name('reports.final-scores');
         Route::get('/reports/final-scores/{enrollment}/print', [StudentReportController::class, 'printFinalAssessment'])->name('reports.final-scores.print');
+    });
+
+    Route::middleware('role:admin,koordinator')->group(function () {
         Route::get('/management/enrollment-validations', [ManagementEnrollmentController::class, 'validations'])->name('management.enrollment-validations.index');
         Route::post('/management/enrollment-validations/bulk', [ManagementEnrollmentController::class, 'bulkValidateEnrollments'])->name('management.enrollment-validations.bulk');
         Route::get('/management/enrollment-validations/{enrollment}/registration-document', [ManagementEnrollmentController::class, 'registrationDocument'])->name('management.enrollment-validations.document');
@@ -336,6 +340,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/management/coordinators', [ManagementCoordinatorController::class, 'store'])->name('management.coordinators.store');
         Route::get('/management/coordinators/{coordinator}/edit', [ManagementCoordinatorController::class, 'edit'])->name('management.coordinators.edit');
         Route::patch('/management/coordinators/{coordinator}', [ManagementCoordinatorController::class, 'update'])->name('management.coordinators.update');
+
+        Route::get('/management/report-viewers', [ManagementReportViewerController::class, 'index'])->name('management.report-viewers.index');
+        Route::post('/management/report-viewers', [ManagementReportViewerController::class, 'store'])->name('management.report-viewers.store');
+        Route::get('/management/report-viewers/{reportViewer}/edit', [ManagementReportViewerController::class, 'edit'])->name('management.report-viewers.edit');
+        Route::patch('/management/report-viewers/{reportViewer}', [ManagementReportViewerController::class, 'update'])->name('management.report-viewers.update');
 
         Route::get('/management/places', [ManagementPlaceController::class, 'index'])->name('management.places.index');
         Route::post('/management/places/bulk', [ManagementPlaceController::class, 'bulk'])->name('management.places.bulk');

@@ -10,7 +10,10 @@ use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPeriodSetting;
 use App\Models\InternshipPlace;
+use App\Models\Lecturer;
+use App\Models\Organization;
 use App\Models\Program;
+use App\Models\ReportViewerAssignment;
 use App\Models\Sanction;
 use App\Models\SeminarRequest;
 use App\Models\Student;
@@ -223,6 +226,60 @@ class MonitoringReportTest extends TestCase
         $this->actingAs($student)
             ->get(route('reports.progress-funnel'))
             ->assertForbidden();
+    }
+
+    public function test_report_viewer_can_access_analysis_reports_only_within_assignment_scope(): void
+    {
+        $viewerUser = User::factory()->create(['role' => 'dosen']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $university = Organization::query()->create(['type' => 'university', 'code' => 'UNILA-TST', 'name' => 'Universitas Lampung']);
+        $faculty = Organization::query()->create(['parent_id' => $university->id, 'type' => 'faculty', 'code' => 'FMIPA-TST', 'name' => 'FMIPA']);
+        $department = Organization::query()->create(['parent_id' => $faculty->id, 'type' => 'department', 'code' => 'JUR-ILKOM-TST', 'name' => 'Jurusan Ilmu Komputer']);
+        $otherDepartment = Organization::query()->create(['parent_id' => $faculty->id, 'type' => 'department', 'code' => 'JUR-LAIN-TST', 'name' => 'Jurusan Lain']);
+        $scopedProgram = StudyProgram::query()->create(['code' => 'SCP', 'name' => 'S1 Scope Viewer', 'organization_id' => $department->id, 'is_active' => true]);
+        $otherProgram = StudyProgram::query()->create(['code' => 'OTH', 'name' => 'S1 Luar Scope', 'organization_id' => $otherDepartment->id, 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Viewer',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+            'is_active' => true,
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Viewer']);
+        $viewerLecturer = Lecturer::query()->create([
+            'user_id' => $viewerUser->id,
+            'study_program_id' => $scopedProgram->id,
+            'name' => 'Dosen Viewer',
+            'email' => $viewerUser->email,
+            'status' => 'active',
+        ]);
+        ReportViewerAssignment::query()->create([
+            'lecturer_id' => $viewerLecturer->id,
+            'organization_id' => $department->id,
+            'level' => 'department',
+            'status' => 'active',
+        ]);
+        $scopedEnrollment = $this->createFunnelEnrollment($scopedProgram, $period, $place, '2217052001', 'Mahasiswa Dalam Scope');
+        $otherEnrollment = $this->createFunnelEnrollment($otherProgram, $period, $place, '2217052002', 'Mahasiswa Luar Scope');
+
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $scopedEnrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-02 08:00:00',
+        ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $otherEnrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-02 08:00:00',
+        ]);
+
+        $this->actingAs($viewerUser)
+            ->get(route('reports.progress-funnel', ['period_id' => $period->id]))
+            ->assertOk()
+            ->assertSee('S1 Scope Viewer')
+            ->assertDontSee('S1 Luar Scope');
     }
 
     public function test_admin_can_access_risk_scoring_report(): void

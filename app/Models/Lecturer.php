@@ -38,4 +38,9 @@ class Lecturer extends Model
     {
         return $this->hasMany(InternshipCoordinator::class);
     }
+
+    public function reportViewerAssignments()
+    {
+        return $this->hasMany(ReportViewerAssignment::class);
+    }
 }

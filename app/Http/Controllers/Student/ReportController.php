@@ -10,6 +10,7 @@ use App\Models\PeriodDeadline;
 use App\Models\Sanction;
 use App\Models\SubmissionProgress;
 use App\Services\PeriodConfigurationService;
+use App\Services\ReportScopeService;
 use App\Services\StudentWorkflowAccessService;
 use App\Services\SubmissionProgressEmailNotificationService;
 use Illuminate\Support\Carbon;
@@ -310,6 +311,16 @@ class ReportController extends Controller
                 ->where('internship_period_id', $enrollment->internship_period_id)
                 ->where('study_program_id', $enrollment->study_program_id)
                 ->exists();
+
+            if ($allowed) {
+                return;
+            }
+        }
+
+        if ($user?->hasRole('report_viewer')) {
+            $query = InternshipEnrollment::query()->whereKey($enrollment->id);
+            app(ReportScopeService::class)->applyEnrollmentScope($query, $user, false);
+            $allowed = $query->exists();
 
             if ($allowed) {
                 return;

@@ -9,6 +9,7 @@ use App\Models\Program;
 use App\Models\StudyProgram;
 use App\Services\PeriodConfigurationService;
 use App\Services\ParticipantRiskScoringService;
+use App\Services\ReportScopeService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +22,7 @@ class ReportController extends Controller
     public function __construct(
         private readonly PeriodConfigurationService $configurations,
         private readonly ParticipantRiskScoringService $riskScoring,
+        private readonly ReportScopeService $reportScope,
     )
     {
     }
@@ -56,7 +58,7 @@ class ReportController extends Controller
             'rows' => $rows,
             'periods' => $periods,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
-            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedProgram' => $request->integer('program_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
@@ -141,7 +143,7 @@ class ReportController extends Controller
         return view('reports.progress-funnel', [
             'periods' => $periods,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
-            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedProgram' => $request->integer('program_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
@@ -190,7 +192,7 @@ class ReportController extends Controller
         return view('reports.risk-scoring', [
             'periods' => $periods,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
-            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedProgram' => $request->integer('program_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
@@ -238,7 +240,7 @@ class ReportController extends Controller
         return view('reports.attendance-heatmap', [
             'periods' => $periods,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
-            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedProgram' => $request->integer('program_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
@@ -393,7 +395,7 @@ class ReportController extends Controller
         return view('reports.operational-charts', [
             'periods' => $periods,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
-            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedProgram' => $request->integer('program_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
@@ -457,7 +459,7 @@ class ReportController extends Controller
         return view('reports.sanctions', [
             'periods' => $periods,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
-            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedProgram' => $request->integer('program_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
@@ -509,7 +511,7 @@ class ReportController extends Controller
         return view('reports.final-scores', [
             'periods' => $periods,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
-            'studyPrograms' => StudyProgram::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
             'selectedProgram' => $request->integer('program_id') ?: null,
             'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
@@ -600,11 +602,18 @@ class ReportController extends Controller
         $user = $request->user();
 
         if (! $user?->hasRole('mahasiswa')) {
-            $periods = InternshipPeriod::query()
+            $periodQuery = InternshipPeriod::query()
                 ->with('program')
                 ->orderByDesc('is_active')
-                ->orderByDesc('id')
-                ->get();
+                ->orderByDesc('id');
+
+            if (! $user?->hasRole('admin')) {
+                $scopedEnrollmentQuery = InternshipEnrollment::query()->select('internship_period_id');
+                $this->reportScope->applyEnrollmentScope($scopedEnrollmentQuery, $user);
+                $periodQuery->whereIn('id', $scopedEnrollmentQuery->distinct());
+            }
+
+            $periods = $periodQuery->get();
             $selectedPeriod = $request->integer('period_id')
                 ? $periods->firstWhere('id', $request->integer('period_id'))
                 : null;
@@ -827,50 +836,24 @@ class ReportController extends Controller
             $query->where('study_program_id', $request->integer('study_program_id'));
         }
 
-        if ($user?->hasRole('admin')) {
-            return $query;
+        return $this->reportScope->applyEnrollmentScope($query, $user);
+    }
+
+    private function studyProgramOptions(Request $request): Collection
+    {
+        $query = StudyProgram::query()
+            ->where('is_active', true)
+            ->orderBy('name');
+
+        $user = $request->user();
+
+        if (! $user?->hasRole('admin')) {
+            $scopedEnrollmentQuery = InternshipEnrollment::query()->select('study_program_id');
+            $this->reportScope->applyEnrollmentScope($scopedEnrollmentQuery, $user);
+            $query->whereIn('id', $scopedEnrollmentQuery->distinct());
         }
 
-        if ($user?->hasRole(['dosen', 'koordinator'])) {
-            $coordinatorAssignments = $user->lecturer?->coordinatorAssignments()
-                ->where('status', 'active')
-                ->get(['internship_period_id', 'study_program_id']) ?? collect();
-
-            return $query->where(function (Builder $query) use ($user, $coordinatorAssignments): void {
-                $hasCondition = false;
-
-                if ($user->role === 'dosen') {
-                    $query->where(function (Builder $query) use ($user): void {
-                        if ($user->lecturer?->id) {
-                            $query->where('lecturer_supervisor_id', $user->lecturer->id);
-                        }
-
-                        $query->orWhere('lecturer_supervisor_user_id', $user->id)
-                            ->orWhere('lecturer_supervisor', $user->name)
-                            ->orWhere('lecturer_supervisor', $user->email);
-                    });
-
-                    $hasCondition = true;
-                }
-
-                $coordinatorAssignments->each(function ($assignment) use ($query, &$hasCondition): void {
-                    $method = $hasCondition ? 'orWhere' : 'where';
-
-                    $query->{$method}(function (Builder $query) use ($assignment): void {
-                        $query->where('internship_period_id', $assignment->internship_period_id)
-                            ->where('study_program_id', $assignment->study_program_id);
-                    });
-
-                    $hasCondition = true;
-                });
-
-                if (! $hasCondition) {
-                    $query->whereRaw('1 = 0');
-                }
-            });
-        }
-
-        return $query->whereHas('student', fn (Builder $query) => $query->where('user_id', $user?->id));
+        return $query->get();
     }
 
     private function dateRange(Request $request, ?InternshipPeriod $selectedPeriod = null): array

@@ -70,7 +70,7 @@
                 <div class="silat-section-header">
                     <div>
                         <h3 class="silat-section-title">Daftar Nilai Peserta</h3>
-                        <p class="silat-section-description">Baris belum final tetap ditampilkan agar admin/koordinator mudah melihat komponen nilai yang belum lengkap.</p>
+                        <p class="silat-section-description">Baris belum final tetap ditampilkan agar komponen nilai yang belum lengkap mudah dipantau.</p>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -114,7 +114,9 @@
                                     </td>
                                     <td class="silat-table-cell text-right">
                                         <div class="flex flex-wrap justify-end gap-2">
-                                            <a class="silat-secondary-link" href="{{ route('management.final-assessments.index', ['period_id' => $row['enrollment']->internship_period_id, 'q' => $row['npm']]) }}">Finalisasi</a>
+                                            @if (Auth::user()?->hasRole(['admin', 'koordinator']))
+                                                <a class="silat-secondary-link" href="{{ route('management.final-assessments.index', ['period_id' => $row['enrollment']->internship_period_id, 'q' => $row['npm']]) }}">Finalisasi</a>
+                                            @endif
                                             @if ($row['is_final'])
                                                 <a class="silat-secondary-link" href="{{ route('reports.final-scores.print', $row['enrollment']) }}" target="_blank">Cetak</a>
                                             @endif

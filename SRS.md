@@ -1,6 +1,7 @@
-# **Dokumen Spesifikasi Kebutuhan Perangkat Lunak (SRS) - Revisi 2.0**
+# **Dokumen Spesifikasi Kebutuhan Perangkat Lunak (SRS) - Revisi 2.1**
 
 > Nama sistem hasil rebranding: **SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik)**.
+> Pembaruan terakhir: **8 Juni 2026**.
 
 ## **SiLAT - Universitas Lampung**
 
@@ -19,7 +20,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 
 ### 1.2 Ruang Lingkup
 - Autentikasi (Google SSO domain unila.ac.id, email/password)
-- Manajemen master data: program kegiatan, prodi, mahasiswa, dosen, tempat PKL/mitra, periode
+- Manajemen master data: program kegiatan, organisasi akademik, prodi, mahasiswa, dosen, tempat PKL/mitra, periode
 - Konfigurasi operasional per periode (jam kerja, deadline, kuota, sanksi)
 - Pendaftaran PKL mahasiswa, usulan tempat baru, validasi admin
 - **Check‑in ganda (masuk & pulang)** dengan perhitungan durasi harian
@@ -29,7 +30,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 - **Catatan harian** dan dukungan paraf (cetak form)
 - **Finalisasi nilai akhir** serta cetak berita acara nilai dengan QR verifikasi
 - Peta (Leaflet) untuk lokasi tempat PKL dan monitoring
-- Laporan rekapitulasi, pelanggaran, dan nilai akhir
+- Laporan rekapitulasi, pelanggaran, dan nilai akhir dengan scope admin, koordinator, dan viewer laporan
 - Ekspor laporan (PDF/Excel)
 
 ### 1.3 Definisi dan Istilah
@@ -49,6 +50,8 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | Sanksi | Pengurangan nilai otomatis akibat keterlambatan atau durasi kurang. |
 | Nilai Final | Nilai akhir yang sudah disahkan admin/koordinator setelah nilai dosen, nilai pembimbing lapangan, dan pengurangan sanksi diperhitungkan. |
 | Konfigurasi | Parameter yang dapat diubah oleh admin per periode atau global. |
+| Organisasi | Hirarki akademik untuk scope laporan, misalnya Universitas → Fakultas → Jurusan → Prodi. Prodi tetap menjadi tabel utama yang dipakai workflow operasional. |
+| Viewer Laporan | Dosen yang diberi akses baca ke menu Analisis & Laporan sesuai scope organisasi/prodi tanpa hak aksi workflow operasional. |
 
 ---
 
@@ -64,12 +67,14 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | MF-02 | CRUD Mahasiswa (NPM, nama, email, no HP, prodi, user_id) dengan opsi membuat/menautkan akun login otomatis dari email agar input tidak perlu dilakukan dua kali. |
 | MF-03 | CRUD Dosen (nama, email, NIP, NIDN, prodi, status aktif, user_id) dengan opsi membuat/menautkan akun login otomatis dari email agar input tidak perlu dilakukan dua kali. |
 | MF-03A | CRUD Program Kegiatan (kode, nama, deskripsi, rule_key, is_active). Contoh program: Kerja Praktik, Magang, Riset, Studi Independen. |
-| MF-04 | CRUD Periode PKL (nama, tahun akademik, semester, batch, starts_at, ends_at, is_active, is_locked). |
+| MF-04 | CRUD Periode PKL (program, nama, tahun akademik, semester, batch, starts_at, ends_at, is_active, is_locked). Kombinasi nama/tahun akademik/semester/batch boleh sama pada program berbeda, tetapi harus unik dalam program yang sama. |
 | MF-05 | CRUD Master Tempat PKL (nama, alamat, kota, provinsi, koordinat, kontak umum, is_active). |
 | MF-06 | Bulk action pada Master Tempat PKL: hapus (jika tidak ada enrollment), merge ke tujuan. |
 | MF-07 | CRUD User (akun login dengan role `admin`, `dosen`, `mahasiswa`, `pembimbing_lapangan`), termasuk foto profil/avatar dan field profil mahasiswa/dosen yang menyesuaikan role. |
 | MF-08 | Manajemen Koordinator PKL (dosen, periode, prodi, status aktif). Satu periode‑prodi hanya boleh satu koordinator. |
 | MF-09 | **[KONFIG]** Atur **kuota minimal & maksimal mahasiswa per tempat PKL** (default min=2, max=3). Sistem menolak enrollment jika melebihi max. |
+| MF-10 | CRUD/seed organisasi akademik dengan relasi rekursif untuk merepresentasikan Universitas, Fakultas, dan Jurusan. `study_programs` terhubung ke organisasi induk agar scope laporan dapat dihitung dari hirarki. |
+| MF-11 | Manajemen Viewer Laporan dari daftar dosen aktif. Viewer dapat diberi scope universitas, fakultas, jurusan, atau prodi; dosen tetap dapat memiliki role utamanya sebagai `dosen`. |
 
 ### 2.2 Konfigurasi Sistem (Per Periode & Global)
 
@@ -161,7 +166,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | ID | Kebutuhan |
 |----|-----------|
 | AU-01 | Laravel Breeze + Socialite (Google domain unila.ac.id). |
-| AU-02 | Role middleware (`admin`, `dosen`, `mahasiswa`, `pembimbing_lapangan`). Dosen dengan penugasan koordinator mendapat akses tambahan sebagai koordinator sesuai scope periode/prodi. Pembimbing lapangan mendapat akses terbatas berdasarkan email pada enrollment atau token akses. |
+| AU-02 | Role middleware (`admin`, `dosen`, `mahasiswa`, `pembimbing_lapangan`). Dosen dengan penugasan koordinator mendapat akses tambahan sebagai koordinator sesuai scope periode/prodi. Dosen dengan penugasan Viewer Laporan mendapat akses baca `report_viewer` sesuai scope organisasi/prodi. Pembimbing lapangan mendapat akses terbatas berdasarkan email pada enrollment atau token akses. |
 
 ---
 
@@ -201,6 +206,36 @@ CREATE TABLE programs (
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
+);
+
+-- Tabel organisasi akademik rekursif untuk scope laporan
+CREATE TABLE organizations (
+    id SERIAL PRIMARY KEY,
+    parent_id INTEGER NULL REFERENCES organizations(id) ON DELETE SET NULL,
+    type VARCHAR(40) NOT NULL, -- university, faculty, department
+    code VARCHAR(80) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- Tambahan kolom pada study_programs
+ALTER TABLE study_programs ADD COLUMN organization_id INTEGER NULL REFERENCES organizations(id) ON DELETE SET NULL;
+
+-- Tabel penugasan viewer laporan
+CREATE TABLE report_viewer_assignments (
+    id SERIAL PRIMARY KEY,
+    lecturer_id INTEGER NOT NULL REFERENCES lecturers(id) ON DELETE CASCADE,
+    organization_id INTEGER NULL REFERENCES organizations(id) ON DELETE SET NULL,
+    study_program_id INTEGER NULL REFERENCES study_programs(id) ON DELETE SET NULL,
+    level VARCHAR(40) NOT NULL, -- university, faculty, department, study_program
+    status VARCHAR(20) DEFAULT 'active',
+    starts_at DATE NULL,
+    ends_at DATE NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    UNIQUE (lecturer_id, organization_id, study_program_id, level)
 );
 
 -- Tambahan kolom pada internship_periods
@@ -336,6 +371,20 @@ Kolom `rule_key` disiapkan agar setiap program dapat memakai rule berbeda di mas
 - Tambahkan `program_id INTEGER REFERENCES programs(id)`
 - Setiap periode wajib terhubung ke satu program kegiatan setelah migrasi data selesai.
 - Periode lama dapat dimigrasikan ke program default `Kerja Praktik`.
+- Constraint unik periode memakai scope `program_id, name, academic_year, semester, batch`. Dengan aturan ini, nama periode/tahun akademik/semester/batch yang sama boleh dipakai pada program kegiatan berbeda, tetapi duplikasi pada program yang sama ditolak melalui validasi form dan constraint database.
+
+### 4.3A Organisasi Akademik dan Viewer Laporan
+
+- Tabel `organizations` merepresentasikan hirarki akademik secara rekursif: Universitas → Fakultas → Jurusan.
+- Tabel `study_programs` tetap menjadi master prodi utama dan ditautkan ke organisasi induk melalui `organization_id`.
+- Seeder awal membuat hirarki **Universitas Lampung → FMIPA → Jurusan Ilmu Komputer** dan menautkan semua prodi yang ada ke Jurusan Ilmu Komputer.
+- Tabel `report_viewer_assignments` memberi akses baca Analisis & Laporan kepada dosen aktif tanpa mengubah role utama dosen.
+- Scope viewer dihitung dari level penugasan:
+  - `university`: semua prodi di bawah universitas tersebut.
+  - `faculty`: semua prodi di bawah fakultas dan turunannya.
+  - `department`: semua prodi di bawah jurusan.
+  - `study_program`: satu prodi spesifik.
+- Viewer Laporan tidak memperoleh aksi workflow seperti validasi pendaftaran, finalisasi nilai, atau perubahan data operasional.
 
 ### 4.4 Perubahan pada tabel `internship_enrollments`
 
@@ -365,6 +414,9 @@ Implementasi saat ini juga menambahkan tabel/struktur berikut:
 | `final_assessments` | Rekap nilai dosen, nilai pembimbing lapangan, pengurangan final, total nilai, huruf mutu, nomor berita acara, snapshot dokumen, token verifikasi, dan identitas finalisasi. |
 | `forgotten_attendance_requests` | Pengajuan Lupa Presensi mahasiswa, termasuk tanggal/jam diminta, jenis masuk/pulang, lokasi, foto, catatan, alasan, status review, reviewer, dan relasi ke `check_ins` hasil koreksi. |
 | `check_in_location_samples` | Snapshot GPS realtime sebelum submit presensi, berisi user, enrollment, koordinat GPS, akurasi, waktu tangkap, waktu pakai, dan device info. |
+| `organizations` | Hirarki akademik rekursif untuk scope laporan, seperti universitas, fakultas, dan jurusan. |
+| `study_programs.organization_id` | Relasi prodi ke organisasi induk agar scope fakultas/jurusan dapat diturunkan ke prodi. |
+| `report_viewer_assignments` | Penugasan dosen sebagai Viewer Laporan pada level universitas, fakultas, jurusan, atau prodi dengan status dan masa berlaku opsional. |
 
 ---
 
@@ -433,7 +485,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
 | AU-01 | Sudah diimplementasikan sebagian | Laravel Breeze tersedia untuk email/password. Google Socialite sudah dikonfigurasi untuk domain Unila. |
-| AU-02 | Sudah diimplementasikan sebagian | Role dasar `admin`, `dosen`, `mahasiswa` sudah ada. Akses tambahan `koordinator` dihitung dari penugasan aktif dosen pada periode/prodi. |
+| AU-02 | Sudah diimplementasikan sebagian | Role dasar `admin`, `dosen`, `mahasiswa`, dan `pembimbing_lapangan` sudah ada. Akses tambahan `koordinator` dihitung dari penugasan aktif dosen pada periode/prodi. Akses tambahan `report_viewer` dihitung dari penugasan Viewer Laporan aktif pada organisasi/prodi dan hanya membuka menu Analisis & Laporan sesuai scope. |
 | NF-04 | Sudah diimplementasikan | Form utama menggunakan validasi server Laravel. |
 | NF-05 | Sudah diimplementasikan | Password memakai hashing Laravel. |
 | NF-07 | Sudah diimplementasikan sebagian | Route utama dilindungi auth dan role middleware. |
@@ -443,16 +495,18 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 
 | ID SRS | Status Implementasi | Catatan |
 |--------|---------------------|---------|
-| MF-01 | Sudah diimplementasikan | CRUD Prodi tersedia di menu Manajemen. Prodi memiliki `degree_level` seperti D3, S1, S2, dan dipakai untuk membedakan aturan akademik. |
+| MF-01 | Sudah diimplementasikan | CRUD Prodi tersedia di menu Manajemen. Prodi memiliki `degree_level` seperti D3, S1, S2, dan dipakai untuk membedakan aturan akademik. Prodi juga dapat terhubung ke organisasi induk untuk kebutuhan scope laporan. |
 | MF-02 | Sudah diimplementasikan | CRUD Mahasiswa tersedia; profil mahasiswa juga dapat dilengkapi oleh mahasiswa sendiri. Form admin mendukung mode buat/tautkan akun login otomatis dari email, tautkan user yang sudah ada, atau simpan tanpa akun login. |
 | MF-03 | Sudah diimplementasikan | Tabel dan CRUD Dosen tersedia, termasuk NIP, NIDN, prodi, status, dan relasi user. Form admin mendukung mode buat/tautkan akun login otomatis dari email, tautkan user yang sudah ada, atau simpan tanpa akun login. |
 | MF-03A | Sudah diimplementasikan | Master Program Kegiatan tersedia dengan `code`, `name`, `description`, `rule_key`, dan `is_active`. Seed awal mencakup Kerja Praktik, Magang, dan Riset dengan fallback rule `kerja_praktik`. |
-| MF-04 | Sudah diimplementasikan | CRUD Periode PKL tersedia dan periode terhubung ke Program Kegiatan. |
+| MF-04 | Sudah diimplementasikan | CRUD Periode PKL tersedia dan periode terhubung ke Program Kegiatan. Keunikan periode sudah memakai scope program, sehingga kombinasi nama/tahun akademik/semester/batch yang sama dapat dipakai pada program berbeda tetapi ditolak jika duplikat dalam program yang sama. |
 | MF-05 | Sudah diimplementasikan | Master Tempat PKL tersedia dengan input/edit lokasi Leaflet. Field `is_active` sudah tersedia dan tempat aktif dipakai pada pendaftaran serta permohonan pindah tempat. |
 | MF-06 | Sudah diimplementasikan | Bulk hapus dan merge Master Tempat PKL tersedia. |
 | MF-07 | Sudah diimplementasikan | CRUD User tersedia untuk role `admin`, `dosen`, `mahasiswa`, dan `pembimbing_lapangan`, termasuk foto profil/avatar. Jika role Mahasiswa atau Dosen dipilih, form user menampilkan field profil terkait dan memakai email user sebagai email profil agar tidak ada input email ganda. Akun pembimbing lapangan direkomendasikan dibuat/ditautkan dari menu Pembimbing Lapangan agar emailnya pasti terkait enrollment aktif, bukan dibuat bebas dari Manajemen User. |
 | MF-08 | Sudah diimplementasikan | Penugasan Koordinator PKL per periode/prodi tersedia dan dibatasi satu koordinator per periode-prodi. Form tambah koordinator mendukung multi-select prodi untuk membuat beberapa penugasan sekaligus pada periode yang sama. |
 | MF-09 | Sudah diimplementasikan sebagian | Kuota minimal dan maksimal tersedia di konfigurasi periode. Kuota maksimal sudah divalidasi pada pendaftaran mahasiswa dan input peserta admin; kuota minimal ditampilkan sebagai indikator peringatan pada validasi pendaftaran. |
+| MF-10 | Sudah diimplementasikan | Tabel `organizations` tersedia. Seeder awal membuat Universitas Lampung, FMIPA, dan Jurusan Ilmu Komputer, lalu menautkan semua prodi saat ini ke Jurusan Ilmu Komputer. |
+| MF-11 | Sudah diimplementasikan | Menu **Viewer Laporan** tersedia untuk admin. Admin dapat menugaskan dosen aktif sebagai viewer tingkat universitas, fakultas, jurusan, atau prodi dengan status aktif/nonaktif dan masa berlaku opsional. |
 
 ### 8.3 Konfigurasi Periode
 
@@ -538,7 +592,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | EN-03 | Sudah diimplementasikan | Email usulan mitra dikirim kepada mahasiswa saat usulan dikirim, disetujui sebagai master baru, digabung ke master mitra, atau ditolak. Admin menerima email saat ada usulan baru dan reminder untuk usulan pending minimal 48 jam. |
 | EN-04 | Sudah diimplementasikan | Email pembekalan dikirim kepada mahasiswa saat event pembekalan aktif dibuka, reminder H-1/sebelum kegiatan, reminder ketika presensi belum tercatat mendekati waktu tutup, dan konfirmasi ketika presensi pembekalan berhasil dicatat. Admin dan koordinator sesuai scope periode/prodi menerima rekap setelah event ditutup berisi jumlah peserta, hadir, dan tidak hadir. Command `silat:orientation-notifications:queue` dijadwalkan hourly. |
 | EN-05 | Sudah diimplementasikan | Digest presensi mingguan dikirim tanpa email per check-in/check-out. Mahasiswa menerima ringkasan hari tercatat, hari lengkap, durasi, jarak rata-rata, dan sanksi. Dosen pembimbing dan koordinator menerima digest mahasiswa dengan pola bermasalah seperti presensi tidak berpasangan, terlambat, durasi kurang, jarak tidak wajar, atau sanksi. Command `silat:attendance-digests:queue` dijadwalkan tiap Senin pukul 07.00. |
-| EN-06 | Sudah diimplementasikan | Email laporan dikirim kepada mahasiswa saat upload berhasil, laporan disetujui, diminta revisi, atau ditolak. Jika upload melewati deadline, body email memuat sanksi keterlambatan yang tercatat. Dosen pembimbing menerima email saat ada laporan baru menunggu review dan reminder jika pending review melewati threshold. Mahasiswa menerima reminder deadline H-7/H-3/H-1/hari H untuk jenis laporan yang belum diunggah/masih kosong. Admin dan koordinator menerima rekap laporan belum unggah, pending review, dan sanksi tertinggi. Command `silat:submission-progress-notifications:queue` dijadwalkan hourly. |
+| EN-06 | Sudah diimplementasikan | Email laporan dikirim kepada mahasiswa saat upload berhasil, laporan disetujui, diminta revisi, atau ditolak. Jika upload melewati deadline, body email memuat sanksi keterlambatan yang tercatat. Dosen pembimbing menerima email saat ada laporan baru menunggu review, reminder jika pending review melewati threshold, dan summary mahasiswa bimbingan. Mahasiswa menerima reminder deadline H-7/H-3/H-1/hari H untuk jenis laporan yang belum diunggah/masih kosong. Admin dan koordinator menerima rekap laporan belum unggah, pending review, dan sanksi tertinggi. Summary admin/koordinator/dosen hanya dibuat untuk periode yang sudah mencapai tanggal Mulai Pelaksanaan/Presensi (`internship_periods.starts_at`). Command `silat:submission-progress-notifications:queue` dijadwalkan hourly. |
 | EN-07 | Sudah diimplementasikan | Email perubahan pembimbing dikirim kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Admin dan koordinator sesuai scope periode/prodi menerima email saat ada permohonan baru serta reminder untuk permohonan pending minimal 48 jam. Saat permohonan disetujui dan dosen berubah, dosen pembimbing baru menerima notifikasi penugasan, sedangkan dosen pembimbing lama menerima notifikasi bahwa mahasiswa tidak lagi menjadi bimbingannya. |
 | EN-08 | Sudah diimplementasikan | Email pindah tempat dikirim kepada mahasiswa saat permohonan dikirim, disetujui, atau ditolak. Admin dan koordinator sesuai scope periode/prodi menerima email saat ada permohonan baru serta reminder untuk permohonan pending minimal 48 jam. Saat permohonan disetujui, dosen pembimbing mahasiswa menerima notifikasi bahwa mahasiswa bimbingannya pindah mitra/tempat kegiatan. Modul pindah tempat juga dapat diakses koordinator dengan pembatasan data sesuai penugasan aktif. |
 | EN-09 | Sudah diimplementasikan | Admin dapat membuat token akses pembimbing lapangan dari Peserta Periode. Sistem membuat token unik, masa berlaku 30 hari, dapat dicabut, dan mengantrekan email berisi URL portal Pembimbing Lapangan. Jika token lama kedaluwarsa dan belum ada token valid, command dapat membuat token baru dan mengantrekan email akses. Pembimbing Lapangan menerima reminder validasi catatan harian, reminder pengisian nilai, dan konfirmasi nilai berhasil disimpan. Admin dan koordinator menerima alert jika nilai belum diisi setelah form dapat dibuka atau token kedaluwarsa. Command `silat:field-supervisor-notifications:queue` dijadwalkan harian. |
@@ -597,13 +651,13 @@ Bagian ini hanya mencatat kebutuhan SRS yang belum tersedia atau masih perlu dis
 | ID SRS | Rencana Implementasi | Prioritas |
 |--------|----------------------|-----------|
 | LR-06 | **Sudah diimplementasikan.** Buat **Dashboard Progres Peserta Kegiatan** berbasis filter periode, program, prodi, mitra, dosen pembimbing, status peserta, dan rentang tanggal. Dashboard menampilkan kartu ringkasan total peserta, peserta aktif/selesai, presensi belum lengkap, catatan harian belum divalidasi, laporan terlambat, seminar belum diajukan, nilai belum lengkap, nilai final, dan sanksi tertinggi pada dashboard admin/koordinator. | Tinggi |
-| LR-07 | **Sudah diimplementasikan.** Tambahkan **progress funnel** pelaksanaan: pendaftaran disetujui → presensi aktif → laporan lengkap → seminar dijadwalkan/selesai → nilai dosen masuk → nilai Pembimbing Lapangan masuk → nilai final. Funnel dipakai untuk membaca bottleneck proses dan tersedia untuk admin/koordinator pada menu Analisis & Laporan. | Tinggi |
-| LR-08 | **Sudah diimplementasikan.** Tambahkan **risk scoring peserta** dengan kategori Aman, Perlu Dipantau, Berisiko, dan Kritis. Indikator mencakup presensi tidak lengkap, tidak hadir beruntun, Lupa Presensi pending, catatan harian belum divalidasi, laporan terlambat/revisi berulang, seminar belum diajukan, nilai belum lengkap, dan total sanksi. Halaman tersedia untuk admin/koordinator pada menu Analisis & Laporan dengan filter periode, program, prodi, dan kategori risiko. | Tinggi |
-| LR-09 | **Sudah diimplementasikan.** Tambahkan tabel **Peserta Perlu Tindak Lanjut** yang dapat di-drill-down dari kartu/grafik. Tabel memuat mahasiswa, prodi, mitra, dosen, status risiko, masalah utama, sanksi, dan aksi cepat menuju presensi, laporan, seminar, Lupa Presensi, atau finalisasi nilai. Drill-down tersedia dari kartu kategori pada halaman Risk Scoring. | Tinggi |
-| LR-10 | **Sudah diimplementasikan.** Tambahkan visualisasi **heatmap kehadiran** per mahasiswa dan tanggal. Warna membedakan hadir valid, presensi satu sisi/tidak valid, tidak hadir, Lupa Presensi disetujui, Sabtu/Minggu, dan hari libur. Halaman tersedia untuk admin/koordinator pada menu Analisis & Laporan dengan filter periode, program, prodi, dan rentang tanggal. | Tinggi |
-| LR-11 | **Sudah diimplementasikan.** Tambahkan halaman **Grafik Operasional** pada menu Analisis & Laporan untuk admin/koordinator. Grafik mencakup tren presensi harian, stacked bar status peserta per prodi, donut status laporan lengkap, bar chart top sanksi, dan progress status nilai dosen/Pembimbing Lapangan/final dengan filter periode, program, prodi, dan rentang tanggal. | Tinggi |
-| LR-02 | **Sudah diimplementasikan.** Buat **Rekap Pelanggaran & Sanksi** pada menu Analisis & Laporan untuk admin/koordinator. Rekap memisahkan sumber sanksi presensi, keterlambatan laporan, dan pengurangan final, dilengkapi filter periode, program, prodi, rentang tanggal, total ringkasan, dan aksi cepat ke presensi/laporan/finalisasi. | Tinggi |
-| LR-03 | **Sudah diimplementasikan.** Buat **Rekap Nilai Akhir** pada menu Analisis & Laporan untuk admin/koordinator. Rekap memuat nilai dosen, nilai Pembimbing Lapangan, nilai dasar, pengurangan final, total nilai, huruf mutu, nomor berita acara, status final, filter periode/program/prodi/status, dan aksi cepat ke finalisasi/cetak berita acara. | Tinggi |
+| LR-07 | **Sudah diimplementasikan.** Tambahkan **progress funnel** pelaksanaan: pendaftaran disetujui → presensi aktif → laporan lengkap → seminar dijadwalkan/selesai → nilai dosen masuk → nilai Pembimbing Lapangan masuk → nilai final. Funnel dipakai untuk membaca bottleneck proses dan tersedia untuk admin/koordinator/Viewer Laporan pada menu Analisis & Laporan sesuai scope. | Tinggi |
+| LR-08 | **Sudah diimplementasikan.** Tambahkan **risk scoring peserta** dengan kategori Aman, Perlu Dipantau, Berisiko, dan Kritis. Indikator mencakup presensi tidak lengkap, tidak hadir beruntun, Lupa Presensi pending, catatan harian belum divalidasi, laporan terlambat/revisi berulang, seminar belum diajukan, nilai belum lengkap, dan total sanksi. Halaman tersedia untuk admin/koordinator/Viewer Laporan pada menu Analisis & Laporan dengan filter periode, program, prodi, dan kategori risiko sesuai scope. | Tinggi |
+| LR-09 | **Sudah diimplementasikan.** Tambahkan tabel **Peserta Perlu Tindak Lanjut** yang dapat di-drill-down dari kartu/grafik. Tabel memuat mahasiswa, prodi, mitra, dosen, status risiko, masalah utama, sanksi, dan aksi cepat menuju presensi, laporan, seminar, Lupa Presensi, atau finalisasi nilai. Drill-down tersedia dari kartu kategori pada halaman Risk Scoring; aksi operasional tetap mengikuti role admin/koordinator, sedangkan Viewer Laporan bersifat baca sesuai scope. | Tinggi |
+| LR-10 | **Sudah diimplementasikan.** Tambahkan visualisasi **heatmap kehadiran** per mahasiswa dan tanggal. Warna membedakan hadir valid, presensi satu sisi/tidak valid, tidak hadir, Lupa Presensi disetujui, Sabtu/Minggu, dan hari libur. Halaman tersedia untuk admin/koordinator/Viewer Laporan pada menu Analisis & Laporan dengan filter periode, program, prodi, dan rentang tanggal sesuai scope. | Tinggi |
+| LR-11 | **Sudah diimplementasikan.** Tambahkan halaman **Grafik Operasional** pada menu Analisis & Laporan untuk admin/koordinator/Viewer Laporan. Grafik mencakup tren presensi harian, stacked bar status peserta per prodi, donut status laporan lengkap, bar chart top sanksi, dan progress status nilai dosen/Pembimbing Lapangan/final dengan filter periode, program, prodi, dan rentang tanggal sesuai scope. | Tinggi |
+| LR-02 | **Sudah diimplementasikan.** Buat **Rekap Pelanggaran & Sanksi** pada menu Analisis & Laporan untuk admin/koordinator/Viewer Laporan. Rekap memisahkan sumber sanksi presensi, keterlambatan laporan, dan pengurangan final, dilengkapi filter periode, program, prodi, rentang tanggal, total ringkasan, dan aksi cepat sesuai hak akses role. | Tinggi |
+| LR-03 | **Sudah diimplementasikan.** Buat **Rekap Nilai Akhir** pada menu Analisis & Laporan untuk admin/koordinator/Viewer Laporan. Rekap memuat nilai dosen, nilai Pembimbing Lapangan, nilai dasar, pengurangan final, total nilai, huruf mutu, nomor berita acara, status final, filter periode/program/prodi/status, dan aksi cepat sesuai hak akses role. | Tinggi |
 | LR-12 | Tambahkan drill-down dari chart/grafik ke daftar mahasiswa terkait agar admin/koordinator dapat langsung melakukan tindak lanjut tanpa berpindah konteks manual. | Tinggi |
 | LR-01 | Lengkapi Rekap Monitoring dengan status laporan, seminar, nilai, Lupa Presensi, validasi catatan harian, dan sanksi. | Menengah |
 | LR-04 | Tambahkan export PDF/Excel/CSV untuk laporan utama: Rekap Monitoring, Presensi dan Catatan Harian, Sanksi, Progres Laporan, Status Seminar, Nilai Akhir, dan Finalisasi Nilai. | Menengah |
@@ -625,3 +679,10 @@ Bagian ini hanya mencatat kebutuhan SRS yang belum tersedia atau masih perlu dis
 | Delta import | Buat prosedur import delta dari Firebase sebelum cutover final. | Tinggi |
 | Decommission Firebase | Nonaktifkan write Firebase, arsipkan rules/config, dan lepas ketergantungan script lama. | Tinggi |
 | Decommission Google Maps | Pastikan tidak ada script/API `google.maps.*` pada kode produksi baru. | Tinggi |
+
+
+Catatan Perbaikan:
+- Laporan hanya mengacu pada peserta aktif, masih ada kesalahan pada progrees funnel, presensi aktif masih menghitung data peserta non aktif, sehingga tidak konsisten: perlu diperiksa juga laporan lainnya
+- Pada master prodi -> memetakan Foreign Key ke Jurusan -> Dropdown
+- Perlu manajemen master ogranisasi
+  

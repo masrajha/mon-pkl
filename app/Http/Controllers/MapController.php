@@ -10,6 +10,7 @@ use App\Models\InternshipPlace;
 use App\Models\StudyProgram;
 use App\Services\MapRouteService;
 use App\Services\PeriodConfigurationService;
+use App\Services\ReportScopeService;
 use App\Support\PublicStorage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,10 @@ use Illuminate\View\View;
 
 class MapController extends Controller
 {
-    public function __construct(private readonly PeriodConfigurationService $configurations)
+    public function __construct(
+        private readonly PeriodConfigurationService $configurations,
+        private readonly ReportScopeService $reportScope,
+    )
     {
     }
 
@@ -232,33 +236,12 @@ class MapController extends Controller
             return $query;
         }
 
-        if ($user?->hasRole(['dosen', 'koordinator'])) {
+        if ($user?->hasRole(['dosen', 'koordinator', 'report_viewer'])) {
             if ($showAllStudyPrograms) {
                 return $query;
             }
 
-            $coordinatorAssignments = $user->lecturer?->coordinatorAssignments()
-                ->where('status', 'active')
-                ->get(['internship_period_id', 'study_program_id']) ?? collect();
-
-            return $query->where(function (Builder $query) use ($user, $coordinatorAssignments): void {
-                $query->where(function (Builder $query) use ($user): void {
-                    if ($user->lecturer?->id) {
-                        $query->where('lecturer_supervisor_id', $user->lecturer->id);
-                    }
-
-                    $query->orWhere('lecturer_supervisor_user_id', $user->id)
-                        ->orWhere('lecturer_supervisor', $user->name)
-                        ->orWhere('lecturer_supervisor', $user->email);
-                });
-
-                $coordinatorAssignments->each(function ($assignment) use ($query): void {
-                    $query->orWhere(function (Builder $query) use ($assignment): void {
-                        $query->where('internship_period_id', $assignment->internship_period_id)
-                            ->where('study_program_id', $assignment->study_program_id);
-                    });
-                });
-            });
+            return $this->reportScope->applyEnrollmentScope($query, $user);
         }
 
         return $query->whereHas('student', fn (Builder $query) => $query->where('user_id', $user?->id));

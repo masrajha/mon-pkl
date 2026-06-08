@@ -13,6 +13,7 @@ class StudyProgram extends Model
         'code',
         'name',
         'degree_level',
+        'organization_id',
         'faculty',
         'is_active',
     ];
@@ -32,5 +33,10 @@ class StudyProgram extends Model
     public function enrollments()
     {
         return $this->hasMany(InternshipEnrollment::class);
+    }
+
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
     }
 }

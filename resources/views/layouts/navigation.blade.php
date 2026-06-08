@@ -112,12 +112,13 @@
                 ['label' => 'Dosen', 'route' => 'management.lecturers.index', 'icon' => 'fa-chalkboard-user', 'active' => ['management.lecturers.*']],
                 ['label' => 'Pembimbing Lapangan', 'route' => 'management.field-supervisors.index', 'icon' => 'fa-user-check', 'active' => ['management.field-supervisors.*']],
                 ['label' => 'Prodi', 'route' => 'management.study-programs.index', 'icon' => 'fa-school', 'active' => ['management.study-programs.*']],
+                ['label' => 'Viewer Laporan', 'route' => 'management.report-viewers.index', 'icon' => 'fa-chart-simple', 'active' => ['management.report-viewers.*']],
                 ['label' => 'Mitra', 'route' => 'management.places.index', 'icon' => 'fa-building', 'active' => ['management.places.*']],
             ],
         ];
     }
 
-    if ($user->hasRole(['admin', 'koordinator'])) {
+    if ($user->hasRole(['admin', 'koordinator', 'report_viewer'])) {
         $groups[] = [
             'label' => 'Analisis & Laporan',
             'items' => [
