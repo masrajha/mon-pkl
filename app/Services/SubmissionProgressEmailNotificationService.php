@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\EmailNotification;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
+use App\Models\Lecturer;
 use App\Models\PeriodDeadline;
 use App\Models\SubmissionProgress;
 use App\Models\User;
@@ -156,6 +157,10 @@ class SubmissionProgressEmailNotificationService
             ->where('status', 'active')
             ->get()
             ->each(function (InternshipCoordinator $coordinator) use ($types, $today): void {
+                if (! $this->periodHasStarted($coordinator->internshipPeriod)) {
+                    return;
+                }
+
                 $enrollments = InternshipEnrollment::query()
                     ->with(['student', 'studyProgram', 'internshipPeriod.program', 'sanctions'])
                     ->where('internship_period_id', $coordinator->internship_period_id)
@@ -197,14 +202,70 @@ class SubmissionProgressEmailNotificationService
                 );
             });
 
+        Lecturer::query()
+            ->with('user')
+            ->where(function (Builder $query): void {
+                $query->whereNotNull('email')
+                    ->orWhereHas('user', fn (Builder $query) => $query->whereNotNull('email'));
+            })
+            ->whereHas('enrollments.internshipPeriod', fn (Builder $query) => $this->startedPeriodQuery($query))
+            ->get()
+            ->each(function (Lecturer $lecturer) use ($types, $today): void {
+                $enrollments = InternshipEnrollment::query()
+                    ->with(['student', 'studyProgram', 'internshipPeriod.program', 'sanctions'])
+                    ->where('lecturer_supervisor_id', $lecturer->id)
+                    ->whereHas('internshipPeriod', fn (Builder $query) => $this->startedPeriodQuery($query))
+                    ->whereNotIn('status', ['cancelled', 'rejected'])
+                    ->get();
+
+                if ($enrollments->isEmpty()) {
+                    return;
+                }
+
+                $missing = $enrollments->filter(fn (InternshipEnrollment $enrollment) => collect($types)
+                    ->contains(fn (string $type) => ! $this->hasApprovedOrPendingProgress($enrollment, $type)));
+                $pending = SubmissionProgress::query()
+                    ->whereIn('internship_enrollment_id', $enrollments->pluck('id'))
+                    ->where('status', 'pending')
+                    ->count();
+                $topSanctions = $enrollments
+                    ->sortByDesc(fn (InternshipEnrollment $enrollment) => (int) $enrollment->total_sanctions_points)
+                    ->take(5);
+
+                if ($missing->isEmpty() && $pending === 0 && $topSanctions->sum('total_sanctions_points') <= 0) {
+                    return;
+                }
+
+                $recipient = $this->lecturerRecipient($lecturer);
+
+                if (! $recipient) {
+                    return;
+                }
+
+                $this->emails->queue(
+                    type: 'submission_progress.summary.lecturer',
+                    recipientEmail: $recipient['email'],
+                    subject: '[SiLAT] Rekap Laporan Mahasiswa Bimbingan',
+                    bodyLines: $this->summaryLines('Semua periode aktif bimbingan', 'Mahasiswa bimbingan', $missing, $pending, $topSanctions),
+                    recipientName: $recipient['name'],
+                    actionText: 'Buka Review Laporan',
+                    actionUrl: route('management.submission-progress.index', ['status' => 'pending']),
+                    eventKey: 'submission-summary-lecturer-'.$lecturer->id.'-'.$today,
+                );
+            });
+
         User::query()
             ->where('role', 'admin')
             ->get(['name', 'email'])
             ->each(function (User $admin) use ($today): void {
-                $pending = SubmissionProgress::query()->where('status', 'pending')->count();
+                $pending = SubmissionProgress::query()
+                    ->where('status', 'pending')
+                    ->whereHas('enrollment.internshipPeriod', fn (Builder $query) => $this->startedPeriodQuery($query))
+                    ->count();
                 $missing = $this->missingSubmissionCount();
                 $topSanctions = InternshipEnrollment::query()
                     ->with(['student', 'studyProgram', 'internshipPeriod.program'])
+                    ->whereHas('internshipPeriod', fn (Builder $query) => $this->startedPeriodQuery($query))
                     ->where('total_sanctions_points', '>', 0)
                     ->orderByDesc('total_sanctions_points')
                     ->limit(5)
@@ -357,11 +418,25 @@ class SubmissionProgressEmailNotificationService
         $types = array_keys($this->deadlineLabels());
 
         return InternshipEnrollment::query()
+            ->whereHas('internshipPeriod', fn (Builder $query) => $this->startedPeriodQuery($query))
             ->whereNotIn('status', ['cancelled', 'rejected'])
             ->get()
             ->sum(fn (InternshipEnrollment $enrollment) => collect($types)
                 ->filter(fn (string $type) => ! $this->hasApprovedOrPendingProgress($enrollment, $type))
                 ->count());
+    }
+
+    private function periodHasStarted($period): bool
+    {
+        return ! $period?->starts_at || $period->starts_at->copy()->startOfDay()->lte(now()->startOfDay());
+    }
+
+    private function startedPeriodQuery(Builder $query): void
+    {
+        $query->where(function (Builder $query): void {
+            $query->whereNull('starts_at')
+                ->orWhereDate('starts_at', '<=', now()->toDateString());
+        });
     }
 
     private function coordinatorRecipient(InternshipCoordinator $coordinator): ?array
@@ -374,6 +449,20 @@ class SubmissionProgressEmailNotificationService
 
         return [
             'name' => $coordinator->lecturer?->name ?: $coordinator->lecturer?->user?->name ?: $email,
+            'email' => Str::lower(trim($email)),
+        ];
+    }
+
+    private function lecturerRecipient(Lecturer $lecturer): ?array
+    {
+        $email = $lecturer->email ?: $lecturer->user?->email;
+
+        if (! $email) {
+            return null;
+        }
+
+        return [
+            'name' => $lecturer->name ?: $lecturer->user?->name ?: $email,
             'email' => Str::lower(trim($email)),
         ];
     }

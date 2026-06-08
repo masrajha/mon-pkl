@@ -107,9 +107,47 @@ class SubmissionProgressEmailNotificationFeatureTest extends TestCase
             'type' => 'submission_progress.summary.coordinator',
             'recipient_email' => $coordinator->email,
         ]);
+        $this->assertDatabaseHas('email_notifications', [
+            'type' => 'submission_progress.summary.lecturer',
+            'recipient_email' => $lecturer->email,
+        ]);
     }
 
-    private function reportFixture(): array
+    public function test_submission_progress_summaries_are_not_queued_before_attendance_period_starts(): void
+    {
+        [$admin, , $lecturer, $enrollment, $coordinator] = $this->reportFixture([
+            'starts_at' => now()->addDay()->toDateString(),
+            'is_active' => true,
+        ]);
+
+        SubmissionProgress::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'deadline_type' => 'bab1',
+            'file_path' => 'submission-progress/bab1.pdf',
+            'uploaded_at' => now()->subHours(49),
+            'status' => 'pending',
+            'sanction_points' => 0,
+        ]);
+        $enrollment->update(['total_sanctions_points' => 5]);
+
+        $this->artisan('silat:submission-progress-notifications:queue --deadline-days=3 --pending-review-hours=48')
+            ->assertExitCode(0);
+
+        $this->assertDatabaseMissing('email_notifications', [
+            'type' => 'submission_progress.summary.admin',
+            'recipient_email' => $admin->email,
+        ]);
+        $this->assertDatabaseMissing('email_notifications', [
+            'type' => 'submission_progress.summary.coordinator',
+            'recipient_email' => $coordinator->email,
+        ]);
+        $this->assertDatabaseMissing('email_notifications', [
+            'type' => 'submission_progress.summary.lecturer',
+            'recipient_email' => $lecturer->email,
+        ]);
+    }
+
+    private function reportFixture(array $periodAttributes = []): array
     {
         $admin = User::factory()->create(['role' => 'admin', 'email' => 'admin.report@example.test']);
         $studentUser = User::factory()->create(['role' => 'mahasiswa']);
@@ -127,12 +165,12 @@ class SubmissionProgressEmailNotificationFeatureTest extends TestCase
             'degree_level' => 'S1',
             'is_active' => true,
         ]);
-        $period = InternshipPeriod::query()->create([
+        $period = InternshipPeriod::query()->create(array_merge([
             'program_id' => $program->id,
             'name' => 'Juni 2026',
             'academic_year' => '2025/2026',
             'is_active' => true,
-        ]);
+        ], $periodAttributes));
         $place = InternshipPlace::query()->create([
             'name' => 'Mitra Laporan',
             'address' => 'Bandar Lampung',
