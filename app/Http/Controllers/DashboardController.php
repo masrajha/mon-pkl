@@ -97,16 +97,24 @@ class DashboardController extends Controller
     private function effectiveEnrollmentStatus(InternshipEnrollment $enrollment): string
     {
         $periodIsActive = (bool) $enrollment->internshipPeriod?->is_active;
+        $status = $enrollment->status ?: 'unknown';
 
-        if ($enrollment->status === 'active') {
+        if ($status === 'active') {
             return $periodIsActive ? 'active' : 'period_inactive';
         }
 
-        if (! $periodIsActive && in_array($enrollment->status, ['draft', 'pending_verification', 'revision_required'], true)) {
+        if (! $periodIsActive && in_array($status, ['draft', 'pending_verification', 'revision_required'], true)) {
             return 'period_unavailable';
         }
 
-        return $enrollment->status;
+        return in_array($status, [
+            'draft',
+            'pending_verification',
+            'revision_required',
+            'completed',
+            'rejected',
+            'cancelled',
+        ], true) ? $status : 'unknown';
     }
 
     private function importantDeadlinesForStudent(Student $student, $activeEnrollments)

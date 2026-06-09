@@ -28,6 +28,7 @@
                         'period_unavailable' => 'Periode Tidak Tersedia',
                         'rejected' => 'Ditolak',
                         'cancelled' => 'Dibatalkan',
+                        'unknown' => 'Status Tidak Dikenal',
                     ];
                     $studentEnrollmentStatusCounts = collect($studentEnrollmentStatusLabels)
                         ->map(fn ($label, $status) => [
@@ -37,10 +38,13 @@
                         ])
                         ->filter(fn ($item) => $item['count'] > 0);
                     $studentPrimaryEnrollmentStatus = $studentEnrollmentStatusCounts->firstWhere('status', 'active') ?? $studentEnrollmentStatusCounts->first();
+                    $hasEnrollmentSummary = ($studentEnrollmentSummary['total'] ?? 0) > 0;
+                    $studentPrimaryEnrollmentStatus ??= $hasEnrollmentSummary
+                        ? ['status' => 'unknown', 'label' => 'Total Pendaftaran', 'count' => (int) ($studentEnrollmentSummary['total'] ?? 0)]
+                        : null;
                     $studentSecondaryEnrollmentStatuses = $studentEnrollmentStatusCounts
                         ->reject(fn ($item) => $studentPrimaryEnrollmentStatus && $item['status'] === $studentPrimaryEnrollmentStatus['status'])
                         ->values();
-                    $hasEnrollmentSummary = ($studentEnrollmentSummary['total'] ?? 0) > 0;
                 @endphp
                 <section class="rounded-lg border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-sky-50 p-6 text-gray-950 shadow-sm">
                     <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
