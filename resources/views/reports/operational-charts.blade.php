@@ -138,7 +138,7 @@
                             <p class="silat-section-description">Stacked bar status enrollment pada setiap prodi.</p>
                         </div>
                     </div>
-                    @php($statusColors = ['pending_verification' => 'bg-amber-400', 'revision_required' => 'bg-orange-400', 'active' => 'bg-blue-600', 'completed' => 'bg-emerald-600', 'rejected' => 'bg-red-500', 'cancelled' => 'bg-gray-400'])
+                    @php($statusColors = ['active' => 'bg-blue-600', 'completed' => 'bg-emerald-600'])
                     <div class="space-y-4 p-5">
                         @forelse ($statusByStudyProgram as $row)
                             <div>

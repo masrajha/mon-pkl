@@ -154,6 +154,7 @@ class MonitoringReportTest extends TestCase
 
         $completeEnrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051002', 'Mahasiswa Lengkap');
         $stalledEnrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051003', 'Mahasiswa Tertahan');
+        $inactiveEnrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051004', 'Mahasiswa Nonaktif', 'inactive');
 
         $checkIn = CheckIn::query()->create([
             'internship_enrollment_id' => $completeEnrollment->id,
@@ -204,11 +205,30 @@ class MonitoringReportTest extends TestCase
             'finalized_by' => $admin->id,
             'finalized_at' => now(),
         ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $inactiveEnrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-02 08:00:00',
+        ]);
+        FinalAssessment::query()->create([
+            'internship_enrollment_id' => $inactiveEnrollment->id,
+            'lecturer_score' => 90,
+            'field_supervisor_score' => 90,
+            'base_score' => 90,
+            'final_score' => 90,
+            'finalized_by' => $admin->id,
+            'finalized_at' => now(),
+        ]);
 
         $response = $this->actingAs($admin)
             ->get(route('reports.progress-funnel', ['period_id' => $period->id]));
 
         $response->assertOk()
+            ->assertViewHas('total', 2)
+            ->assertViewHas('stages', fn ($stages): bool => collect($stages)->firstWhere('key', 'active_attendance')['count'] === 1
+                && collect($stages)->firstWhere('key', 'final_score')['count'] === 1)
+            ->assertViewHas('breakdownRows', fn ($rows): bool => collect($rows)->firstWhere('name', 'S1 Ilmu Komputer')['total'] === 2)
             ->assertSee('Progress Funnel Pelaksanaan')
             ->assertSee('Pendaftaran Disetujui')
             ->assertSee('Presensi Aktif')
@@ -453,6 +473,19 @@ class MonitoringReportTest extends TestCase
             'status' => 'active',
             'total_sanctions_points' => 12,
         ]);
+        $inactiveStudent = Student::query()->create([
+            'npm' => '220002',
+            'full_name' => 'Mahasiswa Grafik Nonaktif',
+            'study_program_id' => $studyProgram->id,
+        ]);
+        $inactiveEnrollment = InternshipEnrollment::query()->create([
+            'student_id' => $inactiveStudent->id,
+            'study_program_id' => $studyProgram->id,
+            'internship_period_id' => $period->id,
+            'internship_place_id' => $place->id,
+            'status' => 'inactive',
+            'total_sanctions_points' => 99,
+        ]);
 
         CheckIn::query()->create([
             'internship_enrollment_id' => $enrollment->id,
@@ -461,14 +494,24 @@ class MonitoringReportTest extends TestCase
             'checked_at' => '2026-06-02 08:00:00',
             'note' => 'Masuk',
         ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $inactiveEnrollment->id,
+            'action' => 'check_in',
+            'type' => 'Tepat Waktu',
+            'checked_at' => '2026-06-02 08:00:00',
+            'note' => 'Masuk nonaktif',
+        ]);
 
-        $this->actingAs($admin)
+        $response = $this->actingAs($admin)
             ->get(route('reports.operational-charts', [
                 'period_id' => $period->id,
                 'start_date' => '2026-06-01',
                 'end_date' => '2026-06-07',
-            ]))
-            ->assertOk()
+            ]));
+
+        $response->assertOk()
+            ->assertViewHas('totalEnrollments', 1)
+            ->assertViewHas('topSanctions', fn (array $rows): bool => collect($rows)->pluck('student')->doesntContain('Mahasiswa Grafik Nonaktif'))
             ->assertSee('Grafik Operasional')
             ->assertSee('Tren Presensi Harian')
             ->assertSee('Status Peserta per Prodi')
@@ -613,7 +656,7 @@ class MonitoringReportTest extends TestCase
             ->assertForbidden();
     }
 
-    private function createFunnelEnrollment(StudyProgram $studyProgram, InternshipPeriod $period, InternshipPlace $place, string $npm, string $name): InternshipEnrollment
+    private function createFunnelEnrollment(StudyProgram $studyProgram, InternshipPeriod $period, InternshipPlace $place, string $npm, string $name, string $status = 'active'): InternshipEnrollment
     {
         $user = User::factory()->create(['role' => 'mahasiswa']);
         $student = Student::query()->create([
@@ -628,7 +671,7 @@ class MonitoringReportTest extends TestCase
             'study_program_id' => $studyProgram->id,
             'internship_period_id' => $period->id,
             'internship_place_id' => $place->id,
-            'status' => 'active',
+            'status' => $status,
         ]);
     }
 }

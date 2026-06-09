@@ -70,7 +70,7 @@
                     </div>
                 </div>
 
-                <div class="space-y-3 p-6">
+                <div class="grid gap-3 p-6 lg:grid-cols-2">
                     @forelse ($stages as $index => $stage)
                         @php
                             $barWidth = max(4, (float) $stage['percent_of_total']);
@@ -97,7 +97,9 @@
                             </div>
                         </div>
                     @empty
-                        <x-empty-state title="Belum ada data funnel" icon="fa-chart-simple" />
+                        <div class="lg:col-span-2">
+                            <x-empty-state title="Belum ada data funnel" icon="fa-chart-simple" />
+                        </div>
                     @endforelse
                 </div>
             </section>

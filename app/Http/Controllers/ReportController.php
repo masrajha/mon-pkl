@@ -44,6 +44,7 @@ class ReportController extends Controller
             ])
             ->whereHas('checkIns', fn ($query) => $query->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()]));
 
+        $this->onlyReportParticipants($query);
         $this->scopeEnrollments($query, $request);
 
         $enrollments = $query->get();
@@ -80,9 +81,9 @@ class ReportController extends Controller
         [$periods, $selectedPeriod] = $this->periodOptions($request);
 
         $baseQuery = InternshipEnrollment::query()
-            ->with(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace'])
-            ->whereIn('status', ['active', 'completed']);
+            ->with(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace']);
 
+        $this->onlyReportParticipants($baseQuery);
         $this->scopeEnrollments($baseQuery, $request);
 
         $total = (clone $baseQuery)->count();
@@ -172,9 +173,9 @@ class ReportController extends Controller
                 'seminarRequests',
                 'fieldSupervisorAssessment',
                 'finalAssessment',
-            ])
-            ->whereIn('status', ['active', 'completed']);
+            ]);
 
+        $this->onlyReportParticipants($query);
         $this->scopeEnrollments($query, $request);
 
         $allRows = $query->get()
@@ -223,9 +224,9 @@ class ReportController extends Controller
                 'forgottenAttendanceRequests' => fn ($query) => $query
                     ->whereBetween('requested_date', [$startDate->toDateString(), $endDate->toDateString()])
                     ->orderBy('requested_date'),
-            ])
-            ->whereIn('status', ['active', 'completed']);
+            ]);
 
+        $this->onlyReportParticipants($query);
         $this->scopeEnrollments($query, $request);
 
         $rows = $query->get()
@@ -277,6 +278,7 @@ class ReportController extends Controller
                 'finalAssessment',
             ]);
 
+        $this->onlyReportParticipants($query);
         $this->scopeEnrollments($query, $request);
         $enrollments = $query->get();
 
@@ -298,14 +300,10 @@ class ReportController extends Controller
             })
             ->all();
 
-        $statusKeys = ['pending_verification', 'revision_required', 'active', 'completed', 'rejected', 'cancelled'];
+        $statusKeys = $this->reportParticipantStatuses();
         $statusLabels = [
-            'pending_verification' => 'Menunggu',
-            'revision_required' => 'Revisi',
             'active' => 'Aktif',
             'completed' => 'Selesai',
-            'rejected' => 'Ditolak',
-            'cancelled' => 'Batal',
         ];
         $statusByStudyProgram = $enrollments
             ->groupBy(fn (InternshipEnrollment $enrollment): string => $enrollment->studyProgram?->name ?: 'Tanpa Prodi')
@@ -440,6 +438,7 @@ class ReportController extends Controller
                 'finalAssessment',
             ]);
 
+        $this->onlyReportParticipants($query);
         $this->scopeEnrollments($query, $request);
 
         $rows = $query->get()
@@ -486,9 +485,9 @@ class ReportController extends Controller
                 'finalAssessment',
                 'fieldSupervisorAssessment',
                 'seminarRequests' => fn ($query) => $query->latest('scheduled_at'),
-            ])
-            ->whereIn('status', ['active', 'completed']);
+            ]);
 
+        $this->onlyReportParticipants($query);
         $this->scopeEnrollments($query, $request);
 
         $rows = $query->get()
@@ -609,6 +608,7 @@ class ReportController extends Controller
 
             if (! $user?->hasRole('admin')) {
                 $scopedEnrollmentQuery = InternshipEnrollment::query()->select('internship_period_id');
+                $this->onlyReportParticipants($scopedEnrollmentQuery);
                 $this->reportScope->applyEnrollmentScope($scopedEnrollmentQuery, $user);
                 $periodQuery->whereIn('id', $scopedEnrollmentQuery->distinct());
             }
@@ -624,6 +624,7 @@ class ReportController extends Controller
         $enrollments = InternshipEnrollment::query()
             ->with('internshipPeriod.program')
             ->whereHas('student', fn (Builder $query) => $query->where('user_id', $user->id))
+            ->whereIn('status', $this->reportParticipantStatuses())
             ->get()
             ->sortByDesc(fn (InternshipEnrollment $enrollment) => (
                 ($enrollment->status === 'active' ? 1_000_000 : 0)
@@ -839,6 +840,16 @@ class ReportController extends Controller
         return $this->reportScope->applyEnrollmentScope($query, $user);
     }
 
+    private function onlyReportParticipants(Builder $query): Builder
+    {
+        return $query->whereIn('status', $this->reportParticipantStatuses());
+    }
+
+    private function reportParticipantStatuses(): array
+    {
+        return ['active', 'completed'];
+    }
+
     private function studyProgramOptions(Request $request): Collection
     {
         $query = StudyProgram::query()
@@ -849,6 +860,7 @@ class ReportController extends Controller
 
         if (! $user?->hasRole('admin')) {
             $scopedEnrollmentQuery = InternshipEnrollment::query()->select('study_program_id');
+            $this->onlyReportParticipants($scopedEnrollmentQuery);
             $this->reportScope->applyEnrollmentScope($scopedEnrollmentQuery, $user);
             $query->whereIn('id', $scopedEnrollmentQuery->distinct());
         }
