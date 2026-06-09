@@ -111,6 +111,7 @@ class DashboardController extends Controller
             'draft',
             'pending_verification',
             'revision_required',
+            'inactive',
             'completed',
             'rejected',
             'cancelled',

@@ -48,8 +48,17 @@
                                 <x-input-label value="Status" />
                                 <select name="status" class="mt-1 w-full rounded-md border-gray-300 text-sm">
                                     <option value="">Semua status</option>
-                                    @foreach (['draft','pending_verification','revision_required','active','inactive','completed','cancelled','rejected'] as $status)
-                                        <option value="{{ $status }}" @selected($selectedStatus === $status)>{{ Str::headline($status) }}</option>
+                                    @foreach ([
+                                        'draft' => 'Draft',
+                                        'pending_verification' => 'Menunggu Verifikasi',
+                                        'revision_required' => 'Perlu Revisi',
+                                        'active' => 'Aktif',
+                                        'inactive' => 'Nonaktif',
+                                        'completed' => 'Selesai',
+                                        'cancelled' => 'Batal',
+                                        'rejected' => 'Ditolak',
+                                    ] as $status => $label)
+                                        <option value="{{ $status }}" @selected($selectedStatus === $status)>{{ $label }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -73,11 +82,22 @@
                                     @php
                                         $attendanceStartsAt = $enrollment->effectiveAttendanceStartsAt();
                                         $attendanceEndsAt = $enrollment->effectiveAttendanceEndsAt();
+                                        $statusLabels = [
+                                            'draft' => 'Draft',
+                                            'pending_verification' => 'Menunggu Verifikasi',
+                                            'revision_required' => 'Perlu Revisi',
+                                            'active' => 'Aktif',
+                                            'inactive' => 'Nonaktif',
+                                            'completed' => 'Selesai',
+                                            'cancelled' => 'Batal',
+                                            'rejected' => 'Ditolak',
+                                        ];
                                         $statusVariant = match($enrollment->status) {
                                             'active' => 'success',
                                             'pending_verification', 'draft' => 'warning',
                                             'completed' => 'info',
                                             'revision_required' => 'warning',
+                                            'inactive' => 'neutral',
                                             'cancelled', 'rejected' => 'danger',
                                             default => 'neutral',
                                         };
@@ -107,7 +127,7 @@
                                             <div class="text-xs text-gray-500">{{ $enrollment->field_supervisor_email ?: '-' }}</div>
                                         </td>
                                         <td class="silat-table-cell">
-                                            <x-badge :variant="$statusVariant">{{ Str::headline($enrollment->status) }}</x-badge>
+                                            <x-badge :variant="$statusVariant">{{ $statusLabels[$enrollment->status] ?? Str::headline($enrollment->status) }}</x-badge>
                                             @if ($enrollment->admin_note)
                                                 <div class="mt-1 text-xs text-amber-700">{{ Str::limit($enrollment->admin_note, 60) }}</div>
                                             @endif

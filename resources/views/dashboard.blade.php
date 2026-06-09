@@ -23,6 +23,7 @@
                         'pending_verification' => 'Menunggu Verifikasi',
                         'revision_required' => 'Perlu Revisi',
                         'active' => 'Aktif',
+                        'inactive' => 'Nonaktif',
                         'completed' => 'Selesai',
                         'period_inactive' => 'Periode Nonaktif',
                         'period_unavailable' => 'Periode Tidak Tersedia',
