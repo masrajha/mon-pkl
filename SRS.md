@@ -682,10 +682,12 @@ Bagian ini hanya mencatat kebutuhan SRS yang belum tersedia atau masih perlu dis
 
 
 Catatan Perbaikan:
-- Halaman Analsisi dan Laporan: pastikan data laporan hanya mengacu pada peserta aktif, masih ada kesalahan pada progrees funnel, presensi aktif masih menghitung data peserta non aktif, sehingga tidak konsisten: perlu diperiksa juga laporan lainnya
+
 - Perbaiki halaman reports/monitoring, reports/sanctions, halaman reports/attendance-heatmap dan reports/operational-charts -> field Tanggal  "Dari" dan "Sampai" diisi dengan periode awal dan akhir presensi berdasarkan periode yang dipilih dan dapat diubah, Field "Sampai" bisa diisi tanggal hari ini jika hari ini < tgl selesai presensi.
 - Hilangkan field Fakultas pada halaman input master prodi -> memetakan Foreign Key ke Jurusan dari tabel organisasi -> Dropdown
 - Perlu manajemen master ogranisasi
 - Ubah  api qrcode generator dengan https://quickchart.io/qr?text={url verifikasi}&centerImageUrl={url logo dokumen}&dotStyle=rounded&finderStyle=rounded&finderColor=1591DC
-- Edit Mitra dari halaman management/places setelah disimpan lari ke internship-places/{id}/edit
 - Peserta dengan status diolak kemudian diubah status menjadi non aktif -> "Mahasiswa sudah terdaftar pada periode dan prodi ini." pada halaman management/enrollments
+- Bagaimana jika data pembimbing lapangan diinput oleh lebih dari 1 mhs dengan kondisi: email sama tetapi data no hp, nama, dan mitra berbeda?
+- Apa fungsi "Buat dan tautkan" dan "Kirim Token" menu Pembimbing Lapangan, apa yang terjadi jika hanay diklik "Kirim Token" tanpa "Buat dan tautkan" ?
+- Urutan funnel: Nilai Pembimbing Lapangan baru Nilai dosen pembimbing

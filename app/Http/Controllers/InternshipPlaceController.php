@@ -15,7 +15,7 @@ class InternshipPlaceController extends Controller
     {
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         return view('internship-places.form', [
             'place' => new InternshipPlace(),
@@ -23,6 +23,7 @@ class InternshipPlaceController extends Controller
             'mapConfig' => $this->configurations->frontendMapConfig(null),
             'internalLocationSearchUrl' => route('locations.search'),
             'externalLocationSearchUrl' => $this->externalLocationSearchUrl(),
+            'isManagementContext' => $request->routeIs('management.places.*'),
         ]);
     }
 
@@ -31,11 +32,11 @@ class InternshipPlaceController extends Controller
         InternshipPlace::query()->create($this->validated($request));
 
         return redirect()
-            ->route('maps.places')
+            ->route($request->routeIs('management.places.*') ? 'management.places.index' : 'maps.places')
             ->with('status', 'Lokasi mitra berhasil disimpan.');
     }
 
-    public function edit(InternshipPlace $internshipPlace): View
+    public function edit(Request $request, InternshipPlace $internshipPlace): View
     {
         return view('internship-places.form', [
             'place' => $internshipPlace,
@@ -43,6 +44,7 @@ class InternshipPlaceController extends Controller
             'mapConfig' => $this->configurations->frontendMapConfig(null),
             'internalLocationSearchUrl' => route('locations.search'),
             'externalLocationSearchUrl' => $this->externalLocationSearchUrl(),
+            'isManagementContext' => $request->routeIs('management.places.*'),
         ]);
     }
 
@@ -51,7 +53,7 @@ class InternshipPlaceController extends Controller
         $internshipPlace->update($this->validated($request, $internshipPlace));
 
         return redirect()
-            ->route('maps.places')
+            ->route($request->routeIs('management.places.*') ? 'management.places.index' : 'maps.places')
             ->with('status', 'Lokasi mitra berhasil diperbarui.');
     }
 

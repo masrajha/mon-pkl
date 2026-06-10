@@ -60,7 +60,7 @@ class DatabaseSeeder extends Seeder
         );
 
         User::query()->firstOrCreate(
-            ['email' => 'admin@monpkl.local'],
+            ['email' => 'admin@silat.andiverse.web.id'],
             [
                 'name' => 'Admin Mon PKL',
                 'password' => 'password',

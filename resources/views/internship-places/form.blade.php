@@ -1,8 +1,19 @@
 <x-app-layout>
+    @php
+        $isManagementContext = $isManagementContext ?? request()->routeIs('management.places.*');
+        $formAction = $place->exists
+            ? route($isManagementContext ? 'management.places.update' : 'internship-places.update', $place)
+            : route($isManagementContext ? 'management.places.store' : 'internship-places.store');
+        $backUrl = $isManagementContext ? route('management.places.index') : route('maps.places');
+    @endphp
+
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ $place->exists ? __('Edit Mitra') : __('Input Mitra') }}
-        </h2>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ $place->exists ? __('Edit Mitra') : __('Input Mitra') }}
+            </h2>
+            <a href="{{ $backUrl }}" class="text-sm font-semibold text-blue-700 hover:text-blue-800">{{ __('Kembali') }}</a>
+        </div>
     </x-slot>
 
     <div class="py-10">
@@ -30,7 +41,7 @@
                 </div>
 
                 <div class="bg-white shadow-sm sm:rounded-lg">
-                    <form method="POST" action="{{ $place->exists ? route('internship-places.update', $place) : route('internship-places.store') }}" class="p-6 space-y-5">
+                    <form method="POST" action="{{ $formAction }}" class="p-6 space-y-5">
                         @csrf
                         @if ($place->exists)
                             @method('PATCH')

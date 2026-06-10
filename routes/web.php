@@ -347,7 +347,11 @@ Route::middleware('auth')->group(function () {
         Route::patch('/management/report-viewers/{reportViewer}', [ManagementReportViewerController::class, 'update'])->name('management.report-viewers.update');
 
         Route::get('/management/places', [ManagementPlaceController::class, 'index'])->name('management.places.index');
+        Route::get('/management/places/create', [InternshipPlaceController::class, 'create'])->name('management.places.create');
+        Route::post('/management/places', [InternshipPlaceController::class, 'store'])->name('management.places.store');
         Route::post('/management/places/bulk', [ManagementPlaceController::class, 'bulk'])->name('management.places.bulk');
+        Route::get('/management/places/{internshipPlace}/edit', [InternshipPlaceController::class, 'edit'])->name('management.places.edit');
+        Route::patch('/management/places/{internshipPlace}', [InternshipPlaceController::class, 'update'])->name('management.places.update');
         Route::get('/management/enrollments', [ManagementEnrollmentController::class, 'index'])->name('management.enrollments.index');
         Route::post('/management/enrollments/{enrollment}/field-supervisor-access', [ManagementFieldSupervisorAccessController::class, 'store'])->name('management.enrollments.field-supervisor-access.store');
         Route::delete('/management/enrollments/{enrollment}/field-supervisor-access', [ManagementFieldSupervisorAccessController::class, 'destroy'])->name('management.enrollments.field-supervisor-access.destroy');
