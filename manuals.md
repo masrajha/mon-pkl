@@ -1,16 +1,20 @@
 # Manual Penggunaan SiLAT
 
-**Versi dokumen:** 2.3
-**Tanggal pembaruan:** 8 Juni 2026
-**Status:** Mengikuti implementasi fitur sampai snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Viewer Laporan berbasis organisasi, Finalisasi Nilai, Berita Acara Nilai, dan portal Pembimbing Lapangan terbaru.
+**Versi dokumen:** 2.4
+**Tanggal pembaruan:** 11 Juni 2026
+**Status:** Mengikuti implementasi fitur sampai snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Viewer Laporan berbasis organisasi, Finalisasi Nilai, Berita Acara Nilai, portal Pembimbing Lapangan, organisasi akademik, subnav laporan, dan pembatasan hapus master data terbaru.
 
 SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untuk mengelola pendaftaran program, presensi, pembekalan, laporan, catatan harian, perpindahan mitra, perubahan pembimbing, dan monitoring aktivitas mahasiswa.
 
-> **What's New - Versi 2.3**
+> **What's New - Versi 2.4**
 >
 > - Tersedia struktur **Organisasi** untuk scope laporan: Universitas Lampung → FMIPA → Jurusan Ilmu Komputer, dengan semua prodi saat ini ditautkan ke Jurusan Ilmu Komputer.
 > - Admin dapat menugaskan dosen aktif sebagai **Viewer Laporan** pada level universitas, fakultas, jurusan, atau prodi tanpa mengubah role utama dosen.
 > - Menu **Analisis & Laporan** kini dapat diakses admin, koordinator, dan Viewer Laporan sesuai scope; Viewer Laporan bersifat baca dan tidak memiliki aksi workflow operasional.
+> - Halaman laporan memakai tab subnav yang konsisten, posisi scroll sidebar disimpan, dan filter tanggal beberapa laporan otomatis mengikuti rentang presensi periode.
+> - Progress Funnel hanya menghitung peserta **Aktif** dan **Selesai**, tampil dua kolom, dan memakai urutan terbaru: pendaftaran → presensi → laporan lengkap → nilai Pembimbing Lapangan → seminar → nilai dosen → nilai final.
+> - Prodi, organisasi, dan Viewer Laporan memiliki aksi hapus dengan pembatasan aman. Prodi/organisasi tidak dapat dihapus jika masih dipakai data lain.
+> - Berita Acara Nilai memakai QR QuickChart dengan logo dokumen jika tersedia.
 > - Periode Program memakai keunikan berdasarkan program. Nama periode, tahun akademik, semester, dan gelombang yang sama boleh dipakai pada program berbeda, tetapi tidak boleh duplikat pada program yang sama.
 > - Summary email progres laporan untuk admin, koordinator, dan dosen pembimbing hanya dikirim setelah tanggal **Mulai Pelaksanaan / Presensi** periode tercapai.
 > - Presensi harian memakai **snapshot GPS server-side** sehingga koordinat final tidak bergantung pada field form yang dapat diedit dari browser.
@@ -1697,11 +1701,16 @@ Data prodi:
 - Kode.
 - Nama prodi.
 - Jenjang atau `degree_level`, misalnya D3, S1, S2.
-- Organisasi induk, jika sudah ditautkan untuk kebutuhan scope laporan.
-- Fakultas.
+- Organisasi induk bertipe **Jurusan** untuk kebutuhan scope laporan.
+- Fakultas diturunkan dari parent organisasi, bukan diisi manual.
 - Status aktif/nonaktif.
 
 `degree_level` berpengaruh pada validasi pendaftaran mahasiswa. Organisasi induk dipakai untuk membatasi scope Viewer Laporan pada level universitas, fakultas, atau jurusan.
+
+Aturan hapus:
+
+- Prodi dapat dihapus hanya jika belum dipakai data lain.
+- Sistem menolak hapus jika prodi masih dipakai mahasiswa, dosen, enrollment, koordinator, usulan mitra, pembekalan, atau penugasan Viewer Laporan.
 
 Contoh:
 
@@ -1800,6 +1809,8 @@ Prinsip utama:
 - Role utama dosen tidak berubah. Dosen tetap dapat berperan sebagai dosen pembimbing jika memang memiliki mahasiswa bimbingan.
 - Akses Viewer Laporan hanya membuka menu **Analisis & Laporan** sesuai scope.
 - Viewer Laporan tidak dapat melakukan aksi workflow seperti validasi pendaftaran, memproses Lupa Presensi, review laporan, review seminar, atau finalisasi nilai.
+- Penugasan Viewer Laporan dapat dihapus dari kolom aksi.
+- Dosen menerima email notifikasi saat ditetapkan atau diperbarui sebagai Viewer Laporan.
 
 Level scope yang tersedia:
 
@@ -1827,6 +1838,13 @@ Universitas Lampung
 ```
 
 Semua prodi yang sudah ada saat ini ditautkan ke **Jurusan Ilmu Komputer**. Jika struktur fakultas/jurusan/prodi berkembang, admin dapat menyesuaikan data organisasi dan relasi prodi.
+
+Aturan organisasi:
+
+- Jenis **Jurusan** hanya dapat memilih parent **Fakultas**.
+- Jenis **Fakultas** hanya dapat memilih parent **Universitas**.
+- Jenis **Universitas** tidak memakai parent.
+- Organisasi tidak dapat dihapus jika masih memiliki child, prodi, atau penugasan Viewer Laporan.
 
 ### 4.11 Manajemen Master Mitra
 
@@ -2129,12 +2147,16 @@ Menu: **Analisis & Laporan**
 
 Admin, koordinator, dan Viewer Laporan memakai menu ini untuk membaca progres pelaksanaan dalam bentuk indikator, tabel tindak lanjut, dan grafik. Admin melihat data lintas periode/prodi, koordinator hanya melihat data sesuai scope penugasannya, sedangkan Viewer Laporan melihat data sesuai scope organisasi/prodi yang diberikan admin.
 
+Semua halaman laporan memakai subnav berbentuk tab sehingga pengguna dapat berpindah antar laporan tanpa mencari menu sidebar lagi. Sidebar juga menyimpan posisi scroll terakhir pada browser, sehingga setelah halaman refresh pengguna tetap berada di area menu yang sama.
+
+Untuk laporan progres, data utama hanya menghitung peserta dengan status **Aktif** dan **Selesai**. Peserta draft, menunggu verifikasi, perlu revisi, nonaktif, batal, atau ditolak tidak dihitung sebagai progres pelaksanaan aktif.
+
 Halaman yang tersedia:
 
 | Halaman | Fungsi |
 |---------|--------|
 | Dashboard Progres | Menampilkan kartu ringkasan peserta aktif/selesai, presensi belum lengkap, catatan harian belum divalidasi, laporan terlambat, seminar belum diajukan, nilai belum lengkap, nilai final, dan sanksi tertinggi. |
-| Progress Funnel | Menampilkan alur peserta dari pendaftaran disetujui sampai nilai final untuk menemukan bottleneck proses. |
+| Progress Funnel | Menampilkan alur peserta dari pendaftaran disetujui, presensi aktif, laporan lengkap, nilai Pembimbing Lapangan, seminar, nilai dosen, sampai nilai final untuk menemukan bottleneck proses. Tampilan dibuat dua kolom. |
 | Risk Scoring | Mengelompokkan peserta menjadi Aman, Perlu Dipantau, Berisiko, atau Kritis berdasarkan indikator presensi, laporan, seminar, nilai, Lupa Presensi, dan sanksi. |
 | Heatmap Kehadiran | Menampilkan status kehadiran per mahasiswa dan tanggal, termasuk hadir valid, presensi satu sisi, Lupa Presensi disetujui, akhir pekan, dan hari libur. |
 | Grafik Operasional | Menampilkan tren presensi harian, stacked bar status peserta per prodi, donut status laporan lengkap, top sanksi, dan progres nilai dosen/Pembimbing Lapangan/final. |
@@ -2147,6 +2169,8 @@ Filter umum:
 - Mitra atau dosen pembimbing jika tersedia pada halaman terkait.
 - Status peserta atau kategori risiko.
 - Rentang tanggal.
+
+Pada halaman Rekap Monitoring, Rekap Sanksi, Heatmap Kehadiran, dan Grafik Operasional, filter tanggal **Dari** dan **Sampai** otomatis mengikuti rentang presensi periode yang dipilih. Jika hari ini masih sebelum tanggal akhir presensi, tanggal **Sampai** memakai hari ini. Pengguna tetap dapat mengubah tanggal manual sebelum menekan tombol filter.
 
 Gunakan halaman analisis sebagai pintu tindak lanjut. Jika ada mahasiswa berisiko, buka detail/aksi cepat menuju presensi, laporan, seminar, Lupa Presensi, atau finalisasi nilai sesuai masalah utama yang muncul.
 
@@ -2340,6 +2364,7 @@ Dampak:
 
 - Digunakan pada cetak Berita Acara Nilai.
 - Nama/NIP Koordinator tidak diisi di konfigurasi ini karena berita acara mengambil Koordinator Periode Program aktif sesuai prodi mahasiswa.
+- QR verifikasi Berita Acara Nilai dibuat memakai QuickChart. Jika logo/header dokumen tersedia, logo dapat dipakai sebagai gambar tengah QR agar dokumen lebih mudah dikenali dan tetap bisa discan.
 
 #### Peta dan Lokasi
 
@@ -2487,7 +2512,8 @@ Ekspor PDF/Excel pada halaman rekap masih dalam status belum aktif jika tombol t
 | Area | Batasan/Kehati-hatian |
 |------|-----------------------|
 | User | Perubahan role berdampak ke akses sistem. |
-| Prodi | `degree_level` memengaruhi validasi akademik mahasiswa. |
+| Prodi | `degree_level` memengaruhi validasi akademik mahasiswa. Hapus prodi dibatasi restrict jika masih dipakai data lain. |
+| Organisasi | Struktur organisasi menentukan scope Viewer Laporan. Hapus organisasi dibatasi restrict jika masih memiliki child, prodi, atau penugasan Viewer Laporan. |
 | Program | `rule_key` memengaruhi aturan workflow program. |
 | Periode | Periode menjadi acuan pendaftaran, deadline, pembekalan, monitoring, dan scope laporan. Kombinasi nama/tahun akademik/semester/batch unik dalam program yang sama. |
 | Koordinator | Satu periode-prodi hanya boleh satu koordinator aktif. |
@@ -2500,6 +2526,7 @@ Ekspor PDF/Excel pada halaman rekap masih dalam status belum aktif jika tombol t
 | Konfigurasi Lupa Presensi | Langsung memengaruhi batas pengajuan mahasiswa; nilai 0 menonaktifkan fitur. |
 | Konfigurasi rubrik penilaian | Perubahan hanya memengaruhi nilai baru. Nilai yang sudah tersimpan memakai snapshot rubrik/survey saat penilaian dilakukan. |
 | Finalisasi nilai | Mengunci nilai dosen dan nilai Pembimbing Lapangan serta membuka cetak berita acara nilai untuk mahasiswa. |
+| Status peserta nonaktif | Enrollment nonaktif tidak mengikuti workflow operasional, tidak dianggap program aktif, dan tidak dihitung pada progres peserta aktif/selesai. Data historis tetap tersimpan untuk audit. |
 | Email & Notifikasi | Toggle global menghentikan pengiriman, sedangkan toggle cakupan menghentikan pembuatan antrean baru untuk workflow terkait. |
 | Mail Server | Override database dipakai saat antrean email diproses; jika kosong sistem memakai `.env`. |
 | Dokumen disetujui | Dokumen laporan yang disetujui terkunci. |
