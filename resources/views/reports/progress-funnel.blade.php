@@ -44,6 +44,8 @@
 
     <div class="py-8">
         <div class="silat-shell space-y-6">
+            @include('reports.partials.report-tabs')
+
             <div class="grid gap-4 lg:grid-cols-3">
                 <div class="silat-stat-card">
                     <p class="silat-stat-label">Peserta Disetujui</p>
@@ -119,9 +121,9 @@
                                 <th class="silat-table-cell">Disetujui</th>
                                 <th class="silat-table-cell">Presensi</th>
                                 <th class="silat-table-cell">Laporan</th>
+                                <th class="silat-table-cell">Nilai Pembimbing Lapangan</th>
                                 <th class="silat-table-cell">Seminar</th>
                                 <th class="silat-table-cell">Nilai Dosen</th>
-                                <th class="silat-table-cell">Nilai Pembimbing Lapangan</th>
                                 <th class="silat-table-cell">Final</th>
                             </tr>
                         </thead>
@@ -132,9 +134,9 @@
                                     <td class="silat-table-cell">{{ number_format($row['total'], 0, ',', '.') }}</td>
                                     <td class="silat-table-cell">{{ number_format($row['active_attendance'], 0, ',', '.') }}</td>
                                     <td class="silat-table-cell">{{ number_format($row['full_report'], 0, ',', '.') }}</td>
+                                    <td class="silat-table-cell">{{ number_format($row['field_supervisor_score'], 0, ',', '.') }}</td>
                                     <td class="silat-table-cell">{{ number_format($row['seminar'], 0, ',', '.') }}</td>
                                     <td class="silat-table-cell">{{ number_format($row['lecturer_score'], 0, ',', '.') }}</td>
-                                    <td class="silat-table-cell">{{ number_format($row['field_supervisor_score'], 0, ',', '.') }}</td>
                                     <td class="silat-table-cell">{{ number_format($row['final_score'], 0, ',', '.') }}</td>
                                 </tr>
                             @empty

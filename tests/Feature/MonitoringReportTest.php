@@ -227,7 +227,16 @@ class MonitoringReportTest extends TestCase
         $response->assertOk()
             ->assertViewHas('total', 2)
             ->assertViewHas('stages', fn ($stages): bool => collect($stages)->firstWhere('key', 'active_attendance')['count'] === 1
-                && collect($stages)->firstWhere('key', 'final_score')['count'] === 1)
+                && collect($stages)->firstWhere('key', 'final_score')['count'] === 1
+                && collect($stages)->pluck('key')->values()->all() === [
+                    'approved',
+                    'active_attendance',
+                    'full_report',
+                    'field_supervisor_score',
+                    'seminar',
+                    'lecturer_score',
+                    'final_score',
+                ])
             ->assertViewHas('breakdownRows', fn ($rows): bool => collect($rows)->firstWhere('name', 'S1 Ilmu Komputer')['total'] === 2)
             ->assertSee('Progress Funnel Pelaksanaan')
             ->assertSee('Pendaftaran Disetujui')
@@ -444,6 +453,73 @@ class MonitoringReportTest extends TestCase
         $this->actingAs($student)
             ->get(route('reports.attendance-heatmap'))
             ->assertForbidden();
+    }
+
+    public function test_report_date_filters_default_to_attendance_range_and_cap_end_to_today(): void
+    {
+        Carbon::setTestNow('2026-06-10 08:00:00');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $studyProgram = StudyProgram::query()->firstOrCreate(['code' => 'ILKOM'], ['name' => 'S1 Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Default Tanggal',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+            'is_active' => true,
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Default Tanggal']);
+        $enrollment = $this->createFunnelEnrollment($studyProgram, $period, $place, '2217051666', 'Mahasiswa Default Tanggal');
+        $enrollment->update([
+            'attendance_starts_at' => '2026-06-05',
+            'attendance_ends_at' => '2026-06-25',
+        ]);
+
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-06 08:00:00',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('reports.monitoring', ['period_id' => $period->id]))
+            ->assertOk()
+            ->assertViewHas('startDate', '2026-06-05')
+            ->assertViewHas('endDate', '2026-06-10')
+            ->assertSee('data-start-date="2026-06-05"', false)
+            ->assertSee('data-end-date="2026-06-10"', false);
+
+        $this->actingAs($admin)
+            ->get(route('reports.sanctions', ['period_id' => $period->id]))
+            ->assertOk()
+            ->assertViewHas('startDate', '2026-06-05')
+            ->assertViewHas('endDate', '2026-06-10');
+
+        $this->actingAs($admin)
+            ->get(route('reports.attendance-heatmap', ['period_id' => $period->id]))
+            ->assertOk()
+            ->assertViewHas('startDate', '2026-06-05')
+            ->assertViewHas('endDate', '2026-06-10');
+
+        $this->actingAs($admin)
+            ->get(route('reports.operational-charts', ['period_id' => $period->id]))
+            ->assertOk()
+            ->assertViewHas('startDate', '2026-06-05')
+            ->assertViewHas('endDate', '2026-06-10');
+
+        $this->actingAs($admin)
+            ->get(route('reports.monitoring', [
+                'period_id' => $period->id,
+                'start_date' => '2026-06-07',
+                'end_date' => '2026-06-20',
+            ]))
+            ->assertOk()
+            ->assertViewHas('startDate', '2026-06-07')
+            ->assertViewHas('endDate', '2026-06-20');
+
+        Carbon::setTestNow();
     }
 
     public function test_admin_can_access_operational_charts_report(): void

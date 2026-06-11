@@ -1118,6 +1118,7 @@ class StudentWorkflowFeatureTest extends TestCase
             ->get(route('student.reports.final-assessment.print', $enrollment))
             ->assertOk()
             ->assertSee('Formulir Berita Acara')
+            ->assertSee('https://quickchart.io/qr?', false)
             ->assertSee('Lembar Penilaian Seminar Kerja Praktik')
             ->assertSee('Lembar Penilaian Program');
     }

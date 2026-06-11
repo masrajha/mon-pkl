@@ -58,6 +58,7 @@ class ReportController extends Controller
         return view('reports.monitoring', [
             'rows' => $rows,
             'periods' => $periods,
+            'periodDateRanges' => $this->reportPeriodDateRanges($request, $periods),
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
             'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
@@ -132,9 +133,9 @@ class ReportController extends Controller
                     'total' => $total,
                     'active_attendance' => $this->countStage($studyProgramQuery, 'active_attendance'),
                     'full_report' => $this->countStage($studyProgramQuery, 'full_report'),
+                    'field_supervisor_score' => $this->countStage($studyProgramQuery, 'field_supervisor_score'),
                     'seminar' => $this->countStage($studyProgramQuery, 'seminar'),
                     'lecturer_score' => $this->countStage($studyProgramQuery, 'lecturer_score'),
-                    'field_supervisor_score' => $this->countStage($studyProgramQuery, 'field_supervisor_score'),
                     'final_score' => $this->countStage($studyProgramQuery, 'final_score'),
                 ];
             })
@@ -240,6 +241,7 @@ class ReportController extends Controller
 
         return view('reports.attendance-heatmap', [
             'periods' => $periods,
+            'periodDateRanges' => $this->reportPeriodDateRanges($request, $periods),
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
             'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
@@ -392,6 +394,7 @@ class ReportController extends Controller
 
         return view('reports.operational-charts', [
             'periods' => $periods,
+            'periodDateRanges' => $this->reportPeriodDateRanges($request, $periods),
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
             'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
@@ -457,6 +460,7 @@ class ReportController extends Controller
 
         return view('reports.sanctions', [
             'periods' => $periods,
+            'periodDateRanges' => $this->reportPeriodDateRanges($request, $periods),
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
             'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
@@ -726,23 +730,8 @@ class ReportController extends Controller
         $referencePeriod = $selectedPeriod
             ?? $periods->firstWhere('is_active', true)
             ?? $periods->first();
-        $today = now()->copy()->startOfDay();
-        $start = $request->date('start_date')
-            ?? $referencePeriod?->starts_at?->copy()
-            ?? $today->copy()->subDays(13);
-        $end = $request->date('end_date')
-            ?? $referencePeriod?->ends_at?->copy()
-            ?? $today->copy();
 
-        if (! $request->filled('end_date') && $end->greaterThan($today)) {
-            $end = $today->copy();
-        }
-
-        if ($end->lessThan($start)) {
-            $end = $start->copy();
-        }
-
-        return [$start->startOfDay(), $end->startOfDay()];
+        return $this->dateRange($request, $referencePeriod);
     }
 
     private function heatmapRow(InternshipEnrollment $enrollment, Collection $dates): array
@@ -873,6 +862,12 @@ class ReportController extends Controller
         $start = $request->date('start_date');
         $end = $request->date('end_date');
 
+        if ((! $start || ! $end) && $selectedPeriod) {
+            [$defaultStart, $defaultEnd] = $this->defaultAttendanceRange($request, $selectedPeriod);
+            $start ??= $defaultStart;
+            $end ??= $defaultEnd;
+        }
+
         if (! $start || ! $end) {
             $checkIns = CheckIn::query();
 
@@ -889,7 +884,59 @@ class ReportController extends Controller
                 ?? ($lastCheckIn ? Carbon::parse($lastCheckIn) : now());
         }
 
+        if ($end->lessThan($start)) {
+            $end = $start->copy();
+        }
+
         return [$start->startOfDay(), $end->startOfDay()];
+    }
+
+    private function defaultAttendanceRange(Request $request, InternshipPeriod $period): array
+    {
+        $query = InternshipEnrollment::query()
+            ->where('internship_period_id', $period->id)
+            ->when($request->filled('study_program_id'), fn (Builder $query) => $query->where('study_program_id', $request->integer('study_program_id')));
+        $this->onlyReportParticipants($query);
+        $this->reportScope->applyEnrollmentScope($query, $request->user());
+
+        $enrollments = $query->get(['attendance_starts_at', 'attendance_ends_at', 'status']);
+
+        $starts = $enrollments
+            ->map(fn (InternshipEnrollment $enrollment) => $enrollment->attendance_starts_at ?? $period->starts_at)
+            ->filter();
+        $ends = $enrollments
+            ->map(fn (InternshipEnrollment $enrollment) => $enrollment->attendance_ends_at ?? $period->ends_at)
+            ->filter();
+
+        $start = $starts->sortBy(fn (Carbon $date): string => $date->toDateString())->first()?->copy()
+            ?? $period->starts_at?->copy()
+            ?? now()->copy()->startOfYear();
+        $end = $ends->sortByDesc(fn (Carbon $date): string => $date->toDateString())->first()?->copy()
+            ?? $period->ends_at?->copy()
+            ?? now()->copy();
+
+        $today = now()->copy()->startOfDay();
+        if (! $request->filled('end_date') && $end->greaterThan($today)) {
+            $end = $today;
+        }
+
+        return [$start->startOfDay(), $end->startOfDay()];
+    }
+
+    private function reportPeriodDateRanges(Request $request, Collection $periods): array
+    {
+        return $periods
+            ->mapWithKeys(function (InternshipPeriod $period) use ($request): array {
+                [$start, $end] = $this->defaultAttendanceRange($request, $period);
+
+                return [
+                    $period->id => [
+                        'start' => $start->toDateString(),
+                        'end' => $end->toDateString(),
+                    ],
+                ];
+            })
+            ->all();
     }
 
     private function isIncludedDate(Carbon $date, Request $request, array $settings): bool
@@ -947,6 +994,12 @@ class ReportController extends Controller
                     ->where('status', 'approved')),
             ],
             [
+                'key' => 'field_supervisor_score',
+                'label' => 'Nilai Pembimbing Lapangan Masuk',
+                'description' => 'Form nilai pembimbing lapangan sudah dikirim.',
+                'constraint' => fn (Builder $query) => $query->whereHas('fieldSupervisorAssessment', fn (Builder $assessment) => $assessment->whereNotNull('final_score')),
+            ],
+            [
                 'key' => 'seminar',
                 'label' => 'Seminar Dijadwalkan/Selesai',
                 'description' => 'Seminar sudah dijadwalkan atau selesai.',
@@ -962,12 +1015,6 @@ class ReportController extends Controller
                 'label' => 'Nilai Dosen Masuk',
                 'description' => 'Nilai seminar/laporan dari dosen sudah tersimpan.',
                 'constraint' => fn (Builder $query) => $query->whereHas('seminarRequests', fn (Builder $seminar) => $seminar->whereNotNull('seminar_score')),
-            ],
-            [
-                'key' => 'field_supervisor_score',
-                'label' => 'Nilai Pembimbing Lapangan Masuk',
-                'description' => 'Form nilai pembimbing lapangan sudah dikirim.',
-                'constraint' => fn (Builder $query) => $query->whereHas('fieldSupervisorAssessment', fn (Builder $assessment) => $assessment->whereNotNull('final_score')),
             ],
             [
                 'key' => 'final_score',

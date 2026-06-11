@@ -111,6 +111,7 @@
                 ['label' => 'Mahasiswa', 'route' => 'management.students.index', 'icon' => 'fa-user-graduate', 'active' => ['management.students.*']],
                 ['label' => 'Dosen', 'route' => 'management.lecturers.index', 'icon' => 'fa-chalkboard-user', 'active' => ['management.lecturers.*']],
                 ['label' => 'Pembimbing Lapangan', 'route' => 'management.field-supervisors.index', 'icon' => 'fa-user-check', 'active' => ['management.field-supervisors.*']],
+                ['label' => 'Organisasi', 'route' => 'management.organizations.index', 'icon' => 'fa-sitemap', 'active' => ['management.organizations.*']],
                 ['label' => 'Prodi', 'route' => 'management.study-programs.index', 'icon' => 'fa-school', 'active' => ['management.study-programs.*']],
                 ['label' => 'Viewer Laporan', 'route' => 'management.report-viewers.index', 'icon' => 'fa-chart-simple', 'active' => ['management.report-viewers.*']],
                 ['label' => 'Mitra', 'route' => 'management.places.index', 'icon' => 'fa-building', 'active' => ['management.places.*']],
@@ -182,7 +183,7 @@
             </a>
         </div>
 
-        <nav class="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-5">
+        <nav class="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 py-5" data-sidebar-scroll>
             @foreach ($groups as $group)
                 <div>
                     <p class="px-3 text-xs font-semibold uppercase tracking-wide text-blue-300">{{ $group['label'] }}</p>
@@ -308,3 +309,46 @@
         </aside>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.querySelector('[data-sidebar-scroll]');
+
+        if (! sidebar) {
+            return;
+        }
+
+        const storageKey = 'silat:sidebar-scroll-top';
+        const storage = {
+            get() {
+                try {
+                    return sessionStorage.getItem(storageKey) || '0';
+                } catch (error) {
+                    return '0';
+                }
+            },
+            set(value) {
+                try {
+                    sessionStorage.setItem(storageKey, value);
+                } catch (error) {
+                    // Abaikan jika browser memblokir sessionStorage.
+                }
+            },
+        };
+        const storedPosition = Number.parseInt(storage.get(), 10);
+
+        if (! Number.isNaN(storedPosition) && storedPosition > 0) {
+            sidebar.scrollTop = storedPosition;
+        }
+
+        sidebar.addEventListener('scroll', () => {
+            storage.set(String(sidebar.scrollTop));
+        }, { passive: true });
+
+        sidebar.querySelectorAll('a[href]').forEach((link) => {
+            link.addEventListener('click', () => {
+                storage.set(String(sidebar.scrollTop));
+            });
+        });
+    });
+</script>

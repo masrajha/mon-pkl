@@ -1,51 +1,57 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="space-y-4">
+        <div>
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Laporan</p>
                 <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Rekap Monitoring Program') }}</h2>
                 <p class="mt-1 text-sm text-gray-500">Filter periode, program, prodi, tanggal, dan aturan hari kerja untuk membaca aktivitas presensi.</p>
             </div>
-            <form method="GET" class="silat-card grid gap-4 p-4 md:grid-cols-3 xl:grid-cols-7">
-                @if (Auth::user()->hasRole(['admin', 'dosen']) || $periods->count() > 1)
-                    <div>
-                        <x-input-label for="period_id" :value="__('Periode Program')" />
-                        <x-select-input id="period_id" name="period_id" class="mt-1 text-sm">
-                            @if (Auth::user()->hasRole(['admin', 'dosen']))<option value="">{{ __('Semua') }}</option>@endif
-                            @foreach ($periods as $period)<option value="{{ $period->id }}" @selected((string) $selectedPeriod === (string) $period->id)>{{ $period->display_name }}</option>@endforeach
-                        </x-select-input>
-                    </div>
-                @endif
-                @if (Auth::user()->hasRole(['admin', 'dosen']))
-                    <div>
-                        <x-input-label for="program_id" :value="__('Program')" />
-                        <x-select-input id="program_id" name="program_id" class="mt-1 text-sm">
-                            <option value="">{{ __('Semua') }}</option>
-                            @foreach ($programs as $program)<option value="{{ $program->id }}" @selected((string) $selectedProgram === (string) $program->id)>{{ $program->name }}</option>@endforeach
-                        </x-select-input>
-                    </div>
-                    <div>
-                        <x-input-label for="study_program_id" :value="__('Prodi')" />
-                        <x-select-input id="study_program_id" name="study_program_id" class="mt-1 text-sm">
-                            <option value="">{{ __('Semua') }}</option>
-                            @foreach ($studyPrograms as $studyProgram)<option value="{{ $studyProgram->id }}" @selected((string) $selectedStudyProgram === (string) $studyProgram->id)>{{ $studyProgram->name }}</option>@endforeach
-                        </x-select-input>
-                    </div>
-                @endif
-                <div><x-input-label for="start_date" :value="__('Dari')" /><x-text-input id="start_date" name="start_date" type="date" class="mt-1 block w-full text-sm" :value="$startDate" /></div>
-                <div><x-input-label for="end_date" :value="__('Sampai')" /><x-text-input id="end_date" name="end_date" type="date" class="mt-1 block w-full text-sm" :value="$endDate" /></div>
-                <div class="space-y-2">
-                    <x-input-label :value="__('Termasuk')" />
-                    <label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="include_saturday" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($includeSaturday)> Sabtu</label>
-                    <label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="include_sunday" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($includeSunday)> Minggu</label>
-                    <label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="include_holidays" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($includeHolidays)> Libur</label>
-                </div>
-                <div class="flex items-end"><x-primary-button><x-icon name="fa-chart-column" /> Lihat</x-primary-button></div>
-            </form>
         </div>
     </x-slot>
 
     <div class="py-8"><div class="silat-shell space-y-6">
+        @include('reports.partials.report-tabs')
+
+        <form method="GET" class="silat-card grid gap-4 p-4 md:grid-cols-3 xl:grid-cols-7" data-period-date-sync>
+            @if (Auth::user()->hasRole(['admin', 'dosen']) || $periods->count() > 1)
+                <div>
+                    <x-input-label for="period_id" :value="__('Periode Program')" />
+                    <x-select-input id="period_id" name="period_id" class="mt-1 text-sm">
+                        @if (Auth::user()->hasRole(['admin', 'dosen']))<option value="">{{ __('Semua') }}</option>@endif
+                        @foreach ($periods as $period)
+                            @php($dateRange = $periodDateRanges[$period->id] ?? null)
+                            <option value="{{ $period->id }}" data-start-date="{{ $dateRange['start'] ?? '' }}" data-end-date="{{ $dateRange['end'] ?? '' }}" @selected((string) $selectedPeriod === (string) $period->id)>{{ $period->display_name }}</option>
+                        @endforeach
+                    </x-select-input>
+                </div>
+            @endif
+            @if (Auth::user()->hasRole(['admin', 'dosen']))
+                <div>
+                    <x-input-label for="program_id" :value="__('Program')" />
+                    <x-select-input id="program_id" name="program_id" class="mt-1 text-sm">
+                        <option value="">{{ __('Semua') }}</option>
+                        @foreach ($programs as $program)<option value="{{ $program->id }}" @selected((string) $selectedProgram === (string) $program->id)>{{ $program->name }}</option>@endforeach
+                    </x-select-input>
+                </div>
+                <div>
+                    <x-input-label for="study_program_id" :value="__('Prodi')" />
+                    <x-select-input id="study_program_id" name="study_program_id" class="mt-1 text-sm">
+                        <option value="">{{ __('Semua') }}</option>
+                        @foreach ($studyPrograms as $studyProgram)<option value="{{ $studyProgram->id }}" @selected((string) $selectedStudyProgram === (string) $studyProgram->id)>{{ $studyProgram->name }}</option>@endforeach
+                    </x-select-input>
+                </div>
+            @endif
+            <div><x-input-label for="start_date" :value="__('Dari')" /><x-text-input id="start_date" name="start_date" type="date" class="mt-1 block w-full text-sm" :value="$startDate" /></div>
+            <div><x-input-label for="end_date" :value="__('Sampai')" /><x-text-input id="end_date" name="end_date" type="date" class="mt-1 block w-full text-sm" :value="$endDate" /></div>
+            <div class="space-y-2">
+                <x-input-label :value="__('Termasuk')" />
+                <label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="include_saturday" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($includeSaturday)> Sabtu</label>
+                <label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="include_sunday" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($includeSunday)> Minggu</label>
+                <label class="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" name="include_holidays" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($includeHolidays)> Libur</label>
+            </div>
+            <div class="flex items-end"><x-primary-button><x-icon name="fa-chart-column" /> Lihat</x-primary-button></div>
+        </form>
+
         <div class="silat-stat-grid">
             <div class="silat-stat-card"><p class="silat-stat-label">Mahasiswa</p><p class="silat-stat-value">{{ number_format($totals['students'], 0, ',', '.') }}</p></div>
             <div class="silat-stat-card"><p class="silat-stat-label">Total Hari Hadir</p><p class="silat-stat-value">{{ number_format($totals['attendance_days'], 0, ',', '.') }}</p></div>
@@ -76,4 +82,5 @@
             </div>
         </section>
     </div></div>
+    @include('reports.partials.period-date-sync')
 </x-app-layout>

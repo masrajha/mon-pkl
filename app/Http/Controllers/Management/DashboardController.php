@@ -9,6 +9,7 @@ use App\Models\InternshipCoordinator;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\Lecturer;
+use App\Models\Organization;
 use App\Models\OrientationEvent;
 use App\Models\Student;
 use App\Models\StudyProgram;
@@ -63,6 +64,7 @@ class DashboardController extends Controller
                 'students' => Student::query()->count(),
                 'lecturers' => Lecturer::query()->count(),
                 'coordinators' => InternshipCoordinator::query()->where('status', 'active')->count(),
+                'organizations' => Organization::query()->count(),
                 'studyPrograms' => StudyProgram::query()->count(),
                 'periods' => InternshipPeriod::query()->count(),
                 'places' => InternshipPlace::query()->count(),

@@ -15,15 +15,17 @@
     <div class="py-8">
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             @include('management.partials.nav')
+            @include('reports.partials.report-tabs')
 
-            <form method="GET" action="{{ route('reports.operational-charts') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+            <form method="GET" action="{{ route('reports.operational-charts') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" data-period-date-sync>
                 <div class="grid gap-4 md:grid-cols-6">
                     <div>
                         <x-input-label for="period_id" value="Periode Program" />
                         <select id="period_id" name="period_id" class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm">
                             <option value="">Semua periode</option>
                             @foreach ($periods as $period)
-                                <option value="{{ $period->id }}" @selected((string) $selectedPeriod === (string) $period->id)>{{ $period->display_name }}</option>
+                                @php($dateRange = $periodDateRanges[$period->id] ?? null)
+                                <option value="{{ $period->id }}" data-start-date="{{ $dateRange['start'] ?? '' }}" data-end-date="{{ $dateRange['end'] ?? '' }}" @selected((string) $selectedPeriod === (string) $period->id)>{{ $period->display_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -210,4 +212,5 @@
             </section>
         </div>
     </div>
+    @include('reports.partials.period-date-sync')
 </x-app-layout>

@@ -38,6 +38,7 @@ class ManagementFeatureTest extends TestCase
         $this->actingAs($admin)->get(route('management.coordinators.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.report-viewers.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.study-programs.index'))->assertOk();
+        $this->actingAs($admin)->get(route('management.organizations.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.programs.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.periods.index'))->assertOk();
         $this->actingAs($admin)->get(route('management.places.index'))->assertOk();
@@ -60,18 +61,23 @@ class ManagementFeatureTest extends TestCase
         $studentUser = User::factory()->create(['role' => 'mahasiswa']);
         $lecturerUser = User::factory()->create(['role' => 'dosen', 'name' => 'Dosen Uji']);
         $place = InternshipPlace::query()->create(['name' => 'PT Uji', 'latitude' => -5.4, 'longitude' => 105.2]);
+        $university = Organization::query()->create(['code' => 'UNI-TIF', 'name' => 'Universitas Test', 'type' => 'university']);
+        $faculty = Organization::query()->create(['parent_id' => $university->id, 'code' => 'FT-TIF', 'name' => 'FT', 'type' => 'faculty']);
+        $department = Organization::query()->create(['parent_id' => $faculty->id, 'code' => 'JUR-TIF', 'name' => 'Jurusan Teknik Informatika', 'type' => 'department']);
 
         $this->actingAs($admin)
             ->post(route('management.study-programs.store'), [
                 'code' => 'TIF',
                 'name' => 'Teknik Informatika',
                 'degree_level' => 'S1',
-                'faculty' => 'FT',
+                'organization_id' => $department->id,
                 'is_active' => 1,
             ])
             ->assertRedirect();
 
         $program = StudyProgram::query()->where('code', 'TIF')->firstOrFail();
+        $this->assertSame($department->id, $program->organization_id);
+        $this->assertSame('FT', $program->faculty);
 
         $this->actingAs($admin)
             ->post(route('management.lecturers.store'), [
@@ -136,6 +142,109 @@ class ManagementFeatureTest extends TestCase
             'lecturer_supervisor_user_id' => $lecturerUser->id,
             'lecturer_supervisor' => $lecturer->name,
             'field_supervisor_phone' => '081111111111',
+        ]);
+    }
+
+    public function test_admin_can_manage_organizations_and_assign_department_to_study_program(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)
+            ->post(route('management.organizations.store'), [
+                'code' => 'UNILA-MGT',
+                'name' => 'Universitas Lampung',
+                'type' => 'university',
+                'is_active' => 1,
+            ])
+            ->assertRedirect();
+
+        $university = Organization::query()->where('code', 'UNILA-MGT')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->post(route('management.organizations.store'), [
+                'code' => 'FMIPA-MGT',
+                'name' => 'FMIPA',
+                'type' => 'faculty',
+                'parent_id' => $university->id,
+                'is_active' => 1,
+            ])
+            ->assertRedirect();
+
+        $faculty = Organization::query()->where('code', 'FMIPA-MGT')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->post(route('management.organizations.store'), [
+                'code' => 'JUR-SALAH-MGT',
+                'name' => 'Jurusan Salah Parent',
+                'type' => 'department',
+                'parent_id' => $university->id,
+                'is_active' => 1,
+            ])
+            ->assertSessionHasErrors('parent_id');
+
+        $this->assertDatabaseMissing('organizations', [
+            'code' => 'JUR-SALAH-MGT',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('management.organizations.store'), [
+                'code' => 'JUR-ILKOM-MGT',
+                'name' => 'Jurusan Ilmu Komputer',
+                'type' => 'department',
+                'parent_id' => $faculty->id,
+                'is_active' => 1,
+            ])
+            ->assertRedirect();
+
+        $department = Organization::query()->where('code', 'JUR-ILKOM-MGT')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('management.study-programs.index'))
+            ->assertOk()
+            ->assertSee('Jurusan Ilmu Komputer');
+
+        $this->actingAs($admin)
+            ->get(route('management.organizations.index'))
+            ->assertOk()
+            ->assertSee('data-organization-parent', false)
+            ->assertSee('data-parent-for="department"', false);
+
+        $this->actingAs($admin)
+            ->post(route('management.study-programs.store'), [
+                'code' => 'S1IF-MGT',
+                'name' => 'S1 Ilmu Komputer Manajemen',
+                'degree_level' => 'S1',
+                'organization_id' => $department->id,
+                'is_active' => 1,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('study_programs', [
+            'code' => 'S1IF-MGT',
+            'organization_id' => $department->id,
+            'faculty' => 'FMIPA',
+        ]);
+
+        $studyProgram = StudyProgram::query()->where('code', 'S1IF-MGT')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->delete(route('management.organizations.destroy', $department))
+            ->assertSessionHasErrors('delete');
+
+        $this->actingAs($admin)
+            ->delete(route('management.study-programs.destroy', $studyProgram))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('study_programs', [
+            'id' => $studyProgram->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('management.organizations.destroy', $department))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('organizations', [
+            'id' => $department->id,
         ]);
     }
 
@@ -640,11 +749,26 @@ class ManagementFeatureTest extends TestCase
             'level' => 'department',
             'status' => 'active',
         ]);
+        $this->assertDatabaseHas('email_notifications', [
+            'type' => 'operational.report_viewer.assigned',
+            'recipient_email' => $lecturerUser->email,
+        ]);
         $this->assertTrue($lecturerUser->fresh()->hasRole('dosen'));
         $this->assertTrue($lecturerUser->fresh()->hasRole('report_viewer'));
         $this->actingAs($lecturerUser)
             ->get(route('reports.progress-funnel'))
             ->assertOk();
+
+        $assignment = ReportViewerAssignment::query()->where('lecturer_id', $lecturer->id)->firstOrFail();
+
+        $this->actingAs($admin)
+            ->delete(route('management.report-viewers.destroy', $assignment))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('report_viewer_assignments', [
+            'id' => $assignment->id,
+        ]);
+        $this->assertFalse($lecturerUser->fresh()->hasRole('report_viewer'));
     }
 
     public function test_admin_can_complete_period_and_complete_active_enrollments(): void

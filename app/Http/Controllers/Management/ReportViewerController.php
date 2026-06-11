@@ -8,6 +8,7 @@ use App\Models\Lecturer;
 use App\Models\Organization;
 use App\Models\ReportViewerAssignment;
 use App\Models\StudyProgram;
+use App\Services\EmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,10 @@ use Illuminate\View\View;
 class ReportViewerController extends Controller
 {
     use InteractsWithTableControls;
+
+    public function __construct(private readonly EmailNotificationService $emails)
+    {
+    }
 
     public function index(Request $request): View
     {
@@ -56,7 +61,8 @@ class ReportViewerController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        ReportViewerAssignment::query()->create($this->validated($request));
+        $assignment = ReportViewerAssignment::query()->create($this->validated($request));
+        $this->queueAssignmentEmail($assignment->loadMissing(['lecturer.user', 'organization.parent', 'studyProgram']));
 
         return back()->with('status', 'Viewer laporan berhasil ditambahkan.');
     }
@@ -70,9 +76,22 @@ class ReportViewerController extends Controller
 
     public function update(Request $request, ReportViewerAssignment $reportViewer): RedirectResponse
     {
+        $previous = $reportViewer->only(['lecturer_id', 'organization_id', 'study_program_id', 'level', 'status', 'starts_at', 'ends_at']);
         $reportViewer->update($this->validated($request, $reportViewer));
+        $reportViewer->loadMissing(['lecturer.user', 'organization.parent', 'studyProgram']);
+
+        if ($reportViewer->only(['lecturer_id', 'organization_id', 'study_program_id', 'level', 'status', 'starts_at', 'ends_at']) !== $previous) {
+            $this->queueAssignmentEmail($reportViewer, 'updated');
+        }
 
         return redirect()->route('management.report-viewers.index')->with('status', 'Viewer laporan berhasil diperbarui.');
+    }
+
+    public function destroy(ReportViewerAssignment $reportViewer): RedirectResponse
+    {
+        $reportViewer->delete();
+
+        return back()->with('status', 'Viewer laporan berhasil dihapus.');
     }
 
     private function validated(Request $request, ?ReportViewerAssignment $assignment = null): array
@@ -135,5 +154,47 @@ class ReportViewerController extends Controller
                 'study_program' => 'Program Studi',
             ],
         ];
+    }
+
+    private function queueAssignmentEmail(ReportViewerAssignment $assignment, string $mode = 'created'): void
+    {
+        $lecturer = $assignment->lecturer;
+        $email = $lecturer?->email ?: $lecturer?->user?->email;
+
+        if (! $email) {
+            return;
+        }
+
+        $this->emails->queue(
+            type: 'operational.report_viewer.assigned',
+            recipientEmail: $email,
+            subject: '[SiLAT] Akses Viewer Laporan',
+            bodyLines: [
+                $mode === 'updated'
+                    ? 'Hak akses Anda sebagai Viewer Laporan telah diperbarui.'
+                    : 'Anda ditetapkan sebagai Viewer Laporan di SiLAT.',
+                'Scope akses: '.$this->scopeLabel($assignment).'.',
+                'Status: '.($assignment->status === 'active' ? 'Aktif' : 'Nonaktif').'.',
+                'Masa berlaku: '.($assignment->starts_at?->format('d/m/Y') ?: 'sekarang').' - '.($assignment->ends_at?->format('d/m/Y') ?: 'tidak dibatasi').'.',
+                'Akses ini hanya untuk melihat Analisis & Laporan sesuai scope, tanpa aksi operasional workflow.',
+            ],
+            recipientName: $lecturer?->name ?: $assignment->lecturer?->user?->name,
+            actionText: 'Buka Analisis & Laporan',
+            actionUrl: route('reports.progress-funnel'),
+            notifiable: $assignment,
+            eventKey: 'report-viewer-'.$mode.'-'.$assignment->id.'-'.$assignment->updated_at?->timestamp,
+        );
+    }
+
+    private function scopeLabel(ReportViewerAssignment $assignment): string
+    {
+        if ($assignment->level === 'study_program') {
+            return 'Program Studi - '.($assignment->studyProgram?->name ?: '-');
+        }
+
+        $label = $this->formData()['levelLabels'][$assignment->level] ?? $assignment->level;
+        $name = $assignment->organization?->name ?: '-';
+
+        return $label.' - '.$name;
     }
 }

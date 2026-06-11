@@ -268,7 +268,16 @@ class ReportController extends Controller
         }
 
         $verificationUrl = route('final-assessments.verify', $verificationToken);
-        $verificationQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='.urlencode($verificationUrl);
+        $qrParameters = [
+            'text' => $verificationUrl,
+            'dotStyle' => 'rounded',
+            'finderStyle' => 'rounded',
+            'finderColor' => '1591DC',
+        ];
+        if (! empty($header['logo_url'])) {
+            $qrParameters['centerImageUrl'] = $header['logo_url'];
+        }
+        $verificationQrUrl = 'https://quickchart.io/qr?'.http_build_query($qrParameters);
 
         return view('student.reports.final-assessment-print', [
             'enrollment' => $enrollment,

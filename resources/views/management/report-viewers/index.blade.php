@@ -73,7 +73,16 @@
                                         <x-badge :variant="$assignment->status === 'active' ? 'success' : 'neutral'">{{ $assignment->status === 'active' ? 'Aktif' : 'Nonaktif' }}</x-badge>
                                     </td>
                                     <td class="silat-table-cell text-right">
-                                        <a class="silat-secondary-link justify-end" href="{{ route('management.report-viewers.edit', $assignment) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a>
+                                        <div class="flex flex-wrap justify-end gap-2">
+                                            <a class="silat-secondary-link justify-end" href="{{ route('management.report-viewers.edit', $assignment) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a>
+                                            <form method="POST" action="{{ route('management.report-viewers.destroy', $assignment) }}" onsubmit="return confirm('Hapus viewer laporan ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100">
+                                                    <x-icon name="fa-trash" /> Hapus
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

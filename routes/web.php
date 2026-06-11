@@ -20,6 +20,7 @@ use App\Http\Controllers\Management\FieldSupervisorAccessController as Managemen
 use App\Http\Controllers\Management\FieldSupervisorController as ManagementFieldSupervisorController;
 use App\Http\Controllers\Management\LecturerController as ManagementLecturerController;
 use App\Http\Controllers\Management\OrientationEventController as ManagementOrientationEventController;
+use App\Http\Controllers\Management\OrganizationController as ManagementOrganizationController;
 use App\Http\Controllers\Management\PeriodController as ManagementPeriodController;
 use App\Http\Controllers\Management\PlaceController as ManagementPlaceController;
 use App\Http\Controllers\Management\PlaceProposalController as ManagementPlaceProposalController;
@@ -314,6 +315,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/management/study-programs', [ManagementStudyProgramController::class, 'store'])->name('management.study-programs.store');
         Route::get('/management/study-programs/{studyProgram}/edit', [ManagementStudyProgramController::class, 'edit'])->name('management.study-programs.edit');
         Route::patch('/management/study-programs/{studyProgram}', [ManagementStudyProgramController::class, 'update'])->name('management.study-programs.update');
+        Route::delete('/management/study-programs/{studyProgram}', [ManagementStudyProgramController::class, 'destroy'])->name('management.study-programs.destroy');
+
+        Route::get('/management/organizations', [ManagementOrganizationController::class, 'index'])->name('management.organizations.index');
+        Route::post('/management/organizations', [ManagementOrganizationController::class, 'store'])->name('management.organizations.store');
+        Route::get('/management/organizations/{organization}/edit', [ManagementOrganizationController::class, 'edit'])->name('management.organizations.edit');
+        Route::patch('/management/organizations/{organization}', [ManagementOrganizationController::class, 'update'])->name('management.organizations.update');
+        Route::delete('/management/organizations/{organization}', [ManagementOrganizationController::class, 'destroy'])->name('management.organizations.destroy');
 
         Route::get('/management/programs', [ManagementProgramController::class, 'index'])->name('management.programs.index');
         Route::post('/management/programs', [ManagementProgramController::class, 'store'])->name('management.programs.store');
@@ -345,6 +353,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/management/report-viewers', [ManagementReportViewerController::class, 'store'])->name('management.report-viewers.store');
         Route::get('/management/report-viewers/{reportViewer}/edit', [ManagementReportViewerController::class, 'edit'])->name('management.report-viewers.edit');
         Route::patch('/management/report-viewers/{reportViewer}', [ManagementReportViewerController::class, 'update'])->name('management.report-viewers.update');
+        Route::delete('/management/report-viewers/{reportViewer}', [ManagementReportViewerController::class, 'destroy'])->name('management.report-viewers.destroy');
 
         Route::get('/management/places', [ManagementPlaceController::class, 'index'])->name('management.places.index');
         Route::get('/management/places/create', [InternshipPlaceController::class, 'create'])->name('management.places.create');

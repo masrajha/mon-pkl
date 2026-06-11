@@ -16,6 +16,7 @@
         ['patterns' => ['management.lecturers.*'], 'group' => 'Master Data', 'label' => 'Dosen'],
         ['patterns' => ['management.coordinators.*'], 'group' => 'Master Data', 'label' => 'Koordinator Program'],
         ['patterns' => ['management.report-viewers.*'], 'group' => 'Master Data', 'label' => 'Viewer Laporan'],
+        ['patterns' => ['management.organizations.*'], 'group' => 'Master Data', 'label' => 'Organisasi'],
         ['patterns' => ['management.study-programs.*'], 'group' => 'Master Data', 'label' => 'Prodi'],
         ['patterns' => ['management.programs.*'], 'group' => 'Master Data', 'label' => 'Program Kegiatan'],
         ['patterns' => ['management.periods.*'], 'group' => 'Master Data', 'label' => 'Periode Program'],

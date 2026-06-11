@@ -13,7 +13,13 @@
                     <option value="{{ $degreeLevel }}" @selected(old('degree_level', $studyProgram->degree_level) === $degreeLevel)>{{ $degreeLevel }}</option>
                 @endforeach
             </select>
-            <x-input-label for="faculty" value="Fakultas" /><x-text-input id="faculty" name="faculty" class="block w-full" :value="$studyProgram->faculty" />
+            <x-input-label for="organization_id" value="Jurusan" />
+            <select id="organization_id" name="organization_id" class="block w-full rounded-md border-gray-300" required>
+                <option value="">Pilih jurusan</option>
+                @foreach ($departments as $department)
+                    <option value="{{ $department->id }}" @selected((string) old('organization_id', $studyProgram->organization_id) === (string) $department->id)>{{ $department->name }}{{ $department->parent?->name ? ' - '.$department->parent->name : '' }}</option>
+                @endforeach
+            </select>
             <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" value="1" @checked($studyProgram->is_active) class="rounded border-gray-300"> Aktif</label>
             <x-primary-button>Simpan Perubahan</x-primary-button>
         </form>

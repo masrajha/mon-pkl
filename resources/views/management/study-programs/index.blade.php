@@ -16,12 +16,18 @@
                     <option value="S1" selected>S1</option>
                     <option value="S2">S2</option>
                 </select>
-                <x-input-label for="faculty" value="Fakultas" /><x-text-input id="faculty" name="faculty" class="block w-full" />
+                <x-input-label for="organization_id" value="Jurusan" />
+                <select id="organization_id" name="organization_id" class="block w-full rounded-md border-gray-300" required>
+                    <option value="">Pilih jurusan</option>
+                    @foreach ($departments as $department)
+                        <option value="{{ $department->id }}" @selected((string) old('organization_id') === (string) $department->id)>{{ $department->name }}{{ $department->parent?->name ? ' - '.$department->parent->name : '' }}</option>
+                    @endforeach
+                </select>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" value="1" checked class="rounded border-gray-300"> Aktif</label>
                 <x-primary-button>Simpan</x-primary-button>
             </form>
             <div class="silat-card overflow-hidden">
-                <x-table-controls title="Daftar Prodi" description="Cari kode, nama, atau fakultas." search-placeholder="Cari prodi...">
+                <x-table-controls title="Daftar Prodi" description="Cari kode, nama, atau jurusan." search-placeholder="Cari prodi...">
                     <x-slot name="filters">
                         <div>
                             <x-input-label for="filter_status" value="Status" />
@@ -35,8 +41,35 @@
                 </x-table-controls>
                 <div class="silat-table-wrap">
                 <table class="silat-table">
-                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><x-sortable-heading column="code" label="Kode" /></th><th class="silat-table-cell"><x-sortable-heading column="name" label="Nama" /></th><th class="silat-table-cell"><x-sortable-heading column="degree_level" label="Jenjang" /></th><th class="silat-table-cell"><x-sortable-heading column="faculty" label="Fakultas" /></th><th class="silat-table-cell"><x-sortable-heading column="is_active" label="Status" /></th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
-                    <tbody>@foreach ($studyPrograms as $program)<tr><td class="silat-table-cell font-medium text-gray-900">{{ $program->code }}</td><td class="silat-table-cell">{{ $program->name }}</td><td class="silat-table-cell">{{ $program->degree_level }}</td><td class="silat-table-cell text-gray-600">{{ $program->faculty ?: '-' }}</td><td class="silat-table-cell"><x-badge :variant="$program->is_active ? 'success' : 'neutral'">{{ $program->is_active ? 'Aktif' : 'Nonaktif' }}</x-badge></td><td class="silat-table-cell text-right"><a class="silat-secondary-link justify-end" href="{{ route('management.study-programs.edit', $program) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a></td></tr>@endforeach</tbody>
+                    <thead class="silat-table-head"><tr><th class="silat-table-cell"><x-sortable-heading column="code" label="Kode" /></th><th class="silat-table-cell"><x-sortable-heading column="name" label="Nama" /></th><th class="silat-table-cell"><x-sortable-heading column="degree_level" label="Jenjang" /></th><th class="silat-table-cell">Jurusan</th><th class="silat-table-cell"><x-sortable-heading column="is_active" label="Status" /></th><th class="silat-table-cell text-right">Aksi</th></tr></thead>
+                    <tbody>
+                        @foreach ($studyPrograms as $program)
+                            <tr>
+                                <td class="silat-table-cell font-medium text-gray-900">{{ $program->code }}</td>
+                                <td class="silat-table-cell">{{ $program->name }}</td>
+                                <td class="silat-table-cell">{{ $program->degree_level }}</td>
+                                <td class="silat-table-cell text-gray-600">
+                                    {{ $program->organization?->name ?: '-' }}
+                                    @if($program->organization?->parent)
+                                        <div class="text-xs text-gray-500">{{ $program->organization->parent->name }}</div>
+                                    @endif
+                                </td>
+                                <td class="silat-table-cell"><x-badge :variant="$program->is_active ? 'success' : 'neutral'">{{ $program->is_active ? 'Aktif' : 'Nonaktif' }}</x-badge></td>
+                                <td class="silat-table-cell text-right">
+                                    <div class="flex flex-wrap justify-end gap-2">
+                                        <a class="silat-secondary-link justify-end" href="{{ route('management.study-programs.edit', $program) }}"><x-icon name="fa-pen-to-square" class="mr-1" /> Edit</a>
+                                        <form method="POST" action="{{ route('management.study-programs.destroy', $program) }}" onsubmit="return confirm('Hapus prodi ini? Prodi yang sudah dipakai data lain akan ditolak.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100">
+                                                <x-icon name="fa-trash" /> Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
                 </table>
             </div><x-table-pagination :paginator="$studyPrograms" /></div>
         </div>

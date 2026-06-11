@@ -134,6 +134,7 @@
                         @foreach ([
                             ['label' => 'User', 'value' => $counts['users'], 'route' => 'management.users.index'],
                             ['label' => 'Koordinator', 'value' => $counts['coordinators'], 'route' => 'management.coordinators.index'],
+                            ['label' => 'Organisasi', 'value' => $counts['organizations'], 'route' => 'management.organizations.index'],
                             ['label' => 'Prodi', 'value' => $counts['studyPrograms'], 'route' => 'management.study-programs.index'],
                             ['label' => 'Periode', 'value' => $counts['periods'], 'route' => 'management.periods.index'],
                         ] as $item)
