@@ -69,10 +69,10 @@
                     ['key' => 'risky', 'label' => 'Berisiko', 'class' => 'border-orange-200 bg-orange-50 text-orange-700'],
                     ['key' => 'critical', 'label' => 'Kritis', 'class' => 'border-red-200 bg-red-50 text-red-700'],
                 ] as $item)
-                    <a href="{{ route('reports.risk-scoring', array_filter(request()->only(['period_id', 'program_id', 'study_program_id']) + ['risk' => $item['key']])) }}" class="rounded-lg border p-4 shadow-sm {{ $item['class'] }}">
+                    <a href="{{ route('reports.drill-down', array_filter(request()->only(['period_id', 'program_id', 'study_program_id']) + ['source' => 'risk_scoring', 'risk' => $item['key']])) }}" class="rounded-lg border p-4 shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ $item['class'] }}">
                         <p class="text-xs font-semibold uppercase tracking-wide">{{ $item['label'] }}</p>
                         <p class="mt-2 text-3xl font-semibold">{{ number_format($summary[$item['key']] ?? 0, 0, ',', '.') }}</p>
-                        <p class="mt-1 text-xs">peserta</p>
+                        <p class="mt-1 text-xs">peserta - lihat detail</p>
                     </a>
                 @endforeach
             </div>

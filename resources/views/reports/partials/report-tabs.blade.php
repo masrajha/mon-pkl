@@ -7,6 +7,7 @@
         ['route' => 'reports.sanctions', 'label' => 'Rekap Sanksi', 'icon' => 'fa-scale-balanced'],
         ['route' => 'reports.final-scores', 'label' => 'Rekap Nilai Akhir', 'icon' => 'fa-calculator'],
         ['route' => 'reports.monitoring', 'label' => 'Rekap Monitoring', 'icon' => 'fa-chart-column'],
+        ['route' => 'reports.drill-down', 'label' => 'Drill-down', 'icon' => 'fa-magnifying-glass-chart'],
     ];
     $sharedReportQuery = request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']);
 @endphp

@@ -254,6 +254,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/operational-charts', [ReportController::class, 'operationalCharts'])->name('reports.operational-charts');
         Route::get('/reports/sanctions', [ReportController::class, 'sanctions'])->name('reports.sanctions');
         Route::get('/reports/final-scores', [ReportController::class, 'finalScores'])->name('reports.final-scores');
+        Route::get('/reports/drill-down', [ReportController::class, 'drillDown'])->name('reports.drill-down');
         Route::get('/reports/final-scores/{enrollment}/print', [StudentReportController::class, 'printFinalAssessment'])->name('reports.final-scores.print');
     });
 
@@ -356,6 +357,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/management/report-viewers/{reportViewer}', [ManagementReportViewerController::class, 'destroy'])->name('management.report-viewers.destroy');
 
         Route::get('/management/places', [ManagementPlaceController::class, 'index'])->name('management.places.index');
+        Route::get('/management/places/export', [ManagementPlaceController::class, 'export'])->name('management.places.export');
         Route::get('/management/places/create', [InternshipPlaceController::class, 'create'])->name('management.places.create');
         Route::post('/management/places', [InternshipPlaceController::class, 'store'])->name('management.places.store');
         Route::post('/management/places/bulk', [ManagementPlaceController::class, 'bulk'])->name('management.places.bulk');

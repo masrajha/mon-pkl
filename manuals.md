@@ -12,6 +12,7 @@ SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untu
 > - Admin dapat menugaskan dosen aktif sebagai **Viewer Laporan** pada level universitas, fakultas, jurusan, atau prodi tanpa mengubah role utama dosen.
 > - Menu **Analisis & Laporan** kini dapat diakses admin, koordinator, dan Viewer Laporan sesuai scope; Viewer Laporan bersifat baca dan tidak memiliki aksi workflow operasional.
 > - Halaman laporan memakai tab subnav yang konsisten, posisi scroll sidebar disimpan, dan filter tanggal beberapa laporan otomatis mengikuti rentang presensi periode.
+> - Chart/kartu laporan penting kini memiliki **drill-down** ke daftar peserta terkait, lengkap dengan aksi cepat untuk admin/koordinator.
 > - Progress Funnel hanya menghitung peserta **Aktif** dan **Selesai**, tampil dua kolom, dan memakai urutan terbaru: pendaftaran → presensi → laporan lengkap → nilai Pembimbing Lapangan → seminar → nilai dosen → nilai final.
 > - Prodi, organisasi, dan Viewer Laporan memiliki aksi hapus dengan pembatasan aman. Prodi/organisasi tidak dapat dihapus jika masih dipakai data lain.
 > - Berita Acara Nilai memakai QR QuickChart dengan logo dokumen jika tersedia.
@@ -2151,6 +2152,8 @@ Semua halaman laporan memakai subnav berbentuk tab sehingga pengguna dapat berpi
 
 Untuk laporan progres, data utama hanya menghitung peserta dengan status **Aktif** dan **Selesai**. Peserta draft, menunggu verifikasi, perlu revisi, nonaktif, batal, atau ditolak tidak dihitung sebagai progres pelaksanaan aktif.
 
+Beberapa kartu dan grafik dapat diklik untuk membuka halaman **Drill-down**. Halaman ini menampilkan peserta yang membentuk angka pada chart, misalnya peserta di tahap funnel tertentu, kategori risiko tertentu, status laporan, status nilai, tren presensi tanggal tertentu, atau peserta terdampak sanksi. Admin/koordinator mendapat aksi cepat menuju Presensi, Laporan, Seminar, Lupa Presensi, dan Finalisasi; Viewer Laporan hanya melihat data sesuai scope tanpa aksi operasional.
+
 Halaman yang tersedia:
 
 | Halaman | Fungsi |
@@ -2160,6 +2163,7 @@ Halaman yang tersedia:
 | Risk Scoring | Mengelompokkan peserta menjadi Aman, Perlu Dipantau, Berisiko, atau Kritis berdasarkan indikator presensi, laporan, seminar, nilai, Lupa Presensi, dan sanksi. |
 | Heatmap Kehadiran | Menampilkan status kehadiran per mahasiswa dan tanggal, termasuk hadir valid, presensi satu sisi, Lupa Presensi disetujui, akhir pekan, dan hari libur. |
 | Grafik Operasional | Menampilkan tren presensi harian, stacked bar status peserta per prodi, donut status laporan lengkap, top sanksi, dan progres nilai dosen/Pembimbing Lapangan/final. |
+| Drill-down | Menampilkan daftar peserta yang berasal dari klik chart/kartu laporan, dengan filter dan scope yang sama. |
 
 Filter umum:
 

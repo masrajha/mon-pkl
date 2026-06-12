@@ -5,6 +5,7 @@
         @if (session('status'))<div class="mb-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('status') }}</div>@endif
         @if ($errors->any())<div class="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{{ $errors->first() }}</div>@endif
         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <a class="silat-btn-secondary" href="{{ route('management.places.export', request()->query()) }}"><x-icon name="fa-file-export" /> Export CSV</a>
             <a class="inline-flex rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white" href="{{ route('management.places.create') }}">Tambah Mitra</a>
         </div>
         <div class="silat-card overflow-hidden">

@@ -77,7 +77,7 @@
                         @php
                             $barWidth = max(4, (float) $stage['percent_of_total']);
                         @endphp
-                        <div class="rounded-lg border border-gray-200 bg-white p-4">
+                        <a href="{{ route('reports.drill-down', array_filter(request()->only(['period_id', 'program_id', 'study_program_id']) + ['source' => 'progress_funnel', 'stage' => $stage['key']])) }}" class="block rounded-lg border border-gray-200 bg-white p-4 transition hover:border-blue-300 hover:bg-blue-50/40 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             <div class="flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                     <p class="text-sm font-semibold text-gray-950">{{ $index + 1 }}. {{ $stage['label'] }}</p>
@@ -96,8 +96,9 @@
                                 @if ($index > 0)
                                     <span>Drop: <strong class="{{ $stage['drop_from_previous'] > 0 ? 'text-amber-700' : 'text-emerald-700' }}">{{ number_format($stage['drop_from_previous'], 0, ',', '.') }}</strong></span>
                                 @endif
+                                <span class="font-semibold text-blue-700">Lihat peserta</span>
                             </div>
-                        </div>
+                        </a>
                     @empty
                         <div class="lg:col-span-2">
                             <x-empty-state title="Belum ada data funnel" icon="fa-chart-simple" />

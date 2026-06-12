@@ -16,6 +16,7 @@
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             @include('management.partials.nav')
             @include('reports.partials.report-tabs')
+            @php($drillBase = request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']))
 
             <form method="GET" action="{{ route('reports.operational-charts') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" data-period-date-sync>
                 <div class="grid gap-4 md:grid-cols-6">
@@ -91,14 +92,18 @@
                     @php($maxAttendance = max(1, collect($attendanceTrend)->flatMap(fn ($row) => [$row['check_in'], $row['check_out'], $row['valid_pairs']])->max()))
                     <div class="space-y-3 p-5">
                         @forelse ($attendanceTrend as $row)
-                            <div class="grid gap-2 md:grid-cols-[5rem_minmax(0,1fr)_4rem] md:items-center">
+                            <div class="grid gap-2 md:grid-cols-[5rem_minmax(0,1fr)_14rem] md:items-center">
                                 <div class="text-xs font-semibold text-gray-600">{{ $row['label'] }}</div>
                                 <div class="space-y-1.5">
                                     <div class="h-2 overflow-hidden rounded-full bg-gray-100"><div class="h-full rounded-full bg-blue-600" style="width: {{ $row['check_in'] > 0 ? max(2, $row['check_in'] / $maxAttendance * 100) : 0 }}%;"></div></div>
                                     <div class="h-2 overflow-hidden rounded-full bg-gray-100"><div class="h-full rounded-full bg-emerald-500" style="width: {{ $row['check_out'] > 0 ? max(2, $row['check_out'] / $maxAttendance * 100) : 0 }}%;"></div></div>
                                     <div class="h-2 overflow-hidden rounded-full bg-gray-100"><div class="h-full rounded-full bg-indigo-500" style="width: {{ $row['valid_pairs'] > 0 ? max(2, $row['valid_pairs'] / $maxAttendance * 100) : 0 }}%;"></div></div>
                                 </div>
-                                <div class="text-right text-xs text-gray-500">{{ $row['valid_pairs'] }} valid</div>
+                                <div class="flex flex-wrap justify-end gap-1 text-right text-xs">
+                                    <a class="rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700 hover:bg-blue-100" href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'operational', 'metric' => 'attendance', 'date' => $row['date'], 'attendance_status' => 'check_in'])) }}">{{ $row['check_in'] }} masuk</a>
+                                    <a class="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-100" href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'operational', 'metric' => 'attendance', 'date' => $row['date'], 'attendance_status' => 'check_out'])) }}">{{ $row['check_out'] }} pulang</a>
+                                    <a class="rounded-full bg-indigo-50 px-2 py-0.5 font-semibold text-indigo-700 hover:bg-indigo-100" href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'operational', 'metric' => 'attendance', 'date' => $row['date'], 'attendance_status' => 'valid_pairs'])) }}">{{ $row['valid_pairs'] }} valid</a>
+                                </div>
                             </div>
                         @empty
                             <x-empty-state title="Belum ada tren presensi" icon="fa-chart-line" />
@@ -122,10 +127,10 @@
                         <div class="mx-auto h-44 w-44 rounded-full" style="background: conic-gradient({{ $reportGradient }});"></div>
                         <div class="space-y-2">
                             @foreach ($reportStatusLabels as $key => $label)
-                                <div class="flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 text-sm">
+                                <a href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'operational', 'metric' => 'full_report', 'report_status' => $key])) }}" class="flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 text-sm transition hover:border-blue-200 hover:bg-blue-50/40">
                                     <span class="flex items-center gap-2"><span class="h-3 w-3 rounded-full" style="background: {{ $reportColors[$key] ?? '#64748b' }}"></span>{{ $label }}</span>
                                     <strong>{{ number_format($reportStatus[$key] ?? 0, 0, ',', '.') }}</strong>
-                                </div>
+                                </a>
                             @endforeach
                         </div>
                     </div>
@@ -156,6 +161,14 @@
                                         @endif
                                     @endforeach
                                 </div>
+                                <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                    @foreach ($statusKeys as $status)
+                                        @php($count = $row['statuses'][$status] ?? 0)
+                                        @if ($count > 0)
+                                            <a class="rounded-full bg-gray-100 px-2.5 py-1 font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-700" href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'operational', 'metric' => 'enrollment_status', 'status' => $status, 'study_program_id' => $row['id']])) }}">{{ $statusLabels[$status] }} {{ $count }}</a>
+                                        @endif
+                                    @endforeach
+                                </div>
                             </div>
                         @empty
                             <x-empty-state title="Belum ada peserta" icon="fa-chart-simple" />
@@ -173,13 +186,13 @@
                     @php($maxSanction = max(1, collect($topSanctions)->max('points') ?: 1))
                     <div class="space-y-3 p-5">
                         @forelse ($topSanctions as $row)
-                            <div>
+                            <a href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'operational', 'metric' => 'sanctions'])) }}" class="block rounded-md px-2 py-1 transition hover:bg-rose-50">
                                 <div class="mb-1 flex items-center justify-between gap-3 text-sm">
                                     <span class="min-w-0 truncate font-semibold text-gray-900">{{ $row['student'] }} <span class="font-normal text-gray-500">({{ $row['npm'] }})</span></span>
                                     <span class="shrink-0 text-gray-700">{{ $row['points'] }} poin</span>
                                 </div>
                                 <div class="h-2 overflow-hidden rounded-full bg-gray-100"><div class="h-full rounded-full bg-rose-600" style="width: {{ max(4, $row['points'] / $maxSanction * 100) }}%;"></div></div>
-                            </div>
+                            </a>
                         @empty
                             <x-empty-state title="Tidak ada sanksi aktif" icon="fa-circle-check" />
                         @endforelse
@@ -202,6 +215,10 @@
                                     <p class="text-sm font-semibold text-gray-900">{{ $row['label'] }}</p>
                                     <p class="mt-1 text-2xl font-bold text-gray-950">{{ number_format($row['done'], 0, ',', '.') }}</p>
                                     <p class="text-xs text-gray-500">{{ number_format($row['percent'], 1, ',', '.') }}% selesai, {{ $row['missing'] }} belum.</p>
+                                    <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                                        <a class="rounded-full bg-blue-50 px-2.5 py-1 font-semibold text-blue-700 hover:bg-blue-100" href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'operational', 'metric' => 'assessment', 'assessment_type' => $row['key'], 'state' => 'done'])) }}">Sudah</a>
+                                        <a class="rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-700 hover:bg-amber-100" href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'operational', 'metric' => 'assessment', 'assessment_type' => $row['key'], 'state' => 'missing'])) }}">Belum</a>
+                                    </div>
                                 </div>
                                 <span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">{{ number_format($row['percent'], 1, ',', '.') }}%</span>
                             </div>

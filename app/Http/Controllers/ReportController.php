@@ -38,9 +38,7 @@ class ReportController extends Controller
                 'studyProgram',
                 'internshipPeriod.program',
                 'internshipPlace',
-                'checkIns' => fn ($query) => $query
-                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
-                    ->orderBy('checked_at'),
+                'checkIns' => fn ($query) => $query->orderBy('checked_at'),
             ])
             ->whereHas('checkIns', fn ($query) => $query->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()]));
 
@@ -308,10 +306,13 @@ class ReportController extends Controller
             'completed' => 'Selesai',
         ];
         $statusByStudyProgram = $enrollments
-            ->groupBy(fn (InternshipEnrollment $enrollment): string => $enrollment->studyProgram?->name ?: 'Tanpa Prodi')
-            ->map(function (Collection $items, string $name) use ($statusKeys): array {
+            ->groupBy(fn (InternshipEnrollment $enrollment): string => (string) ($enrollment->study_program_id ?: 'none'))
+            ->map(function (Collection $items, string $id) use ($statusKeys): array {
+                $first = $items->first();
+
                 return [
-                    'name' => $name,
+                    'id' => $id === 'none' ? null : (int) $id,
+                    'name' => $first?->studyProgram?->name ?: 'Tanpa Prodi',
                     'total' => $items->count(),
                     'statuses' => collect($statusKeys)
                         ->mapWithKeys(fn (string $status): array => [$status => $items->where('status', $status)->count()])
@@ -373,14 +374,17 @@ class ReportController extends Controller
 
         $assessmentProgress = [
             [
+                'key' => 'lecturer',
                 'label' => 'Nilai Dosen',
                 'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => $enrollment->seminarRequests->whereNotNull('seminar_score')->isNotEmpty())->count(),
             ],
             [
+                'key' => 'field_supervisor',
                 'label' => 'Nilai Pembimbing Lapangan',
                 'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => (bool) $enrollment->fieldSupervisorAssessment?->final_score)->count(),
             ],
             [
+                'key' => 'final',
                 'label' => 'Nilai Final',
                 'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => (bool) $enrollment->finalAssessment?->finalized_at)->count(),
             ],
@@ -524,12 +528,74 @@ class ReportController extends Controller
         ]);
     }
 
+    public function drillDown(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        [$startDate, $endDate] = $this->dateRange($request, $selectedPeriod);
+
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'lecturerSupervisor',
+                'lecturer',
+                'checkIns' => fn ($query) => $query
+                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->orderBy('checked_at'),
+                'forgottenAttendanceRequests',
+                'submissionProgress',
+                'seminarRequests',
+                'fieldSupervisorAssessment',
+                'finalAssessment',
+                'sanctions' => fn ($query) => $query
+                    ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orderBy('date'),
+            ]);
+
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+
+        $source = $request->string('source')->toString();
+        $context = $this->drillDownContext($request);
+        $rows = $query->get()
+            ->filter(fn (InternshipEnrollment $enrollment): bool => $this->matchesDrillDown($enrollment, $request, $startDate, $endDate))
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->drillDownRow($enrollment))
+            ->sortBy([
+                ['risk_score', 'desc'],
+                ['student', 'asc'],
+            ])
+            ->values();
+
+        return view('reports.drill-down', [
+            'periods' => $periods,
+            'periodDateRanges' => $this->reportPeriodDateRanges($request, $periods),
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'startDate' => $startDate->toDateString(),
+            'endDate' => $endDate->toDateString(),
+            'source' => $source,
+            'context' => $context,
+            'rows' => $rows,
+            'canOperate' => $request->user()?->hasRole('admin') || $request->user()?->hasRole('koordinator'),
+        ]);
+    }
+
     private function sanctionReportRow(InternshipEnrollment $enrollment, Carbon $startDate, Carbon $endDate): array
     {
-        $attendanceSanctions = (float) $enrollment->checkIns->sum('sanction_points');
+        $checkIns = $enrollment->checkIns
+            ->filter(fn (CheckIn $checkIn): bool => $checkIn->checked_at?->betweenIncluded($startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()));
+        $submissionProgress = $enrollment->submissionProgress
+            ->filter(fn ($progress): bool => $progress->uploaded_at?->betweenIncluded($startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()));
+
+        $attendanceSanctions = (float) $checkIns->sum('sanction_points');
         $reportSanctions = (float) max(
             $enrollment->sanctions->sum('points_deducted'),
-            $enrollment->submissionProgress->sum('sanction_points'),
+            $submissionProgress->sum('sanction_points'),
         );
         $finalAssessment = $enrollment->finalAssessment;
         $finalDeduction = $finalAssessment?->finalized_at
@@ -548,10 +614,209 @@ class ReportController extends Controller
             'report_sanctions' => $reportSanctions,
             'final_deduction' => $finalDeduction,
             'total' => $attendanceSanctions + $reportSanctions + $finalDeduction,
-            'attendance_count' => $enrollment->checkIns->count(),
-            'report_count' => max($enrollment->sanctions->count(), $enrollment->submissionProgress->count()),
+            'attendance_count' => $checkIns->count(),
+            'report_count' => max($enrollment->sanctions->count(), $submissionProgress->count()),
             'finalized_at' => $finalAssessment?->finalized_at,
         ];
+    }
+
+    private function drillDownContext(Request $request): array
+    {
+        $sourceLabels = [
+            'progress_funnel' => 'Progress Funnel',
+            'risk_scoring' => 'Risk Scoring',
+            'operational' => 'Grafik Operasional',
+            'sanctions' => 'Rekap Sanksi',
+            'final_scores' => 'Rekap Nilai Akhir',
+        ];
+        $source = $request->string('source')->toString();
+        $title = $sourceLabels[$source] ?? 'Drill-down Laporan';
+        $description = 'Daftar peserta sesuai titik data yang dipilih pada laporan.';
+
+        if ($source === 'progress_funnel') {
+            $stage = collect($this->progressFunnelStages())->firstWhere('key', $request->string('stage')->toString());
+            $title = $stage ? 'Progress Funnel: '.$stage['label'] : $title;
+            $description = $stage['description'] ?? $description;
+        }
+
+        if ($source === 'risk_scoring') {
+            $riskLabels = [
+                'safe' => 'Aman',
+                'watch' => 'Perlu Dipantau',
+                'risky' => 'Berisiko',
+                'critical' => 'Kritis',
+            ];
+            $risk = $request->string('risk')->toString();
+            $title = 'Risk Scoring: '.($riskLabels[$risk] ?? 'Semua kategori');
+            $description = 'Peserta pada kategori risiko yang dipilih.';
+        }
+
+        if ($source === 'operational') {
+            $metric = $request->string('metric')->toString();
+            $metricLabels = [
+                'attendance' => 'Tren Presensi',
+                'full_report' => 'Status Laporan Lengkap',
+                'enrollment_status' => 'Status Peserta',
+                'sanctions' => 'Top Sanksi',
+                'assessment' => 'Progress Status Nilai',
+            ];
+            $title = 'Grafik Operasional: '.($metricLabels[$metric] ?? 'Detail Grafik');
+            $description = match ($metric) {
+                'attendance' => 'Peserta pada tanggal presensi yang dipilih.',
+                'full_report' => 'Peserta dengan status laporan lengkap yang dipilih.',
+                'enrollment_status' => 'Peserta dengan status enrollment/prodi yang dipilih.',
+                'sanctions' => 'Peserta dengan sanksi aktif sesuai filter.',
+                'assessment' => 'Peserta berdasarkan status komponen nilai yang dipilih.',
+                default => $description,
+            };
+        }
+
+        if ($source === 'final_scores') {
+            $title = 'Rekap Nilai Akhir: '.($request->string('status')->toString() === 'finalized' ? 'Sudah final' : 'Belum final');
+            $description = 'Peserta sesuai status finalisasi nilai.';
+        }
+
+        if ($source === 'sanctions') {
+            $title = 'Rekap Sanksi: Peserta dengan sanksi';
+            $description = 'Peserta yang memiliki sanksi presensi, laporan, atau pengurangan final.';
+        }
+
+        return compact('title', 'description');
+    }
+
+    private function matchesDrillDown(InternshipEnrollment $enrollment, Request $request, Carbon $startDate, Carbon $endDate): bool
+    {
+        return match ($request->string('source')->toString()) {
+            'progress_funnel' => $this->matchesProgressStage($enrollment, $request->string('stage')->toString()),
+            'risk_scoring' => $this->matchesRiskCategory($enrollment, $request->string('risk')->toString()),
+            'operational' => $this->matchesOperationalMetric($enrollment, $request, $startDate, $endDate),
+            'sanctions' => $this->sanctionReportRow($enrollment, $startDate, $endDate)['total'] > 0,
+            'final_scores' => $this->matchesFinalScoreStatus($enrollment, $request->string('status')->toString()),
+            default => true,
+        };
+    }
+
+    private function matchesProgressStage(InternshipEnrollment $enrollment, string $stage): bool
+    {
+        return match ($stage) {
+            'approved' => true,
+            'active_attendance' => $enrollment->checkIns->isNotEmpty(),
+            'full_report' => $enrollment->submissionProgress
+                ->where('deadline_type', 'full_report')
+                ->where('status', 'approved')
+                ->isNotEmpty(),
+            'field_supervisor_score' => $enrollment->fieldSupervisorAssessment?->final_score !== null,
+            'seminar' => $enrollment->seminarRequests
+                ->filter(fn ($seminar): bool => in_array($seminar->status, ['scheduled', 'completed'], true)
+                    || filled($seminar->scheduled_at)
+                    || filled($seminar->completed_at))
+                ->isNotEmpty(),
+            'lecturer_score' => $enrollment->seminarRequests->whereNotNull('seminar_score')->isNotEmpty(),
+            'final_score' => $enrollment->finalAssessment?->final_score !== null
+                && filled($enrollment->finalAssessment?->finalized_at),
+            default => true,
+        };
+    }
+
+    private function matchesRiskCategory(InternshipEnrollment $enrollment, string $risk): bool
+    {
+        if ($risk === '') {
+            return true;
+        }
+
+        return $this->riskScoring->score($enrollment)['category_key'] === $risk;
+    }
+
+    private function matchesOperationalMetric(InternshipEnrollment $enrollment, Request $request, Carbon $startDate, Carbon $endDate): bool
+    {
+        return match ($request->string('metric')->toString()) {
+            'attendance' => $this->matchesAttendanceMetric($enrollment, $request),
+            'full_report' => $this->latestFullReportStatus($enrollment) === $request->string('report_status')->toString(),
+            'enrollment_status' => $enrollment->status === $request->string('status')->toString(),
+            'sanctions' => $this->sanctionReportRow($enrollment, $startDate, $endDate)['total'] > 0,
+            'assessment' => $this->matchesAssessmentMetric($enrollment, $request),
+            default => true,
+        };
+    }
+
+    private function matchesAttendanceMetric(InternshipEnrollment $enrollment, Request $request): bool
+    {
+        $date = $request->date('date')?->toDateString();
+        if (! $date) {
+            return false;
+        }
+
+        $daily = $enrollment->checkIns->filter(fn (CheckIn $checkIn): bool => $checkIn->checked_at?->toDateString() === $date);
+
+        return match ($request->string('attendance_status')->toString()) {
+            'check_in' => $daily->where('action', 'check_in')->isNotEmpty(),
+            'check_out' => $daily->where('action', 'check_out')->isNotEmpty(),
+            'valid_pairs' => $daily->where('action', 'check_in')->isNotEmpty() && $daily->where('action', 'check_out')->isNotEmpty(),
+            default => $daily->isNotEmpty(),
+        };
+    }
+
+    private function matchesAssessmentMetric(InternshipEnrollment $enrollment, Request $request): bool
+    {
+        $isDone = match ($request->string('assessment_type')->toString()) {
+            'lecturer' => $enrollment->seminarRequests->whereNotNull('seminar_score')->isNotEmpty(),
+            'field_supervisor' => $enrollment->fieldSupervisorAssessment?->final_score !== null,
+            'final' => filled($enrollment->finalAssessment?->finalized_at),
+            default => false,
+        };
+
+        return $request->string('state')->toString() === 'missing' ? ! $isDone : $isDone;
+    }
+
+    private function matchesFinalScoreStatus(InternshipEnrollment $enrollment, string $status): bool
+    {
+        $isFinal = filled($enrollment->finalAssessment?->finalized_at);
+
+        return match ($status) {
+            'finalized' => $isFinal,
+            'pending' => ! $isFinal,
+            default => true,
+        };
+    }
+
+    private function drillDownRow(InternshipEnrollment $enrollment): array
+    {
+        $risk = $this->riskScoring->score($enrollment);
+        $final = $this->finalScoreReportRow($enrollment);
+
+        return [
+            'enrollment' => $enrollment,
+            'student' => $enrollment->student?->full_name ?: '-',
+            'npm' => $enrollment->student?->npm ?: '-',
+            'study_program' => $enrollment->studyProgram?->name ?: '-',
+            'period' => $enrollment->internshipPeriod?->display_name ?: '-',
+            'program' => $enrollment->internshipPeriod?->program?->name ?: '-',
+            'place' => $enrollment->internshipPlace?->name ?: '-',
+            'lecturer' => $enrollment->lecturerSupervisor?->name ?: $enrollment->lecturer_supervisor ?: '-',
+            'status' => $enrollment->status,
+            'risk_score' => $risk['score'],
+            'risk_category' => $risk['category'],
+            'risk_tone' => $risk['category_tone'],
+            'main_issues' => $risk['main_issues'],
+            'valid_attendance_days' => $risk['valid_attendance_days'],
+            'incomplete_attendance_days' => $risk['incomplete_attendance_days'],
+            'total_sanctions' => $risk['total_sanctions'],
+            'full_report_status' => $this->latestFullReportStatus($enrollment),
+            'lecturer_score' => $final['lecturer_score'],
+            'field_supervisor_score' => $final['field_supervisor_score'],
+            'final_score' => $final['final_score'],
+            'letter_grade' => $final['letter_grade'],
+            'is_final' => $final['is_final'],
+        ];
+    }
+
+    private function latestFullReportStatus(InternshipEnrollment $enrollment): string
+    {
+        return $enrollment->submissionProgress
+            ->where('deadline_type', 'full_report')
+            ->sortByDesc('uploaded_at')
+            ->first()
+            ?->status ?: 'not_uploaded';
     }
 
     private function finalScoreReportRow(InternshipEnrollment $enrollment): array

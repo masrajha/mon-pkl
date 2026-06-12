@@ -7,12 +7,14 @@ use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PlaceController extends Controller
 {
@@ -21,23 +23,7 @@ class PlaceController extends Controller
     public function index(Request $request): View
     {
         $selectedPeriod = $request->integer('period_id') ?: null;
-        $query = InternshipPlace::query()
-            ->with('city')
-            ->withCount([
-                'enrollments' => fn ($query) => $query->when($selectedPeriod, fn ($query) => $query->where('internship_period_id', $selectedPeriod)),
-            ]);
-
-        if ($request->filled('q')) {
-            $search = $request->string('q')->toString();
-            $query->where(fn ($query) => $query
-                ->where('name', 'like', '%'.$search.'%')
-                ->orWhere('address', 'like', '%'.$search.'%')
-                ->orWhereHas('city', fn ($query) => $query->where('name', 'like', '%'.$search.'%')));
-        }
-
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->string('status')->toString() === 'active');
-        }
+        $query = $this->placesTableQuery($request);
 
         return view('management.places.index', [
             'places' => $this->applyTableSort($query, $request, ['name', 'is_active', 'id'], 'name')
@@ -46,6 +32,60 @@ class PlaceController extends Controller
             'periods' => InternshipPeriod::query()->with('program')->orderByDesc('is_active')->orderByDesc('id')->get(),
             'selectedPeriod' => $selectedPeriod,
             'selectedStatus' => $request->string('status')->toString(),
+        ]);
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $query = $this->applyTableSort($this->placesTableQuery($request), $request, ['name', 'is_active', 'id'], 'name');
+        $selectedPeriod = $request->integer('period_id') ?: null;
+        $filename = 'data-mitra-'.now()->format('Ymd-His').'.csv';
+
+        return response()->streamDownload(function () use ($query, $selectedPeriod): void {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            fputcsv($handle, [
+                'ID',
+                'Nama Mitra',
+                'Alamat',
+                'Kota',
+                'Status',
+                $selectedPeriod ? 'Peserta Periode' : 'Peserta Total',
+                'Latitude',
+                'Longitude',
+                'Pembimbing Lapangan',
+                'HP Pembimbing Lapangan',
+                'HP Kontak Mahasiswa',
+                'Visited',
+                'Dibuat',
+                'Diperbarui',
+            ]);
+
+            $query->chunk(500, function ($places) use ($handle): void {
+                foreach ($places as $place) {
+                    fputcsv($handle, [
+                        $place->id,
+                        $place->name,
+                        $place->address,
+                        $place->city?->name,
+                        $place->is_active ? 'Aktif' : 'Nonaktif',
+                        $place->enrollments_count,
+                        $place->latitude,
+                        $place->longitude,
+                        $place->field_supervisor_name,
+                        $place->field_supervisor_phone,
+                        $place->contact_student_phone,
+                        $place->visited ? 'Ya' : 'Tidak',
+                        $place->created_at?->format('Y-m-d H:i:s'),
+                        $place->updated_at?->format('Y-m-d H:i:s'),
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 
@@ -146,5 +186,29 @@ class PlaceController extends Controller
         });
 
         return back()->with('status', 'Merge mitra berhasil. Peserta dari '.count($sourceIds).' data sumber sudah dipindahkan.');
+    }
+
+    private function placesTableQuery(Request $request): Builder
+    {
+        $selectedPeriod = $request->integer('period_id') ?: null;
+        $query = InternshipPlace::query()
+            ->with('city')
+            ->withCount([
+                'enrollments' => fn ($query) => $query->when($selectedPeriod, fn ($query) => $query->where('internship_period_id', $selectedPeriod)),
+            ]);
+
+        if ($request->filled('q')) {
+            $search = $request->string('q')->toString();
+            $query->where(fn ($query) => $query
+                ->where('name', 'like', '%'.$search.'%')
+                ->orWhere('address', 'like', '%'.$search.'%')
+                ->orWhereHas('city', fn ($query) => $query->where('name', 'like', '%'.$search.'%')));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->string('status')->toString() === 'active');
+        }
+
+        return $query;
     }
 }

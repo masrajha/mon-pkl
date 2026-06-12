@@ -16,6 +16,7 @@
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             @include('management.partials.nav')
             @include('reports.partials.report-tabs')
+            @php($drillBase = request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']))
 
             <form method="GET" action="{{ route('reports.sanctions') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" data-period-date-sync>
                 <div class="grid gap-4 md:grid-cols-7">
@@ -67,7 +68,7 @@
             </form>
 
             <section class="grid gap-4 md:grid-cols-5">
-                <div class="silat-stat-card"><p class="silat-stat-label">Peserta Terdampak</p><p class="silat-stat-value">{{ number_format($totals['students'], 0, ',', '.') }}</p></div>
+                <a class="silat-stat-card transition hover:border-blue-300 hover:bg-blue-50/40 hover:shadow-sm" href="{{ route('reports.drill-down', array_filter($drillBase + ['source' => 'sanctions'])) }}"><p class="silat-stat-label">Peserta Terdampak</p><p class="silat-stat-value">{{ number_format($totals['students'], 0, ',', '.') }}</p><p class="silat-stat-note">Lihat peserta</p></a>
                 <div class="silat-stat-card"><p class="silat-stat-label">Sanksi Presensi</p><p class="silat-stat-value">{{ number_format($totals['attendance'], 2, ',', '.') }}</p></div>
                 <div class="silat-stat-card"><p class="silat-stat-label">Sanksi Laporan</p><p class="silat-stat-value">{{ number_format($totals['reports'], 2, ',', '.') }}</p></div>
                 <div class="silat-stat-card"><p class="silat-stat-label">Pengurangan Final</p><p class="silat-stat-value">{{ number_format($totals['final_deduction'], 2, ',', '.') }}</p></div>
