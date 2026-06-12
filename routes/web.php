@@ -11,6 +11,7 @@ use App\Http\Controllers\FinalAssessmentVerificationController;
 use App\Http\Controllers\ForgottenAttendanceApprovalController;
 use App\Http\Controllers\InternshipPlaceController;
 use App\Http\Controllers\LocationSuggestionController;
+use App\Http\Controllers\Management\AuditLogController as ManagementAuditLogController;
 use App\Http\Controllers\Management\CoordinatorController as ManagementCoordinatorController;
 use App\Http\Controllers\Management\DashboardController as ManagementDashboardController;
 use App\Http\Controllers\Management\EnrollmentController as ManagementEnrollmentController;
@@ -252,8 +253,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/risk-scoring', [ReportController::class, 'riskScoring'])->name('reports.risk-scoring');
         Route::get('/reports/attendance-heatmap', [ReportController::class, 'attendanceHeatmap'])->name('reports.attendance-heatmap');
         Route::get('/reports/operational-charts', [ReportController::class, 'operationalCharts'])->name('reports.operational-charts');
+        Route::get('/reports/snapshot', [ReportController::class, 'snapshot'])->name('reports.snapshot');
         Route::get('/reports/sanctions', [ReportController::class, 'sanctions'])->name('reports.sanctions');
         Route::get('/reports/final-scores', [ReportController::class, 'finalScores'])->name('reports.final-scores');
+        Route::get('/reports/export/{type}', [ReportController::class, 'export'])->name('reports.export');
         Route::get('/reports/drill-down', [ReportController::class, 'drillDown'])->name('reports.drill-down');
         Route::get('/reports/final-scores/{enrollment}/print', [StudentReportController::class, 'printFinalAssessment'])->name('reports.final-scores.print');
     });
@@ -307,6 +310,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin')->group(function () {
         Route::get('/management', ManagementDashboardController::class)->name('management.dashboard');
+        Route::get('/management/audit-logs', [ManagementAuditLogController::class, 'index'])->name('management.audit-logs.index');
         Route::get('/management/users', [ManagementUserController::class, 'index'])->name('management.users.index');
         Route::post('/management/users', [ManagementUserController::class, 'store'])->name('management.users.store');
         Route::get('/management/users/{user}/edit', [ManagementUserController::class, 'edit'])->name('management.users.edit');

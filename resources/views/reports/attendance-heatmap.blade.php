@@ -6,9 +6,12 @@
                 <h2 class="mt-1 text-2xl font-semibold text-gray-900">Heatmap Kehadiran</h2>
                 <p class="mt-1 text-sm text-gray-500">Pantau pola kehadiran per mahasiswa dan tanggal dalam satu tampilan padat.</p>
             </div>
-            <a class="silat-secondary-link" href="{{ route('reports.risk-scoring', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
-                <x-icon name="fa-triangle-exclamation" /> Buka risk scoring
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                @include('reports.partials.export-buttons', ['type' => 'attendance-heatmap'])
+                <a class="silat-secondary-link" href="{{ route('reports.risk-scoring', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+                    <x-icon name="fa-triangle-exclamation" /> Buka risk scoring
+                </a>
+            </div>
         </div>
     </x-slot>
 

@@ -92,10 +92,14 @@ class PeriodController extends Controller
         $completedCount = 0;
 
         DB::transaction(function () use ($period, &$completedCount): void {
-            $completedCount = InternshipEnrollment::query()
+            InternshipEnrollment::query()
                 ->where('internship_period_id', $period->id)
                 ->where('status', 'active')
-                ->update(['status' => 'completed']);
+                ->get()
+                ->each(function (InternshipEnrollment $enrollment) use (&$completedCount): void {
+                    $enrollment->update(['status' => 'completed']);
+                    $completedCount++;
+                });
 
             $period->update([
                 'is_active' => false,

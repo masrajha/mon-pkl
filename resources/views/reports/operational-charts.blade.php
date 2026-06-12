@@ -6,9 +6,14 @@
                 <h2 class="mt-1 text-2xl font-semibold text-gray-900">Grafik Operasional</h2>
                 <p class="mt-1 text-sm text-gray-500">Pantau tren presensi, status peserta, laporan, sanksi, dan progres nilai dalam satu layar.</p>
             </div>
-            <a class="silat-secondary-link" href="{{ route('reports.risk-scoring', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
-                <x-icon name="fa-triangle-exclamation" /> Buka risk scoring
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                <a class="silat-btn-secondary" href="{{ route('reports.snapshot', request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date'])) }}" target="_blank">
+                    <x-icon name="fa-file-pdf" /> Snapshot PDF
+                </a>
+                <a class="silat-secondary-link" href="{{ route('reports.risk-scoring', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+                    <x-icon name="fa-triangle-exclamation" /> Buka risk scoring
+                </a>
+            </div>
         </div>
     </x-slot>
 

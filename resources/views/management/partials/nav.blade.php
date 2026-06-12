@@ -30,6 +30,7 @@
         ['patterns' => ['reports.monitoring'], 'group' => 'Analisis & Laporan', 'label' => 'Rekap Monitoring'],
         ['patterns' => ['system-configurations.*'], 'group' => 'Konfigurasi', 'label' => 'Konfigurasi Program'],
         ['patterns' => ['email-notifications.*'], 'group' => 'Konfigurasi', 'label' => 'Email & Notifikasi'],
+        ['patterns' => ['management.audit-logs.*'], 'group' => 'Konfigurasi', 'label' => 'Audit Log'],
     ];
 
     $current = collect($items)->first(

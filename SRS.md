@@ -160,10 +160,10 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 
 | ID | Kebutuhan |
 |----|-----------|
-| LR-01 | **Rekap Monitoring**: per mahasiswa (NPM, nama, prodi, tempat PKL, jumlah hari hadir, total durasi, rata‑rata jarak, status laporan, sanksi). Filter periode, prodi, tanggal, hari libur. |
+| LR-01 | **Rekap Monitoring**: per mahasiswa (NPM, nama, prodi, tempat PKL, jumlah hari hadir, total durasi, rata‑rata jarak, status laporan, seminar, nilai, Lupa Presensi, validasi catatan harian, dan sanksi). Filter periode, prodi, tanggal, hari libur, Sabtu, dan Minggu. |
 | LR-02 | **Rekap Pelanggaran & Sanksi**: daftar mahasiswa dengan keterlambatan unggah, durasi harian kurang, ketidakhadiran. |
 | LR-03 | **Rekap Nilai Akhir**: nilai lapangan, nilai dosen, nilai akhir, huruf mutu. |
-| LR-04 | Ekspor ke PDF/Excel untuk semua laporan. |
+| LR-04 | Ekspor CSV dan Excel-compatible untuk laporan utama; export PDF snapshot/dokumen resmi direncanakan pada kebutuhan lanjutan. |
 
 ### 2.10 Autentikasi & Otorisasi (tidak berubah)
 
@@ -187,7 +187,7 @@ Dokumen ini mendefinisikan kebutuhan fungsional dan non‑fungsional untuk penge
 | NF-07 | API endpoint dilindungi auth & role. |
 | NF-08 | Perhitungan durasi dan sanksi menggunakan waktu server Asia/Jakarta. |
 | NF-09 | **Notifikasi otomatis** (email) untuk pengingat deadline (H‑3, H‑1, hari H). |
-| NF-10 | **Audit log** untuk perubahan konfigurasi, sanksi, dan nilai akhir. |
+| NF-10 | **Audit log** untuk perubahan konfigurasi, sanksi, nilai, finalisasi, master data, enrollment, dan approval Lupa Presensi. |
 | NF-11 | Backup database harian. |
 | NF-12 | Responsif untuk desktop/tablet. |
 | NF-13 | Pesan validasi dalam Bahasa Indonesia. |
@@ -556,7 +556,7 @@ Bagian ini mencatat kebutuhan SRS yang sudah tersedia pada implementasi backend 
 | PM-03 | Sudah diimplementasikan | Peta picker tersedia pada input/edit tempat PKL. |
 | PM-04 | Sudah diimplementasikan | Peta check-in menampilkan geolocation, marker instansi, dan polyline. |
 | PM-05 | Sudah diimplementasikan | Input lokasi pada event pembekalan, master mitra, dan pengajuan mitra mahasiswa memiliki sugest lokasi dari riwayat internal, lalu fallback eksternal jika tidak ditemukan. |
-| LR-01 | Sudah diimplementasikan sebagian | Rekap Monitoring tersedia dengan filter tanggal, periode, prodi, hari libur, Sabtu, dan Minggu. Status laporan dan sanksi belum tersedia. |
+| LR-01 | Sudah diimplementasikan | Rekap Monitoring tersedia dengan filter tanggal, periode, prodi, hari libur, Sabtu, dan Minggu. Tabel memuat presensi, durasi, rentang jam, status laporan, status seminar, status nilai, Lupa Presensi, validasi catatan harian, dan total sanksi. Peserta aktif/selesai tetap tampil meskipun belum memiliki presensi pada rentang filter. |
 | LR-05 | Sudah diimplementasikan sebagian | Dashboard mahasiswa, dosen, dan koordinator menampilkan deadline penting dalam 7 hari ke depan berdasarkan scope role. Jika tidak ada deadline dalam 7 hari, sistem menampilkan deadline terdekat berikutnya sebagai fallback. |
 
 ### 8.6 Progres Laporan, Catatan Harian, dan Sanksi
@@ -667,11 +667,11 @@ Bagian ini hanya mencatat kebutuhan SRS yang belum tersedia atau masih perlu dis
 | LR-16 | **Sudah diimplementasikan.** Halaman Analisis & Laporan memakai subnav tab bergaya konfigurasi email/notifikasi, posisi filter dan subnav konsisten antar halaman, serta sidebar menyimpan posisi scroll agar admin/koordinator tidak perlu menggulir ulang setelah membuka laporan lain. | Tinggi |
 | LR-17 | **Sudah diimplementasikan.** Filter tanggal laporan Monitoring, Sanksi, Heatmap Kehadiran, dan Grafik Operasional default mengikuti rentang presensi periode terpilih. Tanggal sampai otomatis memakai hari ini jika hari ini lebih awal dari tanggal akhir presensi, dan tetap dapat diubah manual oleh pengguna. | Tinggi |
 | LR-12 | **Sudah diimplementasikan.** Tambahkan drill-down dari chart/grafik ke daftar mahasiswa terkait agar admin/koordinator dapat langsung melakukan tindak lanjut tanpa berpindah konteks manual. Drill-down tersedia dari Progress Funnel, Risk Scoring, Grafik Operasional, Rekap Sanksi, dan Rekap Nilai Akhir dengan filter/scope yang sama serta aksi cepat sesuai hak akses role. | Tinggi |
-| LR-01 | Lengkapi Rekap Monitoring dengan status laporan, seminar, nilai, Lupa Presensi, validasi catatan harian, dan sanksi. | Menengah |
-| LR-04 | Tambahkan export PDF/Excel/CSV untuk laporan utama: Rekap Monitoring, Presensi dan Catatan Harian, Sanksi, Progres Laporan, Status Seminar, Nilai Akhir, dan Finalisasi Nilai. | Menengah |
-| LR-13 | Tambahkan export **snapshot dashboard** ke PDF yang berisi filter aktif, kartu ringkasan, grafik utama, peserta berisiko, tanggal cetak, dan nama pencetak. | Menengah |
+| LR-01 | **Sudah diimplementasikan.** Rekap Monitoring dilengkapi status laporan lengkap, seminar, nilai/finalisasi, Lupa Presensi pending/disetujui, validasi catatan harian, dan sanksi. Data hanya menghitung peserta `active` dan `completed` sesuai scope role, dan peserta tanpa presensi tetap tampil untuk pemantauan tindak lanjut. | Menengah |
+| LR-04 | **Sudah diimplementasikan sebagian.** Tambahkan export CSV dan Excel-compatible (`.xls`) untuk laporan utama melalui route `reports.export`: Rekap Monitoring, Presensi dan Catatan Harian/Heatmap Kehadiran, Rekap Sanksi, Progres Laporan, Status Seminar, Rekap Nilai Akhir, dan Finalisasi Nilai. Tombol export tersedia pada Rekap Monitoring, Heatmap Kehadiran, Rekap Sanksi, dan Rekap Nilai Akhir. Export PDF snapshot/dokumen resmi tetap menjadi kebutuhan lanjutan karena belum ada paket PDF laporan umum di proyek. | Menengah |
+| LR-13 | **Sudah diimplementasikan.** Tambahkan **snapshot dashboard** print-friendly pada route `reports.snapshot` dan tab/tombol **Snapshot PDF** dari Grafik Operasional. Snapshot berisi filter aktif, kartu ringkasan, grafik utama berbasis CSS, status laporan, progres nilai, peserta berisiko, sanksi tertinggi, tanggal cetak, dan nama pencetak. Pengguna dapat menyimpan sebagai PDF melalui dialog print browser. | Menengah |
 | NF-11 | Siapkan strategi backup database harian, retensi backup, uji restore berkala, dan dokumentasi prosedur pemulihan. | Menengah |
-| NF-10 | Buat audit log perubahan konfigurasi, sanksi, nilai, finalisasi, pembatalan finalisasi jika diizinkan, master data, enrollment, dan approval Lupa Presensi. | Menengah |
+| NF-10 | **Sudah diimplementasikan.** Audit log terpusat tersedia melalui tabel `audit_logs`, model/service/observer, dan halaman admin **Audit Log**. Perubahan yang dicatat mencakup konfigurasi periode, sanksi/presensi, nilai dosen, nilai Pembimbing Lapangan, finalisasi nilai, master data, enrollment, penyelesaian periode, merge/hapus mitra, serta approval/rejection Lupa Presensi. Log menyimpan aktor, waktu, objek, event, nilai lama/baru/perubahan, IP, user agent, URL, dan metadata kontekstual. | Menengah |
 | NF-09 | Lengkapi reminder otomatis khusus deadline laporan/progres sesuai EN-06. Fondasi email otomatis sudah tercatat pada Bagian 8. | Menengah |
 | NF-06 | Perketat akses file foto agar tidak terbuka publik tanpa otorisasi jika produksi membutuhkan. | Menengah |
 | NF-12 | Uji dan rapikan responsif untuk tablet/desktop pada semua halaman dashboard, chart, tabel drill-down, dan export. | Menengah |

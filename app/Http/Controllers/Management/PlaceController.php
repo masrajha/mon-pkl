@@ -154,7 +154,13 @@ class PlaceController extends Controller
             ]);
         }
 
-        $deleted = InternshipPlace::query()->whereIn('id', $placeIds)->delete();
+        $places = InternshipPlace::query()->whereIn('id', $placeIds)->get();
+        $deleted = 0;
+
+        foreach ($places as $place) {
+            $place->delete();
+            $deleted++;
+        }
 
         return back()->with('status', $deleted.' mitra tanpa peserta berhasil dihapus.');
     }
@@ -178,11 +184,13 @@ class PlaceController extends Controller
         DB::transaction(function () use ($sourceIds, $targetPlaceId): void {
             InternshipEnrollment::query()
                 ->whereIn('internship_place_id', $sourceIds)
-                ->update(['internship_place_id' => $targetPlaceId]);
+                ->get()
+                ->each(fn (InternshipEnrollment $enrollment) => $enrollment->update(['internship_place_id' => $targetPlaceId]));
 
             InternshipPlace::query()
                 ->whereIn('id', $sourceIds)
-                ->delete();
+                ->get()
+                ->each(fn (InternshipPlace $place) => $place->delete());
         });
 
         return back()->with('status', 'Merge mitra berhasil. Peserta dari '.count($sourceIds).' data sumber sudah dipindahkan.');

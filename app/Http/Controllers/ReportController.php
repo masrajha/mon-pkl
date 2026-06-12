@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
@@ -31,27 +32,7 @@ class ReportController extends Controller
     {
         [$periods, $selectedPeriod] = $this->periodOptions($request);
         [$startDate, $endDate] = $this->dateRange($request, $selectedPeriod);
-
-        $query = InternshipEnrollment::query()
-            ->with([
-                'student.user',
-                'studyProgram',
-                'internshipPeriod.program',
-                'internshipPlace',
-                'checkIns' => fn ($query) => $query->orderBy('checked_at'),
-            ])
-            ->whereHas('checkIns', fn ($query) => $query->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()]));
-
-        $this->onlyReportParticipants($query);
-        $this->scopeEnrollments($query, $request);
-
-        $enrollments = $query->get();
-
-        $rows = $enrollments
-            ->map(fn (InternshipEnrollment $enrollment) => $this->summarizeEnrollment($enrollment, $request, $startDate, $endDate))
-            ->filter()
-            ->sortBy('name')
-            ->values();
+        $rows = $this->monitoringRows($request, $startDate, $endDate);
 
         return view('reports.monitoring', [
             'rows' => $rows,
@@ -71,8 +52,32 @@ class ReportController extends Controller
                 'students' => $rows->count(),
                 'attendance_days' => $rows->sum('attendance_days'),
                 'duration_hours' => round($rows->sum('duration_hours'), 2),
+                'pending_forgotten_attendance' => $rows->sum('forgotten_pending'),
+                'pending_daily_logs' => $rows->sum('daily_logs_pending'),
+                'sanctions' => round($rows->sum('sanction_points'), 2),
             ],
         ]);
+    }
+
+    public function export(Request $request, string $type): StreamedResponse
+    {
+        abort_unless(in_array($type, [
+            'monitoring',
+            'attendance-heatmap',
+            'sanctions',
+            'final-scores',
+            'submission-progress',
+            'seminar-status',
+            'finalization',
+        ], true), 404);
+
+        $format = $request->string('format')->lower()->toString() === 'xls' ? 'xls' : 'csv';
+        $payload = $this->exportPayload($request, $type);
+        $filename = 'silat-'.$type.'-'.now()->format('Ymd-His').'.'.$format;
+
+        return $format === 'xls'
+            ? $this->streamExcelTable($filename, $payload['headers'], $payload['rows'])
+            : $this->streamCsv($filename, $payload['headers'], $payload['rows']);
     }
 
     public function progressFunnel(Request $request): View
@@ -420,6 +425,29 @@ class ReportController extends Controller
         ]);
     }
 
+    public function snapshot(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        [$startDate, $endDate] = $this->dateRange($request, $selectedPeriod);
+        $dataset = $this->snapshotDataset($request, $startDate, $endDate);
+
+        return view('reports.snapshot', [
+            'periods' => $periods,
+            'selectedPeriod' => $selectedPeriod,
+            'selectedProgram' => $request->filled('program_id')
+                ? Program::query()->find($request->integer('program_id'))
+                : null,
+            'selectedStudyProgram' => $request->filled('study_program_id')
+                ? StudyProgram::query()->find($request->integer('study_program_id'))
+                : null,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'printedAt' => now(),
+            'printedBy' => $request->user()?->name ?: '-',
+            ...$dataset,
+        ]);
+    }
+
     public function sanctions(Request $request): View
     {
         [$periods, $selectedPeriod] = $this->periodOptions($request);
@@ -583,6 +611,433 @@ class ReportController extends Controller
             'rows' => $rows,
             'canOperate' => $request->user()?->hasRole('admin') || $request->user()?->hasRole('koordinator'),
         ]);
+    }
+
+    private function monitoringRows(Request $request, Carbon $startDate, Carbon $endDate): Collection
+    {
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'lecturerSupervisor',
+                'checkIns' => fn ($query) => $query
+                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->orderBy('checked_at'),
+                'forgottenAttendanceRequests' => fn ($query) => $query
+                    ->whereBetween('requested_date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orderBy('requested_date'),
+                'submissionProgress',
+                'seminarRequests',
+                'fieldSupervisorAssessment',
+                'finalAssessment',
+                'sanctions' => fn ($query) => $query
+                    ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orderBy('date'),
+            ]);
+
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+
+        return $query->get()
+            ->map(fn (InternshipEnrollment $enrollment) => $this->summarizeEnrollment($enrollment, $request, $startDate, $endDate))
+            ->sortBy('name')
+            ->values();
+    }
+
+    private function snapshotDataset(Request $request, Carbon $startDate, Carbon $endDate): array
+    {
+        $dates = collect(CarbonPeriod::create($startDate, $endDate))
+            ->map(fn (Carbon $date): Carbon => $date->copy())
+            ->values();
+
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'lecturer',
+                'lecturerSupervisor',
+                'checkIns' => fn ($query) => $query
+                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->orderBy('checked_at'),
+                'forgottenAttendanceRequests',
+                'submissionProgress',
+                'seminarRequests',
+                'fieldSupervisorAssessment',
+                'finalAssessment',
+            ]);
+
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+        $enrollments = $query->get();
+
+        $attendanceTrend = $dates
+            ->map(function (Carbon $date) use ($enrollments): array {
+                $dateKey = $date->toDateString();
+                $daily = $enrollments->flatMap(fn (InternshipEnrollment $enrollment): Collection => $enrollment->checkIns)
+                    ->filter(fn (CheckIn $checkIn): bool => $checkIn->checked_at?->toDateString() === $dateKey);
+
+                return [
+                    'date' => $dateKey,
+                    'label' => $date->translatedFormat('d M'),
+                    'check_in' => $daily->where('action', 'check_in')->pluck('internship_enrollment_id')->unique()->count(),
+                    'check_out' => $daily->where('action', 'check_out')->pluck('internship_enrollment_id')->unique()->count(),
+                    'valid_pairs' => $daily->groupBy('internship_enrollment_id')
+                        ->filter(fn (Collection $items): bool => $items->where('action', 'check_in')->isNotEmpty() && $items->where('action', 'check_out')->isNotEmpty())
+                        ->count(),
+                ];
+            })
+            ->all();
+
+        $statusKeys = $this->reportParticipantStatuses();
+        $statusLabels = [
+            'active' => 'Aktif',
+            'completed' => 'Selesai',
+        ];
+        $statusByStudyProgram = $enrollments
+            ->groupBy(fn (InternshipEnrollment $enrollment): string => (string) ($enrollment->study_program_id ?: 'none'))
+            ->map(function (Collection $items, string $id) use ($statusKeys): array {
+                $first = $items->first();
+
+                return [
+                    'id' => $id === 'none' ? null : (int) $id,
+                    'name' => $first?->studyProgram?->name ?: 'Tanpa Prodi',
+                    'total' => $items->count(),
+                    'statuses' => collect($statusKeys)
+                        ->mapWithKeys(fn (string $status): array => [$status => $items->where('status', $status)->count()])
+                        ->all(),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values()
+            ->all();
+
+        $reportStatusLabels = [
+            'not_uploaded' => 'Belum unggah',
+            'pending' => 'Menunggu review',
+            'revision_required' => 'Perlu revisi',
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+        ];
+        $reportStatus = collect(array_keys($reportStatusLabels))
+            ->mapWithKeys(fn (string $status): array => [$status => 0])
+            ->all();
+        foreach ($enrollments as $enrollment) {
+            $status = $this->latestFullReportStatus($enrollment);
+            $reportStatus[$status] = ($reportStatus[$status] ?? 0) + 1;
+        }
+
+        $topSanctions = $enrollments
+            ->filter(fn (InternshipEnrollment $enrollment): bool => (int) $enrollment->total_sanctions_points > 0)
+            ->sortByDesc('total_sanctions_points')
+            ->take(8)
+            ->map(fn (InternshipEnrollment $enrollment): array => [
+                'student' => $enrollment->student?->full_name ?: '-',
+                'npm' => $enrollment->student?->npm ?: '-',
+                'study_program' => $enrollment->studyProgram?->name ?: '-',
+                'period' => $enrollment->internshipPeriod?->display_name ?: '-',
+                'points' => (int) $enrollment->total_sanctions_points,
+            ])
+            ->values()
+            ->all();
+
+        $assessmentProgress = collect([
+            [
+                'key' => 'field_supervisor',
+                'label' => 'Nilai Pembimbing Lapangan',
+                'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => (bool) $enrollment->fieldSupervisorAssessment?->final_score)->count(),
+            ],
+            [
+                'key' => 'lecturer',
+                'label' => 'Nilai Dosen',
+                'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => $enrollment->seminarRequests->whereNotNull('seminar_score')->isNotEmpty())->count(),
+            ],
+            [
+                'key' => 'final',
+                'label' => 'Nilai Final',
+                'done' => $enrollments->filter(fn (InternshipEnrollment $enrollment): bool => (bool) $enrollment->finalAssessment?->finalized_at)->count(),
+            ],
+        ])
+            ->map(fn (array $row): array => $row + [
+                'missing' => max(0, $enrollments->count() - $row['done']),
+                'percent' => $enrollments->count() > 0 ? round($row['done'] / $enrollments->count() * 100, 1) : 0,
+            ])
+            ->all();
+
+        $riskRows = $enrollments
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->riskScoring->score($enrollment))
+            ->sortByDesc('score')
+            ->values();
+        $riskSummary = collect(['safe', 'watch', 'risky', 'critical'])
+            ->mapWithKeys(fn (string $key): array => [$key => $riskRows->where('category_key', $key)->count()])
+            ->all();
+
+        $validPairTotal = collect($attendanceTrend)->sum('valid_pairs');
+        $finalProgress = collect($assessmentProgress)->firstWhere('key', 'final') ?? ['done' => 0, 'percent' => 0];
+
+        return [
+            'totalEnrollments' => $enrollments->count(),
+            'validPairTotal' => $validPairTotal,
+            'finalProgress' => $finalProgress,
+            'attendanceTrend' => $attendanceTrend,
+            'statusKeys' => $statusKeys,
+            'statusLabels' => $statusLabels,
+            'statusByStudyProgram' => $statusByStudyProgram,
+            'reportStatus' => $reportStatus,
+            'reportStatusLabels' => $reportStatusLabels,
+            'topSanctions' => $topSanctions,
+            'assessmentProgress' => $assessmentProgress,
+            'riskSummary' => $riskSummary,
+            'riskRows' => $riskRows->reject(fn (array $row): bool => $row['category_key'] === 'safe')->take(8)->values(),
+        ];
+    }
+
+    private function exportPayload(Request $request, string $type): array
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        [$startDate, $endDate] = in_array($type, ['attendance-heatmap'], true)
+            ? $this->heatmapDateRange($request, $selectedPeriod, $periods)
+            : $this->dateRange($request, $selectedPeriod);
+
+        return match ($type) {
+            'monitoring' => $this->monitoringExportPayload($request, $startDate, $endDate),
+            'attendance-heatmap' => $this->attendanceHeatmapExportPayload($request, $startDate, $endDate),
+            'sanctions' => $this->sanctionsExportPayload($request, $startDate, $endDate),
+            'final-scores' => $this->finalScoresExportPayload($request),
+            'submission-progress' => $this->submissionProgressExportPayload($request),
+            'seminar-status' => $this->seminarStatusExportPayload($request),
+            'finalization' => $this->finalizationExportPayload($request),
+        };
+    }
+
+    private function monitoringExportPayload(Request $request, Carbon $startDate, Carbon $endDate): array
+    {
+        return [
+            'headers' => [
+                'Mahasiswa', 'NPM', 'Email', 'Prodi', 'Periode', 'Mitra', 'Hari Hadir',
+                'Check-in/out', 'Rata-rata Jarak', 'Durasi Jam', 'Jam Masuk', 'Jam Pulang',
+                'Status Laporan', 'Status Seminar', 'Status Nilai', 'Lupa Presensi Pending',
+                'Lupa Presensi Disetujui', 'Catatan Harian Tervalidasi', 'Catatan Harian Pending', 'Sanksi',
+            ],
+            'rows' => $this->monitoringRows($request, $startDate, $endDate)->map(fn (array $row): array => [
+                $row['name'], $row['npm'], $row['email'], $row['study_program'], $row['period'], $row['place'],
+                $row['attendance_days'], $row['check_ins_count'], $row['average_distance_meters'],
+                $row['duration_hours'], $row['min_check_in'].' - '.$row['max_check_in'], $row['min_check_out'].' - '.$row['max_check_out'],
+                $row['report_status_label'], $row['seminar_status_label'], $row['assessment_status_label'],
+                $row['forgotten_pending'], $row['forgotten_approved'], $row['daily_logs_validated'],
+                $row['daily_logs_pending'], $row['sanction_points'],
+            ]),
+        ];
+    }
+
+    private function attendanceHeatmapExportPayload(Request $request, Carbon $startDate, Carbon $endDate): array
+    {
+        $dates = collect(CarbonPeriod::create($startDate, $endDate))->map(fn (Carbon $date): Carbon => $date->copy())->values();
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'checkIns' => fn ($query) => $query
+                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->orderBy('checked_at'),
+                'forgottenAttendanceRequests' => fn ($query) => $query
+                    ->whereBetween('requested_date', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->orderBy('requested_date'),
+            ]);
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+
+        $rows = $query->get()
+            ->sortBy(fn (InternshipEnrollment $enrollment): string => $enrollment->student?->full_name ?? '')
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->heatmapRow($enrollment, $dates))
+            ->flatMap(function (array $row): Collection {
+                $enrollment = $row['enrollment'];
+
+                return $row['cells']->map(fn (array $cell): array => [
+                    $enrollment->student?->full_name ?: '-',
+                    $enrollment->student?->npm ?: '-',
+                    $enrollment->studyProgram?->name ?: '-',
+                    $enrollment->internshipPeriod?->display_name ?: '-',
+                    $enrollment->internshipPlace?->name ?: '-',
+                    $cell['date'],
+                    $cell['label'],
+                    $cell['check_in'] ?: '-',
+                    $cell['check_out'] ?: '-',
+                ]);
+            });
+
+        return [
+            'headers' => ['Mahasiswa', 'NPM', 'Prodi', 'Periode', 'Mitra', 'Tanggal', 'Status', 'Masuk', 'Pulang'],
+            'rows' => $rows,
+        ];
+    }
+
+    private function sanctionsExportPayload(Request $request, Carbon $startDate, Carbon $endDate): array
+    {
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'checkIns' => fn ($query) => $query
+                    ->whereBetween('checked_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
+                    ->where('sanction_points', '>', 0),
+                'submissionProgress' => fn ($query) => $query
+                    ->where('sanction_points', '>', 0)
+                    ->whereBetween('uploaded_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()]),
+                'sanctions' => fn ($query) => $query->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]),
+                'finalAssessment',
+            ]);
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+
+        return [
+            'headers' => ['Mahasiswa', 'NPM', 'Prodi', 'Periode', 'Mitra', 'Sanksi Presensi', 'Sanksi Laporan', 'Pengurangan Final', 'Total'],
+            'rows' => $query->get()
+                ->map(fn (InternshipEnrollment $enrollment): array => $this->sanctionReportRow($enrollment, $startDate, $endDate))
+                ->filter(fn (array $row): bool => $row['total'] > 0 || ! $request->boolean('only_with_sanctions', true))
+                ->sortByDesc('total')
+                ->values()
+                ->map(fn (array $row): array => [
+                    $row['student'], $row['npm'], $row['study_program'], $row['period'], $row['place'],
+                    $row['attendance_sanctions'], $row['report_sanctions'], $row['final_deduction'], $row['total'],
+                ]),
+        ];
+    }
+
+    private function finalScoresExportPayload(Request $request): array
+    {
+        return [
+            'headers' => ['Mahasiswa', 'NPM', 'Prodi', 'Periode', 'Mitra', 'Dosen Pembimbing', 'Nilai Dosen', 'Nilai Pembimbing Lapangan', 'Nilai Dasar', 'Pengurangan', 'Total Nilai', 'Huruf Mutu', 'Nomor Berita Acara', 'Status'],
+            'rows' => $this->finalScoreRows($request)->map(fn (array $row): array => [
+                $row['student'], $row['npm'], $row['study_program'], $row['period'], $row['place'], $row['lecturer'],
+                $row['lecturer_score'], $row['field_supervisor_score'], $row['base_score'], $row['final_deduction'],
+                $row['final_score'], $row['letter_grade'], $row['document_number'], $row['is_final'] ? 'Sudah final' : 'Belum final',
+            ]),
+        ];
+    }
+
+    private function submissionProgressExportPayload(Request $request): array
+    {
+        $query = InternshipEnrollment::query()
+            ->with(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace', 'submissionProgress' => fn ($query) => $query->orderBy('deadline_type')->latest('uploaded_at')]);
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+
+        return [
+            'headers' => ['Mahasiswa', 'NPM', 'Prodi', 'Periode', 'Mitra', 'Jenis Laporan', 'Status', 'Tanggal Upload', 'Tanggal Review', 'Sanksi', 'Catatan Dosen'],
+            'rows' => $query->get()->flatMap(fn (InternshipEnrollment $enrollment): Collection => $enrollment->submissionProgress->map(fn ($progress): array => [
+                $enrollment->student?->full_name ?: '-',
+                $enrollment->student?->npm ?: '-',
+                $enrollment->studyProgram?->name ?: '-',
+                $enrollment->internshipPeriod?->display_name ?: '-',
+                $enrollment->internshipPlace?->name ?: '-',
+                $progress->deadline_type,
+                $this->reportStatusMeta((string) $progress->status)['label'],
+                $progress->uploaded_at?->format('Y-m-d H:i') ?: '-',
+                $progress->reviewed_at?->format('Y-m-d H:i') ?: '-',
+                $progress->sanction_points ?: 0,
+                $progress->lecturer_note ?: '-',
+            ])),
+        ];
+    }
+
+    private function seminarStatusExportPayload(Request $request): array
+    {
+        $query = InternshipEnrollment::query()
+            ->with(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace', 'seminarRequests' => fn ($query) => $query->latest('scheduled_at')]);
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+
+        return [
+            'headers' => ['Mahasiswa', 'NPM', 'Prodi', 'Periode', 'Mitra', 'Judul', 'Status Seminar', 'Tanggal Usulan', 'Tanggal Terjadwal', 'Tanggal Selesai', 'Nilai Dosen'],
+            'rows' => $query->get()->flatMap(fn (InternshipEnrollment $enrollment): Collection => $enrollment->seminarRequests->map(fn ($seminar): array => [
+                $enrollment->student?->full_name ?: '-',
+                $enrollment->student?->npm ?: '-',
+                $enrollment->studyProgram?->name ?: '-',
+                $enrollment->internshipPeriod?->display_name ?: '-',
+                $enrollment->internshipPlace?->name ?: '-',
+                $seminar->title ?: '-',
+                $this->seminarStatusMeta((string) $seminar->status)['label'],
+                $seminar->proposed_date?->format('Y-m-d') ?: '-',
+                $seminar->scheduled_at?->format('Y-m-d H:i') ?: '-',
+                $seminar->completed_at?->format('Y-m-d H:i') ?: '-',
+                $seminar->seminar_score,
+            ])),
+        ];
+    }
+
+    private function finalizationExportPayload(Request $request): array
+    {
+        return $this->finalScoresExportPayload($request);
+    }
+
+    private function finalScoreRows(Request $request): Collection
+    {
+        $status = $request->string('status')->toString();
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'lecturerSupervisor',
+                'finalAssessment',
+                'fieldSupervisorAssessment',
+                'seminarRequests' => fn ($query) => $query->latest('scheduled_at'),
+            ]);
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+
+        return $query->get()
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->finalScoreReportRow($enrollment))
+            ->when($status === 'finalized', fn (Collection $rows): Collection => $rows->where('is_final', true)->values())
+            ->when($status === 'pending', fn (Collection $rows): Collection => $rows->where('is_final', false)->values())
+            ->sortBy([
+                ['is_final', 'asc'],
+                ['student', 'asc'],
+            ])
+            ->values();
+    }
+
+    private function streamCsv(string $filename, array $headers, Collection $rows): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($headers, $rows): void {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, $headers);
+
+            foreach ($rows as $row) {
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function streamExcelTable(string $filename, array $headers, Collection $rows): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($headers, $rows): void {
+            echo '<html><head><meta charset="UTF-8"></head><body><table border="1"><thead><tr>';
+            foreach ($headers as $header) {
+                echo '<th>'.e($header).'</th>';
+            }
+            echo '</tr></thead><tbody>';
+            foreach ($rows as $row) {
+                echo '<tr>';
+                foreach ($row as $cell) {
+                    echo '<td>'.e((string) $cell).'</td>';
+                }
+                echo '</tr>';
+            }
+            echo '</tbody></table></body></html>';
+        }, $filename, ['Content-Type' => 'application/vnd.ms-excel; charset=UTF-8']);
     }
 
     private function sanctionReportRow(InternshipEnrollment $enrollment, Carbon $startDate, Carbon $endDate): array
@@ -925,7 +1380,7 @@ class ReportController extends Controller
         return [$periods, $selectedPeriod];
     }
 
-    private function summarizeEnrollment(InternshipEnrollment $enrollment, Request $request, Carbon $startDate, Carbon $endDate): ?array
+    private function summarizeEnrollment(InternshipEnrollment $enrollment, Request $request, Carbon $startDate, Carbon $endDate): array
     {
         $settings = $this->configurations->forPeriod($enrollment->internshipPeriod);
 
@@ -939,12 +1394,19 @@ class ReportController extends Controller
             ->map(fn ($items) => $this->summarizeDay($items->values(), $settings))
             ->filter();
 
-        if ($daily->isEmpty()) {
-            return null;
-        }
-
         $checkIns = $enrollment->checkIns->filter(fn ($checkIn) => isset($allowedDates[$checkIn->checked_at->toDateString()]));
         $distances = $daily->pluck('distance_meters')->filter(fn ($distance) => $distance !== null);
+        $dailyLogs = $checkIns
+            ->filter(fn (CheckIn $checkIn): bool => filled($checkIn->note))
+            ->groupBy(fn (CheckIn $checkIn): string => $checkIn->checked_at->toDateString());
+        $validatedDailyLogs = $dailyLogs
+            ->filter(fn (Collection $items): bool => $items->every(fn (CheckIn $checkIn): bool => filled($checkIn->daily_log_validated_at)))
+            ->count();
+        $reportStatus = $this->latestFullReportStatus($enrollment);
+        $reportStatusMeta = $this->reportStatusMeta($reportStatus);
+        $seminarStatusMeta = $this->seminarStatusMeta($this->latestSeminarStatus($enrollment));
+        $assessmentStatusMeta = $this->assessmentStatusMeta($enrollment);
+        $sanctionRow = $this->sanctionReportRow($enrollment, $startDate, $endDate);
 
         return [
             'photo_url' => $enrollment->student?->user?->avatar_url,
@@ -962,7 +1424,91 @@ class ReportController extends Controller
             'max_check_in' => $this->secondsToTime($daily->pluck('check_in_seconds')->filter()->max()),
             'min_check_out' => $this->secondsToTime($daily->pluck('check_out_seconds')->filter()->min()),
             'max_check_out' => $this->secondsToTime($daily->pluck('check_out_seconds')->filter()->max()),
+            'report_status' => $reportStatus,
+            'report_status_label' => $reportStatusMeta['label'],
+            'report_status_variant' => $reportStatusMeta['variant'],
+            'seminar_status_label' => $seminarStatusMeta['label'],
+            'seminar_status_variant' => $seminarStatusMeta['variant'],
+            'assessment_status_label' => $assessmentStatusMeta['label'],
+            'assessment_status_variant' => $assessmentStatusMeta['variant'],
+            'forgotten_pending' => $enrollment->forgottenAttendanceRequests->where('status', 'pending')->count(),
+            'forgotten_approved' => $enrollment->forgottenAttendanceRequests->where('status', 'approved')->count(),
+            'daily_logs_total' => $dailyLogs->count(),
+            'daily_logs_validated' => $validatedDailyLogs,
+            'daily_logs_pending' => max(0, $dailyLogs->count() - $validatedDailyLogs),
+            'sanction_points' => round((float) $sanctionRow['total'], 2),
         ];
+    }
+
+    private function reportStatusMeta(string $status): array
+    {
+        return match ($status) {
+            'approved' => ['label' => 'Laporan disetujui', 'variant' => 'success'],
+            'submitted', 'pending', 'review' => ['label' => 'Menunggu review', 'variant' => 'warning'],
+            'revision', 'needs_revision' => ['label' => 'Perlu revisi', 'variant' => 'warning'],
+            'rejected' => ['label' => 'Ditolak', 'variant' => 'danger'],
+            default => ['label' => 'Belum upload', 'variant' => 'neutral'],
+        };
+    }
+
+    private function latestSeminarStatus(InternshipEnrollment $enrollment): string
+    {
+        $seminar = $enrollment->seminarRequests
+            ->sortByDesc('scored_at')
+            ->sortByDesc('completed_at')
+            ->sortByDesc('scheduled_at')
+            ->sortByDesc('created_at')
+            ->first();
+
+        if (! $seminar) {
+            return 'none';
+        }
+
+        if (filled($seminar->seminar_score) || filled($seminar->scored_at)) {
+            return 'scored';
+        }
+
+        if (filled($seminar->completed_at) || $seminar->status === 'completed') {
+            return 'completed';
+        }
+
+        if (filled($seminar->scheduled_at) || $seminar->status === 'scheduled') {
+            return 'scheduled';
+        }
+
+        return $seminar->status ?: 'submitted';
+    }
+
+    private function seminarStatusMeta(string $status): array
+    {
+        return match ($status) {
+            'scored' => ['label' => 'Nilai dosen masuk', 'variant' => 'success'],
+            'completed' => ['label' => 'Seminar selesai', 'variant' => 'success'],
+            'scheduled' => ['label' => 'Terjadwal', 'variant' => 'info'],
+            'submitted', 'pending', 'lecturer_approved', 'manual_acc_validated' => ['label' => 'Diproses', 'variant' => 'warning'],
+            'rejected', 'cancelled' => ['label' => 'Tidak lanjut', 'variant' => 'danger'],
+            default => ['label' => 'Belum seminar', 'variant' => 'neutral'],
+        };
+    }
+
+    private function assessmentStatusMeta(InternshipEnrollment $enrollment): array
+    {
+        if (filled($enrollment->finalAssessment?->finalized_at)) {
+            return ['label' => 'Sudah final', 'variant' => 'success'];
+        }
+
+        $lecturerScore = $enrollment->seminarRequests->whereNotNull('seminar_score')->isNotEmpty();
+        $fieldScore = $enrollment->fieldSupervisorAssessment?->final_score !== null;
+
+        if ($lecturerScore && $fieldScore) {
+            return ['label' => 'Siap finalisasi', 'variant' => 'info'];
+        }
+
+        if ($lecturerScore || $fieldScore) {
+            return ['label' => 'Nilai sebagian', 'variant' => 'warning'];
+        }
+
+        return ['label' => 'Belum ada nilai', 'variant' => 'neutral'];
     }
 
     private function summarizeDay($checkIns, array $settings): array

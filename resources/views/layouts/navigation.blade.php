@@ -158,6 +158,7 @@
             'items' => [
                 ['label' => 'Konfigurasi Program', 'route' => 'system-configurations.index', 'icon' => 'fa-sliders', 'active' => ['system-configurations.*']],
                 ['label' => 'Email & Notifikasi', 'route' => 'email-notifications.index', 'icon' => 'fa-envelope-circle-check', 'active' => ['email-notifications.*']],
+                ['label' => 'Audit Log', 'route' => 'management.audit-logs.index', 'icon' => 'fa-clock-rotate-left', 'active' => ['management.audit-logs.*']],
             ],
         ];
     }

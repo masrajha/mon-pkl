@@ -4,6 +4,7 @@
         ['route' => 'reports.risk-scoring', 'label' => 'Risk Scoring', 'icon' => 'fa-triangle-exclamation'],
         ['route' => 'reports.attendance-heatmap', 'label' => 'Heatmap Kehadiran', 'icon' => 'fa-table-cells'],
         ['route' => 'reports.operational-charts', 'label' => 'Grafik Operasional', 'icon' => 'fa-chart-pie'],
+        ['route' => 'reports.snapshot', 'label' => 'Snapshot PDF', 'icon' => 'fa-file-pdf'],
         ['route' => 'reports.sanctions', 'label' => 'Rekap Sanksi', 'icon' => 'fa-scale-balanced'],
         ['route' => 'reports.final-scores', 'label' => 'Rekap Nilai Akhir', 'icon' => 'fa-calculator'],
         ['route' => 'reports.monitoring', 'label' => 'Rekap Monitoring', 'icon' => 'fa-chart-column'],

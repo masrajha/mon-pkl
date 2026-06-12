@@ -1,4 +1,12 @@
 <x-app-layout>
+    <style>
+        @media (min-width: 900px) {
+            .sanctions-filter-grid {
+                grid-template-columns: repeat(6, minmax(0, 1fr));
+            }
+        }
+    </style>
+
     <x-slot name="header">
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -6,9 +14,12 @@
                 <h2 class="mt-1 text-2xl font-semibold text-gray-900">Rekap Pelanggaran & Sanksi</h2>
                 <p class="mt-1 text-sm text-gray-500">Pisahkan sumber sanksi dari presensi, keterlambatan laporan, dan pengurangan final.</p>
             </div>
-            <a class="silat-secondary-link" href="{{ route('reports.final-scores', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
-                <x-icon name="fa-calculator" /> Rekap nilai akhir
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                @include('reports.partials.export-buttons', ['type' => 'sanctions'])
+                <a class="silat-secondary-link" href="{{ route('reports.final-scores', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+                    <x-icon name="fa-calculator" /> Rekap nilai akhir
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -19,7 +30,7 @@
             @php($drillBase = request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']))
 
             <form method="GET" action="{{ route('reports.sanctions') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" data-period-date-sync>
-                <div class="grid gap-4 md:grid-cols-7">
+                <div class="sanctions-filter-grid grid grid-cols-1 gap-4">
                     <div>
                         <x-input-label for="period_id" value="Periode Program" />
                         <select id="period_id" name="period_id" class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm">
@@ -57,11 +68,11 @@
                         <x-text-input id="end_date" name="end_date" type="date" class="mt-1 block w-full text-sm" :value="$endDate" />
                     </div>
                     <input type="hidden" name="only_with_sanctions" value="0">
-                    <label class="flex items-end gap-2 pb-2 text-sm text-gray-700">
-                        <input type="checkbox" name="only_with_sanctions" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($onlyWithSanctions)>
-                        Hanya ada sanksi
-                    </label>
-                    <div class="flex items-end">
+                    <div class="flex flex-col justify-end gap-3">
+                        <label class="flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" name="only_with_sanctions" value="1" class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" @checked($onlyWithSanctions)>
+                            Hanya ada sanksi
+                        </label>
                         <button class="silat-btn w-full justify-center" type="submit"><x-icon name="fa-filter" /> Terapkan</button>
                     </div>
                 </div>

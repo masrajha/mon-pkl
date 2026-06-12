@@ -6,9 +6,12 @@
                 <h2 class="mt-1 text-2xl font-semibold text-gray-900">Rekap Nilai Akhir</h2>
                 <p class="mt-1 text-sm text-gray-500">Pantau nilai dosen, Pembimbing Lapangan, nilai dasar, pengurangan, total nilai, huruf mutu, dan nomor berita acara.</p>
             </div>
-            <a class="silat-secondary-link" href="{{ route('reports.sanctions', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
-                <x-icon name="fa-scale-balanced" /> Rekap sanksi
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                @include('reports.partials.export-buttons', ['type' => 'final-scores'])
+                <a class="silat-secondary-link" href="{{ route('reports.sanctions', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+                    <x-icon name="fa-scale-balanced" /> Rekap sanksi
+                </a>
+            </div>
         </div>
     </x-slot>
 
