@@ -81,7 +81,7 @@
                     </div>
                     <x-icon name="fa-mobile-screen-button" class="text-blue-600" />
                 </div>
-                <div class="mt-3 grid grid-cols-2 gap-2">
+                <div class="mt-3 grid grid-cols-3 gap-2">
                     <button type="button" data-permission-request="geolocation" class="rounded-md border border-gray-200 px-3 py-2 text-left text-xs hover:bg-gray-50">
                         <span class="block font-semibold text-gray-900">Lokasi</span>
                         <span class="text-gray-500" data-permission-status="geolocation">Memeriksa...</span>
@@ -89,6 +89,10 @@
                     <button type="button" data-permission-request="camera" class="rounded-md border border-gray-200 px-3 py-2 text-left text-xs hover:bg-gray-50">
                         <span class="block font-semibold text-gray-900">Kamera</span>
                         <span class="text-gray-500" data-permission-status="camera">Memeriksa...</span>
+                    </button>
+                    <button type="button" data-permission-request="notifications" class="rounded-md border border-gray-200 px-3 py-2 text-left text-xs hover:bg-gray-50">
+                        <span class="block font-semibold text-gray-900">Notifikasi</span>
+                        <span class="text-gray-500" data-permission-status="notifications">Memeriksa...</span>
                     </button>
                 </div>
             </section>

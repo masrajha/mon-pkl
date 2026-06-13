@@ -15,9 +15,23 @@
         <!-- Scripts -->
         @php
             $periodConfigurationService = app(\App\Services\PeriodConfigurationService::class);
+            $browserNotificationsEnabled = auth()->check()
+                && auth()->user()?->hasRole('mahasiswa')
+                && (bool) config('monpkl.web_notifications.enabled', true);
             $monPklFrontendConfig = [
                 'map' => $periodConfigurationService->frontendMapConfig(null),
                 'region' => config('monpkl.region'),
+                'browserNotifications' => [
+                    'enabled' => $browserNotificationsEnabled,
+                    'pollUrl' => auth()->check() ? route('browser-notifications.unread') : null,
+                    'markShownUrl' => auth()->check() ? route('browser-notifications.mark-shown', ['browserNotification' => '__ID__']) : null,
+                    'markReadUrl' => auth()->check() ? route('browser-notifications.mark-read', ['browserNotification' => '__ID__']) : null,
+                    'subscribeUrl' => auth()->check() ? route('browser-notifications.subscribe') : null,
+                    'unsubscribeUrl' => auth()->check() ? route('browser-notifications.unsubscribe') : null,
+                    'serviceWorkerUrl' => asset('silat-service-worker.js'),
+                    'vapidPublicKey' => config('monpkl.web_notifications.vapid_public_key'),
+                    'pollSeconds' => (int) config('monpkl.web_notifications.poll_seconds', 60),
+                ],
             ];
         @endphp
         <script>

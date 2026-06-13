@@ -51,3 +51,11 @@ Schedule::command('silat:assessment-notifications:queue --days-before-period-end
 Schedule::command('silat:operational-notifications:queue')
     ->hourly()
     ->withoutOverlapping();
+
+Schedule::command('silat:browser-notifications:queue-attendance-reminders --minutes='.config('monpkl.web_notifications.attendance_warning_minutes', 15))
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
+Schedule::command('silat:browser-notifications:push --limit=100')
+    ->everyMinute()
+    ->withoutOverlapping();

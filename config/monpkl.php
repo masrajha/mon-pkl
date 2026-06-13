@@ -23,6 +23,16 @@ return [
         ],
     ],
 
+    'web_notifications' => [
+        'enabled' => filter_var(env('MONPKL_WEB_NOTIFICATIONS_ENABLED', true), FILTER_VALIDATE_BOOL),
+        'attendance_warning_minutes' => (int) env('MONPKL_WEB_NOTIFICATIONS_ATTENDANCE_WARNING_MINUTES', 15),
+        'poll_seconds' => (int) env('MONPKL_WEB_NOTIFICATIONS_POLL_SECONDS', 60),
+        'vapid_subject' => env('MONPKL_WEB_PUSH_VAPID_SUBJECT', env('APP_URL', 'http://localhost')),
+        'vapid_public_key' => env('MONPKL_WEB_PUSH_VAPID_PUBLIC_KEY', ''),
+        'vapid_private_key' => env('MONPKL_WEB_PUSH_VAPID_PRIVATE_KEY', ''),
+        'push_ttl_seconds' => (int) env('MONPKL_WEB_PUSH_TTL_SECONDS', 3600),
+    ],
+
     'enrollment' => [
         'min_place_quota' => (int) env('MONPKL_PLACE_MIN_QUOTA', 2),
         'max_place_quota' => (int) env('MONPKL_PLACE_MAX_QUOTA', 3),

@@ -2,6 +2,7 @@ import './bootstrap';
 import './maps/leafletMaps';
 import './checkInCamera';
 import './browserPermissions';
+import './browserNotifications';
 
 import Alpine from 'alpinejs';
 

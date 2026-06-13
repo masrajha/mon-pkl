@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\BrowserNotificationController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\CoordinatorDashboardController;
 use App\Http\Controllers\DashboardController;
@@ -181,6 +182,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/media/public/{path}', PublicStorageFileController::class)
         ->where('path', '.*')
         ->name('media.public');
+
+    Route::get('/browser-notifications/unread', [BrowserNotificationController::class, 'unread'])
+        ->middleware('throttle:30,1')
+        ->name('browser-notifications.unread');
+    Route::post('/browser-notifications/{browserNotification}/shown', [BrowserNotificationController::class, 'markShown'])
+        ->middleware('throttle:60,1')
+        ->name('browser-notifications.mark-shown');
+    Route::post('/browser-notifications/{browserNotification}/read', [BrowserNotificationController::class, 'markRead'])
+        ->middleware('throttle:60,1')
+        ->name('browser-notifications.mark-read');
+    Route::post('/browser-notifications/subscribe', [BrowserNotificationController::class, 'subscribe'])
+        ->middleware('throttle:10,1')
+        ->name('browser-notifications.subscribe');
+    Route::post('/browser-notifications/unsubscribe', [BrowserNotificationController::class, 'unsubscribe'])
+        ->middleware('throttle:10,1')
+        ->name('browser-notifications.unsubscribe');
 
     Route::get('/maps/places', [MapController::class, 'places'])->name('maps.places');
     Route::get('/maps/places/data', [MapController::class, 'placesData'])->name('maps.places.data');

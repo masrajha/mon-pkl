@@ -7,14 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
 function initBrowserPermissions(element) {
     const locationStatus = element.querySelector('[data-permission-status="geolocation"]');
     const cameraStatus = element.querySelector('[data-permission-status="camera"]');
+    const notificationStatus = element.querySelector('[data-permission-status="notifications"]');
     const locationButton = element.querySelector('[data-permission-request="geolocation"]');
     const cameraButton = element.querySelector('[data-permission-request="camera"]');
+    const notificationButton = element.querySelector('[data-permission-request="notifications"]');
 
     refreshPermission('geolocation', locationStatus, locationButton);
     refreshPermission('camera', cameraStatus, cameraButton);
+    refreshNotificationPermission(notificationStatus, notificationButton);
 
     locationButton?.addEventListener('click', () => requestLocation(locationStatus, locationButton));
     cameraButton?.addEventListener('click', () => requestCamera(cameraStatus, cameraButton));
+    notificationButton?.addEventListener('click', () => requestNotification(notificationStatus, notificationButton));
 }
 
 async function refreshPermission(name, statusElement, button) {
@@ -76,5 +80,37 @@ async function requestCamera(statusElement, button) {
         setPermissionState(statusElement, button, 'granted');
     } catch (error) {
         setPermissionState(statusElement, button, 'denied');
+    }
+}
+
+function refreshNotificationPermission(statusElement, button) {
+    if (! statusElement) {
+        return;
+    }
+
+    if (! ('Notification' in window)) {
+        statusElement.textContent = 'Tidak didukung browser';
+        if (button) {
+            button.hidden = true;
+        }
+        return;
+    }
+
+    setPermissionState(statusElement, button, Notification.permission);
+}
+
+async function requestNotification(statusElement, button) {
+    if (! ('Notification' in window)) {
+        statusElement.textContent = 'Tidak didukung browser';
+        return;
+    }
+
+    const permission = await Notification.requestPermission();
+    setPermissionState(statusElement, button, permission);
+
+    if (permission === 'granted') {
+        window.SilatBrowserNotifications?.subscribeForPush?.().catch(() => {
+            statusElement.textContent = 'Diizinkan, push belum aktif';
+        });
     }
 }
