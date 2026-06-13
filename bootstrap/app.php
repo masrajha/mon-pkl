@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\QueuePendingPlaceProposalReminders::class,
         \App\Console\Commands\QueuePendingSupervisorChangeReminders::class,
         \App\Console\Commands\QueuePendingRelocationReminders::class,
+        \App\Console\Commands\QueueBrowserAttendanceReminders::class,
+        \App\Console\Commands\PushBrowserNotifications::class,
+        \App\Console\Commands\GenerateWebPushVapidKeys::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
