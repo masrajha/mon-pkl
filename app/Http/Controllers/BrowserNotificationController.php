@@ -4,13 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\BrowserNotification;
 use App\Models\BrowserPushSubscription;
+use App\Services\BrowserNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BrowserNotificationController extends Controller
 {
+    public function __construct(private readonly BrowserNotificationService $notifications)
+    {
+    }
+
     public function unread(Request $request): JsonResponse
     {
+        if (! $this->notifications->notificationsEnabled()) {
+            return response()->json(['notifications' => []]);
+        }
+
         $now = now();
 
         $notifications = BrowserNotification::query()
@@ -64,6 +73,8 @@ class BrowserNotificationController extends Controller
 
     public function subscribe(Request $request): JsonResponse
     {
+        abort_unless($this->notifications->notificationsEnabled(), 403);
+
         $validated = $request->validate([
             'endpoint' => ['required', 'url', 'max:3000'],
             'keys.p256dh' => ['required', 'string', 'max:1000'],

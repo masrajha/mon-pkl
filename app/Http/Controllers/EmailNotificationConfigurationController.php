@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
 use App\Models\EmailNotification;
 use App\Models\SystemSetting;
+use App\Services\BrowserNotificationService;
 use App\Services\EmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,10 @@ class EmailNotificationConfigurationController extends Controller
 {
     use InteractsWithTableControls;
 
-    public function __construct(private readonly EmailNotificationService $emails)
+    public function __construct(
+        private readonly EmailNotificationService $emails,
+        private readonly BrowserNotificationService $browserNotifications,
+    )
     {
     }
 
@@ -48,6 +52,7 @@ class EmailNotificationConfigurationController extends Controller
         return view('email-notifications.index', [
             'tab' => $tab,
             'enabled' => $this->emails->notificationsEnabled(),
+            'browserEnabled' => $this->browserNotifications->notificationsEnabled(),
             'statusCounts' => $statusCounts,
             'notifications' => $query
                 ->paginate($this->tablePerPage($request))
@@ -65,9 +70,13 @@ class EmailNotificationConfigurationController extends Controller
             'enabled' => $request->boolean('enabled'),
         ]);
 
+        SystemSetting::putValue('browser_notifications', [
+            'enabled' => $request->boolean('browser_enabled'),
+        ]);
+
         return redirect()
             ->route('email-notifications.index')
-            ->with('status', 'Status email notifikasi berhasil diperbarui.');
+            ->with('status', 'Status notifikasi berhasil diperbarui.');
     }
 
     public function updateCoverage(Request $request): RedirectResponse

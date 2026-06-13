@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BrowserNotification;
 use App\Models\BrowserPushSubscription;
 use App\Models\InternshipEnrollment;
+use App\Models\SystemSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Minishlink\WebPush\Subscription;
@@ -16,8 +17,21 @@ class BrowserNotificationService
     {
     }
 
+    public function notificationsEnabled(): bool
+    {
+        $settings = SystemSetting::getValue('browser_notifications', [
+            'enabled' => (bool) config('monpkl.web_notifications.enabled', true),
+        ]);
+
+        return (bool) ($settings['enabled'] ?? config('monpkl.web_notifications.enabled', true));
+    }
+
     public function queueAttendanceReminders(int $warningMinutes = 15): int
     {
+        if (! $this->notificationsEnabled()) {
+            return 0;
+        }
+
         $queued = 0;
 
         InternshipEnrollment::query()
@@ -36,6 +50,15 @@ class BrowserNotificationService
 
     public function pushDueNotifications(int $limit = 100): array
     {
+        if (! $this->notificationsEnabled()) {
+            return [
+                'sent' => 0,
+                'failed' => 0,
+                'skipped' => BrowserNotification::query()->whereNull('pushed_at')->whereNull('shown_at')->count(),
+                'message' => 'Browser notification sedang nonaktif.',
+            ];
+        }
+
         if (! $this->hasVapidKeys()) {
             return [
                 'sent' => 0,

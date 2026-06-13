@@ -49,8 +49,12 @@
             @if ($tab === 'status')
                 <div class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                     <div class="rounded-lg border {{ $enabled ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50' }} p-5">
-                        <p class="text-xs font-semibold uppercase tracking-wide {{ $enabled ? 'text-emerald-700' : 'text-rose-700' }}">Status Sistem</p>
+                        <p class="text-xs font-semibold uppercase tracking-wide {{ $enabled ? 'text-emerald-700' : 'text-rose-700' }}">Email Notifikasi</p>
                         <p class="mt-3 text-2xl font-bold text-gray-950">{{ $enabled ? 'Aktif' : 'Nonaktif' }}</p>
+                    </div>
+                    <div class="rounded-lg border {{ $browserEnabled ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50' }} p-5">
+                        <p class="text-xs font-semibold uppercase tracking-wide {{ $browserEnabled ? 'text-emerald-700' : 'text-rose-700' }}">Browser Notification</p>
+                        <p class="mt-3 text-2xl font-bold text-gray-950">{{ $browserEnabled ? 'Aktif' : 'Nonaktif' }}</p>
                     </div>
                     <div class="rounded-lg border border-gray-200 bg-white p-5">
                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pending</p>
@@ -69,7 +73,7 @@
                 <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
                     <section class="silat-card p-6">
                         <h3 class="text-base font-semibold text-gray-950">Kontrol Pengiriman</h3>
-                        <p class="mt-1 text-sm text-gray-500">Saat nonaktif, event tetap masuk antrean tetapi email tidak dikirim.</p>
+                        <p class="mt-1 text-sm text-gray-500">Atur kanal pengiriman notifikasi tanpa menghapus konfigurasi teknis yang sudah ada.</p>
                         <form method="POST" action="{{ route('email-notifications.status.update') }}" class="mt-5 space-y-4">
                             @csrf
                             @method('PATCH')
@@ -79,6 +83,13 @@
                                     <span class="mt-1 block text-xs text-gray-500">Matikan sementara ketika SMTP sedang bermasalah atau masa uji coba.</span>
                                 </span>
                                 <input type="checkbox" name="enabled" value="1" class="h-5 w-5 rounded border-gray-300 text-blue-600" @checked($enabled)>
+                            </label>
+                            <label class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 p-4">
+                                <span>
+                                    <span class="block text-sm font-semibold text-gray-900">Browser notification aktif</span>
+                                    <span class="mt-1 block text-xs text-gray-500">Saat nonaktif, reminder browser tidak dibuat, push tidak dikirim, dan izin notifikasi mahasiswa tidak dipakai.</span>
+                                </span>
+                                <input type="checkbox" name="browser_enabled" value="1" class="h-5 w-5 rounded border-gray-300 text-blue-600" @checked($browserEnabled)>
                             </label>
                             <x-primary-button>Simpan Status</x-primary-button>
                         </form>

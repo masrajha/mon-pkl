@@ -15,9 +15,10 @@
         <!-- Scripts -->
         @php
             $periodConfigurationService = app(\App\Services\PeriodConfigurationService::class);
+            $browserNotificationService = app(\App\Services\BrowserNotificationService::class);
             $browserNotificationsEnabled = auth()->check()
                 && auth()->user()?->hasRole('mahasiswa')
-                && (bool) config('monpkl.web_notifications.enabled', true);
+                && $browserNotificationService->notificationsEnabled();
             $monPklFrontendConfig = [
                 'map' => $periodConfigurationService->frontendMapConfig(null),
                 'region' => config('monpkl.region'),
