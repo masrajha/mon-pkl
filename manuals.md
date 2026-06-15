@@ -1,13 +1,21 @@
 # Manual Penggunaan SiLAT
 
-**Versi dokumen:** 2.4
-**Tanggal pembaruan:** 11 Juni 2026
-**Status:** Mengikuti implementasi fitur sampai snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Viewer Laporan berbasis organisasi, Finalisasi Nilai, Berita Acara Nilai, portal Pembimbing Lapangan, organisasi akademik, subnav laporan, dan pembatasan hapus master data terbaru.
+**Versi dokumen:** 2.5
+**Tanggal pembaruan:** 16 Juni 2026
+**Status:** Mengikuti implementasi fitur sampai role switcher multi-role, scope laporan Dosen Pembimbing, pembatasan aksi laporan sesuai mode aktif, perbaikan timezone laporan, snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Viewer Laporan berbasis organisasi, Finalisasi Nilai, Berita Acara Nilai, portal Pembimbing Lapangan, organisasi akademik, subnav laporan, dan pembatasan hapus master data terbaru.
 
 SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untuk mengelola pendaftaran program, presensi, pembekalan, laporan, catatan harian, perpindahan mitra, perubahan pembimbing, dan monitoring aktivitas mahasiswa.
 
-> **What's New - Versi 2.4**
+> **What's New - Versi 2.5**
 >
+> - Header menyediakan **role switcher** untuk akun yang memiliki lebih dari satu hak akses, misalnya Dosen Pembimbing, Koordinator, dan Viewer Laporan. Mode yang dipilih menentukan menu, scope data, dan aksi yang boleh digunakan.
+> - Mode **Dosen Pembimbing** kini memakai scope bimbingan secara eksplisit pada peta, rekap, dan halaman Analisis & Laporan. Data yang tampil dibatasi pada mahasiswa bimbingan dosen tersebut.
+> - Sidebar Dosen Pembimbing dirapikan: menu operasional dosen berisi Review Laporan, Seminar & Penilaian, Peta Monitoring Bimbingan, dan Rekap Monitoring Bimbingan. Menu **Input Lokasi Mitra** tidak ditampilkan untuk dosen pembimbing.
+> - Tab laporan untuk Dosen Pembimbing tetap dapat dibuka, tetapi isinya bersifat monitoring bimbingan. Aksi cepat dibatasi: dosen dapat membuka Presensi, Laporan, dan Seminar sesuai bimbingannya, tetapi tidak mendapat aksi Lupa Presensi, Finalisasi Nilai, atau Cetak Finalisasi.
+> - **Progress Funnel** pada mode Dosen Pembimbing menampilkan funnel khusus bimbingan: mahasiswa bimbingan aktif, sudah presensi, sudah mengisi catatan/laporan, catatan/laporan tervalidasi, sudah seminar/penilaian, nilai dosen masuk, dan nilai akhir lengkap.
+> - Akun dosen yang juga Koordinator atau Viewer Laporan dapat berpindah mode melalui role switcher. Aksi koordinator hanya dapat digunakan ketika mode aktif adalah Koordinator; mode Dosen Pembimbing tetap dibatasi sebagai dosen.
+> - Penentuan Viewer Laporan aktif dan filter tanggal laporan memakai tanggal lokal SiLAT sesuai timezone aplikasi, sehingga akses dan rekap tanggal tidak bergeser karena perbedaan UTC dan Asia/Jakarta.
+> - Migrasi perluasan kolom `avatar_url` disesuaikan agar kompatibel dengan PostgreSQL.
 > - Tersedia struktur **Organisasi** untuk scope laporan: Universitas Lampung → FMIPA → Jurusan Ilmu Komputer, dengan semua prodi saat ini ditautkan ke Jurusan Ilmu Komputer.
 > - Admin dapat menugaskan dosen aktif sebagai **Viewer Laporan** pada level universitas, fakultas, jurusan, atau prodi tanpa mengubah role utama dosen.
 > - Menu **Analisis & Laporan** kini dapat diakses admin, koordinator, dan Viewer Laporan sesuai scope; Viewer Laporan bersifat baca dan tidak memiliki aksi workflow operasional.
@@ -28,13 +36,14 @@ SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untu
 > - Konfigurasi Program menyediakan batas akurasi GPS, umur snapshot lokasi, toleransi beda koordinat, tanggal libur, batas Lupa Presensi, rubrik penilaian, survey institusi, dan dokumen cetak nilai.
 > - Menu **Analisis & Laporan** memuat dashboard progres, funnel, risk scoring, heatmap kehadiran, Grafik Operasional, Rekap Sanksi, dan Rekap Nilai Akhir.
 
-Dokumen ini dibagi menjadi lima bagian utama berdasarkan role pengguna, ditambah catatan khusus untuk Viewer Laporan:
+Dokumen ini dibagi menjadi enam bagian utama berdasarkan role pengguna:
 
 1. Role Mahasiswa
 2. Role Dosen Pembimbing
 3. Role Koordinator
 4. Role Admin
 5. Role Pembimbing Lapangan
+6. Role Viewer Laporan
 
 Viewer Laporan adalah akses tambahan untuk dosen yang hanya perlu membaca Analisis & Laporan sesuai scope organisasi/prodi, tanpa memproses workflow.
 
@@ -712,8 +721,9 @@ Dosen pembimbing dapat menggunakan SiLAT untuk:
 
 - Melihat dashboard dosen pembimbing.
 - Melihat daftar mahasiswa bimbingan.
-- Membuka rekap bimbingan dan monitoring presensi mahasiswa.
-- Membuka peta mitra dan peta monitoring.
+- Membuka rekap monitoring bimbingan dan monitoring presensi mahasiswa.
+- Membuka peta monitoring bimbingan.
+- Membuka tab Analisis & Laporan dalam scope mahasiswa bimbingan.
 - Melihat unggahan progres laporan mahasiswa bimbingan.
 - Membuka file laporan yang diunggah mahasiswa.
 - Memberikan review laporan: setujui, minta revisi, atau tolak.
@@ -725,10 +735,25 @@ Dosen pembimbing dapat menggunakan SiLAT untuk:
 Catatan:
 
 - Akses dosen pembimbing dibatasi pada mahasiswa yang ditetapkan sebagai bimbingannya.
-- Jika dosen juga memiliki penugasan koordinator aktif, dosen dapat memperoleh akses tambahan untuk scope periode/prodi koordinator. Akses tersebut dibahas pada Bagian 3 Role Koordinator.
+- Jika dosen juga memiliki penugasan koordinator aktif atau penugasan Viewer Laporan, gunakan role switcher pada header untuk memilih mode kerja yang tepat. Mode aktif menentukan menu, scope data, dan aksi yang boleh digunakan.
+- Saat mode aktif adalah **Dosen Pembimbing**, akses tetap dibatasi sebagai dosen pembimbing meskipun akun yang sama juga memiliki hak koordinator atau viewer.
 - Nilai akhir difinalisasi oleh admin/koordinator setelah nilai dosen dan nilai Pembimbing Lapangan tersedia.
 
-### 2.2 Login dan Dashboard Dosen
+### 2.2 Alur Singkat Dosen Pembimbing
+
+1. Login ke SiLAT sebagai dosen.
+2. Buka **Dashboard** untuk melihat ringkasan mahasiswa bimbingan.
+3. Buka **Review Laporan** untuk memeriksa unggahan mahasiswa.
+4. Klik **Buka file** pada dokumen yang akan diperiksa.
+5. Pilih status review: setujui, minta revisi, atau tolak.
+6. Isi catatan review, terutama jika meminta revisi atau menolak.
+7. Klik **Simpan Review**.
+8. Buka **Seminar & Penilaian** untuk memproses ACC atau nilai seminar jika mahasiswa sudah mengajukan seminar.
+9. Buka **Rekap Monitoring Bimbingan** untuk memantau presensi, durasi, dan jarak mahasiswa.
+10. Gunakan **Peta Monitoring Bimbingan** jika perlu memeriksa lokasi presensi secara visual.
+11. Lanjutkan komunikasi akademik dengan mahasiswa berdasarkan catatan review dan rekap aktivitas.
+
+### 2.3 Login dan Dashboard Dosen
 
 Menu: **Dashboard**
 
@@ -742,13 +767,27 @@ Dashboard dosen menampilkan:
 - Aksi cepat menuju modul yang membutuhkan tindakan dosen.
 - Deadline mahasiswa bimbingan dalam 7 hari ke depan; jika tidak ada, sistem menampilkan deadline terdekat.
 - Daftar mahasiswa bimbingan yang dikelompokkan berdasarkan program/periode.
-- Aksi cepat per kelompok periode menuju Review Laporan, Seminar & Penilaian, Peta Monitoring, dan Rekap Bimbingan.
+- Aksi cepat per kelompok periode menuju Review Laporan, Seminar & Penilaian, Peta Monitoring Bimbingan, dan Rekap Monitoring Bimbingan.
 
 Data mahasiswa bimbingan berasal dari enrollment mahasiswa yang sudah ditetapkan dosen pembimbingnya oleh admin/koordinator.
 
 Sidebar dosen menampilkan badge jumlah pekerjaan pada menu yang membutuhkan aksi, misalnya **Review Laporan (2)** atau **Seminar & Penilaian (5)**. Badge ini membantu dosen langsung melihat antrean pekerjaan tanpa membuka setiap menu satu per satu.
 
-### 2.3 Daftar Mahasiswa Bimbingan
+### 2.3A Role Switcher dan Mode Aktif
+
+Jika akun dosen memiliki lebih dari satu hak akses, header menampilkan role switcher. Contoh kombinasi yang mungkin muncul:
+
+- **Dosen Pembimbing**
+- **Koordinator**
+- **Viewer Laporan**
+
+Pilih **Dosen Pembimbing** jika ingin bekerja sebagai pembimbing akademik mahasiswa bimbingan. Pada mode ini, sidebar dan halaman laporan diarahkan ke scope bimbingan. Aksi koordinator seperti validasi pendaftaran, pengelolaan Lupa Presensi, dan finalisasi nilai tidak diberikan.
+
+Pilih **Koordinator** jika perlu menjalankan tugas operasional sesuai penugasan periode/prodi koordinator. Pilih **Viewer Laporan** jika hanya perlu membaca Analisis & Laporan sesuai scope organisasi/prodi yang diberikan admin.
+
+Mode aktif juga berlaku pada akses langsung melalui URL. Misalnya, ketika mode aktif adalah **Dosen Pembimbing**, halaman finalisasi nilai koordinator tidak dapat dipakai meskipun akun yang sama juga memiliki penugasan koordinator. Untuk memakai fitur koordinator, ubah mode aktif ke **Koordinator** lebih dulu.
+
+### 2.4 Daftar Mahasiswa Bimbingan
 
 Pada dashboard dosen, tabel mahasiswa bimbingan menampilkan:
 
@@ -757,12 +796,12 @@ Pada dashboard dosen, tabel mahasiswa bimbingan menampilkan:
 - Periode program.
 - Program studi.
 - Mitra/tempat kegiatan.
-- Link menuju peta monitoring.
-- Link menuju rekap bimbingan.
+- Link menuju peta monitoring bimbingan.
+- Link menuju rekap monitoring bimbingan.
 
 Dosen tidak memilih sendiri mahasiswa bimbingan. Penugasan dosen pembimbing dilakukan melalui validasi pendaftaran atau pengelolaan peserta oleh admin/koordinator.
 
-### 2.4 Review Laporan
+### 2.5 Review Laporan
 
 Menu: **Review Laporan**
 
@@ -796,7 +835,7 @@ Status yang terlihat pada sistem:
 | Perlu Revisi | Mahasiswa harus memperbaiki dokumen. |
 | Ditolak | Dokumen tidak diterima. |
 
-### 2.5 Cara Melakukan Review Laporan
+### 2.6 Cara Melakukan Review Laporan
 
 Langkah review:
 
@@ -812,7 +851,7 @@ Langkah review:
 
 Catatan wajib diisi jika dosen memilih **Minta Revisi** atau **Tolak**.
 
-### 2.6 Dokumen yang Sudah Disetujui
+### 2.7 Dokumen yang Sudah Disetujui
 
 Jika dokumen sudah berstatus **Disetujui**, dokumen menjadi terkunci.
 
@@ -824,7 +863,7 @@ Dampaknya:
 
 Penguncian ini menjaga agar dokumen final tidak berubah tanpa proses administratif.
 
-### 2.7 Catatan Review untuk Mahasiswa
+### 2.8 Catatan Review untuk Mahasiswa
 
 Catatan review dipakai mahasiswa sebagai arahan perbaikan.
 
@@ -843,9 +882,9 @@ Bab 2 perlu menambahkan struktur organisasi mitra dan penjelasan proses bisnis b
 
 Catatan review akan terlihat oleh mahasiswa pada halaman **Laporan Saya**.
 
-### 2.8 Rekap Bimbingan
+### 2.9 Rekap Monitoring Bimbingan
 
-Menu: **Rekap Bimbingan** atau **Rekap Monitoring**
+Menu: **Rekap Monitoring Bimbingan**
 
 Dosen dapat melihat rekap monitoring mahasiswa bimbingan.
 
@@ -876,9 +915,50 @@ Rekap menampilkan:
 - Rentang jam masuk.
 - Rentang jam pulang.
 
-Untuk role dosen, data dibatasi pada mahasiswa bimbingan dosen tersebut. Jika dosen juga koordinator, sistem dapat memperluas data sesuai penugasan periode/prodi koordinator.
+Untuk role dosen, data dibatasi pada mahasiswa bimbingan dosen tersebut. Jika dosen juga koordinator, perlu pindah mode ke **Koordinator** melalui role switcher untuk melihat data sesuai penugasan periode/prodi koordinator.
 
-### 2.9 Seminar & Penilaian
+### 2.9A Analisis & Laporan Bimbingan
+
+Menu: **Peta Monitoring Bimbingan**, **Rekap Monitoring Bimbingan**, atau tab laporan yang tersedia dari halaman laporan.
+
+Dosen pembimbing dapat membuka tab laporan dalam scope bimbingan. Tujuannya adalah membantu dosen menemukan mahasiswa yang perlu ditindaklanjuti tanpa melihat data global program.
+
+Tab yang dapat dibaca dalam mode dosen antara lain:
+
+- **Progress Funnel**
+- **Risk Scoring**
+- **Heatmap Kehadiran**
+- **Grafik Operasional**
+- **Snapshot PDF**
+- **Rekap Sanksi**
+- **Rekap Nilai Akhir**
+- **Rekap Monitoring**
+- **Drill-down**
+
+Dalam mode Dosen Pembimbing, **Progress Funnel** menampilkan alur khusus bimbingan:
+
+- Mahasiswa bimbingan aktif.
+- Mahasiswa yang sudah memiliki presensi.
+- Mahasiswa yang sudah mengisi catatan/laporan.
+- Catatan atau laporan yang sudah tervalidasi.
+- Mahasiswa yang sudah masuk proses seminar/penilaian.
+- Nilai dosen yang sudah masuk.
+- Nilai akhir yang sudah lengkap atau final.
+
+Aksi cepat pada tabel laporan dibatasi sesuai kewenangan dosen:
+
+| Aksi | Status untuk Dosen Pembimbing |
+|------|-------------------------------|
+| Presensi | Dapat dibuka untuk melihat data presensi mahasiswa bimbingan. |
+| Laporan | Dapat dibuka untuk review laporan mahasiswa bimbingan. |
+| Seminar | Dapat dibuka untuk ACC seminar atau pengisian nilai dosen sesuai workflow. |
+| Lupa Presensi | Tidak tersedia pada mode Dosen Pembimbing. Pengelolaan Lupa Presensi dilakukan admin/koordinator atau Pembimbing Lapangan sesuai portalnya. |
+| Finalisasi Nilai | Tidak tersedia pada mode Dosen Pembimbing. Finalisasi dilakukan admin/koordinator. |
+| Cetak Finalisasi/Berita Acara | Tidak tersedia sebagai aksi operasional dosen. Dosen hanya dapat membaca rekap nilai akhir sesuai scope bimbingan. |
+
+Jika dosen merangkap Koordinator dan perlu memproses Lupa Presensi atau Finalisasi Nilai, ubah mode aktif ke **Koordinator** terlebih dahulu.
+
+### 2.10 Seminar & Penilaian
 
 Menu: **Seminar & Penilaian**
 
@@ -907,7 +987,7 @@ Sistem menghitung nilai total berdasarkan komponen tersebut.
 
 Jika mahasiswa memakai jalur manual, dosen memberi ACC atau nilai di luar sistem sesuai dokumen resmi. Mahasiswa mengunggah bukti, lalu admin/koordinator memvalidasi berkas manual tersebut.
 
-### 2.10 Cara Kerja Hari Hadir pada Rekap
+### 2.11 Cara Kerja Hari Hadir pada Rekap
 
 Sistem menghitung hari hadir dari pasangan presensi masuk dan pulang pada tanggal yang sama.
 
@@ -927,7 +1007,7 @@ Hari hadir     : 1 hari
 Durasi         : 8 jam 35 menit
 ```
 
-### 2.11 Cara Kerja Jarak pada Rekap
+### 2.12 Cara Kerja Jarak pada Rekap
 
 Jarak pada rekap berasal dari jarak presensi mahasiswa terhadap lokasi mitra/tempat kegiatan.
 
@@ -945,11 +1025,11 @@ Interpretasi jarak:
 - Jarak besar perlu diperiksa, terutama jika melebihi radius yang dikonfigurasi.
 - Perbedaan jarak dapat dipengaruhi akurasi GPS perangkat mahasiswa.
 
-### 2.12 Peta Mitra
+### 2.13 Peta Mitra
 
-Menu: **Peta Mitra**
+Menu: **Peta & Rute Mitra** atau akses peta sesuai menu yang diberikan sistem.
 
-Dosen dapat membuka peta mitra untuk melihat sebaran instansi/tempat kegiatan.
+Dosen dapat membuka peta mitra untuk melihat sebaran instansi/tempat kegiatan jika akses tersebut tersedia pada mode aktifnya.
 
 Peta mitra membantu dosen:
 
@@ -959,9 +1039,9 @@ Peta mitra membantu dosen:
 
 Peta menggunakan Leaflet dan tile OpenStreetMap.
 
-### 2.13 Peta Monitoring
+### 2.14 Peta Monitoring Bimbingan
 
-Menu: **Peta Monitoring**
+Menu: **Peta Monitoring Bimbingan**
 
 Dosen dapat melihat titik presensi mahasiswa pada peta monitoring sesuai hak aksesnya.
 
@@ -972,9 +1052,9 @@ Peta monitoring membantu dosen:
 - Membaca jarak presensi secara visual.
 - Mengidentifikasi pola presensi yang perlu dikonfirmasi.
 
-Data peta monitoring mengikuti filter dan scope role. Untuk dosen, data utama adalah mahasiswa bimbingan.
+Data peta monitoring mengikuti filter dan scope role. Untuk mode Dosen Pembimbing, data utama adalah mahasiswa bimbingan.
 
-### 2.14 Akses File Laporan
+### 2.15 Akses File Laporan
 
 Dosen dapat membuka file laporan melalui tombol **Buka file** pada halaman Review Laporan.
 
@@ -985,9 +1065,9 @@ Batasan akses:
 - Koordinator hanya dapat membuka file sesuai scope periode/prodi penugasannya.
 - Mahasiswa hanya dapat membuka file miliknya sendiri.
 
-Jika dosen tidak termasuk pembimbing mahasiswa tersebut dan tidak memiliki scope koordinator yang sesuai, akses file ditolak.
+Jika mode aktif adalah **Dosen Pembimbing** dan dosen tidak termasuk pembimbing mahasiswa tersebut, akses file ditolak. Jika akun yang sama juga koordinator, akses berbasis scope koordinator digunakan saat mode aktif adalah **Koordinator**.
 
-### 2.15 Cara Kerja Sanksi Unggahan Laporan
+### 2.16 Cara Kerja Sanksi Unggahan Laporan
 
 Pada halaman Review Laporan, dosen dapat melihat poin sanksi jika mahasiswa terlambat mengunggah dokumen.
 
@@ -1010,33 +1090,23 @@ Sanksi         : 15 poin
 
 Dosen tidak mengubah poin sanksi secara manual pada halaman review. Dosen hanya memberi status dan catatan review dokumen.
 
-### 2.16 Batasan Role Dosen Pembimbing
+### 2.17 Batasan Role Dosen Pembimbing
 
 | Area | Batasan |
 |------|---------|
-| Mahasiswa bimbingan | Dosen hanya melihat mahasiswa yang ditetapkan sebagai bimbingannya, kecuali dosen juga memiliki penugasan koordinator. |
+| Mode aktif | Role switcher menentukan apakah akun sedang bekerja sebagai Dosen Pembimbing, Koordinator, atau Viewer Laporan. |
+| Mahasiswa bimbingan | Dalam mode Dosen Pembimbing, dosen hanya melihat mahasiswa yang ditetapkan sebagai bimbingannya. |
 | Review laporan | Dosen dapat mereview unggahan mahasiswa bimbingan. |
 | Catatan review | Wajib jika meminta revisi atau menolak dokumen. |
 | Dokumen disetujui | Dokumen yang sudah disetujui terkunci dan tidak dapat direview ulang dari form biasa. |
-| File laporan | Akses file dibatasi berdasarkan relasi pembimbing atau scope koordinator. |
-| Rekap monitoring | Data dibatasi sesuai mahasiswa bimbingan atau scope koordinator. |
-| Peta monitoring | Data mengikuti hak akses role. |
+| File laporan | Pada mode Dosen Pembimbing, akses file dibatasi berdasarkan relasi pembimbing. Scope koordinator berlaku saat mode aktif adalah Koordinator. |
+| Rekap monitoring | Data dibatasi sesuai mahasiswa bimbingan pada mode Dosen Pembimbing. |
+| Peta monitoring | Data mengikuti scope mahasiswa bimbingan pada mode Dosen Pembimbing. |
+| Analisis & Laporan | Tab laporan dapat dibaca dalam scope bimbingan. Aksi cepat dibatasi pada Presensi, Laporan, dan Seminar sesuai kewenangan dosen. |
+| Lupa Presensi | Dosen pembimbing tidak mengelola Lupa Presensi dari mode Dosen Pembimbing. |
+| Finalisasi nilai | Dosen pembimbing tidak memfinalisasi nilai akhir. Jika akun juga koordinator, gunakan mode Koordinator untuk aksi finalisasi sesuai scope penugasan. |
 | Penilaian numerik | Dosen mengisi nilai seminar/laporan sesuai workflow. Nilai akhir difinalisasi oleh admin/koordinator setelah nilai Pembimbing Lapangan tersedia. |
 | Validasi pendaftaran | Dosen pembimbing biasa tidak memvalidasi pendaftaran, kecuali memiliki role/penugasan koordinator yang sesuai. |
-
-### 2.17 Alur Singkat Dosen Pembimbing
-
-1. Login ke SiLAT sebagai dosen.
-2. Buka **Dashboard** untuk melihat ringkasan mahasiswa bimbingan.
-3. Buka **Review Laporan** untuk memeriksa unggahan mahasiswa.
-4. Klik **Buka file** pada dokumen yang akan diperiksa.
-5. Pilih status review: setujui, minta revisi, atau tolak.
-6. Isi catatan review, terutama jika meminta revisi atau menolak.
-7. Klik **Simpan Review**.
-8. Buka **Seminar & Penilaian** untuk memproses ACC atau nilai seminar jika mahasiswa sudah mengajukan seminar.
-9. Buka **Rekap Bimbingan** untuk memantau presensi, durasi, dan jarak mahasiswa.
-10. Gunakan **Peta Monitoring** jika perlu memeriksa lokasi presensi secara visual.
-11. Lanjutkan komunikasi akademik dengan mahasiswa berdasarkan catatan review dan rekap aktivitas.
 
 ---
 
@@ -2146,13 +2216,13 @@ Dampak finalisasi:
 
 Menu: **Analisis & Laporan**
 
-Admin, koordinator, dan Viewer Laporan memakai menu ini untuk membaca progres pelaksanaan dalam bentuk indikator, tabel tindak lanjut, dan grafik. Admin melihat data lintas periode/prodi, koordinator hanya melihat data sesuai scope penugasannya, sedangkan Viewer Laporan melihat data sesuai scope organisasi/prodi yang diberikan admin.
+Admin, koordinator, Dosen Pembimbing, dan Viewer Laporan memakai menu ini untuk membaca progres pelaksanaan dalam bentuk indikator, tabel tindak lanjut, dan grafik. Admin melihat data lintas periode/prodi, koordinator hanya melihat data sesuai scope penugasannya, Dosen Pembimbing melihat data mahasiswa bimbingannya, sedangkan Viewer Laporan melihat data sesuai scope organisasi/prodi yang diberikan admin.
 
 Semua halaman laporan memakai subnav berbentuk tab sehingga pengguna dapat berpindah antar laporan tanpa mencari menu sidebar lagi. Sidebar juga menyimpan posisi scroll terakhir pada browser, sehingga setelah halaman refresh pengguna tetap berada di area menu yang sama.
 
 Untuk laporan progres, data utama hanya menghitung peserta dengan status **Aktif** dan **Selesai**. Peserta draft, menunggu verifikasi, perlu revisi, nonaktif, batal, atau ditolak tidak dihitung sebagai progres pelaksanaan aktif.
 
-Beberapa kartu dan grafik dapat diklik untuk membuka halaman **Drill-down**. Halaman ini menampilkan peserta yang membentuk angka pada chart, misalnya peserta di tahap funnel tertentu, kategori risiko tertentu, status laporan, status nilai, tren presensi tanggal tertentu, atau peserta terdampak sanksi. Admin/koordinator mendapat aksi cepat menuju Presensi, Laporan, Seminar, Lupa Presensi, dan Finalisasi; Viewer Laporan hanya melihat data sesuai scope tanpa aksi operasional.
+Beberapa kartu dan grafik dapat diklik untuk membuka halaman **Drill-down**. Halaman ini menampilkan peserta yang membentuk angka pada chart, misalnya peserta di tahap funnel tertentu, kategori risiko tertentu, status laporan, status nilai, tren presensi tanggal tertentu, atau peserta terdampak sanksi. Admin/koordinator mendapat aksi cepat menuju Presensi, Laporan, Seminar, Lupa Presensi, dan Finalisasi. Dosen Pembimbing mendapat aksi sesuai bimbingan, terutama Presensi, Laporan, dan Seminar. Viewer Laporan hanya melihat data sesuai scope tanpa aksi operasional.
 
 Halaman yang tersedia:
 
@@ -2177,6 +2247,13 @@ Filter umum:
 Pada halaman Rekap Monitoring, Rekap Sanksi, Heatmap Kehadiran, dan Grafik Operasional, filter tanggal **Dari** dan **Sampai** otomatis mengikuti rentang presensi periode yang dipilih. Jika hari ini masih sebelum tanggal akhir presensi, tanggal **Sampai** memakai hari ini. Pengguna tetap dapat mengubah tanggal manual sebelum menekan tombol filter.
 
 Gunakan halaman analisis sebagai pintu tindak lanjut. Jika ada mahasiswa berisiko, buka detail/aksi cepat menuju presensi, laporan, seminar, Lupa Presensi, atau finalisasi nilai sesuai masalah utama yang muncul.
+
+Catatan untuk Dosen Pembimbing:
+
+- Scope laporan dibatasi pada mahasiswa bimbingan.
+- Progress Funnel memakai funnel bimbingan, bukan funnel global program.
+- Aksi Lupa Presensi, Finalisasi Nilai, dan Cetak Finalisasi tidak tersedia pada mode Dosen Pembimbing.
+- Jika akun dosen juga koordinator, pindah ke mode **Koordinator** melalui role switcher untuk menjalankan aksi koordinator sesuai scope penugasan.
 
 Catatan untuk Viewer Laporan:
 
@@ -2685,3 +2762,60 @@ Catatan:
 6. Proses pengajuan Lupa Presensi yang muncul pada tab **Catatan Harian** jika ada.
 7. Isi nilai dan feedback pada tab **Penilaian dan Feedback** setelah periode presensi selesai.
 8. Hubungi admin/koordinator jika data mahasiswa tidak sesuai.
+
+---
+
+## Bagian 6. Role Viewer Laporan
+
+### 6.1 Ringkasan Hak Akses Viewer Laporan
+
+Viewer Laporan adalah akses tambahan untuk dosen yang perlu membaca Analisis & Laporan sesuai scope organisasi atau prodi yang diberikan admin.
+
+Viewer Laporan dapat:
+
+- Membuka halaman Analisis & Laporan.
+- Membaca Progress Funnel, Risk Scoring, Heatmap Kehadiran, Grafik Operasional, Rekap Sanksi, Rekap Nilai Akhir, Rekap Monitoring, Snapshot PDF, dan Drill-down sesuai scope.
+- Menggunakan filter periode, program, prodi, tanggal, status, atau kategori risiko yang tersedia pada halaman laporan.
+- Membuka dokumen cetak atau berita acara nilai jika data berada dalam scope viewer dan dokumen sudah tersedia.
+
+Viewer Laporan tidak dapat:
+
+- Memvalidasi pendaftaran.
+- Memproses Lupa Presensi.
+- Mereview laporan atau seminar.
+- Menjadwalkan seminar.
+- Memfinalisasi nilai.
+- Mengubah master data, konfigurasi, periode, peserta, atau data workflow lain.
+
+### 6.2 Scope Viewer Laporan
+
+Scope Viewer Laporan ditentukan oleh penugasan admin pada level:
+
+- Universitas.
+- Fakultas.
+- Jurusan.
+- Program studi.
+
+Jika viewer diberi scope organisasi, data yang tampil mengikuti prodi yang berada di bawah organisasi tersebut. Jika viewer diberi scope prodi, data dibatasi pada prodi tersebut.
+
+Penugasan viewer memiliki tanggal mulai dan tanggal akhir. Sistem membaca status aktif berdasarkan tanggal lokal SiLAT sesuai timezone aplikasi, sehingga akses tidak bergeser karena perbedaan UTC dan Asia/Jakarta.
+
+### 6.3 Role Switcher
+
+Jika akun Viewer Laporan juga memiliki role lain, misalnya Dosen Pembimbing atau Koordinator, gunakan role switcher pada header untuk memilih mode kerja.
+
+- Pilih **Viewer Laporan** untuk membaca laporan sesuai scope viewer.
+- Pilih **Dosen Pembimbing** untuk memantau dan memproses mahasiswa bimbingan.
+- Pilih **Koordinator** untuk menjalankan aksi operasional koordinator sesuai scope periode/prodi.
+
+Mode aktif menentukan menu dan aksi yang tersedia. Saat mode aktif adalah **Viewer Laporan**, sistem tidak menampilkan aksi workflow operasional.
+
+### 6.4 Batasan Role Viewer Laporan
+
+| Area | Batasan |
+|------|---------|
+| Scope data | Mengikuti penugasan organisasi atau prodi yang diberikan admin. |
+| Mode akses | Bersifat baca untuk Analisis & Laporan. |
+| Aksi operasional | Tidak dapat memvalidasi, mereview, menyetujui, menolak, menjadwalkan, atau memfinalisasi. |
+| Multi-role | Aksi role lain hanya tersedia setelah pengguna mengganti mode aktif melalui role switcher. |
+| Tanggal aktif | Status aktif penugasan memakai tanggal lokal SiLAT sesuai timezone aplikasi. |

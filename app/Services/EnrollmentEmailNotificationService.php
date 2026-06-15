@@ -7,6 +7,7 @@ use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\PeriodDeadline;
 use App\Models\User;
+use App\Support\LocalClock;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -148,8 +149,8 @@ class EnrollmentEmailNotificationService
     {
         $periodIds = PeriodDeadline::query()
             ->where('deadline_type', 'registration_end')
-            ->whereDate('deadline_date', '>=', now()->toDateString())
-            ->whereDate('deadline_date', '<=', now()->addDays($daysBeforeDeadline)->toDateString())
+            ->whereDate('deadline_date', '>=', LocalClock::today()->toDateString())
+            ->whereDate('deadline_date', '<=', LocalClock::today()->addDays($daysBeforeDeadline)->toDateString())
             ->pluck('internship_period_id');
 
         if ($periodIds->isEmpty()) {

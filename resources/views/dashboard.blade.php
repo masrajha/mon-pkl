@@ -15,7 +15,7 @@
 
     <div class="py-8">
         <div class="silat-shell space-y-6">
-            @if (Auth::user()->hasRole('mahasiswa'))
+            @if (($activeRole ?? null) === 'mahasiswa')
                 @php
                     $studentEnrollmentSummary ??= ['total' => 0, 'statuses' => collect()];
                     $studentEnrollmentStatusLabels = [
@@ -50,7 +50,7 @@
                 <section class="rounded-lg border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-sky-50 p-6 text-gray-950 shadow-sm">
                     <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                         <div>
-                            <p class="text-sm font-medium text-emerald-700">{{ now()->translatedFormat('l, d F Y') }}</p>
+                            <p class="text-sm font-medium text-emerald-700">{{ \App\Support\LocalClock::now()->translatedFormat('l, d F Y') }}</p>
                             <h3 class="mt-1 text-2xl font-bold">Program Saya</h3>
                             <p class="mt-2 text-gray-600">{{ $studentActiveEnrollments->isNotEmpty() ? 'Program aktif yang sedang Anda ikuti.' : 'Lengkapi profil dan mulai pendaftaran program.' }}</p>
                         </div>
@@ -144,7 +144,7 @@
                 ])
             @endif
 
-            @if (Auth::user()->hasRole('dosen'))
+            @if (($activeRole ?? null) === 'dosen')
                 @php
                     $supervisedGroups = $supervisedEnrollments->groupBy(fn ($enrollment) => $enrollment->internship_period_id ?: 'tanpa-periode');
                 @endphp
@@ -154,7 +154,7 @@
                             <h3 class="silat-section-title">{{ __('Dashboard Dosen Pembimbing') }}</h3>
                             <p class="silat-section-description">{{ __('Mahasiswa bimbingan dikelompokkan berdasarkan program periode.') }}</p>
                         </div>
-                        <a class="silat-btn-secondary" href="{{ route('reports.monitoring') }}"><x-icon name="fa-chart-column" /> Rekap Bimbingan</a>
+                        <a class="silat-btn-secondary" href="{{ route('reports.monitoring', ['scope' => 'bimbingan']) }}"><x-icon name="fa-chart-column" /> Rekap Bimbingan</a>
                     </div>
                     <div class="p-5">
                         <div class="grid gap-4 md:grid-cols-3">
@@ -216,8 +216,8 @@
                                                         <div class="flex flex-wrap gap-3">
                                                             <a class="silat-secondary-link" href="{{ route('management.submission-progress.index', ['q' => $enrollment->student?->npm]) }}">Laporan</a>
                                                             <a class="silat-secondary-link" href="{{ route('management.seminar-requests.index', ['q' => $enrollment->student?->npm]) }}">Seminar</a>
-                                                            <a class="silat-secondary-link" href="{{ route('maps.monitoring', ['period_id' => $enrollment->internship_period_id]) }}">Peta</a>
-                                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', ['period_id' => $enrollment->internship_period_id]) }}">Rekap</a>
+                                                            <a class="silat-secondary-link" href="{{ route('maps.monitoring', ['scope' => 'bimbingan', 'period_id' => $enrollment->internship_period_id]) }}">Peta</a>
+                                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', ['scope' => 'bimbingan', 'period_id' => $enrollment->internship_period_id]) }}">Rekap</a>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -241,11 +241,11 @@
                 ])
             @endif
 
-            @if (Auth::user()->hasRole(['admin', 'koordinator']))
+            @if (in_array($activeRole ?? null, ['admin', 'koordinator'], true))
                 @include('management.partials.action-required', ['summary' => $actionRequiredSummary])
             @endif
 
-            @if (Auth::user()->hasRole('koordinator'))
+            @if (($activeRole ?? null) === 'koordinator')
                 <section class="silat-card">
                     <div class="silat-section-header">
                         <div>
@@ -276,7 +276,7 @@
                 </section>
             @endif
 
-            @if (Auth::user()->hasRole('admin'))
+            @if (($activeRole ?? null) === 'admin')
                 <section class="silat-card">
                     <div class="silat-section-header">
                         <div>
@@ -312,8 +312,8 @@
                 </div>
                 <div class="grid gap-3 p-5 md:grid-cols-3">
                     <a class="silat-action-card" href="{{ route('maps.places') }}"><p class="font-semibold text-gray-900">Peta Mitra</p><p class="silat-stat-note">Sebaran mitra dan jumlah peserta.</p></a>
-                    <a class="silat-action-card" href="{{ route('maps.monitoring') }}"><p class="font-semibold text-gray-900">Peta Monitoring</p><p class="silat-stat-note">Lokasi check-in mahasiswa dan jarak ke lokasi mitra.</p></a>
-                    <a class="silat-action-card" href="{{ route('reports.monitoring') }}"><p class="font-semibold text-gray-900">Rekap Monitoring</p><p class="silat-stat-note">Ringkasan kehadiran, durasi, dan jarak.</p></a>
+                    <a class="silat-action-card" href="{{ route('maps.monitoring', ($activeRole ?? null) === 'dosen' ? ['scope' => 'bimbingan'] : []) }}"><p class="font-semibold text-gray-900">{{ ($activeRole ?? null) === 'dosen' ? 'Peta Monitoring Bimbingan' : 'Peta Monitoring' }}</p><p class="silat-stat-note">Lokasi check-in mahasiswa dan jarak ke lokasi mitra.</p></a>
+                    <a class="silat-action-card" href="{{ route('reports.monitoring', ($activeRole ?? null) === 'dosen' ? ['scope' => 'bimbingan'] : []) }}"><p class="font-semibold text-gray-900">{{ ($activeRole ?? null) === 'dosen' ? 'Rekap Monitoring Bimbingan' : 'Rekap Monitoring' }}</p><p class="silat-stat-note">Ringkasan kehadiran, durasi, dan jarak.</p></a>
                 </div>
             </section>
         </div>

@@ -12,6 +12,7 @@ use App\Services\MapRouteService;
 use App\Services\PeriodConfigurationService;
 use App\Services\ReportScopeService;
 use App\Support\PublicStorage;
+use App\Support\LocalClock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -203,14 +204,14 @@ class MapController extends Controller
     private function monitoringDateRange(Request $request, ?InternshipPeriod $selectedPeriod = null): array
     {
         if ($request->boolean('today_only')) {
-            return [today(), today()];
+            return [LocalClock::today(), LocalClock::today()];
         }
 
         $start = $request->date('start_date');
         $end = $request->date('end_date');
 
-        $start ??= $selectedPeriod?->starts_at?->copy() ?? today();
-        $end ??= $selectedPeriod?->ends_at?->copy() ?? today();
+        $start ??= $selectedPeriod?->starts_at?->copy() ?? LocalClock::today();
+        $end ??= $selectedPeriod?->ends_at?->copy() ?? LocalClock::today();
 
         if ($start->gt($end)) {
             [$start, $end] = [$end, $start];
@@ -234,6 +235,10 @@ class MapController extends Controller
 
         if ($user?->hasRole('admin')) {
             return $query;
+        }
+
+        if ($this->usesLecturerGuidanceScope($request)) {
+            return $this->reportScope->applyLecturerSupervisionScope($query, $user);
         }
 
         if ($user?->hasRole(['dosen', 'koordinator', 'report_viewer'])) {
@@ -362,5 +367,11 @@ class MapController extends Controller
     {
         return $request->boolean('all_study_programs')
             && (bool) $request->user()?->hasRole('koordinator');
+    }
+
+    private function usesLecturerGuidanceScope(Request $request): bool
+    {
+        return $request->string('scope')->toString() === 'bimbingan'
+            && (bool) $request->user()?->hasRole('dosen');
     }
 }

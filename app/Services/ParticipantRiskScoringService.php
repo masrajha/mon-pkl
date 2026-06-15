@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\CheckIn;
 use App\Models\InternshipEnrollment;
+use App\Support\LocalClock;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
@@ -128,11 +129,11 @@ class ParticipantRiskScoringService
     {
         $start = $enrollment->effectiveAttendanceStartsAt()?->copy()
             ?? $enrollment->internshipPeriod?->starts_at?->copy()
-            ?? now()->copy()->startOfDay();
+            ?? LocalClock::today()->startOfDay();
         $configuredEnd = $enrollment->effectiveAttendanceEndsAt()?->copy()
             ?? $enrollment->internshipPeriod?->ends_at?->copy()
-            ?? now()->copy();
-        $today = now()->copy()->startOfDay();
+            ?? LocalClock::now();
+        $today = LocalClock::today()->startOfDay();
         $end = $configuredEnd->lessThan($today) ? $configuredEnd : $today;
 
         return [

@@ -18,7 +18,7 @@
 <body class="bg-gray-100 text-gray-950">
     <div class="no-print sticky top-0 z-10 border-b border-gray-200 bg-white/95 px-6 py-3 backdrop-blur">
         <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
-            <a href="{{ route('reports.operational-charts', request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date'])) }}" class="silat-secondary-link">
+            <a href="{{ route('reports.operational-charts', request()->only(['scope', 'period_id', 'program_id', 'study_program_id', 'start_date', 'end_date'])) }}" class="silat-secondary-link">
                 <x-icon name="fa-arrow-left" /> Kembali
             </a>
             <button type="button" onclick="window.print()" class="silat-btn">

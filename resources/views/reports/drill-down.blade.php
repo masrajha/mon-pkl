@@ -6,7 +6,7 @@
                 <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ $context['title'] }}</h2>
                 <p class="mt-1 text-sm text-gray-500">{{ $context['description'] }}</p>
             </div>
-            <a class="silat-secondary-link" href="{{ route('reports.operational-charts', request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date'])) }}">
+            <a class="silat-secondary-link" href="{{ route('reports.operational-charts', request()->only(['scope', 'period_id', 'program_id', 'study_program_id', 'start_date', 'end_date'])) }}">
                 <x-icon name="fa-chart-pie" /> Kembali ke grafik
             </a>
         </div>
@@ -153,11 +153,17 @@
                                     </td>
                                     <td class="silat-table-cell text-right">
                                         <div class="flex flex-wrap justify-end gap-2">
-                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', ['period_id' => $enrollment->internship_period_id, 'study_program_id' => $enrollment->study_program_id]) }}">Presensi</a>
-                                            @if ($canOperate)
+                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', array_filter(['scope' => request('scope'), 'period_id' => $enrollment->internship_period_id, 'study_program_id' => $enrollment->study_program_id])) }}">Presensi</a>
+                                            @if ($canReviewReports)
                                                 <a class="silat-secondary-link" href="{{ route('management.submission-progress.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Laporan</a>
+                                            @endif
+                                            @if ($canReviewSeminars)
                                                 <a class="silat-secondary-link" href="{{ route('management.seminar-requests.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Seminar</a>
+                                            @endif
+                                            @if ($canManageForgottenAttendance)
                                                 <a class="silat-secondary-link" href="{{ route('management.forgotten-attendance-requests.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Lupa Presensi</a>
+                                            @endif
+                                            @if ($canFinalizeScores)
                                                 <a class="silat-secondary-link" href="{{ route('management.final-assessments.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Finalisasi</a>
                                             @endif
                                         </div>

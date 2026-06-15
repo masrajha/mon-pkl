@@ -3,8 +3,8 @@
         <div class="space-y-4">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Monitoring</p>
-                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Peta Monitoring') }}</h2>
-                <p class="mt-1 text-sm text-gray-500">State awal menampilkan periode aktif; gunakan filter untuk periode lain, prodi, atau rentang tanggal.</p>
+                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ request('scope') === 'bimbingan' ? __('Peta Monitoring Bimbingan') : __('Peta Monitoring') }}</h2>
+                <p class="mt-1 text-sm text-gray-500">{{ request('scope') === 'bimbingan' ? 'Menampilkan sebaran check-in mahasiswa bimbingan Anda berdasarkan filter aktif.' : 'State awal menampilkan periode aktif; gunakan filter untuk periode lain, prodi, atau rentang tanggal.' }}</p>
             </div>
             @include('maps.partials.filters', ['showDateFilters' => true])
         </div>

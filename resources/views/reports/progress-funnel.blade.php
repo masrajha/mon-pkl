@@ -3,11 +3,12 @@
         <div class="space-y-4">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Analisis & Laporan</p>
-                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Progress Funnel Pelaksanaan') }}</h2>
-                <p class="mt-1 text-sm text-gray-500">Pantau alur peserta dari pendaftaran disetujui sampai nilai final untuk menemukan bottleneck proses.</p>
+                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ request('scope') === 'bimbingan' ? __('Progress Funnel Bimbingan') : __('Progress Funnel Pelaksanaan') }}</h2>
+                <p class="mt-1 text-sm text-gray-500">{{ request('scope') === 'bimbingan' ? 'Pantau mahasiswa bimbingan yang tertahan pada presensi, catatan/laporan, seminar, atau nilai akhir.' : 'Pantau alur peserta dari pendaftaran disetujui sampai nilai final untuk menemukan bottleneck proses.' }}</p>
             </div>
 
             <form method="GET" class="silat-card grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
+                @if (request()->filled('scope'))<input type="hidden" name="scope" value="{{ request('scope') }}">@endif
                 <div>
                     <x-input-label for="period_id" :value="__('Periode Program')" />
                     <x-select-input id="period_id" name="period_id" class="mt-1 text-sm">
@@ -48,9 +49,9 @@
 
             <div class="grid gap-4 lg:grid-cols-3">
                 <div class="silat-stat-card">
-                    <p class="silat-stat-label">Peserta Disetujui</p>
+                    <p class="silat-stat-label">{{ request('scope') === 'bimbingan' ? 'Mahasiswa Bimbingan' : 'Peserta Disetujui' }}</p>
                     <p class="silat-stat-value">{{ number_format($total, 0, ',', '.') }}</p>
-                    <p class="silat-stat-note">Basis funnel: enrollment aktif atau selesai.</p>
+                    <p class="silat-stat-note">{{ request('scope') === 'bimbingan' ? 'Basis funnel: mahasiswa bimbingan aktif atau selesai.' : 'Basis funnel: enrollment aktif atau selesai.' }}</p>
                 </div>
                 <div class="silat-stat-card lg:col-span-2">
                     <p class="silat-stat-label">Bottleneck Terbesar</p>
@@ -68,7 +69,7 @@
                 <div class="silat-section-header">
                     <div>
                         <h3 class="silat-section-title">Funnel Progres Peserta</h3>
-                        <p class="silat-section-description">Persentase dihitung dari total peserta yang pendaftarannya sudah disetujui.</p>
+                        <p class="silat-section-description">{{ request('scope') === 'bimbingan' ? 'Persentase dihitung dari total mahasiswa bimbingan aktif atau selesai.' : 'Persentase dihitung dari total peserta yang pendaftarannya sudah disetujui.' }}</p>
                     </div>
                 </div>
 
@@ -77,7 +78,7 @@
                         @php
                             $barWidth = max(4, (float) $stage['percent_of_total']);
                         @endphp
-                        <a href="{{ route('reports.drill-down', array_filter(request()->only(['period_id', 'program_id', 'study_program_id']) + ['source' => 'progress_funnel', 'stage' => $stage['key']])) }}" class="block rounded-lg border border-gray-200 bg-white p-4 transition hover:border-blue-300 hover:bg-blue-50/40 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <a href="{{ route('reports.drill-down', array_filter(request()->only(['scope', 'period_id', 'program_id', 'study_program_id']) + ['source' => 'progress_funnel', 'stage' => $stage['key']])) }}" class="block rounded-lg border border-gray-200 bg-white p-4 transition hover:border-blue-300 hover:bg-blue-50/40 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             <div class="flex flex-wrap items-start justify-between gap-3">
                                 <div>
                                     <p class="text-sm font-semibold text-gray-950">{{ $index + 1 }}. {{ $stage['label'] }}</p>
@@ -121,8 +122,8 @@
                                 <th class="silat-table-cell">Prodi</th>
                                 <th class="silat-table-cell">Disetujui</th>
                                 <th class="silat-table-cell">Presensi</th>
-                                <th class="silat-table-cell">Laporan</th>
-                                <th class="silat-table-cell">Nilai Pembimbing Lapangan</th>
+                                <th class="silat-table-cell">{{ request('scope') === 'bimbingan' ? 'Catatan/Laporan' : 'Laporan' }}</th>
+                                <th class="silat-table-cell">{{ request('scope') === 'bimbingan' ? 'Tervalidasi' : 'Nilai Pembimbing Lapangan' }}</th>
                                 <th class="silat-table-cell">Seminar</th>
                                 <th class="silat-table-cell">Nilai Dosen</th>
                                 <th class="silat-table-cell">Final</th>

@@ -7,10 +7,10 @@
                 <p class="mt-1 text-sm text-gray-500">Pantau tren presensi, status peserta, laporan, sanksi, dan progres nilai dalam satu layar.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-                <a class="silat-btn-secondary" href="{{ route('reports.snapshot', request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date'])) }}" target="_blank">
+                <a class="silat-btn-secondary" href="{{ route('reports.snapshot', request()->only(['scope', 'period_id', 'program_id', 'study_program_id', 'start_date', 'end_date'])) }}" target="_blank">
                     <x-icon name="fa-file-pdf" /> Snapshot PDF
                 </a>
-                <a class="silat-secondary-link" href="{{ route('reports.risk-scoring', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+                <a class="silat-secondary-link" href="{{ route('reports.risk-scoring', request()->only(['scope', 'period_id', 'program_id', 'study_program_id'])) }}">
                     <x-icon name="fa-triangle-exclamation" /> Buka risk scoring
                 </a>
             </div>
@@ -21,9 +21,10 @@
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             @include('management.partials.nav')
             @include('reports.partials.report-tabs')
-            @php($drillBase = request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']))
+            @php($drillBase = request()->only(['scope', 'period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']))
 
             <form method="GET" action="{{ route('reports.operational-charts') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" data-period-date-sync>
+                @if (request()->filled('scope'))<input type="hidden" name="scope" value="{{ request('scope') }}">@endif
                 <div class="grid gap-4 md:grid-cols-6">
                     <div>
                         <x-input-label for="period_id" value="Periode Program" />

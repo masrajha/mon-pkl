@@ -13,6 +13,7 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\SubmissionProgress;
 use App\Models\User;
+use App\Support\LocalClock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -74,7 +75,7 @@ class SubmissionProgressEmailNotificationFeatureTest extends TestCase
         PeriodDeadline::query()->create([
             'internship_period_id' => $enrollment->internship_period_id,
             'deadline_type' => 'proposal',
-            'deadline_date' => now()->addDays(3)->toDateString(),
+            'deadline_date' => LocalClock::today()->addDays(3)->toDateString(),
             'penalty_points' => 1,
             'is_fixed_penalty' => false,
         ]);
@@ -116,7 +117,7 @@ class SubmissionProgressEmailNotificationFeatureTest extends TestCase
     public function test_submission_progress_summaries_are_not_queued_before_attendance_period_starts(): void
     {
         [$admin, , $lecturer, $enrollment, $coordinator] = $this->reportFixture([
-            'starts_at' => now()->addDay()->toDateString(),
+            'starts_at' => LocalClock::today()->addDay()->toDateString(),
             'is_active' => true,
         ]);
 

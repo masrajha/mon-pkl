@@ -6,7 +6,7 @@
                 <h2 class="mt-1 text-2xl font-semibold text-gray-900">Risk Scoring Peserta</h2>
                 <p class="mt-1 text-sm text-gray-500">Prioritaskan peserta yang perlu tindak lanjut berdasarkan presensi, catatan harian, laporan, seminar, nilai, dan sanksi.</p>
             </div>
-            <a class="silat-secondary-link" href="{{ route('reports.progress-funnel', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+            <a class="silat-secondary-link" href="{{ route('reports.progress-funnel', request()->only(['scope', 'period_id', 'program_id', 'study_program_id'])) }}">
                 <x-icon name="fa-chart-simple" /> Buka funnel
             </a>
         </div>
@@ -18,6 +18,7 @@
             @include('reports.partials.report-tabs')
 
             <form method="GET" action="{{ route('reports.risk-scoring') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                @if (request()->filled('scope'))<input type="hidden" name="scope" value="{{ request('scope') }}">@endif
                 <div class="grid gap-4 md:grid-cols-5">
                     <div>
                         <x-input-label for="period_id" value="Periode Program" />
@@ -69,7 +70,7 @@
                     ['key' => 'risky', 'label' => 'Berisiko', 'class' => 'border-orange-200 bg-orange-50 text-orange-700'],
                     ['key' => 'critical', 'label' => 'Kritis', 'class' => 'border-red-200 bg-red-50 text-red-700'],
                 ] as $item)
-                    <a href="{{ route('reports.drill-down', array_filter(request()->only(['period_id', 'program_id', 'study_program_id']) + ['source' => 'risk_scoring', 'risk' => $item['key']])) }}" class="rounded-lg border p-4 shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ $item['class'] }}">
+                    <a href="{{ route('reports.drill-down', array_filter(request()->only(['scope', 'period_id', 'program_id', 'study_program_id']) + ['source' => 'risk_scoring', 'risk' => $item['key']])) }}" class="rounded-lg border p-4 shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {{ $item['class'] }}">
                         <p class="text-xs font-semibold uppercase tracking-wide">{{ $item['label'] }}</p>
                         <p class="mt-2 text-3xl font-semibold">{{ number_format($summary[$item['key']] ?? 0, 0, ',', '.') }}</p>
                         <p class="mt-1 text-xs">peserta - lihat detail</p>
@@ -141,11 +142,19 @@
                                     </td>
                                     <td class="silat-table-cell text-right">
                                         <div class="flex flex-wrap justify-end gap-2">
-                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', ['period_id' => $enrollment->internship_period_id, 'study_program_id' => $enrollment->study_program_id]) }}">Presensi</a>
-                                            <a class="silat-secondary-link" href="{{ route('management.submission-progress.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Laporan</a>
-                                            <a class="silat-secondary-link" href="{{ route('management.seminar-requests.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Seminar</a>
-                                            <a class="silat-secondary-link" href="{{ route('management.forgotten-attendance-requests.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Lupa Presensi</a>
-                                            <a class="silat-secondary-link" href="{{ route('management.final-assessments.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Finalisasi</a>
+                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', array_filter(['scope' => request('scope'), 'period_id' => $enrollment->internship_period_id, 'study_program_id' => $enrollment->study_program_id])) }}">Presensi</a>
+                                            @if ($canReviewReports)
+                                                <a class="silat-secondary-link" href="{{ route('management.submission-progress.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Laporan</a>
+                                            @endif
+                                            @if ($canReviewSeminars)
+                                                <a class="silat-secondary-link" href="{{ route('management.seminar-requests.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Seminar</a>
+                                            @endif
+                                            @if ($canManageForgottenAttendance)
+                                                <a class="silat-secondary-link" href="{{ route('management.forgotten-attendance-requests.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Lupa Presensi</a>
+                                            @endif
+                                            @if ($canFinalizeScores)
+                                                <a class="silat-secondary-link" href="{{ route('management.final-assessments.index', ['period_id' => $enrollment->internship_period_id, 'q' => $enrollment->student?->npm]) }}">Finalisasi</a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

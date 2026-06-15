@@ -1,4 +1,5 @@
 <form method="GET" class="grid gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-6">
+    @if (request()->filled('scope'))<input type="hidden" name="scope" value="{{ request('scope') }}">@endif
     <div>
         <x-input-label for="period_id" :value="__('Periode Program')" />
         <x-select-input id="period_id" name="period_id" class="mt-1 text-sm">

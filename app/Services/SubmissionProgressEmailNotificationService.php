@@ -9,6 +9,7 @@ use App\Models\Lecturer;
 use App\Models\PeriodDeadline;
 use App\Models\SubmissionProgress;
 use App\Models\User;
+use App\Support\LocalClock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -93,7 +94,7 @@ class SubmissionProgressEmailNotificationService
     public function queueDeadlineReminders(array $days = [7, 3, 1, 0]): int
     {
         $queuedBefore = EmailNotification::query()->count();
-        $today = now()->startOfDay();
+        $today = LocalClock::today()->startOfDay();
         $types = array_keys($this->deadlineLabels());
         $targetDates = collect($days)
             ->map(fn (int $day) => $today->copy()->addDays($day)->toDateString())
@@ -149,7 +150,7 @@ class SubmissionProgressEmailNotificationService
     public function queueReviewerSummaries(): int
     {
         $queuedBefore = EmailNotification::query()->count();
-        $today = now()->toDateString();
+        $today = LocalClock::today()->toDateString();
         $types = array_keys($this->deadlineLabels());
 
         InternshipCoordinator::query()
@@ -428,14 +429,14 @@ class SubmissionProgressEmailNotificationService
 
     private function periodHasStarted($period): bool
     {
-        return ! $period?->starts_at || $period->starts_at->copy()->startOfDay()->lte(now()->startOfDay());
+        return ! $period?->starts_at || $period->starts_at->copy()->startOfDay()->lte(LocalClock::today()->startOfDay());
     }
 
     private function startedPeriodQuery(Builder $query): void
     {
         $query->where(function (Builder $query): void {
             $query->whereNull('starts_at')
-                ->orWhereDate('starts_at', '<=', now()->toDateString());
+                ->orWhereDate('starts_at', '<=', LocalClock::today()->toDateString());
         });
     }
 

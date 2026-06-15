@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Organization;
 use App\Models\User;
+use App\Support\LocalClock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -25,15 +26,7 @@ class ReportScopeService
                 $hasCondition = false;
 
                 if ($includeLecturerSupervision && $user->role === 'dosen') {
-                    $query->where(function (Builder $query) use ($user): void {
-                        if ($user->lecturer?->id) {
-                            $query->where('lecturer_supervisor_id', $user->lecturer->id);
-                        }
-
-                        $query->orWhere('lecturer_supervisor_user_id', $user->id)
-                            ->orWhere('lecturer_supervisor', $user->name)
-                            ->orWhere('lecturer_supervisor', $user->email);
-                    });
+                    $this->applyLecturerSupervisionScope($query, $user);
 
                     $hasCondition = true;
                 }
@@ -64,17 +57,36 @@ class ReportScopeService
         return $query->whereHas('student', fn (Builder $query) => $query->where('user_id', $user?->id));
     }
 
+    public function applyLecturerSupervisionScope(Builder $query, ?User $user): Builder
+    {
+        if (! $user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function (Builder $query) use ($user): void {
+            if ($user->lecturer?->id) {
+                $query->where('lecturer_supervisor_id', $user->lecturer->id);
+            }
+
+            $query->orWhere('lecturer_supervisor_user_id', $user->id)
+                ->orWhere('lecturer_supervisor', $user->name)
+                ->orWhere('lecturer_supervisor', $user->email);
+        });
+    }
+
     public function studyProgramIdsForUser(?User $user): Collection
     {
         if (! $user?->lecturer) {
             return collect();
         }
 
+        $today = LocalClock::today()->toDateString();
+
         $assignments = $user->lecturer->reportViewerAssignments()
             ->with('organization')
             ->where('status', 'active')
-            ->where(fn (Builder $query) => $query->whereNull('starts_at')->orWhereDate('starts_at', '<=', now()->toDateString()))
-            ->where(fn (Builder $query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', now()->toDateString()))
+            ->where(fn (Builder $query) => $query->whereNull('starts_at')->orWhereDate('starts_at', '<=', $today))
+            ->where(fn (Builder $query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', $today))
             ->get();
 
         $studyProgramIds = collect();

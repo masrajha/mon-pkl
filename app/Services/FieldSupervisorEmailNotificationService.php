@@ -9,6 +9,7 @@ use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\PeriodDeadline;
 use App\Models\User;
+use App\Support\LocalClock;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -207,7 +208,7 @@ class FieldSupervisorEmailNotificationService
     public function queueFullReportDeadlineReminders(array $days = [7, 3, 1]): int
     {
         $queuedBefore = EmailNotification::query()->count();
-        $today = now()->startOfDay();
+        $today = LocalClock::today()->startOfDay();
         $targetDates = collect($days)
             ->map(fn (int $day) => $today->copy()->addDays($day)->toDateString())
             ->unique()
@@ -316,7 +317,7 @@ class FieldSupervisorEmailNotificationService
     public function queueReviewerAlerts(): int
     {
         $queuedBefore = EmailNotification::query()->count();
-        $today = now()->toDateString();
+        $today = LocalClock::today()->toDateString();
 
         $problemEnrollments = $this->activeFieldSupervisorEnrollments()
             ->where(function (Builder $query): void {

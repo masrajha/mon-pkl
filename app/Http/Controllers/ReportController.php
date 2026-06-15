@@ -10,6 +10,7 @@ use App\Models\StudyProgram;
 use App\Services\PeriodConfigurationService;
 use App\Services\ParticipantRiskScoringService;
 use App\Services\ReportScopeService;
+use App\Support\LocalClock;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Builder;
@@ -83,6 +84,7 @@ class ReportController extends Controller
     public function progressFunnel(Request $request): View
     {
         [$periods, $selectedPeriod] = $this->periodOptions($request);
+        $isLecturerGuidanceScope = $this->usesLecturerGuidanceScope($request);
 
         $baseQuery = InternshipEnrollment::query()
             ->with(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace']);
@@ -91,7 +93,7 @@ class ReportController extends Controller
         $this->scopeEnrollments($baseQuery, $request);
 
         $total = (clone $baseQuery)->count();
-        $stageDefinitions = $this->progressFunnelStages();
+        $stageDefinitions = $this->progressFunnelStages($isLecturerGuidanceScope);
         $previousCount = null;
 
         $stages = collect($stageDefinitions)
@@ -127,19 +129,19 @@ class ReportController extends Controller
             ->whereIn('id', (clone $baseQuery)->select('study_program_id')->distinct())
             ->orderBy('name')
             ->get()
-            ->map(function (StudyProgram $studyProgram) use ($baseQuery): array {
+            ->map(function (StudyProgram $studyProgram) use ($baseQuery, $isLecturerGuidanceScope): array {
                 $studyProgramQuery = (clone $baseQuery)->where('study_program_id', $studyProgram->id);
                 $total = (clone $studyProgramQuery)->count();
 
                 return [
                     'name' => $studyProgram->name,
                     'total' => $total,
-                    'active_attendance' => $this->countStage($studyProgramQuery, 'active_attendance'),
-                    'full_report' => $this->countStage($studyProgramQuery, 'full_report'),
-                    'field_supervisor_score' => $this->countStage($studyProgramQuery, 'field_supervisor_score'),
-                    'seminar' => $this->countStage($studyProgramQuery, 'seminar'),
-                    'lecturer_score' => $this->countStage($studyProgramQuery, 'lecturer_score'),
-                    'final_score' => $this->countStage($studyProgramQuery, 'final_score'),
+                    'active_attendance' => $this->countStage($studyProgramQuery, 'active_attendance', $isLecturerGuidanceScope),
+                    'full_report' => $this->countStage($studyProgramQuery, 'full_report', $isLecturerGuidanceScope),
+                    'field_supervisor_score' => $this->countStage($studyProgramQuery, 'field_supervisor_score', $isLecturerGuidanceScope),
+                    'seminar' => $this->countStage($studyProgramQuery, 'seminar', $isLecturerGuidanceScope),
+                    'lecturer_score' => $this->countStage($studyProgramQuery, 'lecturer_score', $isLecturerGuidanceScope),
+                    'final_score' => $this->countStage($studyProgramQuery, 'final_score', $isLecturerGuidanceScope),
                 ];
             })
             ->filter(fn (array $row): bool => $row['total'] > 0)
@@ -205,6 +207,7 @@ class ReportController extends Controller
             'rows' => $rows,
             'totalRows' => $allRows->count(),
             'summary' => $summary,
+            ...$this->reportActionPermissions($request),
         ]);
     }
 
@@ -503,6 +506,7 @@ class ReportController extends Controller
             'onlyWithSanctions' => $request->boolean('only_with_sanctions', true),
             'rows' => $rows,
             'totals' => $totals,
+            ...$this->reportActionPermissions($request),
         ]);
     }
 
@@ -553,6 +557,7 @@ class ReportController extends Controller
             'selectedStatus' => $status,
             'rows' => $rows,
             'totals' => $totals,
+            ...$this->reportActionPermissions($request),
         ]);
     }
 
@@ -609,7 +614,7 @@ class ReportController extends Controller
             'source' => $source,
             'context' => $context,
             'rows' => $rows,
-            'canOperate' => $request->user()?->hasRole('admin') || $request->user()?->hasRole('koordinator'),
+            ...$this->reportActionPermissions($request),
         ]);
     }
 
@@ -1333,7 +1338,7 @@ class ReportController extends Controller
             if (! $user?->hasRole('admin')) {
                 $scopedEnrollmentQuery = InternshipEnrollment::query()->select('internship_period_id');
                 $this->onlyReportParticipants($scopedEnrollmentQuery);
-                $this->reportScope->applyEnrollmentScope($scopedEnrollmentQuery, $user);
+                $this->applyAccessScope($scopedEnrollmentQuery, $request);
                 $periodQuery->whereIn('id', $scopedEnrollmentQuery->distinct());
             }
 
@@ -1623,8 +1628,6 @@ class ReportController extends Controller
 
     private function scopeEnrollments(Builder $query, Request $request): Builder
     {
-        $user = $request->user();
-
         if ($request->filled('period_id')) {
             $query->where('internship_period_id', $request->integer('period_id'));
         }
@@ -1637,7 +1640,39 @@ class ReportController extends Controller
             $query->where('study_program_id', $request->integer('study_program_id'));
         }
 
-        return $this->reportScope->applyEnrollmentScope($query, $user);
+        return $this->applyAccessScope($query, $request);
+    }
+
+    private function applyAccessScope(Builder $query, Request $request): Builder
+    {
+        if ($this->usesLecturerGuidanceScope($request)) {
+            return $this->reportScope->applyLecturerSupervisionScope($query, $request->user());
+        }
+
+        return $this->reportScope->applyEnrollmentScope($query, $request->user());
+    }
+
+    private function usesLecturerGuidanceScope(Request $request): bool
+    {
+        return $request->string('scope')->toString() === 'bimbingan'
+            && (bool) $request->user()?->hasRole('dosen');
+    }
+
+    private function reportActionPermissions(Request $request): array
+    {
+        $user = $request->user();
+        $isGuidanceScope = $this->usesLecturerGuidanceScope($request);
+        $canManageWorkflow = ! $isGuidanceScope && (bool) $user?->hasRole(['admin', 'koordinator']);
+        $canReviewGuidance = $isGuidanceScope && (bool) $user?->hasRole('dosen');
+
+        return [
+            'canReviewReports' => $canManageWorkflow || $canReviewGuidance,
+            'canReviewSeminars' => $canManageWorkflow || $canReviewGuidance,
+            'canManageForgottenAttendance' => $canManageWorkflow,
+            'canFinalizeScores' => $canManageWorkflow,
+            'canPrintFinalScores' => ! $isGuidanceScope && (bool) $user?->hasRole(['admin', 'koordinator', 'report_viewer']),
+            'canOperate' => $canManageWorkflow,
+        ];
     }
 
     private function onlyReportParticipants(Builder $query): Builder
@@ -1661,7 +1696,7 @@ class ReportController extends Controller
         if (! $user?->hasRole('admin')) {
             $scopedEnrollmentQuery = InternshipEnrollment::query()->select('study_program_id');
             $this->onlyReportParticipants($scopedEnrollmentQuery);
-            $this->reportScope->applyEnrollmentScope($scopedEnrollmentQuery, $user);
+            $this->applyAccessScope($scopedEnrollmentQuery, $request);
             $query->whereIn('id', $scopedEnrollmentQuery->distinct());
         }
 
@@ -1690,9 +1725,9 @@ class ReportController extends Controller
             $lastCheckIn = (clone $checkIns)->max('checked_at');
 
             $start ??= $selectedPeriod?->starts_at?->copy()
-                ?? ($firstCheckIn ? Carbon::parse($firstCheckIn) : now()->startOfYear());
+                ?? ($firstCheckIn ? Carbon::parse($firstCheckIn) : LocalClock::now()->startOfYear());
             $end ??= $selectedPeriod?->ends_at?->copy()
-                ?? ($lastCheckIn ? Carbon::parse($lastCheckIn) : now());
+                ?? ($lastCheckIn ? Carbon::parse($lastCheckIn) : LocalClock::now());
         }
 
         if ($end->lessThan($start)) {
@@ -1708,7 +1743,7 @@ class ReportController extends Controller
             ->where('internship_period_id', $period->id)
             ->when($request->filled('study_program_id'), fn (Builder $query) => $query->where('study_program_id', $request->integer('study_program_id')));
         $this->onlyReportParticipants($query);
-        $this->reportScope->applyEnrollmentScope($query, $request->user());
+        $this->applyAccessScope($query, $request);
 
         $enrollments = $query->get(['attendance_starts_at', 'attendance_ends_at', 'status']);
 
@@ -1721,12 +1756,12 @@ class ReportController extends Controller
 
         $start = $starts->sortBy(fn (Carbon $date): string => $date->toDateString())->first()?->copy()
             ?? $period->starts_at?->copy()
-            ?? now()->copy()->startOfYear();
+            ?? LocalClock::now()->startOfYear();
         $end = $ends->sortByDesc(fn (Carbon $date): string => $date->toDateString())->first()?->copy()
             ?? $period->ends_at?->copy()
-            ?? now()->copy();
+            ?? LocalClock::now();
 
-        $today = now()->copy()->startOfDay();
+        $today = LocalClock::today()->startOfDay();
         if (! $request->filled('end_date') && $end->greaterThan($today)) {
             $end = $today;
         }
@@ -1781,8 +1816,73 @@ class ReportController extends Controller
         return gmdate('H:i:s', (int) $seconds);
     }
 
-    private function progressFunnelStages(): array
+    private function progressFunnelStages(bool $forLecturerGuidance = false): array
     {
+        if ($forLecturerGuidance) {
+            return [
+                [
+                    'key' => 'approved',
+                    'label' => 'Mahasiswa Bimbingan Aktif',
+                    'description' => 'Mahasiswa bimbingan berstatus aktif atau selesai.',
+                    'constraint' => fn (Builder $query) => $query,
+                ],
+                [
+                    'key' => 'active_attendance',
+                    'label' => 'Sudah Presensi',
+                    'description' => 'Mahasiswa sudah memiliki minimal satu data presensi.',
+                    'constraint' => fn (Builder $query) => $query->whereHas('checkIns'),
+                ],
+                [
+                    'key' => 'full_report',
+                    'label' => 'Sudah Isi Catatan/Laporan',
+                    'description' => 'Mahasiswa sudah mengisi catatan harian atau mengunggah laporan akhir.',
+                    'constraint' => fn (Builder $query) => $query->where(function (Builder $query): void {
+                        $query->whereHas('checkIns', fn (Builder $checkIn) => $checkIn->whereNotNull('note'))
+                            ->orWhereHas('submissionProgress', fn (Builder $progress) => $progress->where('deadline_type', 'full_report'));
+                    }),
+                ],
+                [
+                    'key' => 'field_supervisor_score',
+                    'label' => 'Catatan/Laporan Tervalidasi',
+                    'description' => 'Ada catatan harian tervalidasi atau laporan akhir sudah disetujui.',
+                    'constraint' => fn (Builder $query) => $query->where(function (Builder $query): void {
+                        $query->whereHas('checkIns', fn (Builder $checkIn) => $checkIn
+                            ->whereNotNull('note')
+                            ->whereNotNull('daily_log_validated_at'))
+                            ->orWhereHas('submissionProgress', fn (Builder $progress) => $progress
+                                ->where('deadline_type', 'full_report')
+                                ->where('status', 'approved'));
+                    }),
+                ],
+                [
+                    'key' => 'seminar',
+                    'label' => 'Sudah Seminar/Penilaian',
+                    'description' => 'Seminar sudah dijadwalkan, selesai, atau nilai dosen sudah masuk.',
+                    'constraint' => fn (Builder $query) => $query->whereHas('seminarRequests', fn (Builder $seminar) => $seminar
+                        ->where(function (Builder $seminar): void {
+                            $seminar->whereIn('status', ['scheduled', 'completed'])
+                                ->orWhereNotNull('scheduled_at')
+                                ->orWhereNotNull('completed_at')
+                                ->orWhereNotNull('seminar_score');
+                        })),
+                ],
+                [
+                    'key' => 'lecturer_score',
+                    'label' => 'Nilai Dosen Masuk',
+                    'description' => 'Nilai seminar/laporan dari dosen sudah tersimpan.',
+                    'constraint' => fn (Builder $query) => $query->whereHas('seminarRequests', fn (Builder $seminar) => $seminar->whereNotNull('seminar_score')),
+                ],
+                [
+                    'key' => 'final_score',
+                    'label' => 'Nilai Akhir Lengkap',
+                    'description' => 'Finalisasi nilai sudah disahkan.',
+                    'constraint' => fn (Builder $query) => $query->whereHas('finalAssessment', fn (Builder $assessment) => $assessment
+                        ->whereNotNull('final_score')
+                        ->whereNotNull('finalized_at')),
+                ],
+            ];
+        }
+
         return [
             [
                 'key' => 'approved',
@@ -1838,9 +1938,9 @@ class ReportController extends Controller
         ];
     }
 
-    private function countStage(Builder $query, string $stageKey): int
+    private function countStage(Builder $query, string $stageKey, bool $forLecturerGuidance = false): int
     {
-        $stage = collect($this->progressFunnelStages())->firstWhere('key', $stageKey);
+        $stage = collect($this->progressFunnelStages($forLecturerGuidance))->firstWhere('key', $stageKey);
         $stageQuery = clone $query;
         ($stage['constraint'])($stageQuery);
 

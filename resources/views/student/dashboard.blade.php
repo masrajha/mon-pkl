@@ -64,6 +64,7 @@
             ->sortByDesc('date')
             ->take(6)
             ->values();
+        $today = \App\Support\LocalClock::today()->toDateString();
     @endphp
 
     <x-slot name="header">
@@ -131,7 +132,7 @@
                         $latestSeminar = $enrollment->seminarRequests->sortByDesc('id')->first();
                         $nearest = $isOperationalActive
                             ? $enrollment->internshipPeriod?->deadlines
-                                ?->filter(fn ($deadline) => $deadline->deadline_date?->isFuture() || $deadline->deadline_date?->isToday())
+                                ?->filter(fn ($deadline) => $deadline->deadline_date && $deadline->deadline_date->toDateString() >= $today)
                                 ->sortBy('deadline_date')
                                 ->first()
                             : null;

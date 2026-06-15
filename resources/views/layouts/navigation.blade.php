@@ -3,20 +3,47 @@
     $userAvatarUrl = \App\Support\PublicStorage::url($user->avatar_url);
     $actionRequiredSummary ??= [];
     $groups = [];
+    $roleOptions = collect([
+        ['key' => 'admin', 'label' => 'Admin', 'home' => 'management.dashboard', 'available' => $user->hasRole('admin')],
+        ['key' => 'dosen', 'label' => 'Dosen Pembimbing', 'home' => 'dashboard', 'available' => $user->hasRole('dosen')],
+        ['key' => 'koordinator', 'label' => 'Koordinator', 'home' => 'coordinator.dashboard', 'available' => $user->hasRole('koordinator')],
+        ['key' => 'report_viewer', 'label' => 'Viewer Laporan', 'home' => 'reports.progress-funnel', 'available' => $user->hasRole('report_viewer')],
+        ['key' => 'mahasiswa', 'label' => 'Mahasiswa', 'home' => 'student.dashboard', 'available' => $user->hasRole('mahasiswa')],
+        ['key' => 'pembimbing_lapangan', 'label' => 'Pembimbing Lapangan', 'home' => 'field-supervisor.index', 'available' => $user->hasRole('pembimbing_lapangan')],
+    ])->filter(fn (array $role): bool => $role['available'])->values();
+    $activeRole = session('active_role');
+
+    if (! $roleOptions->contains('key', $activeRole)) {
+        $activeRole = $roleOptions->firstWhere('key', $user->role)['key'] ?? $roleOptions->first()['key'] ?? $user->role;
+    }
+
+    $activeRoleOption = $roleOptions->firstWhere('key', $activeRole);
+    $activeRoleLabel = $activeRoleOption['label'] ?? ucfirst((string) $activeRole);
+    $activeHomeRoute = $activeRoleOption['home'] ?? 'dashboard';
+    $documentationRoleRoutes = [
+        'admin' => 'admin',
+        'dosen' => 'dosen-pembimbing',
+        'koordinator' => 'koordinator',
+        'report_viewer' => 'viewer-laporan',
+        'mahasiswa' => 'mahasiswa',
+        'pembimbing_lapangan' => 'pembimbing-lapangan',
+    ];
+    $documentationRole = $documentationRoleRoutes[$activeRole] ?? null;
+    $documentationUrl = $documentationRole ? route('docs.show', $documentationRole) : route('docs.index');
 
     $groups[] = [
         'label' => 'Utama',
         'items' => [
             [
                 'label' => 'Dashboard',
-                'route' => $user->hasRole('pembimbing_lapangan') ? 'field-supervisor.index' : 'dashboard',
+                'route' => $activeHomeRoute,
                 'icon' => 'fa-gauge-high',
-                'active' => $user->hasRole('pembimbing_lapangan') ? ['field-supervisor.index'] : ['dashboard'],
+                'active' => [$activeHomeRoute],
             ],
         ],
     ];
 
-    if ($user->hasRole('mahasiswa')) {
+    if ($activeRole === 'mahasiswa') {
         $groups[] = [
             'label' => 'Program Saya',
             'items' => [
@@ -38,7 +65,7 @@
         ];
     }
 
-    if ($user->hasRole('koordinator')) {
+    if ($activeRole === 'koordinator') {
         $groups[] = [
             'label' => 'Koordinator',
             'items' => [
@@ -57,19 +84,19 @@
         ];
     }
 
-    if ($user->hasRole('dosen')) {
+    if ($activeRole === 'dosen') {
         $groups[] = [
             'label' => 'Dosen Pembimbing',
             'items' => [
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*'], 'badge' => 'lecturer_report_reviews'],
                 ['label' => 'Seminar & Penilaian', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*'], 'badge' => 'lecturer_seminar_reviews'],
-                ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
-                ['label' => 'Rekap Bimbingan', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']],
+                ['label' => 'Peta Monitoring Bimbingan', 'route' => 'maps.monitoring', 'params' => ['scope' => 'bimbingan'], 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
+                ['label' => 'Rekap Monitoring Bimbingan', 'route' => 'reports.monitoring', 'params' => ['scope' => 'bimbingan'], 'icon' => 'fa-chart-column', 'active' => ['reports.*']],
             ],
         ];
     }
 
-    if ($user->hasRole('pembimbing_lapangan')) {
+    if ($activeRole === 'pembimbing_lapangan') {
         $groups[] = [
             'label' => 'Pembimbing Lapangan',
             'items' => [
@@ -78,7 +105,7 @@
         ];
     }
 
-    if ($user->hasRole('admin')) {
+    if ($activeRole === 'admin') {
         $groups[] = [
             'label' => 'Manajemen',
             'items' => [
@@ -119,7 +146,7 @@
         ];
     }
 
-    if ($user->hasRole(['admin', 'koordinator', 'report_viewer'])) {
+    if (in_array($activeRole, ['admin', 'koordinator', 'report_viewer'], true)) {
         $groups[] = [
             'label' => 'Analisis & Laporan',
             'items' => [
@@ -136,14 +163,17 @@
 
     $monitoringItems = [
         ['label' => 'Peta & Rute Mitra', 'route' => 'maps.places', 'icon' => 'fa-map', 'active' => ['maps.places']],
-        ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
     ];
 
-    if (! $user->hasRole(['admin', 'koordinator'])) {
+    if ($activeRole !== 'dosen') {
+        $monitoringItems[] = ['label' => 'Peta Monitoring', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']];
+    }
+
+    if (! in_array($activeRole, ['admin', 'dosen', 'koordinator'], true)) {
         $monitoringItems[] = ['label' => 'Rekap Monitoring', 'route' => 'reports.monitoring', 'icon' => 'fa-chart-column', 'active' => ['reports.monitoring']];
     }
 
-    if ($user->hasRole(['admin', 'dosen'])) {
+    if ($activeRole === 'admin') {
         $monitoringItems[] = ['label' => 'Input Lokasi Mitra', 'route' => 'internship-places.create', 'icon' => 'fa-location-crosshairs', 'active' => ['internship-places.*']];
     }
 
@@ -152,7 +182,7 @@
         'items' => $monitoringItems,
     ];
 
-    if ($user->hasRole('admin')) {
+    if ($activeRole === 'admin') {
         $groups[] = [
             'label' => 'Konfigurasi',
             'items' => [
@@ -194,7 +224,7 @@
                                 $active = request()->routeIs($item['active']);
                                 $badgeCount = isset($item['badge']) ? (int) data_get($actionRequiredSummary, $item['badge'].'.count', 0) : 0;
                             @endphp
-                            <a href="{{ route($item['route']) }}" class="{{ $itemClass($active) }}">
+                            <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="{{ $itemClass($active) }}">
                                 <x-icon :name="$item['icon']" class="w-5 text-center" />
                                 <span class="min-w-0 flex-1">{{ $item['label'] }}</span>
                                 @if ($badgeCount > 0)
@@ -222,10 +252,40 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <a href="{{ $documentationUrl }}" class="hidden items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 md:inline-flex">
+                    <x-icon name="fa-book-open" class="text-blue-700" />
+                    <span>Dokumentasi</span>
+                </a>
                 <span class="hidden text-right text-sm sm:block">
                     <span class="block font-semibold text-gray-900">{{ $user->name }}</span>
-                    <span class="block text-xs text-gray-500">{{ ucfirst($user->role) }}</span>
+                    <span class="block text-xs text-gray-500">{{ $activeRoleLabel }}</span>
                 </span>
+                @if ($roleOptions->count() > 1)
+                    <x-dropdown align="right" width="w-56">
+                        <x-slot name="trigger">
+                            <button type="button" class="hidden items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:inline-flex">
+                                <x-icon name="fa-user-gear" class="text-blue-700" />
+                                <span>{{ $activeRoleLabel }}</span>
+                                <x-icon name="fa-chevron-down" class="text-xs text-gray-400" />
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            <div class="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Mode akses</div>
+                            @foreach ($roleOptions as $roleOption)
+                                <form method="POST" action="{{ route('active-role.update') }}">
+                                    @csrf
+                                    <input type="hidden" name="role" value="{{ $roleOption['key'] }}">
+                                    <button type="submit" class="flex w-full items-center justify-between gap-3 px-4 py-2 text-left text-sm transition hover:bg-gray-100 focus:bg-gray-100 focus:outline-none {{ $activeRole === $roleOption['key'] ? 'font-semibold text-blue-700' : 'text-gray-700' }}">
+                                        <span>{{ $roleOption['label'] }}</span>
+                                        @if ($activeRole === $roleOption['key'])
+                                            <x-icon name="fa-check" class="text-xs" />
+                                        @endif
+                                    </button>
+                                </form>
+                            @endforeach
+                        </x-slot>
+                    </x-dropdown>
+                @endif
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white text-sm font-semibold text-blue-800 shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
@@ -281,7 +341,7 @@
                                     $active = request()->routeIs($item['active']);
                                     $badgeCount = isset($item['badge']) ? (int) data_get($actionRequiredSummary, $item['badge'].'.count', 0) : 0;
                                 @endphp
-                                <a href="{{ route($item['route']) }}" class="{{ $mobileItemClass($active) }}" @click="open = false">
+                                <a href="{{ route($item['route'], $item['params'] ?? []) }}" class="{{ $mobileItemClass($active) }}" @click="open = false">
                                     <x-icon :name="$item['icon']" class="w-5 text-center" />
                                     <span class="min-w-0 flex-1">{{ $item['label'] }}</span>
                                     @if ($badgeCount > 0)
@@ -295,6 +355,29 @@
             </nav>
 
             <div class="border-t border-gray-200 p-4">
+                <a href="{{ $documentationUrl }}" class="mb-4 flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50" @click="open = false">
+                    <x-icon name="fa-book-open" class="w-5 text-center text-blue-700" />
+                    <span>Dokumentasi</span>
+                </a>
+                @if ($roleOptions->count() > 1)
+                    <div class="mb-4">
+                        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Mode akses</p>
+                        <div class="grid gap-1">
+                            @foreach ($roleOptions as $roleOption)
+                                <form method="POST" action="{{ route('active-role.update') }}">
+                                    @csrf
+                                    <input type="hidden" name="role" value="{{ $roleOption['key'] }}">
+                                    <button type="submit" class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition {{ $activeRole === $roleOption['key'] ? 'bg-blue-50 font-semibold text-blue-800' : 'text-gray-700 hover:bg-gray-50' }}">
+                                        <span>{{ $roleOption['label'] }}</span>
+                                        @if ($activeRole === $roleOption['key'])
+                                            <x-icon name="fa-check" class="text-xs" />
+                                        @endif
+                                    </button>
+                                </form>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
                 <div class="flex items-center gap-3">
                     @if ($userAvatarUrl)
                         <img src="{{ $userAvatarUrl }}" alt="Foto profil {{ $user->name }}" class="h-10 w-10 rounded-full object-cover">

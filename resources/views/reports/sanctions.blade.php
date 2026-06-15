@@ -16,7 +16,7 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 @include('reports.partials.export-buttons', ['type' => 'sanctions'])
-                <a class="silat-secondary-link" href="{{ route('reports.final-scores', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+                <a class="silat-secondary-link" href="{{ route('reports.final-scores', request()->only(['scope', 'period_id', 'program_id', 'study_program_id'])) }}">
                     <x-icon name="fa-calculator" /> Rekap nilai akhir
                 </a>
             </div>
@@ -27,9 +27,10 @@
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             @include('management.partials.nav')
             @include('reports.partials.report-tabs')
-            @php($drillBase = request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']))
+            @php($drillBase = request()->only(['scope', 'period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']))
 
             <form method="GET" action="{{ route('reports.sanctions') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" data-period-date-sync>
+                @if (request()->filled('scope'))<input type="hidden" name="scope" value="{{ request('scope') }}">@endif
                 <div class="sanctions-filter-grid grid grid-cols-1 gap-4">
                     <div>
                         <x-input-label for="period_id" value="Periode Program" />
@@ -126,9 +127,15 @@
                                     <td class="silat-table-cell text-right text-base font-semibold text-gray-950">{{ number_format($row['total'], 2, ',', '.') }}</td>
                                     <td class="silat-table-cell text-right">
                                         <div class="flex flex-wrap justify-end gap-2">
-                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', ['period_id' => $row['enrollment']->internship_period_id, 'study_program_id' => $row['enrollment']->study_program_id]) }}">Presensi</a>
-                                            <a class="silat-secondary-link" href="{{ route('management.submission-progress.index', ['period_id' => $row['enrollment']->internship_period_id, 'q' => $row['npm']]) }}">Laporan</a>
-                                            <a class="silat-secondary-link" href="{{ route('management.final-assessments.index', ['period_id' => $row['enrollment']->internship_period_id, 'q' => $row['npm']]) }}">Nilai</a>
+                                            <a class="silat-secondary-link" href="{{ route('reports.monitoring', array_filter(['scope' => request('scope'), 'period_id' => $row['enrollment']->internship_period_id, 'study_program_id' => $row['enrollment']->study_program_id])) }}">Presensi</a>
+                                            @if ($canReviewReports)
+                                                <a class="silat-secondary-link" href="{{ route('management.submission-progress.index', ['period_id' => $row['enrollment']->internship_period_id, 'q' => $row['npm']]) }}">Laporan</a>
+                                            @endif
+                                            @if ($canFinalizeScores)
+                                                <a class="silat-secondary-link" href="{{ route('management.final-assessments.index', ['period_id' => $row['enrollment']->internship_period_id, 'q' => $row['npm']]) }}">Finalisasi</a>
+                                            @else
+                                                <a class="silat-secondary-link" href="{{ route('reports.final-scores', array_filter(request()->only(['scope', 'period_id', 'program_id', 'study_program_id']) + ['status' => $row['finalized_at'] ? 'finalized' : 'pending'])) }}">Nilai</a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

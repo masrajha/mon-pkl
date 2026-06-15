@@ -16,6 +16,7 @@ use App\Models\StudyProgram;
 use App\Models\User;
 use App\Services\ActionRequiredSummaryService;
 use App\Services\ParticipantProgressDashboardService;
+use App\Support\LocalClock;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -32,7 +33,7 @@ class DashboardController extends Controller
     {
         $activeEnrollments = InternshipEnrollment::query()->where('status', 'active')->count();
         $todayCheckIns = CheckIn::query()
-            ->whereDate('checked_at', today())
+            ->whereDate('checked_at', LocalClock::today())
             ->distinct('internship_enrollment_id')
             ->count('internship_enrollment_id');
         $orientationEvents = OrientationEvent::query()

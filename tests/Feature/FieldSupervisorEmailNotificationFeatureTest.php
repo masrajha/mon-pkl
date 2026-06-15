@@ -15,6 +15,7 @@ use App\Models\Program;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Support\LocalClock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -42,7 +43,7 @@ class FieldSupervisorEmailNotificationFeatureTest extends TestCase
         PeriodDeadline::query()->create([
             'internship_period_id' => $enrollment->internship_period_id,
             'deadline_type' => 'full_report',
-            'deadline_date' => now()->addDays(7)->toDateString(),
+            'deadline_date' => LocalClock::today()->addDays(7)->toDateString(),
             'penalty_points' => 1,
             'is_fixed_penalty' => false,
         ]);
@@ -129,8 +130,8 @@ class FieldSupervisorEmailNotificationFeatureTest extends TestCase
             'program_id' => $program->id,
             'name' => 'Juni 2026',
             'academic_year' => '2025/2026',
-            'starts_at' => now()->subDays(10)->toDateString(),
-            'ends_at' => now()->subDay()->toDateString(),
+            'starts_at' => LocalClock::today()->subDays(10)->toDateString(),
+            'ends_at' => LocalClock::today()->subDay()->toDateString(),
             'is_active' => true,
         ]);
         $place = InternshipPlace::query()->create([

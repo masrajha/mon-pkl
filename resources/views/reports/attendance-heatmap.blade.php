@@ -8,7 +8,7 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 @include('reports.partials.export-buttons', ['type' => 'attendance-heatmap'])
-                <a class="silat-secondary-link" href="{{ route('reports.risk-scoring', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+                <a class="silat-secondary-link" href="{{ route('reports.risk-scoring', request()->only(['scope', 'period_id', 'program_id', 'study_program_id'])) }}">
                     <x-icon name="fa-triangle-exclamation" /> Buka risk scoring
                 </a>
             </div>
@@ -21,6 +21,7 @@
             @include('reports.partials.report-tabs')
 
             <form method="GET" action="{{ route('reports.attendance-heatmap') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" data-period-date-sync>
+                @if (request()->filled('scope'))<input type="hidden" name="scope" value="{{ request('scope') }}">@endif
                 <div class="grid gap-4 md:grid-cols-6">
                     <div>
                         <x-input-label for="period_id" value="Periode Program" />

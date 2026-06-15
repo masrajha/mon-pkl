@@ -10,7 +10,7 @@
         ['route' => 'reports.monitoring', 'label' => 'Rekap Monitoring', 'icon' => 'fa-chart-column'],
         ['route' => 'reports.drill-down', 'label' => 'Drill-down', 'icon' => 'fa-magnifying-glass-chart'],
     ];
-    $sharedReportQuery = request()->only(['period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']);
+    $sharedReportQuery = request()->only(['scope', 'period_id', 'program_id', 'study_program_id', 'start_date', 'end_date']);
 @endphp
 
 <nav class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm" aria-label="Navigasi laporan">

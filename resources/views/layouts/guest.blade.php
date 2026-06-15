@@ -16,6 +16,12 @@
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
+            <div class="absolute right-4 top-4">
+                <a href="{{ route('docs.index') }}" class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 hover:text-blue-700">
+                    Dokumentasi
+                </a>
+            </div>
+
             <div class="text-center">
                 <a href="/">
                     <x-application-logo class="mx-auto h-16 w-28 text-sm" />

@@ -59,6 +59,8 @@ use App\Models\InternshipPlace;
 use App\Models\Lecturer;
 use App\Models\Program;
 use App\Models\Student;
+use App\Support\LocalClock;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
@@ -147,13 +149,17 @@ Route::get('/', function () {
         $periods = InternshipPeriod::query()
             ->with('program')
             ->where(function ($query) {
+                $today = LocalClock::today();
+
                 $query
                     ->where('is_active', true)
-                    ->orWhereDate('starts_at', '>=', today())
+                    ->orWhereDate('starts_at', '>=', $today)
                     ->orWhere(function ($activeDateQuery) {
+                        $today = LocalClock::today();
+
                         $activeDateQuery
-                            ->whereDate('starts_at', '<=', today())
-                            ->whereDate('ends_at', '>=', today());
+                            ->whereDate('starts_at', '<=', $today)
+                            ->whereDate('ends_at', '>=', $today);
                     });
             })
             ->orderByDesc('is_active')
@@ -198,6 +204,28 @@ Route::middleware('auth')->group(function () {
     Route::post('/browser-notifications/unsubscribe', [BrowserNotificationController::class, 'unsubscribe'])
         ->middleware('throttle:10,1')
         ->name('browser-notifications.unsubscribe');
+
+    Route::post('/active-role', function (Request $request) {
+        $user = $request->user();
+        $role = $request->validate([
+            'role' => ['required', 'string', 'in:admin,dosen,koordinator,report_viewer,mahasiswa,pembimbing_lapangan'],
+        ])['role'];
+
+        abort_unless($user->hasRole($role), 403);
+
+        $request->session()->put('active_role', $role);
+
+        $homeRoutes = [
+            'admin' => 'management.dashboard',
+            'dosen' => 'dashboard',
+            'koordinator' => 'coordinator.dashboard',
+            'report_viewer' => 'reports.progress-funnel',
+            'mahasiswa' => 'student.dashboard',
+            'pembimbing_lapangan' => 'field-supervisor.index',
+        ];
+
+        return redirect()->route($homeRoutes[$role]);
+    })->name('active-role.update');
 
     Route::get('/maps/places', [MapController::class, 'places'])->name('maps.places');
     Route::get('/maps/places/data', [MapController::class, 'placesData'])->name('maps.places.data');
@@ -265,7 +293,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/coordinator', CoordinatorDashboardController::class)->name('coordinator.dashboard');
     });
 
-    Route::middleware('role:admin,koordinator,report_viewer')->group(function () {
+    Route::middleware('role:admin,dosen,koordinator,report_viewer')->group(function () {
         Route::get('/reports/progress-funnel', [ReportController::class, 'progressFunnel'])->name('reports.progress-funnel');
         Route::get('/reports/risk-scoring', [ReportController::class, 'riskScoring'])->name('reports.risk-scoring');
         Route::get('/reports/attendance-heatmap', [ReportController::class, 'attendanceHeatmap'])->name('reports.attendance-heatmap');

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\LocalClock;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -70,11 +71,13 @@ class User extends Authenticatable
 
     public function isReportViewer(): bool
     {
+        $today = LocalClock::today()->toDateString();
+
         return $this->lecturer()
             ->whereHas('reportViewerAssignments', fn ($query) => $query
                 ->where('status', 'active')
-                ->where(fn ($query) => $query->whereNull('starts_at')->orWhereDate('starts_at', '<=', now()->toDateString()))
-                ->where(fn ($query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', now()->toDateString())))
+                ->where(fn ($query) => $query->whereNull('starts_at')->orWhereDate('starts_at', '<=', $today))
+                ->where(fn ($query) => $query->whereNull('ends_at')->orWhereDate('ends_at', '>=', $today)))
             ->exists();
     }
 

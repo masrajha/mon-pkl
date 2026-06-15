@@ -7,6 +7,7 @@ use App\Models\FieldSupervisorAssessment;
 use App\Models\FinalAssessment;
 use App\Models\ForgottenAttendanceRequest;
 use App\Models\InternshipEnrollment;
+use App\Models\InternshipCoordinator;
 use App\Models\InternshipPeriod;
 use App\Models\InternshipPeriodSetting;
 use App\Models\InternshipPlace;
@@ -309,6 +310,165 @@ class MonitoringReportTest extends TestCase
             ->assertOk()
             ->assertSee('S1 Scope Viewer')
             ->assertDontSee('S1 Luar Scope');
+    }
+
+    public function test_lecturer_guidance_scope_keeps_analysis_reports_to_supervised_students(): void
+    {
+        $lecturerUser = User::factory()->create(['role' => 'dosen', 'name' => 'Dosen Pembimbing']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $guidedProgram = StudyProgram::query()->create(['code' => 'BIM', 'name' => 'S1 Bimbingan', 'is_active' => true]);
+        $coordinatorProgram = StudyProgram::query()->create(['code' => 'KOR', 'name' => 'S1 Koordinator', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Dosen',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+            'is_active' => true,
+        ]);
+        $place = InternshipPlace::query()->create(['name' => 'Mitra Dosen']);
+        $lecturer = Lecturer::query()->create([
+            'user_id' => $lecturerUser->id,
+            'study_program_id' => $guidedProgram->id,
+            'name' => $lecturerUser->name,
+            'email' => $lecturerUser->email,
+            'status' => 'active',
+        ]);
+        InternshipCoordinator::query()->create([
+            'lecturer_id' => $lecturer->id,
+            'internship_period_id' => $period->id,
+            'study_program_id' => $coordinatorProgram->id,
+            'status' => 'active',
+        ]);
+
+        $guidedEnrollment = $this->createFunnelEnrollment($guidedProgram, $period, $place, '2217053001', 'Mahasiswa Bimbingan');
+        $guidedEnrollment->update(['lecturer_supervisor_id' => $lecturer->id]);
+        $coordinatorEnrollment = $this->createFunnelEnrollment($coordinatorProgram, $period, $place, '2217053002', 'Mahasiswa Koordinator');
+
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $guidedEnrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-02 08:00:00',
+        ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $coordinatorEnrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-02 08:00:00',
+        ]);
+
+        $this->actingAs($lecturerUser)
+            ->get(route('reports.progress-funnel', ['scope' => 'bimbingan', 'period_id' => $period->id]))
+            ->assertOk()
+            ->assertViewHas('total', 1)
+            ->assertSee('Progress Funnel Bimbingan')
+            ->assertSee('Mahasiswa Bimbingan Aktif')
+            ->assertSee('S1 Bimbingan')
+            ->assertDontSee('S1 Koordinator');
+
+        $this->actingAs($lecturerUser)
+            ->get(route('reports.monitoring', ['scope' => 'bimbingan', 'period_id' => $period->id]))
+            ->assertOk()
+            ->assertSee('Rekap Monitoring Bimbingan')
+            ->assertSee('Mahasiswa Bimbingan')
+            ->assertDontSee('Mahasiswa Koordinator');
+
+        $this->actingAs($lecturerUser)
+            ->get(route('reports.risk-scoring', ['scope' => 'bimbingan', 'period_id' => $period->id]))
+            ->assertOk()
+            ->assertViewHas('canReviewReports', true)
+            ->assertViewHas('canReviewSeminars', true)
+            ->assertViewHas('canManageForgottenAttendance', false)
+            ->assertViewHas('canFinalizeScores', false)
+            ->assertSee('Mahasiswa Bimbingan')
+            ->assertDontSee('Mahasiswa Koordinator')
+            ->assertSee('management/submission-progress?period_id='.$period->id.'&amp;q=2217053001', false)
+            ->assertSee('management/seminar-requests?period_id='.$period->id.'&amp;q=2217053001', false)
+            ->assertDontSee('Lupa Presensi')
+            ->assertDontSee('Finalisasi');
+
+        $this->actingAs($lecturerUser)
+            ->get(route('reports.final-scores', ['scope' => 'bimbingan', 'period_id' => $period->id]))
+            ->assertOk()
+            ->assertViewHas('canFinalizeScores', false)
+            ->assertDontSee(route('management.final-assessments.index', ['period_id' => $period->id, 'q' => '2217053001']), false)
+            ->assertDontSee('Finalisasi');
+
+        $this->actingAs($lecturerUser)
+            ->withSession(['active_role' => 'dosen'])
+            ->get(route('management.final-assessments.index', ['period_id' => $period->id]))
+            ->assertForbidden();
+    }
+
+    public function test_multi_role_user_can_switch_active_role_from_header(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-06-16 01:00:00', config('monpkl.timezone')));
+
+        $lecturerUser = User::factory()->create(['role' => 'dosen', 'name' => 'Dosen Multi Role']);
+        $program = Program::query()->firstOrCreate(['code' => 'KP'], ['name' => 'Kerja Praktik', 'is_active' => true]);
+        $organization = Organization::query()->create([
+            'type' => 'university',
+            'code' => 'UNILA-MULTI',
+            'name' => 'Universitas Multi Role',
+            'is_active' => true,
+        ]);
+        $studyProgram = StudyProgram::query()->create(['code' => 'MRL', 'name' => 'S1 Multi Role', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create([
+            'program_id' => $program->id,
+            'name' => 'Periode Multi Role',
+            'starts_at' => '2026-06-01',
+            'ends_at' => '2026-06-30',
+            'is_active' => true,
+        ]);
+        $lecturer = Lecturer::query()->create([
+            'user_id' => $lecturerUser->id,
+            'study_program_id' => $studyProgram->id,
+            'name' => $lecturerUser->name,
+            'email' => $lecturerUser->email,
+            'status' => 'active',
+        ]);
+        InternshipCoordinator::query()->create([
+            'lecturer_id' => $lecturer->id,
+            'internship_period_id' => $period->id,
+            'study_program_id' => $studyProgram->id,
+            'status' => 'active',
+        ]);
+        ReportViewerAssignment::query()->create([
+            'lecturer_id' => $lecturer->id,
+            'organization_id' => $organization->id,
+            'level' => 'university',
+            'status' => 'active',
+            'starts_at' => '2026-06-16',
+            'ends_at' => '2026-12-31',
+        ]);
+
+        $this->actingAs($lecturerUser)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Mode akses')
+            ->assertSee('Viewer Laporan')
+            ->assertSee('Rekap Monitoring Bimbingan')
+            ->assertDontSee('Input Lokasi Mitra')
+            ->assertDontSee('Dashboard Koordinator');
+
+        $this->actingAs($lecturerUser)
+            ->post(route('active-role.update'), ['role' => 'koordinator'])
+            ->assertRedirect(route('coordinator.dashboard'))
+            ->assertSessionHas('active_role', 'koordinator');
+
+        $this->actingAs($lecturerUser)
+            ->withSession(['active_role' => 'koordinator'])
+            ->get(route('coordinator.dashboard'))
+            ->assertOk()
+            ->assertSee('Dashboard Koordinator')
+            ->assertDontSee('Rekap Monitoring Bimbingan');
+
+        $this->actingAs($lecturerUser)
+            ->post(route('active-role.update'), ['role' => 'report_viewer'])
+            ->assertRedirect(route('reports.progress-funnel'))
+            ->assertSessionHas('active_role', 'report_viewer');
+
+        Carbon::setTestNow();
     }
 
     public function test_admin_can_access_risk_scoring_report(): void

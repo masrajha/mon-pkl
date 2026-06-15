@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
+use App\Support\LocalClock;
 use Carbon\CarbonInterface;
 
 class StudentWorkflowAccessService
@@ -18,7 +19,7 @@ class StudentWorkflowAccessService
             return false;
         }
 
-        $today = ($date ?: now())->toDateString();
+        $today = ($date ?: LocalClock::today())->toDateString();
         $start = $period->deadlines->firstWhere('deadline_type', 'registration_start')?->deadline_date;
         $end = $period->deadlines->firstWhere('deadline_type', 'registration_end')?->deadline_date;
 

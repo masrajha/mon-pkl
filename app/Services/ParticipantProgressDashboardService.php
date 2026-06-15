@@ -11,6 +11,7 @@ use App\Models\Lecturer;
 use App\Models\Program;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Support\LocalClock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -234,8 +235,8 @@ class ParticipantProgressDashboardService
         $start = $request->date('progress_start_date');
         $end = $request->date('progress_end_date');
 
-        $start ??= $period?->starts_at?->copy() ?? today()->startOfMonth();
-        $end ??= $period?->ends_at?->copy() ?? today();
+        $start ??= $period?->starts_at?->copy() ?? LocalClock::today()->startOfMonth();
+        $end ??= $period?->ends_at?->copy() ?? LocalClock::today();
 
         if ($start->gt($end)) {
             [$start, $end] = [$end, $start];

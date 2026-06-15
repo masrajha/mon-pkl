@@ -9,6 +9,7 @@ use App\Models\OrientationEvent;
 use App\Models\PeriodDeadline;
 use App\Models\RelocationRequest;
 use App\Models\SupervisorChangeRequest;
+use App\Support\LocalClock;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -36,8 +37,9 @@ class DashboardController extends Controller
                 ->orderByDesc('id')
                 ->get()
             : collect();
+        $today = LocalClock::today()->toDateString();
         $nearestDeadline = $activeEnrollment?->internshipPeriod?->deadlines
-            ?->filter(fn ($deadline) => $deadline->deadline_date?->isFuture() || $deadline->deadline_date?->isToday())
+            ?->filter(fn ($deadline) => $deadline->deadline_date && $deadline->deadline_date->toDateString() >= $today)
             ->sortBy('deadline_date')
             ->first();
 
@@ -103,12 +105,12 @@ class DashboardController extends Controller
         $baseQuery = PeriodDeadline::query()
             ->with('internshipPeriod.program')
             ->whereIn('internship_period_id', $periodIds)
-            ->whereDate('deadline_date', '>=', today())
+            ->whereDate('deadline_date', '>=', LocalClock::today())
             ->orderBy('deadline_date')
             ->orderBy('deadline_type');
 
         $withinSevenDays = (clone $baseQuery)
-            ->whereDate('deadline_date', '<=', today()->addDays(7))
+            ->whereDate('deadline_date', '<=', LocalClock::today()->addDays(7))
             ->limit(6)
             ->get();
 

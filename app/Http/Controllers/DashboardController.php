@@ -14,6 +14,7 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
 use App\Services\ActionRequiredSummaryService;
+use App\Support\LocalClock;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,18 +28,36 @@ class DashboardController extends Controller
     public function __invoke(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+        $activeRole = $this->activeRole($request);
 
-        if ($user->hasRole('pembimbing_lapangan')) {
+        if ($activeRole === 'pembimbing_lapangan') {
             return redirect()->route('field-supervisor.index');
         }
 
-        $student = $user->student()->with(['studyProgram'])->first();
-        $lecturer = $user->lecturer()->with(['coordinatorAssignments.internshipPeriod.program', 'coordinatorAssignments.studyProgram'])->first();
+        if ($activeRole === 'admin') {
+            return redirect()->route('management.dashboard');
+        }
+
+        if ($activeRole === 'koordinator') {
+            return redirect()->route('coordinator.dashboard');
+        }
+
+        if ($activeRole === 'report_viewer') {
+            return redirect()->route('reports.progress-funnel');
+        }
+
+        $student = $activeRole === 'mahasiswa'
+            ? $user->student()->with(['studyProgram'])->first()
+            : null;
+        $lecturer = in_array($activeRole, ['dosen', 'koordinator'], true)
+            ? $user->lecturer()->with(['coordinatorAssignments.internshipPeriod.program', 'coordinatorAssignments.studyProgram'])->first()
+            : null;
 
         $studentActiveEnrollments = $student ? $this->studentActiveEnrollments($student) : collect();
-        $supervisedEnrollments = $lecturer ? $this->supervisedEnrollments($lecturer) : collect();
+        $supervisedEnrollments = $activeRole === 'dosen' && $lecturer ? $this->supervisedEnrollments($lecturer) : collect();
 
         return view('dashboard', [
+            'activeRole' => $activeRole,
             'student' => $student,
             'studentProfileComplete' => $student && $student->npm && $student->student_email && $student->phone && $student->study_program_id,
             'studentEnrollment' => $student ? $this->studentEnrollment($student) : null,
@@ -47,15 +66,34 @@ class DashboardController extends Controller
             'studentImportantDeadlines' => $student ? $this->importantDeadlinesForStudent($student, $studentActiveEnrollments) : collect(),
             'studentProposalCount' => $student ? InternshipPlaceProposal::query()->where('student_id', $student->id)->count() : 0,
             'lecturer' => $lecturer,
-            'lecturerStats' => $lecturer ? $this->lecturerStats($lecturer) : null,
+            'lecturerStats' => $activeRole === 'dosen' && $lecturer ? $this->lecturerStats($lecturer) : null,
             'supervisedEnrollments' => $supervisedEnrollments,
-            'lecturerImportantDeadlines' => $lecturer ? $this->importantDeadlinesForPeriodIds($supervisedEnrollments->pluck('internship_period_id')) : collect(),
-            'coordinatorAssignments' => $lecturer
+            'lecturerImportantDeadlines' => $activeRole === 'dosen' && $lecturer ? $this->importantDeadlinesForPeriodIds($supervisedEnrollments->pluck('internship_period_id')) : collect(),
+            'coordinatorAssignments' => $activeRole === 'koordinator' && $lecturer
                 ? $lecturer->coordinatorAssignments->where('status', 'active')->values()
                 : collect(),
-            'adminStats' => $user->hasRole('admin') ? $this->adminStats() : null,
+            'adminStats' => $activeRole === 'admin' ? $this->adminStats() : null,
             'actionRequiredSummary' => $this->actions->forUser($user),
         ]);
+    }
+
+    private function activeRole(Request $request): string
+    {
+        $user = $request->user();
+        $availableRoles = collect(['admin', 'dosen', 'koordinator', 'report_viewer', 'mahasiswa', 'pembimbing_lapangan'])
+            ->filter(fn (string $role): bool => (bool) $user?->hasRole($role))
+            ->values();
+        $activeRole = $request->session()->get('active_role');
+
+        if ($availableRoles->contains($activeRole)) {
+            return $activeRole;
+        }
+
+        if ($availableRoles->contains($user?->role)) {
+            return $user->role;
+        }
+
+        return $availableRoles->first() ?? (string) $user?->role;
     }
 
     private function studentEnrollment(Student $student): ?InternshipEnrollment
@@ -142,12 +180,12 @@ class DashboardController extends Controller
         $baseQuery = PeriodDeadline::query()
             ->with('internshipPeriod.program')
             ->whereIn('internship_period_id', $periodIds)
-            ->whereDate('deadline_date', '>=', today())
+            ->whereDate('deadline_date', '>=', LocalClock::today())
             ->orderBy('deadline_date')
             ->orderBy('deadline_type');
 
         $withinSevenDays = (clone $baseQuery)
-            ->whereDate('deadline_date', '<=', today()->addDays(7))
+            ->whereDate('deadline_date', '<=', LocalClock::today()->addDays(7))
             ->limit(6)
             ->get();
 
@@ -181,7 +219,7 @@ class DashboardController extends Controller
     {
         $activeEnrollments = InternshipEnrollment::query()->where('status', 'active')->count();
         $todayCheckIns = CheckIn::query()
-            ->whereDate('checked_at', today())
+            ->whereDate('checked_at', LocalClock::today())
             ->distinct('internship_enrollment_id')
             ->count('internship_enrollment_id');
 

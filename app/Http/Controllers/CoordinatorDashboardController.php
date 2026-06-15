@@ -9,6 +9,7 @@ use App\Models\OrientationEvent;
 use App\Models\PeriodDeadline;
 use App\Services\ActionRequiredSummaryService;
 use App\Services\ParticipantProgressDashboardService;
+use App\Support\LocalClock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -52,7 +53,7 @@ class CoordinatorDashboardController extends Controller
             'students' => (clone $statsQuery)->count(),
             'checkInsToday' => CheckIn::query()
                 ->whereIn('internship_enrollment_id', $enrollmentIds)
-                ->whereDate('checked_at', today())
+                ->whereDate('checked_at', LocalClock::today())
                 ->distinct('internship_enrollment_id')
                 ->count('internship_enrollment_id'),
             'completedReports' => (clone $statsQuery)->where('status', 'completed')->count(),
@@ -139,12 +140,12 @@ class CoordinatorDashboardController extends Controller
         $baseQuery = PeriodDeadline::query()
             ->with('internshipPeriod.program')
             ->whereIn('internship_period_id', $periodIds)
-            ->whereDate('deadline_date', '>=', today())
+            ->whereDate('deadline_date', '>=', LocalClock::today())
             ->orderBy('deadline_date')
             ->orderBy('deadline_type');
 
         $withinSevenDays = (clone $baseQuery)
-            ->whereDate('deadline_date', '<=', today()->addDays(7))
+            ->whereDate('deadline_date', '<=', LocalClock::today()->addDays(7))
             ->limit(6)
             ->get();
 

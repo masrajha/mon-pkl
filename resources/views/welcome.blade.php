@@ -1,6 +1,7 @@
 @php
     $loginUrl = Route::has('login') ? route('login') : '#';
     $registerUrl = Route::has('register') ? route('register') : $loginUrl;
+    $docsUrl = route('docs.index');
 
     $features = [
         ['title' => 'Pendaftaran Terarah', 'description' => 'Mahasiswa memilih program periode aktif, mitra, dan alur validasi melalui satu pintu.', 'icon' => 'fa-clipboard-check', 'tone' => 'bg-blue-50 text-blue-700'],
@@ -37,6 +38,7 @@
                     <a href="#beranda" class="text-sm font-semibold text-slate-700 hover:text-blue-700">Beranda</a>
                     <a href="#program" class="text-sm font-semibold text-slate-700 hover:text-blue-700">Program</a>
                     <a href="#tentang" class="text-sm font-semibold text-slate-700 hover:text-blue-700">Tentang</a>
+                    <a href="{{ $docsUrl }}" class="text-sm font-semibold text-slate-700 hover:text-blue-700">Dokumentasi</a>
                     <a href="{{ $loginUrl }}" class="text-sm font-semibold text-slate-700 hover:text-blue-700">Login</a>
                     <a href="{{ $registerUrl }}" class="inline-flex h-10 items-center rounded-lg bg-blue-700 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-800">Register</a>
                 </div>
@@ -51,6 +53,7 @@
                     <a href="#beranda" x-on:click="open = false" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Beranda</a>
                     <a href="#program" x-on:click="open = false" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Program</a>
                     <a href="#tentang" x-on:click="open = false" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Tentang</a>
+                    <a href="{{ $docsUrl }}" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Dokumentasi</a>
                     <a href="{{ $loginUrl }}" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Login</a>
                     <a href="{{ $registerUrl }}" class="rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold text-white">Register</a>
                 </div>
@@ -144,7 +147,8 @@
                     <div class="grid gap-4">
                         @forelse ($periods as $period)
                             @php
-                                $status = $period->is_active ? 'Berlangsung' : ($period->starts_at?->isFuture() ? 'Akan Datang' : 'Terjadwal');
+                                $today = \App\Support\LocalClock::today()->toDateString();
+                                $status = $period->is_active ? 'Berlangsung' : ($period->starts_at && $period->starts_at->toDateString() > $today ? 'Akan Datang' : 'Terjadwal');
                                 $statusClass = $period->is_active ? 'bg-teal-100 text-teal-800' : 'bg-blue-100 text-blue-800';
                             @endphp
                             <article class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">

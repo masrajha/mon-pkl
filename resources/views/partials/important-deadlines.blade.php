@@ -6,6 +6,7 @@
 
 @php
     $deadlineLabels = config('monpkl.deadline_types', []);
+    $today = \App\Support\LocalClock::today()->startOfDay();
 @endphp
 
 <section class="silat-card">
@@ -20,7 +21,7 @@
         @forelse ($deadlines as $deadline)
             @php
                 $date = $deadline->deadline_date;
-                $days = $date ? today()->startOfDay()->diffInDays($date->copy()->startOfDay(), false) : null;
+                $days = $date ? $today->diffInDays($date->copy()->startOfDay(), false) : null;
                 $tone = $days === 0
                     ? 'border-rose-200 bg-rose-50 text-rose-900'
                     : ($days !== null && $days <= 7 ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-blue-200 bg-blue-50 text-blue-900');

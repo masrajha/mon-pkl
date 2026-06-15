@@ -3,8 +3,8 @@
         <div>
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Laporan</p>
-                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ __('Rekap Monitoring Program') }}</h2>
-                <p class="mt-1 text-sm text-gray-500">Filter periode, program, prodi, tanggal, aturan hari kerja, dan status tindak lanjut peserta.</p>
+                <h2 class="mt-1 text-2xl font-semibold text-gray-900">{{ request('scope') === 'bimbingan' ? __('Rekap Monitoring Bimbingan') : __('Rekap Monitoring Program') }}</h2>
+                <p class="mt-1 text-sm text-gray-500">{{ request('scope') === 'bimbingan' ? 'Menampilkan monitoring mahasiswa bimbingan Anda berdasarkan filter aktif.' : 'Filter periode, program, prodi, tanggal, aturan hari kerja, dan status tindak lanjut peserta.' }}</p>
             </div>
         </div>
     </x-slot>
@@ -13,6 +13,7 @@
         @include('reports.partials.report-tabs')
 
         <form method="GET" class="silat-card grid gap-4 p-4 md:grid-cols-3 xl:grid-cols-7" data-period-date-sync>
+            @if (request()->filled('scope'))<input type="hidden" name="scope" value="{{ request('scope') }}">@endif
             @if (Auth::user()->hasRole(['admin', 'dosen']) || $periods->count() > 1)
                 <div>
                     <x-input-label for="period_id" :value="__('Periode Program')" />
@@ -61,7 +62,7 @@
 
         <section class="silat-card">
             <div class="silat-section-header">
-                <div><h3 class="silat-section-title">Tabel Rekap Monitoring</h3><p class="silat-section-description">Ringkasan presensi, status laporan, seminar, nilai, lupa presensi, validasi catatan harian, dan sanksi.</p></div>
+                <div><h3 class="silat-section-title">Tabel Rekap Monitoring</h3><p class="silat-section-description">{{ request('scope') === 'bimbingan' ? 'Ringkasan presensi, laporan, seminar, nilai, validasi catatan harian, dan sanksi mahasiswa bimbingan.' : 'Ringkasan presensi, status laporan, seminar, nilai, lupa presensi, validasi catatan harian, dan sanksi.' }}</p></div>
                 @if (Auth::user()->hasRole(['admin', 'koordinator', 'report_viewer']))
                     @include('reports.partials.export-buttons', ['type' => 'monitoring'])
                 @endif

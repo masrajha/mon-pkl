@@ -8,7 +8,7 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 @include('reports.partials.export-buttons', ['type' => 'final-scores'])
-                <a class="silat-secondary-link" href="{{ route('reports.sanctions', request()->only(['period_id', 'program_id', 'study_program_id'])) }}">
+                <a class="silat-secondary-link" href="{{ route('reports.sanctions', request()->only(['scope', 'period_id', 'program_id', 'study_program_id'])) }}">
                     <x-icon name="fa-scale-balanced" /> Rekap sanksi
                 </a>
             </div>
@@ -19,9 +19,10 @@
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             @include('management.partials.nav')
             @include('reports.partials.report-tabs')
-            @php($drillBase = request()->only(['period_id', 'program_id', 'study_program_id']))
+            @php($drillBase = request()->only(['scope', 'period_id', 'program_id', 'study_program_id']))
 
             <form method="GET" action="{{ route('reports.final-scores') }}" class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                @if (request()->filled('scope'))<input type="hidden" name="scope" value="{{ request('scope') }}">@endif
                 <div class="grid gap-4 md:grid-cols-5">
                     <div>
                         <x-input-label for="period_id" value="Periode Program" />
@@ -119,10 +120,10 @@
                                     </td>
                                     <td class="silat-table-cell text-right">
                                         <div class="flex flex-wrap justify-end gap-2">
-                                            @if (Auth::user()?->hasRole(['admin', 'koordinator']))
+                                            @if ($canFinalizeScores)
                                                 <a class="silat-secondary-link" href="{{ route('management.final-assessments.index', ['period_id' => $row['enrollment']->internship_period_id, 'q' => $row['npm']]) }}">Finalisasi</a>
                                             @endif
-                                            @if ($row['is_final'])
+                                            @if ($row['is_final'] && $canPrintFinalScores)
                                                 <a class="silat-secondary-link" href="{{ route('reports.final-scores.print', $row['enrollment']) }}" target="_blank">Cetak</a>
                                             @endif
                                         </div>

@@ -70,6 +70,12 @@ class DocumentationController extends Controller
                 'description' => 'Portal terbatas untuk melihat mahasiswa terkait melalui token URL atau login email pembimbing lapangan.',
                 'icon' => 'P',
             ],
+            'viewer-laporan' => [
+                'heading' => 'Role Viewer Laporan',
+                'label' => 'Viewer Laporan',
+                'description' => 'Akses baca Analisis & Laporan sesuai scope organisasi atau prodi tanpa aksi workflow operasional.',
+                'icon' => 'V',
+            ],
         ];
     }
 

@@ -7,6 +7,7 @@ use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\SeminarRequest;
 use App\Models\User;
+use App\Support\LocalClock;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -95,7 +96,7 @@ class AssessmentEmailNotificationService
     public function queueFinalizationAlerts(int $daysBeforeEnd = 7): int
     {
         $queuedBefore = EmailNotification::query()->count();
-        $today = now()->startOfDay();
+        $today = LocalClock::today()->startOfDay();
 
         $enrollments = InternshipEnrollment::query()
             ->with(['student', 'studyProgram', 'internshipPeriod.program', 'internshipPlace', 'fieldSupervisorAssessment', 'finalAssessment', 'seminarRequests' => fn ($query) => $query->whereNotNull('seminar_score')])
