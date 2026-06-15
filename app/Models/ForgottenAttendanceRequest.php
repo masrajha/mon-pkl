@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalDateTimes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class ForgottenAttendanceRequest extends Model
 {
+    use HasLocalDateTimes;
+
     protected $fillable = [
         'internship_enrollment_id',
         'action',
@@ -35,7 +39,6 @@ class ForgottenAttendanceRequest extends Model
     {
         return [
             'requested_date' => 'date',
-            'requested_checked_at' => 'datetime',
             'student_latitude' => 'decimal:7',
             'student_longitude' => 'decimal:7',
             'office_latitude' => 'decimal:7',
@@ -43,6 +46,11 @@ class ForgottenAttendanceRequest extends Model
             'device_info' => 'array',
             'reviewed_at' => 'datetime',
         ];
+    }
+
+    protected function requestedCheckedAt(): Attribute
+    {
+        return $this->localDateTimeAttribute();
     }
 
     public function enrollment()

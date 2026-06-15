@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalDateTimes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class OrientationAttendance extends Model
 {
     use HasFactory;
+    use HasLocalDateTimes;
 
     protected $fillable = [
         'orientation_event_id',
@@ -27,13 +30,17 @@ class OrientationAttendance extends Model
     protected function casts(): array
     {
         return [
-            'checked_at' => 'datetime',
             'student_latitude' => 'decimal:7',
             'student_longitude' => 'decimal:7',
             'event_latitude' => 'decimal:7',
             'event_longitude' => 'decimal:7',
             'device_info' => 'array',
         ];
+    }
+
+    protected function checkedAt(): Attribute
+    {
+        return $this->localDateTimeAttribute();
     }
 
     public function event()

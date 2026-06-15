@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalDateTimes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CheckIn extends Model
 {
     use HasFactory;
+    use HasLocalDateTimes;
 
     protected $fillable = [
         'internship_enrollment_id',
@@ -46,7 +49,6 @@ class CheckIn extends Model
     protected function casts(): array
     {
         return [
-            'checked_at' => 'datetime',
             'daily_log_validated_at' => 'datetime',
             'student_latitude' => 'decimal:7',
             'student_longitude' => 'decimal:7',
@@ -55,6 +57,11 @@ class CheckIn extends Model
             'location_flags' => 'array',
             'device_info' => 'array',
         ];
+    }
+
+    protected function checkedAt(): Attribute
+    {
+        return $this->localDateTimeAttribute();
     }
 
     public function enrollment()

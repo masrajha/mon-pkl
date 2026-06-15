@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalDateTimes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 class CheckInLocationSample extends Model
 {
+    use HasLocalDateTimes;
+
     protected $fillable = [
         'user_id',
         'internship_enrollment_id',
@@ -24,10 +28,14 @@ class CheckInLocationSample extends Model
             'gps_latitude' => 'decimal:7',
             'gps_longitude' => 'decimal:7',
             'gps_accuracy_meters' => 'integer',
-            'captured_at' => 'datetime',
             'used_at' => 'datetime',
             'device_info' => 'array',
         ];
+    }
+
+    protected function capturedAt(): Attribute
+    {
+        return $this->localDateTimeAttribute();
     }
 
     public function enrollment()
