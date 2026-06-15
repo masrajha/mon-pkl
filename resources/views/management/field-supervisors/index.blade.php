@@ -55,6 +55,13 @@
                                 </div>
 
                                 <div class="flex flex-wrap gap-2">
+                                    <form method="POST" action="{{ route('management.field-supervisors.portal-access') }}">
+                                        @csrf
+                                        <input type="hidden" name="email" value="{{ $fieldSupervisor['email'] }}">
+                                        <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100">
+                                            <x-icon name="fa-paper-plane" /> Kirim Akses Portal
+                                        </button>
+                                    </form>
                                     @if (auth()->user()?->hasRole('admin'))
                                         <form method="POST" action="{{ route('management.field-supervisors.create-account') }}">
                                             @csrf
@@ -107,8 +114,8 @@
                                                 <div class="flex flex-wrap justify-end gap-2">
                                                     <form method="POST" action="{{ route('management.enrollments.field-supervisor-access.store', $enrollment) }}">
                                                         @csrf
-                                                        <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100">
-                                                            <x-icon name="fa-paper-plane" /> Kirim Token
+                                                        <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50" title="Kirim token URL khusus untuk mahasiswa ini saja">
+                                                            <x-icon name="fa-key" /> Token Khusus
                                                         </button>
                                                     </form>
                                                     @if ($activeToken)

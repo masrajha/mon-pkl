@@ -305,6 +305,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/management/relocations/{relocation}', [ManagementRelocationRequestController::class, 'update'])->name('management.relocations.update');
         Route::get('/management/field-supervisors', [ManagementFieldSupervisorController::class, 'index'])->name('management.field-supervisors.index');
         Route::post('/management/field-supervisors/account', [ManagementFieldSupervisorController::class, 'createAccount'])->name('management.field-supervisors.create-account');
+        Route::post('/management/field-supervisors/portal-access', [ManagementFieldSupervisorAccessController::class, 'sendPortalAccess'])->name('management.field-supervisors.portal-access');
     });
 
     Route::middleware('role:admin,dosen,koordinator')->group(function () {

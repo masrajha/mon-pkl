@@ -45,6 +45,49 @@ class FieldSupervisorEmailNotificationService
         return $accessToken;
     }
 
+    public function queuePortalAccess(string $email, Collection $enrollments): void
+    {
+        $email = Str::lower(trim($email));
+        $enrollments = $enrollments
+            ->filter(fn (InternshipEnrollment $enrollment): bool => Str::lower(trim((string) $enrollment->field_supervisor_email)) === $email)
+            ->values();
+
+        if ($enrollments->isEmpty()) {
+            return;
+        }
+
+        $first = $enrollments->first();
+        $studentLines = $enrollments
+            ->take(8)
+            ->map(fn (InternshipEnrollment $enrollment): string => sprintf(
+                '- %s (%s), %s, %s',
+                $enrollment->student?->full_name ?: '-',
+                $enrollment->student?->npm ?: '-',
+                $enrollment->internshipPeriod?->display_name ?: '-',
+                $enrollment->internshipPlace?->name ?: '-',
+            ))
+            ->all();
+
+        if ($enrollments->count() > 8) {
+            $studentLines[] = '- Dan '.($enrollments->count() - 8).' mahasiswa lain.';
+        }
+
+        $this->emails->queue(
+            type: 'field_supervisor.portal_access',
+            recipientEmail: $email,
+            subject: '[SiLAT] Akses Portal Pembimbing Lapangan',
+            bodyLines: array_merge([
+                'Anda mendapatkan akses sebagai Pembimbing Lapangan pada SiLAT.',
+                'Gunakan tombol berikut untuk masuk ke portal. Setelah login dengan email ini, Anda dapat melihat seluruh mahasiswa bimbingan yang terdaftar menggunakan email yang sama.',
+                'Mahasiswa terkait:',
+            ], $studentLines),
+            recipientName: $first?->field_supervisor ?: $email,
+            actionText: 'Buka Portal Pembimbing',
+            actionUrl: route('field-supervisor.index'),
+            eventKey: 'field-supervisor-portal-access-'.$email.'-'.now()->timestamp,
+        );
+    }
+
     public function assessmentStored(InternshipEnrollment $enrollment): void
     {
         $enrollment->loadMissing(['student.user', 'studyProgram', 'internshipPeriod.program', 'internshipPlace', 'fieldSupervisorAssessment']);
