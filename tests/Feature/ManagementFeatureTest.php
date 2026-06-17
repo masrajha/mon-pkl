@@ -2,9 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Models\InternshipPeriod;
+use App\Models\ForgottenAttendanceRequest;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
+use App\Models\InternshipPeriod;
 use App\Models\InternshipPlace;
 use App\Models\InternshipPlaceProposal;
 use App\Models\Lecturer;
@@ -14,6 +15,7 @@ use App\Models\ReportViewerAssignment;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Services\ActionRequiredSummaryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -670,6 +672,111 @@ class ManagementFeatureTest extends TestCase
             'id' => $proposal->id,
             'status' => 'approved',
         ]);
+    }
+
+    public function test_management_action_summary_counts_pending_forgotten_attendance_by_scope(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $coordinatorUser = User::factory()->create(['role' => 'koordinator']);
+        $scopeProgram = StudyProgram::query()->create(['code' => 'SFA', 'name' => 'Scope Lupa Presensi', 'is_active' => true]);
+        $otherProgram = StudyProgram::query()->create(['code' => 'OFA', 'name' => 'Other Lupa Presensi', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Lupa Presensi', 'academic_year' => '2026/2027']);
+        $coordinatorLecturer = Lecturer::query()->create([
+            'user_id' => $coordinatorUser->id,
+            'study_program_id' => $scopeProgram->id,
+            'name' => 'Koordinator Lupa Presensi',
+            'status' => 'active',
+        ]);
+        InternshipCoordinator::query()->create([
+            'lecturer_id' => $coordinatorLecturer->id,
+            'internship_period_id' => $period->id,
+            'study_program_id' => $scopeProgram->id,
+            'status' => 'active',
+        ]);
+
+        $scopeStudent = Student::query()->create(['npm' => '2217051771', 'full_name' => 'Mahasiswa Scope Lupa', 'study_program_id' => $scopeProgram->id]);
+        $otherStudent = Student::query()->create(['npm' => '2217051772', 'full_name' => 'Mahasiswa Other Lupa', 'study_program_id' => $otherProgram->id]);
+        $scopeEnrollment = InternshipEnrollment::query()->create([
+            'student_id' => $scopeStudent->id,
+            'study_program_id' => $scopeProgram->id,
+            'internship_period_id' => $period->id,
+            'status' => 'active',
+        ]);
+        $otherEnrollment = InternshipEnrollment::query()->create([
+            'student_id' => $otherStudent->id,
+            'study_program_id' => $otherProgram->id,
+            'internship_period_id' => $period->id,
+            'status' => 'active',
+        ]);
+
+        foreach ([$scopeEnrollment, $otherEnrollment] as $index => $enrollment) {
+            ForgottenAttendanceRequest::query()->create([
+                'internship_enrollment_id' => $enrollment->id,
+                'action' => 'check_in',
+                'requested_date' => '2026-06-1'.$index,
+                'requested_time' => '08:00:00',
+                'requested_checked_at' => '2026-06-1'.$index.' 08:00:00',
+                'note' => 'Rencana kerja.',
+                'reason' => 'Lupa presensi.',
+                'status' => 'pending',
+            ]);
+        }
+
+        $summary = app(ActionRequiredSummaryService::class);
+
+        $this->assertSame(2, $summary->forUser($admin)['forgotten_attendance']['count']);
+        $this->assertSame(1, $summary->forUser($coordinatorUser)['forgotten_attendance']['count']);
+    }
+
+    public function test_field_supervisor_action_summary_counts_own_pending_forgotten_attendance(): void
+    {
+        $fieldSupervisor = User::factory()->create([
+            'role' => 'pembimbing_lapangan',
+            'email' => 'pl.badge@example.test',
+        ]);
+        $studyProgram = StudyProgram::query()->create(['code' => 'PLFA', 'name' => 'PL Lupa Presensi', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode PL Lupa Presensi', 'academic_year' => '2026/2027']);
+        $student = Student::query()->create(['npm' => '2217051773', 'full_name' => 'Mahasiswa PL Lupa', 'study_program_id' => $studyProgram->id]);
+        $otherStudent = Student::query()->create(['npm' => '2217051774', 'full_name' => 'Mahasiswa PL Lain', 'study_program_id' => $studyProgram->id]);
+        $enrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $studyProgram->id,
+            'internship_period_id' => $period->id,
+            'field_supervisor_email' => 'PL.Badge@Example.Test',
+            'status' => 'active',
+        ]);
+        $otherEnrollment = InternshipEnrollment::query()->create([
+            'student_id' => $otherStudent->id,
+            'study_program_id' => $studyProgram->id,
+            'internship_period_id' => $period->id,
+            'field_supervisor_email' => 'other.pl@example.test',
+            'status' => 'active',
+        ]);
+
+        ForgottenAttendanceRequest::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'action' => 'check_out',
+            'requested_date' => '2026-06-15',
+            'requested_time' => '16:00:00',
+            'requested_checked_at' => '2026-06-15 16:00:00',
+            'note' => 'Realisasi kerja.',
+            'reason' => 'Lupa presensi pulang.',
+            'status' => 'pending',
+        ]);
+        ForgottenAttendanceRequest::query()->create([
+            'internship_enrollment_id' => $otherEnrollment->id,
+            'action' => 'check_out',
+            'requested_date' => '2026-06-15',
+            'requested_time' => '16:00:00',
+            'requested_checked_at' => '2026-06-15 16:00:00',
+            'note' => 'Realisasi kerja.',
+            'reason' => 'Lupa presensi pulang.',
+            'status' => 'pending',
+        ]);
+
+        $summary = app(ActionRequiredSummaryService::class)->forUser($fieldSupervisor);
+
+        $this->assertSame(1, $summary['field_supervisor_forgotten_attendance']['count']);
     }
 
     public function test_admin_can_assign_lecturer_as_coordinator_without_changing_dosen_role(): void

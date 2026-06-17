@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ForgottenAttendanceRequest;
 use App\Models\InternshipEnrollment;
 use App\Models\InternshipPlaceProposal;
 use App\Models\RelocationRequest;
@@ -11,6 +12,7 @@ use App\Models\SupervisorChangeRequest;
 use App\Models\User;
 use App\Models\WfaRequest;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class ActionRequiredSummaryService
 {
@@ -20,14 +22,42 @@ class ActionRequiredSummaryService
             return [];
         }
 
+        $activeRole = session('active_role');
+
+        if ($activeRole === 'pembimbing_lapangan' && $user->hasRole('pembimbing_lapangan')) {
+            return $this->fieldSupervisorActions($user);
+        }
+
+        if (in_array($activeRole, ['admin', 'koordinator'], true) && $user->hasRole($activeRole)) {
+            return $this->managementActions($user);
+        }
+
+        if ($activeRole === 'dosen' && $user->hasRole('dosen')) {
+            return $this->lecturerActions($user);
+        }
+
         if ($user->hasRole('dosen')) {
             return $this->lecturerActions($user);
         }
 
-        if (! $user->hasRole(['admin', 'koordinator'])) {
-            return [];
+        if ($user->hasRole('pembimbing_lapangan')) {
+            return $this->fieldSupervisorActions($user);
         }
 
+        if ($user->hasRole(['admin', 'koordinator'])) {
+            return $this->managementActions($user);
+        }
+
+        return [];
+    }
+
+    public function total(array $summary): int
+    {
+        return collect($summary)->sum('count');
+    }
+
+    private function managementActions(User $user): array
+    {
         return [
             'enrollment_validations' => [
                 'label' => 'Validasi Pendaftaran',
@@ -61,6 +91,14 @@ class ActionRequiredSummaryService
                 'icon' => 'fa-user-pen',
                 'description' => 'Permohonan perubahan pembimbing menunggu persetujuan.',
             ],
+            'forgotten_attendance' => [
+                'label' => 'Lupa Presensi',
+                'count' => $this->forgottenAttendanceCount($user),
+                'route' => 'management.forgotten-attendance-requests.index',
+                'params' => ['status' => 'pending'],
+                'icon' => 'fa-calendar-xmark',
+                'description' => 'Pengajuan lupa presensi menunggu persetujuan.',
+            ],
             'wfa_requests' => [
                 'label' => 'Pengajuan WFA',
                 'count' => $this->wfaRequestCount($user),
@@ -70,11 +108,6 @@ class ActionRequiredSummaryService
                 'description' => 'Pengajuan Work from anywhere menunggu keputusan.',
             ],
         ];
-    }
-
-    public function total(array $summary): int
-    {
-        return collect($summary)->sum('count');
     }
 
     private function enrollmentValidationCount(User $user): int
@@ -109,6 +142,14 @@ class ActionRequiredSummaryService
             ->whereHas('enrollment', fn (Builder $query) => $this->scopeByCoordinator($query, $user));
 
         return $query->count();
+    }
+
+    private function forgottenAttendanceCount(User $user): int
+    {
+        return ForgottenAttendanceRequest::query()
+            ->where('status', 'pending')
+            ->whereHas('enrollment', fn (Builder $query) => $this->scopeByCoordinator($query, $user))
+            ->count();
     }
 
     private function wfaRequestCount(User $user): int
@@ -155,6 +196,36 @@ class ActionRequiredSummaryService
         return SeminarRequest::query()
             ->whereIn('status', ['waiting_lecturer_approval', 'scheduled'])
             ->whereHas('enrollment', fn (Builder $query) => $query->where('lecturer_supervisor_user_id', $user->id))
+            ->count();
+    }
+
+    private function fieldSupervisorActions(User $user): array
+    {
+        return [
+            'field_supervisor_forgotten_attendance' => [
+                'label' => 'Lupa Presensi',
+                'count' => $this->fieldSupervisorForgottenAttendanceCount($user),
+                'route' => 'field-supervisor.enrollments.index',
+                'params' => [],
+                'icon' => 'fa-calendar-xmark',
+                'description' => 'Pengajuan lupa presensi mahasiswa bimbingan menunggu review.',
+            ],
+        ];
+    }
+
+    private function fieldSupervisorForgottenAttendanceCount(User $user): int
+    {
+        $email = Str::lower(trim((string) $user->email));
+
+        if ($email === '') {
+            return 0;
+        }
+
+        return ForgottenAttendanceRequest::query()
+            ->where('status', 'pending')
+            ->whereHas('enrollment', fn (Builder $query) => $query
+                ->whereRaw('LOWER(field_supervisor_email) = ?', [$email])
+                ->whereNotIn('status', ['cancelled', 'rejected']))
             ->count();
     }
 

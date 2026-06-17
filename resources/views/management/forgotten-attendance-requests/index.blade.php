@@ -72,6 +72,7 @@
                                         'rejected' => 'Ditolak',
                                         default => 'Diajukan',
                                     };
+                                    $photoUrl = \App\Support\PublicStorage::url($item->photo_path);
                                 @endphp
                                 <tr>
                                     <td class="silat-table-cell min-w-[240px]">
@@ -91,7 +92,16 @@
                                     </td>
                                     <td class="silat-table-cell min-w-[180px] text-sm text-gray-600">
                                         <p>Jarak: {{ $item->distance_meters !== null ? number_format($item->distance_meters, 0, ',', '.').' m' : '-' }}</p>
-                                        <p class="mt-1 break-all text-xs">Foto: {{ $item->photo_path ?: '-' }}</p>
+                                        @if ($photoUrl)
+                                            <a href="{{ $photoUrl }}" target="_blank" rel="noopener" class="mt-3 block w-32 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 shadow-sm transition hover:border-blue-300 hover:shadow">
+                                                <img src="{{ $photoUrl }}" alt="Foto bukti lupa presensi {{ $item->enrollment?->student?->full_name ?: 'mahasiswa' }}" class="aspect-[4/3] w-full object-cover">
+                                            </a>
+                                            <a href="{{ $photoUrl }}" target="_blank" rel="noopener" class="mt-2 inline-flex text-xs font-semibold text-blue-700 hover:text-blue-900">
+                                                Lihat foto
+                                            </a>
+                                        @else
+                                            <p class="mt-2 text-xs text-gray-500">Foto: -</p>
+                                        @endif
                                     </td>
                                     <td class="silat-table-cell min-w-[180px]">
                                         <x-badge :variant="$statusVariant">{{ $statusLabel }}</x-badge>
