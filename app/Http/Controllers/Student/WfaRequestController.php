@@ -52,6 +52,7 @@ class WfaRequestController extends Controller
             ->findOrFail($data['internship_enrollment_id']);
 
         $this->ensureDatesWithinAttendanceRange($enrollment, $data['starts_at'], $data['ends_at']);
+        $this->ensureTodayHasNoAttendance($enrollment, $data['starts_at'], $data['ends_at']);
 
         if ($this->hasPendingRequest($request)) {
             throw ValidationException::withMessages([
@@ -151,6 +152,26 @@ class WfaRequestController extends Controller
 
         if ($attendanceEnd && $endsAt > $attendanceEnd->toDateString()) {
             throw ValidationException::withMessages(['ends_at' => 'Tanggal selesai WFA berada di luar rentang presensi periode.']);
+        }
+    }
+
+    private function ensureTodayHasNoAttendance(InternshipEnrollment $enrollment, string $startsAt, string $endsAt): void
+    {
+        $today = LocalClock::today();
+        $todayString = $today->toDateString();
+
+        if ($startsAt > $todayString || $endsAt < $todayString) {
+            return;
+        }
+
+        $hasAttendanceToday = $enrollment->checkIns()
+            ->whereBetween('checked_at', [$today->copy()->startOfDay(), $today->copy()->endOfDay()])
+            ->exists();
+
+        if ($hasAttendanceToday) {
+            throw ValidationException::withMessages([
+                'starts_at' => 'Pengajuan WFA untuk hari ini tidak dapat dikirim karena presensi hari ini sudah tercatat. Ajukan WFA untuk tanggal berikutnya.',
+            ]);
         }
     }
 

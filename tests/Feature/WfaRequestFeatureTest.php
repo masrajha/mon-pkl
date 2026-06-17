@@ -10,6 +10,7 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
 use App\Models\WfaRequest;
+use App\Models\CheckIn;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -82,6 +83,39 @@ class WfaRequestFeatureTest extends TestCase
             ])
             ->assertRedirect(route('student.wfa-requests.create'))
             ->assertSessionHasErrors('evidence_file');
+
+        $this->assertDatabaseCount('wfa_requests', 0);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_student_cannot_submit_wfa_for_today_after_attendance_is_recorded(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-06-17 08:00:00', config('monpkl.timezone')));
+        Storage::fake('public');
+
+        [$user, $enrollment] = $this->activeEnrollment();
+
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'checked_at' => '2026-06-17 07:45:00',
+        ]);
+
+        $this->actingAs($user)
+            ->from(route('student.wfa-requests.create'))
+            ->post(route('student.wfa-requests.store'), [
+                'internship_enrollment_id' => $enrollment->id,
+                'starts_at' => '2026-06-17',
+                'ends_at' => '2026-06-18',
+                'planned_location' => 'Rumah mahasiswa',
+                'planned_activity' => 'Mengerjakan dokumentasi dan koordinasi daring.',
+                'reason' => 'Instruksi mitra untuk WFA.',
+                'evidence_file' => UploadedFile::fake()->create('instruksi-wfa.pdf', 128, 'application/pdf'),
+            ])
+            ->assertRedirect(route('student.wfa-requests.create'))
+            ->assertSessionHasErrors('starts_at');
 
         $this->assertDatabaseCount('wfa_requests', 0);
 

@@ -360,6 +360,7 @@ Aturan penting:
 - Tanggal mulai tidak boleh sebelum tanggal hari ini.
 - Mahasiswa hanya dapat memiliki satu pengajuan WFA berstatus menunggu pada satu waktu.
 - Pengajuan WFA yang masih menunggu atau sudah disetujui tidak boleh bertabrakan tanggal dengan pengajuan WFA lain.
+- Jika pengajuan WFA mencakup hari ini, pengajuan harus dikirim sebelum mahasiswa melakukan presensi pada hari tersebut. Setelah presensi hari ini tercatat, WFA untuk hari ini ditolak agar mode kerja harian tidak bercampur.
 - Pengajuan dapat dibatalkan selama statusnya masih menunggu.
 - Presensi baru diperlakukan sebagai WFA setelah pengajuan disetujui.
 
