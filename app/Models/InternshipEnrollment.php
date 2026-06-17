@@ -145,4 +145,9 @@ class InternshipEnrollment extends Model
     {
         return $this->hasMany(SupervisorChangeRequest::class, 'internship_enrollment_id');
     }
+
+    public function wfaRequests()
+    {
+        return $this->hasMany(WfaRequest::class, 'internship_enrollment_id');
+    }
 }

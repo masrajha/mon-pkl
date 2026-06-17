@@ -21,6 +21,7 @@ use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\SubmissionProgress;
 use App\Models\User;
+use App\Models\WfaRequest;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -577,6 +578,33 @@ class MonitoringReportTest extends TestCase
             'action' => 'check_in',
             'checked_at' => '2026-06-02 08:05:00',
         ]);
+        $wfaRequest = WfaRequest::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'starts_at' => '2026-06-04',
+            'ends_at' => '2026-06-04',
+            'planned_location' => 'Rumah mahasiswa',
+            'planned_activity' => 'Mengerjakan dokumentasi secara daring.',
+            'reason' => 'Instruksi mitra untuk WFA.',
+            'evidence_path' => 'wfa-evidence/instruksi.pdf',
+            'status' => 'approved',
+        ]);
+        $wfaCheckIn = CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'work_mode' => 'wfa',
+            'wfa_request_id' => $wfaRequest->id,
+            'checked_at' => '2026-06-04 08:00:00',
+        ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Pulang',
+            'action' => 'check_out',
+            'work_mode' => 'wfa',
+            'wfa_request_id' => $wfaRequest->id,
+            'pair_id' => $wfaCheckIn->id,
+            'checked_at' => '2026-06-04 16:00:00',
+        ]);
         ForgottenAttendanceRequest::query()->create([
             'internship_enrollment_id' => $enrollment->id,
             'action' => 'check_out',
@@ -599,11 +627,14 @@ class MonitoringReportTest extends TestCase
             ->assertSee('Heatmap Kehadiran')
             ->assertSee('Mahasiswa Heatmap')
             ->assertSee('Hadir valid')
+            ->assertSee('WFA valid')
             ->assertSee('Presensi satu sisi/tidak valid')
             ->assertSee('Lupa Presensi disetujui')
             ->assertSee('Tidak hadir')
             ->assertSee('Hari libur')
-            ->assertSee('Sabtu/Minggu');
+            ->assertSee('Sabtu/Minggu')
+            ->assertViewHas('rows', fn ($rows): bool => $rows->first()['valid_days'] === 3
+                && $rows->first()['cells']->contains(fn (array $cell): bool => $cell['status'] === 'wfa'));
     }
 
     public function test_student_cannot_access_attendance_heatmap_report(): void
@@ -657,11 +688,25 @@ class MonitoringReportTest extends TestCase
             ->assertViewHas('startDate', '2026-06-05')
             ->assertViewHas('endDate', '2026-06-10');
 
-        $this->actingAs($admin)
-            ->get(route('reports.attendance-heatmap', ['period_id' => $period->id]))
+        $heatmapResponse = $this->actingAs($admin)
+            ->get(route('reports.attendance-heatmap', ['period_id' => $period->id]));
+
+        $heatmapResponse
             ->assertOk()
             ->assertViewHas('startDate', '2026-06-05')
-            ->assertViewHas('endDate', '2026-06-10');
+            ->assertViewHas('endDate', '2026-06-10')
+            ->assertViewHas('dates', fn ($dates): bool => $dates->count() === 6
+                && $dates->first()->toDateString() === '2026-06-05'
+                && $dates->last()->toDateString() === '2026-06-10');
+
+        $this->actingAs($admin)
+            ->get(route('reports.attendance-heatmap'))
+            ->assertOk()
+            ->assertViewHas('startDate', '2026-06-05')
+            ->assertViewHas('endDate', '2026-06-10')
+            ->assertViewHas('dates', fn ($dates): bool => $dates->count() === 6
+                && $dates->first()->toDateString() === '2026-06-05'
+                && $dates->last()->toDateString() === '2026-06-10');
 
         $this->actingAs($admin)
             ->get(route('reports.operational-charts', ['period_id' => $period->id]))

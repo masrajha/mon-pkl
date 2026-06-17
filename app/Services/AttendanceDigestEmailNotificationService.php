@@ -57,7 +57,10 @@ class AttendanceDigestEmailNotificationService
         $sanctions = (float) $checkIns->sum(fn ($checkIn) => (float) ($checkIn->sanction_points ?? 0));
         $lateCount = $checkIns->filter(fn ($checkIn) => Str::contains(Str::lower((string) $checkIn->type), 'terlambat'))->count();
         $shortDurationDays = $daily->filter(fn (Collection $items) => (int) $items->max('duration_minutes') > 0 && (int) $items->max('duration_minutes') < 420)->count();
-        $distanceOutliers = $checkIns->filter(fn ($checkIn) => (float) ($checkIn->distance_meters ?? 0) > 500)->count();
+        $distanceOutliers = $checkIns
+            ->filter(fn ($checkIn): bool => $checkIn->work_mode !== 'wfa')
+            ->filter(fn ($checkIn): bool => (float) ($checkIn->distance_meters ?? 0) > 500)
+            ->count();
         $averageDistance = $checkIns->whereNotNull('distance_meters')->avg('distance_meters');
 
         return [

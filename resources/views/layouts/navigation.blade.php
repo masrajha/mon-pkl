@@ -60,6 +60,7 @@
                 ['label' => 'Usulan Mitra', 'route' => 'student.proposals.index', 'icon' => 'fa-building-circle-arrow-right', 'active' => ['student.proposals.*']],
                 ['label' => 'Pindah Mitra', 'route' => 'student.relocations.index', 'icon' => 'fa-route', 'active' => ['student.relocations.*']],
                 ['label' => 'Perubahan Pembimbing', 'route' => 'student.supervisor-requests.index', 'icon' => 'fa-user-pen', 'active' => ['student.supervisor-requests.*']],
+                ['label' => 'Pengajuan WFA', 'route' => 'student.wfa-requests.index', 'icon' => 'fa-laptop-house', 'active' => ['student.wfa-requests.*']],
                 ['label' => 'Data Mitra', 'route' => 'student.places.index', 'icon' => 'fa-building', 'active' => ['student.places.*']],
             ],
         ];
@@ -78,6 +79,7 @@
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
                 ['label' => 'Lupa Presensi', 'route' => 'management.forgotten-attendance-requests.index', 'icon' => 'fa-calendar-xmark', 'active' => ['management.forgotten-attendance-requests.*']],
+                ['label' => 'Pengajuan WFA', 'route' => 'management.wfa-requests.index', 'icon' => 'fa-laptop-house', 'active' => ['management.wfa-requests.*'], 'badge' => 'wfa_requests'],
                 ['label' => 'Finalisasi Nilai', 'route' => 'management.final-assessments.index', 'icon' => 'fa-calculator', 'active' => ['management.final-assessments.*']],
                 ['label' => 'Monitoring Prodi', 'route' => 'maps.monitoring', 'icon' => 'fa-map-location-dot', 'active' => ['maps.monitoring']],
             ],
@@ -127,6 +129,7 @@
                 ['label' => 'Review Laporan', 'route' => 'management.submission-progress.index', 'icon' => 'fa-file-circle-check', 'active' => ['management.submission-progress.*']],
                 ['label' => 'Review Seminar', 'route' => 'management.seminar-requests.index', 'icon' => 'fa-person-chalkboard', 'active' => ['management.seminar-requests.*']],
                 ['label' => 'Lupa Presensi', 'route' => 'management.forgotten-attendance-requests.index', 'icon' => 'fa-calendar-xmark', 'active' => ['management.forgotten-attendance-requests.*']],
+                ['label' => 'Pengajuan WFA', 'route' => 'management.wfa-requests.index', 'icon' => 'fa-laptop-house', 'active' => ['management.wfa-requests.*'], 'badge' => 'wfa_requests'],
                 ['label' => 'Finalisasi Nilai', 'route' => 'management.final-assessments.index', 'icon' => 'fa-calculator', 'active' => ['management.final-assessments.*']],
             ],
         ];

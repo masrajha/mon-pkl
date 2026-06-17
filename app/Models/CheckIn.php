@@ -18,6 +18,8 @@ class CheckIn extends Model
         'legacy_source_file',
         'type',
         'action',
+        'work_mode',
+        'wfa_request_id',
         'source_type',
         'forgotten_attendance_request_id',
         'check_in_location_sample_id',
@@ -72,6 +74,11 @@ class CheckIn extends Model
     public function forgottenAttendanceRequest()
     {
         return $this->belongsTo(ForgottenAttendanceRequest::class);
+    }
+
+    public function wfaRequest()
+    {
+        return $this->belongsTo(WfaRequest::class);
     }
 
     public function locationSample()

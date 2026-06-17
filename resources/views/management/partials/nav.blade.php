@@ -9,6 +9,7 @@
         ['patterns' => ['management.orientation-events.*'], 'group' => 'Workflow Akademik', 'label' => 'Pembekalan'],
         ['patterns' => ['management.seminar-requests.*'], 'group' => 'Workflow Akademik', 'label' => 'Review Seminar'],
         ['patterns' => ['management.forgotten-attendance-requests.*'], 'group' => 'Workflow Akademik', 'label' => 'Lupa Presensi'],
+        ['patterns' => ['management.wfa-requests.*'], 'group' => 'Workflow Akademik', 'label' => 'Pengajuan WFA'],
         ['patterns' => ['management.final-assessments.*'], 'group' => 'Workflow Akademik', 'label' => 'Finalisasi Nilai'],
         ['patterns' => ['management.enrollments.*'], 'group' => 'Workflow Akademik', 'label' => 'Peserta Periode'],
         ['patterns' => ['management.users.*'], 'group' => 'Master Data', 'label' => 'User'],

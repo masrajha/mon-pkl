@@ -20,6 +20,7 @@ use App\Models\Sanction;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Models\WfaRequest;
 use App\Observers\AuditLogObserver;
 use App\Services\ActionRequiredSummaryService;
 use Illuminate\Support\Facades\View;
@@ -72,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
             PeriodDeadline::class,
             InternshipCoordinator::class,
             ReportViewerAssignment::class,
+            WfaRequest::class,
         ];
     }
 }

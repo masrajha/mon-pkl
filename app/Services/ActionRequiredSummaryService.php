@@ -9,6 +9,7 @@ use App\Models\SeminarRequest;
 use App\Models\SubmissionProgress;
 use App\Models\SupervisorChangeRequest;
 use App\Models\User;
+use App\Models\WfaRequest;
 use Illuminate\Database\Eloquent\Builder;
 
 class ActionRequiredSummaryService
@@ -60,6 +61,14 @@ class ActionRequiredSummaryService
                 'icon' => 'fa-user-pen',
                 'description' => 'Permohonan perubahan pembimbing menunggu persetujuan.',
             ],
+            'wfa_requests' => [
+                'label' => 'Pengajuan WFA',
+                'count' => $this->wfaRequestCount($user),
+                'route' => 'management.wfa-requests.index',
+                'params' => ['status' => 'pending'],
+                'icon' => 'fa-laptop-house',
+                'description' => 'Pengajuan Work from anywhere menunggu keputusan.',
+            ],
         ];
     }
 
@@ -96,6 +105,15 @@ class ActionRequiredSummaryService
     private function supervisorChangeCount(User $user): int
     {
         $query = SupervisorChangeRequest::query()
+            ->where('status', 'pending')
+            ->whereHas('enrollment', fn (Builder $query) => $this->scopeByCoordinator($query, $user));
+
+        return $query->count();
+    }
+
+    private function wfaRequestCount(User $user): int
+    {
+        $query = WfaRequest::query()
             ->where('status', 'pending')
             ->whereHas('enrollment', fn (Builder $query) => $this->scopeByCoordinator($query, $user));
 

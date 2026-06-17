@@ -98,11 +98,16 @@ class PlaceController extends Controller
             ->where('is_active', true);
 
         if ($request->filled('q')) {
-            $search = $request->string('q')->toString();
+            $search = mb_strtolower(trim($request->string('q')->toString()));
+            $like = '%'.$search.'%';
+            $compactSearch = preg_replace('/\s+/u', '', $search) ?: '';
+            $fuzzyLike = '%'.implode('%', preg_split('//u', $compactSearch, -1, PREG_SPLIT_NO_EMPTY)).'%';
             $query->where(fn (Builder $query) => $query
-                ->where('name', 'like', '%'.$search.'%')
-                ->orWhere('address', 'like', '%'.$search.'%')
-                ->orWhereHas('city', fn (Builder $query) => $query->where('name', 'like', '%'.$search.'%')));
+                ->whereRaw('LOWER(name) LIKE ?', [$like])
+                ->orWhereRaw('LOWER(address) LIKE ?', [$like])
+                ->orWhereRaw('LOWER(name) LIKE ?', [$fuzzyLike])
+                ->orWhereRaw('LOWER(address) LIKE ?', [$fuzzyLike])
+                ->orWhereHas('city', fn (Builder $query) => $query->whereRaw('LOWER(name) LIKE ?', [$like])));
         }
 
         return $query;

@@ -330,7 +330,7 @@ class FieldSupervisorPortalController extends Controller
             'finalAssessment',
             'forgottenAttendanceRequests' => fn ($query) => $query->latest('id'),
             'internshipPeriod.setting',
-            'checkIns' => fn ($query) => $query->orderBy('checked_at'),
+            'checkIns' => fn ($query) => $query->with('wfaRequest')->orderBy('checked_at'),
         ];
     }
 

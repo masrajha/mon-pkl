@@ -78,7 +78,13 @@
                                 <td class="silat-table-cell">{{ $row['npm'] }}</td>
                                 <td class="silat-table-cell">{{ $row['email'] }}</td>
                                 <td class="silat-table-cell">{{ $row['place'] }}</td>
-                                <td class="silat-table-cell"><p class="font-semibold text-gray-900">{{ $row['attendance_days'] }} hari</p><p class="text-xs text-gray-500">{{ $row['check_ins_count'] }} data, {{ $row['average_distance_meters'] === null ? '-' : number_format($row['average_distance_meters'], 0, ',', '.').' m' }}</p></td>
+                                <td class="silat-table-cell">
+                                    <p class="font-semibold text-gray-900">{{ $row['attendance_days'] }} hari</p>
+                                    <p class="text-xs text-gray-500">{{ $row['check_ins_count'] }} data, {{ $row['average_distance_meters'] === null ? '-' : number_format($row['average_distance_meters'], 0, ',', '.').' m' }}</p>
+                                    @if (($row['wfa_days'] ?? 0) > 0)
+                                        <p class="mt-1 text-xs font-semibold text-teal-700">{{ number_format($row['wfa_days'], 0, ',', '.') }} hari WFA</p>
+                                    @endif
+                                </td>
                                 <td class="silat-table-cell">{{ number_format($row['duration_hours'], 2, ',', '.') }} jam</td>
                                 <td class="silat-table-cell"><p class="text-xs">Masuk: {{ $row['min_check_in'] }} - {{ $row['max_check_in'] }}</p><p class="text-xs">Pulang: {{ $row['min_check_out'] }} - {{ $row['max_check_out'] }}</p></td>
                                 <td class="silat-table-cell"><x-badge :variant="$row['report_status_variant']">{{ $row['report_status_label'] }}</x-badge></td>

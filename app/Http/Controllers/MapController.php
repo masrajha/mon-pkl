@@ -99,6 +99,7 @@ class MapController extends Controller
                 'enrollment.studyProgram',
                 'enrollment.internshipPeriod.program',
                 'enrollment.internshipPlace.city',
+                'wfaRequest',
             ])
             ->whereNotNull('student_latitude')
             ->whereNotNull('student_longitude')
@@ -112,6 +113,8 @@ class MapController extends Controller
             'check_ins' => $checkIns->map(fn (CheckIn $checkIn): array => [
                 'id' => $checkIn->id,
                 'type' => $checkIn->type,
+                'action' => $checkIn->action,
+                'work_mode' => $checkIn->work_mode ?: 'onsite',
                 'note' => $checkIn->note,
                 'photo_url' => PublicStorage::url($checkIn->photo_path),
                 'checked_at' => $checkIn->checked_at?->toIso8601String(),
@@ -126,6 +129,12 @@ class MapController extends Controller
                     'name' => $checkIn->enrollment?->internshipPlace?->name,
                     'city' => $checkIn->enrollment?->internshipPlace?->city?->name,
                 ],
+                'wfa' => $checkIn->wfaRequest ? [
+                    'id' => $checkIn->wfaRequest->id,
+                    'planned_location' => $checkIn->wfaRequest->planned_location,
+                    'starts_at' => $checkIn->wfaRequest->starts_at?->toDateString(),
+                    'ends_at' => $checkIn->wfaRequest->ends_at?->toDateString(),
+                ] : null,
                 'office' => [
                     'lat' => $checkIn->office_latitude !== null ? (float) $checkIn->office_latitude : null,
                     'lng' => $checkIn->office_longitude !== null ? (float) $checkIn->office_longitude : null,

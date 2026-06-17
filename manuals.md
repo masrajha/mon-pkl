@@ -31,6 +31,9 @@ SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untu
 > - Check-out tanpa check-in tetap dapat disimpan sebagai presensi belum berpasangan dan diarahkan untuk pengajuan **Lupa Presensi Masuk** jika kuota tersedia.
 > - Halaman Presensi mahasiswa kini memakai tab **Presensi** dan **Lupa Presensi**.
 > - Lupa Presensi memiliki kuota, sisa kuota, lokasi, foto realtime, alasan, dan riwayat pengajuan.
+> - Mahasiswa dapat mengajukan **WFA (Work from anywhere)** dengan tanggal/rentang, lokasi rencana, alasan, aktivitas, dan bukti pendukung seperti foto/screenshot surat, email, atau instruksi chat.
+> - Admin/koordinator dapat mereview pengajuan WFA. Presensi pada tanggal WFA yang disetujui ditandai sebagai WFA, tetap memakai GPS dan foto realtime, tetapi tidak diblokir radius mitra.
+> - Heatmap Kehadiran, Rekap Monitoring, Peta Monitoring, portal Pembimbing Lapangan, dan digest presensi kini membedakan presensi WFA agar tidak dianggap sebagai anomali jarak mitra.
 > - Foto profil pengguna dapat diunggah dari Profil Saya atau dikelola admin pada Manajemen User.
 > - Master Mahasiswa dan Dosen mendukung pembuatan/penautan akun login otomatis dari email sehingga input data tidak perlu dilakukan dua kali.
 > - Konfigurasi Program menyediakan batas akurasi GPS, umur snapshot lokasi, toleransi beda koordinat, tanggal libur, batas Lupa Presensi, rubrik penilaian, survey institusi, dan dokumen cetak nilai.
@@ -65,6 +68,7 @@ Mahasiswa dapat menggunakan SiLAT untuk:
 - Melakukan presensi pembekalan.
 - Melakukan presensi kegiatan harian, yaitu masuk dan pulang.
 - Mengajukan **Lupa Presensi** jika lupa melakukan presensi realtime, sesuai kuota periode.
+- Mengajukan **WFA (Work from anywhere)** untuk tanggal atau rentang tertentu jika diizinkan mitra/program dan memiliki bukti pendukung.
 - Mengajukan pindah tempat.
 - Mengajukan perubahan data pembimbing lapangan.
 - Mengunggah progres laporan.
@@ -333,6 +337,39 @@ Aturan penting:
 - Jam Pulang harus setelah jam Masuk.
 - Data baru masuk sebagai presensi resmi setelah disetujui Pembimbing Lapangan, admin, atau koordinator.
 - Jika mahasiswa melakukan presensi **Pulang** tanpa presensi **Masuk**, data pulang tetap tersimpan sebagai presensi belum berpasangan. Hari tersebut belum dihitung valid sampai presensi masuk dilengkapi melalui Lupa Presensi dan disetujui.
+
+### 1.9B Pengajuan WFA
+
+Menu: **Pengajuan WFA**
+
+WFA atau **Work from anywhere** digunakan ketika mitra mengizinkan mahasiswa bekerja dari lokasi selain kantor/mitra pada tanggal tertentu atau dalam rentang kegiatan tertentu.
+
+Alur mahasiswa:
+
+1. Buka menu **Pengajuan WFA**.
+2. Klik **Ajukan WFA**.
+3. Pilih enrollment/program aktif.
+4. Isi tanggal mulai dan tanggal selesai WFA.
+5. Isi lokasi rencana WFA, koordinat jika tersedia, aktivitas yang akan dilakukan, dan alasan WFA.
+6. Unggah bukti pendukung, misalnya foto/screenshot surat resmi, email, atau instruksi chat WA/messenger dari mitra.
+7. Kirim pengajuan dan tunggu review admin/koordinator.
+
+Aturan penting:
+
+- Pengajuan harus berada dalam rentang tanggal presensi periode/enrollment.
+- Tanggal mulai tidak boleh sebelum tanggal hari ini.
+- Mahasiswa hanya dapat memiliki satu pengajuan WFA berstatus menunggu pada satu waktu.
+- Pengajuan WFA yang masih menunggu atau sudah disetujui tidak boleh bertabrakan tanggal dengan pengajuan WFA lain.
+- Pengajuan dapat dibatalkan selama statusnya masih menunggu.
+- Presensi baru diperlakukan sebagai WFA setelah pengajuan disetujui.
+
+Dampak saat presensi:
+
+- Jika tanggal hari ini termasuk pengajuan WFA yang sudah disetujui, halaman Presensi menampilkan informasi **WFA aktif hari ini**.
+- Presensi tetap wajib memakai snapshot GPS server-side, kamera realtime, jam presensi, dan catatan aktivitas.
+- Radius mitra tidak memblokir presensi pada tanggal WFA yang disetujui.
+- Presensi disimpan dengan penanda `work_mode = wfa` dan terhubung ke pengajuan WFA.
+- Jika tidak ada WFA yang disetujui pada tanggal tersebut, presensi berjalan sebagai onsite dan tetap mengikuti validasi radius mitra.
 
 ### 1.10 Cara Kerja Status Presensi
 
@@ -2535,6 +2572,7 @@ Validasi lokasi presensi harian:
 - Jika koordinat form berbeda jauh dari snapshot GPS, presensi ditolak.
 - Jika snapshot GPS berada di luar radius mitra, presensi ditolak.
 - Jika akurasi snapshot GPS rendah atau mendekati radius, presensi dapat disimpan dengan status audit lokasi.
+- Pada tanggal WFA yang disetujui, radius mitra tidak menjadi pemblokir presensi. Sistem tetap menyimpan snapshot GPS, foto, catatan, dan relasi ke pengajuan WFA untuk audit.
 
 Rumus durasi:
 
@@ -2642,14 +2680,16 @@ Alur pelaksanaan:
 1. Admin/koordinator membuat event pembekalan.
 2. Mahasiswa melakukan presensi pembekalan.
 3. Mahasiswa melakukan presensi harian.
-4. Mahasiswa mengunggah progres laporan.
-5. Dosen/koordinator/admin mereview laporan.
-6. Admin/koordinator mengirim token akses pembimbing lapangan jika diperlukan.
-7. Mahasiswa mengajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
-8. Dosen/admin/koordinator memproses ACC, jadwal, dan nilai seminar sesuai jalur sistem atau manual.
-9. Pembimbing Lapangan memvalidasi catatan harian, memproses Lupa Presensi jika ada, dan mengisi nilai lapangan.
-10. Admin/koordinator memproses pengajuan Lupa Presensi yang belum diproses Pembimbing Lapangan jika diperlukan.
-11. Admin memantau rekap monitoring, dashboard analisis, sanksi, pembekalan, seminar, dan antrean email.
+4. Jika mitra mengizinkan kerja jarak jauh, mahasiswa mengajukan WFA dengan bukti pendukung.
+5. Admin/koordinator memproses pengajuan WFA. Jika disetujui, presensi pada tanggal tersebut ditandai sebagai WFA.
+6. Mahasiswa mengunggah progres laporan.
+7. Dosen/koordinator/admin mereview laporan.
+8. Admin/koordinator mengirim token akses pembimbing lapangan jika diperlukan.
+9. Mahasiswa mengajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
+10. Dosen/admin/koordinator memproses ACC, jadwal, dan nilai seminar sesuai jalur sistem atau manual.
+11. Pembimbing Lapangan memvalidasi catatan harian, memproses Lupa Presensi jika ada, dan mengisi nilai lapangan.
+12. Admin/koordinator memproses pengajuan Lupa Presensi yang belum diproses Pembimbing Lapangan jika diperlukan.
+13. Admin memantau rekap monitoring, dashboard analisis, WFA, sanksi, pembekalan, seminar, dan antrean email.
 
 Alur penutupan:
 

@@ -111,6 +111,15 @@ class AttendanceDigestNotificationFeatureTest extends TestCase
             'checked_at' => '2026-06-03 08:00:00',
             'distance_meters' => 650,
         ]);
+        CheckIn::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'type' => 'Masuk',
+            'action' => 'check_in',
+            'work_mode' => 'wfa',
+            'note' => 'Presensi WFA disetujui',
+            'checked_at' => '2026-06-04 08:00:00',
+            'distance_meters' => 1200,
+        ]);
 
         $this->artisan('silat:attendance-digests:queue --week-start=2026-06-01 --week-end=2026-06-07')
             ->assertExitCode(0);
@@ -127,5 +136,12 @@ class AttendanceDigestNotificationFeatureTest extends TestCase
             'type' => 'attendance_digest.weekly.coordinator',
             'recipient_email' => 'koordinator@example.test',
         ]);
+
+        $lecturerDigest = \App\Models\EmailNotification::query()
+            ->where('type', 'attendance_digest.weekly.lecturer')
+            ->where('recipient_email', 'dosen@example.test')
+            ->firstOrFail();
+
+        $this->assertStringContainsString('jarak tidak wajar 1 kali', implode(' ', $lecturerDigest->body_lines));
     }
 }

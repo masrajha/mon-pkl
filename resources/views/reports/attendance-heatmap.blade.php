@@ -113,7 +113,7 @@
                                                 class="inline-flex h-6 w-6 items-center justify-center rounded-sm text-[10px] font-semibold ring-1 {{ $cell['class'] }}"
                                                 title="{{ $cell['date'] }} - {{ $cell['label'] }}{{ $cell['check_in'] ? ' | Masuk '.$cell['check_in'] : '' }}{{ $cell['check_out'] ? ' | Pulang '.$cell['check_out'] : '' }}"
                                             >
-                                                {{ $cell['status'] === 'present' ? 'H' : ($cell['status'] === 'forgotten_approved' ? 'L' : ($cell['status'] === 'incomplete' ? '!' : ($cell['status'] === 'absent' ? 'A' : '')) ) }}
+                                                {{ $cell['status'] === 'present' ? 'H' : ($cell['status'] === 'wfa' ? 'W' : ($cell['status'] === 'forgotten_approved' ? 'L' : ($cell['status'] === 'incomplete' ? '!' : ($cell['status'] === 'absent' ? 'A' : '')))) }}
                                             </span>
                                         </td>
                                     @endforeach

@@ -963,6 +963,10 @@ function renderMonitoringTable(tableBody, checkIns, onSelect) {
     checkIns.forEach((checkIn) => {
         const row = document.createElement('tr');
         const distance = checkIn.distance_meters === null ? '-' : `${Number(checkIn.distance_meters).toLocaleString('id-ID')} m`;
+        const isWfa = checkIn.work_mode === 'wfa';
+        const workModeBadge = isWfa
+            ? '<span class="ml-1 inline-flex rounded-full border border-teal-100 bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700">WFA</span>'
+            : '';
         const photo = checkIn.photo_url
             ? `<img src="${escapeHtml(checkIn.photo_url)}" alt="Foto presensi ${escapeHtml(checkIn.student?.name || '')}" class="rounded-md border border-gray-200 object-cover" style="max-width:20%;height:auto;">`
             : '<div class="flex h-14 w-14 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 text-[10px] font-semibold uppercase text-gray-400">Foto</div>';
@@ -981,7 +985,7 @@ function renderMonitoringTable(tableBody, checkIns, onSelect) {
                 </div>
             </td>
             <td class="silat-table-cell">
-                <span class="inline-flex rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">${escapeHtml(checkIn.type || '-')}</span>
+                <span class="inline-flex rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">${escapeHtml(checkIn.type || '-')}</span>${workModeBadge}
                 <div class="mt-1 text-xs text-gray-500">${formatDate(checkIn.checked_at)}</div>
             </td>
             <td class="silat-table-cell text-gray-700">${distance}</td>
@@ -1079,6 +1083,7 @@ function placePopup(props) {
 
 function checkInPopup(checkIn) {
     const distance = checkIn.distance_meters === null ? '-' : `${Number(checkIn.distance_meters).toLocaleString('id-ID')} m`;
+    const isWfa = checkIn.work_mode === 'wfa';
     const photo = checkIn.photo_url
         ? `<a href="${escapeHtml(checkIn.photo_url)}" target="_blank" rel="noopener" class="mt-2 block"><img src="${escapeHtml(checkIn.photo_url)}" alt="Foto presensi ${escapeHtml(checkIn.student?.name || '')}" style="max-width:20%;height:auto;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></a>`
         : '';
@@ -1088,8 +1093,9 @@ function checkInPopup(checkIn) {
             ${photo}
             <strong>${escapeHtml(checkIn.student?.name || '-')}</strong>
             <span>${escapeHtml(checkIn.student?.npm || '-')}</span>
-            <span>${escapeHtml(checkIn.type || '-')} - ${formatDate(checkIn.checked_at)}</span>
+            <span>${escapeHtml(checkIn.type || '-')}${isWfa ? ' - WFA' : ''} - ${formatDate(checkIn.checked_at)}</span>
             <span>${escapeHtml(checkIn.place?.name || '-')}</span>
+            ${isWfa ? `<span>Lokasi WFA: ${escapeHtml(checkIn.wfa?.planned_location || '-')}</span>` : ''}
             <span>Jarak: ${distance}</span>
             ${checkIn.note ? `<span>Catatan: ${escapeHtml(checkIn.note)}</span>` : ''}
         </div>
@@ -1097,10 +1103,12 @@ function checkInPopup(checkIn) {
 }
 
 function officePopup(checkIn) {
+    const isWfa = checkIn.work_mode === 'wfa';
+
     return `
         <div class="monpkl-popup">
-            <strong>${escapeHtml(checkIn.place?.name || '-')}</strong>
-            <span>${escapeHtml(checkIn.place?.city || '-')}</span>
+            <strong>${escapeHtml(isWfa ? (checkIn.wfa?.planned_location || 'Lokasi WFA') : (checkIn.place?.name || '-'))}</strong>
+            <span>${escapeHtml(isWfa ? 'Target WFA' : (checkIn.place?.city || '-'))}</span>
             <span>${escapeHtml(checkIn.student?.name || '-')}</span>
         </div>
     `;

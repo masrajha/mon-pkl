@@ -215,9 +215,8 @@ class ReportController extends Controller
     {
         [$periods, $selectedPeriod] = $this->periodOptions($request);
         [$startDate, $endDate] = $this->heatmapDateRange($request, $selectedPeriod, $periods);
-        $dates = collect(CarbonPeriod::create($startDate, $endDate))
-            ->map(fn (Carbon $date): Carbon => $date->copy())
-            ->values();
+        $periodDateRanges = $this->reportPeriodDateRanges($request, $periods);
+        $dates = $this->reportDates($startDate, $endDate);
 
         $query = InternshipEnrollment::query()
             ->with([
@@ -247,7 +246,7 @@ class ReportController extends Controller
 
         return view('reports.attendance-heatmap', [
             'periods' => $periods,
-            'periodDateRanges' => $this->reportPeriodDateRanges($request, $periods),
+            'periodDateRanges' => $periodDateRanges,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
             'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
@@ -266,9 +265,8 @@ class ReportController extends Controller
     {
         [$periods, $selectedPeriod] = $this->periodOptions($request);
         [$startDate, $endDate] = $this->dateRange($request, $selectedPeriod);
-        $dates = collect(CarbonPeriod::create($startDate, $endDate))
-            ->map(fn (Carbon $date): Carbon => $date->copy())
-            ->values();
+        $periodDateRanges = $this->reportPeriodDateRanges($request, $periods);
+        $dates = $this->reportDates($startDate, $endDate);
 
         $query = InternshipEnrollment::query()
             ->with([
@@ -406,7 +404,7 @@ class ReportController extends Controller
 
         return view('reports.operational-charts', [
             'periods' => $periods,
-            'periodDateRanges' => $this->reportPeriodDateRanges($request, $periods),
+            'periodDateRanges' => $periodDateRanges,
             'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
             'studyPrograms' => $this->studyProgramOptions($request),
             'selectedPeriod' => $selectedPeriod?->id,
@@ -823,13 +821,13 @@ class ReportController extends Controller
         return [
             'headers' => [
                 'Mahasiswa', 'NPM', 'Email', 'Prodi', 'Periode', 'Mitra', 'Hari Hadir',
-                'Check-in/out', 'Rata-rata Jarak', 'Durasi Jam', 'Jam Masuk', 'Jam Pulang',
+                'Hari WFA', 'Check-in/out', 'Rata-rata Jarak', 'Durasi Jam', 'Jam Masuk', 'Jam Pulang',
                 'Status Laporan', 'Status Seminar', 'Status Nilai', 'Lupa Presensi Pending',
                 'Lupa Presensi Disetujui', 'Catatan Harian Tervalidasi', 'Catatan Harian Pending', 'Sanksi',
             ],
             'rows' => $this->monitoringRows($request, $startDate, $endDate)->map(fn (array $row): array => [
                 $row['name'], $row['npm'], $row['email'], $row['study_program'], $row['period'], $row['place'],
-                $row['attendance_days'], $row['check_ins_count'], $row['average_distance_meters'],
+                $row['attendance_days'], $row['wfa_days'], $row['check_ins_count'], $row['average_distance_meters'],
                 $row['duration_hours'], $row['min_check_in'].' - '.$row['max_check_in'], $row['min_check_out'].' - '.$row['max_check_out'],
                 $row['report_status_label'], $row['seminar_status_label'], $row['assessment_status_label'],
                 $row['forgotten_pending'], $row['forgotten_approved'], $row['daily_logs_validated'],
@@ -1422,6 +1420,7 @@ class ReportController extends Controller
             'period' => $enrollment->internshipPeriod?->display_name,
             'place' => $enrollment->internshipPlace?->name,
             'attendance_days' => $daily->count(),
+            'wfa_days' => $daily->where('is_wfa', true)->count(),
             'check_ins_count' => $checkIns->count(),
             'average_distance_meters' => $distances->isEmpty() ? null : round($distances->avg(), 2),
             'duration_hours' => round($daily->sum('duration_hours'), 2),
@@ -1538,6 +1537,7 @@ class ReportController extends Controller
             'check_out_seconds' => $this->secondsOfDay($checkOut),
             'duration_hours' => round($checkIn->diffInMinutes($checkOut) / 60, 2),
             'distance_meters' => $checkIns->pluck('distance_meters')->filter(fn ($distance) => $distance !== null)->avg(),
+            'is_wfa' => $checkIns->contains('work_mode', 'wfa'),
         ];
     }
 
@@ -1548,6 +1548,21 @@ class ReportController extends Controller
             ?? $periods->first();
 
         return $this->dateRange($request, $referencePeriod);
+    }
+
+    private function reportDates(Carbon $startDate, Carbon $endDate): Collection
+    {
+        $dates = collect();
+        $timezone = LocalClock::timezone();
+        $cursor = Carbon::parse($startDate->toDateString(), $timezone)->startOfDay();
+        $lastDate = $endDate->toDateString();
+
+        while ($cursor->toDateString() <= $lastDate) {
+            $dates->push($cursor->copy());
+            $cursor->addDay();
+        }
+
+        return $dates;
     }
 
     private function heatmapRow(InternshipEnrollment $enrollment, Collection $dates): array
@@ -1581,7 +1596,7 @@ class ReportController extends Controller
         return [
             'enrollment' => $enrollment,
             'cells' => $cells,
-            'valid_days' => $cells->where('status', 'present')->count() + $cells->where('status', 'forgotten_approved')->count(),
+            'valid_days' => $cells->whereIn('status', ['present', 'wfa', 'forgotten_approved'])->count(),
             'problem_days' => $cells->whereIn('status', ['incomplete', 'absent'])->count(),
         ];
     }
@@ -1604,6 +1619,10 @@ class ReportController extends Controller
         $hasCheckOut = $checkIns->contains('action', 'check_out');
 
         if (($hasCheckIn && $hasCheckOut) || (! $hasCheckIn && ! $hasCheckOut && $checkIns->whereNull('action')->count() >= 2)) {
+            if ($checkIns->contains('work_mode', 'wfa')) {
+                return 'wfa';
+            }
+
             return 'present';
         }
 
@@ -1618,6 +1637,7 @@ class ReportController extends Controller
     {
         return [
             'present' => ['label' => 'Hadir valid', 'class' => 'bg-emerald-500 text-white ring-emerald-600'],
+            'wfa' => ['label' => 'WFA valid', 'class' => 'bg-teal-500 text-white ring-teal-600'],
             'incomplete' => ['label' => 'Presensi satu sisi/tidak valid', 'class' => 'bg-amber-400 text-amber-950 ring-amber-500'],
             'absent' => ['label' => 'Tidak hadir', 'class' => 'bg-red-100 text-red-800 ring-red-200'],
             'forgotten_approved' => ['label' => 'Lupa Presensi disetujui', 'class' => 'bg-sky-500 text-white ring-sky-600'],
@@ -1734,7 +1754,7 @@ class ReportController extends Controller
             $end = $start->copy();
         }
 
-        return [$start->startOfDay(), $end->startOfDay()];
+        return [$start->copy()->startOfDay(), $end->copy()->startOfDay()];
     }
 
     private function defaultAttendanceRange(Request $request, InternshipPeriod $period): array
@@ -1763,10 +1783,10 @@ class ReportController extends Controller
 
         $today = LocalClock::today()->startOfDay();
         if (! $request->filled('end_date') && $end->greaterThan($today)) {
-            $end = $today;
+            $end = $today->copy();
         }
 
-        return [$start->startOfDay(), $end->startOfDay()];
+        return [$start->copy()->startOfDay(), $end->copy()->startOfDay()];
     }
 
     private function reportPeriodDateRanges(Request $request, Collection $periods): array

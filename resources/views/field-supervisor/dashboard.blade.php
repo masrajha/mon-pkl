@@ -245,6 +245,12 @@
                                     <td class="silat-table-cell whitespace-nowrap">
                                         <div>Masuk: {{ $row['check_in']?->distance_meters !== null ? number_format($row['check_in']->distance_meters, 0, ',', '.').' m' : '-' }}</div>
                                         <div>Pulang: {{ $row['check_out']?->distance_meters !== null ? number_format($row['check_out']->distance_meters, 0, ',', '.').' m' : '-' }}</div>
+                                        @if ($row['check_in']?->work_mode === 'wfa' || $row['check_out']?->work_mode === 'wfa')
+                                            <div class="mt-1"><x-badge variant="success">WFA</x-badge></div>
+                                            <p class="mt-1 max-w-40 whitespace-normal text-xs text-teal-700">
+                                                {{ $row['check_in']?->wfaRequest?->planned_location ?: $row['check_out']?->wfaRequest?->planned_location }}
+                                            </p>
+                                        @endif
                                     </td>
                                     <td class="silat-table-cell min-w-[360px]">
                                         <p><span class="font-semibold">Rencana:</span> {{ $row['check_in']?->note ?: '-' }}</p>

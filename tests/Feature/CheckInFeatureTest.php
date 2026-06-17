@@ -11,6 +11,7 @@ use App\Models\InternshipPlace;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Models\WfaRequest;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -304,6 +305,48 @@ class CheckInFeatureTest extends TestCase
             ->assertSessionHasErrors('student_latitude');
 
         $this->assertDatabaseCount('check_ins', 0);
+    }
+
+    public function test_approved_wfa_allows_check_in_outside_office_radius(): void
+    {
+        Storage::fake('public');
+        Carbon::setTestNow(Carbon::create(2026, 5, 31, 8, 30, 0, config('monpkl.timezone')));
+
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        [$enrollment] = $this->activeEnrollmentFor($user);
+
+        $wfaRequest = WfaRequest::query()->create([
+            'internship_enrollment_id' => $enrollment->id,
+            'starts_at' => '2026-05-31',
+            'ends_at' => '2026-05-31',
+            'planned_location' => 'Rumah mahasiswa',
+            'planned_latitude' => -7.7705335,
+            'planned_longitude' => 110.3720789,
+            'planned_activity' => 'Menyusun dokumentasi sistem bersama tim secara daring.',
+            'reason' => 'Instruksi mitra untuk bekerja dari lokasi masing-masing.',
+            'evidence_path' => 'wfa-evidence/instruksi.pdf',
+            'status' => 'approved',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('check-ins.store'), [
+                'location_sample_id' => $this->locationSampleFor($user, $enrollment, -7.7705335, 110.3720789, 18)->id,
+                'student_latitude' => -7.7705335,
+                'student_longitude' => 110.3720789,
+                'student_location_accuracy' => 18,
+                'action' => 'check_in',
+                'note' => 'Menyusun rencana dokumentasi sistem secara daring hari ini.',
+                'photo_capture' => $this->capturedPhoto(),
+            ])
+            ->assertRedirect(route('check-ins.create', ['enrollment' => $enrollment->id]))
+            ->assertSessionHas('status');
+
+        $checkIn = CheckIn::query()->firstOrFail();
+
+        $this->assertSame('wfa', $checkIn->work_mode);
+        $this->assertSame($wfaRequest->id, $checkIn->wfa_request_id);
+        $this->assertSame('valid', $checkIn->location_status);
+        $this->assertSame(0, $checkIn->distance_meters);
     }
 
     public function test_check_in_uses_enrollment_attendance_override_dates(): void

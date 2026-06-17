@@ -112,6 +112,20 @@
                                     @endif
                                 </div>
                             </div>
+                            @if ($activeWfaRequest)
+                                <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <p class="text-sm font-semibold text-emerald-950">WFA aktif hari ini</p>
+                                            <p class="mt-1 text-sm text-emerald-900">
+                                                {{ $activeWfaRequest->planned_location }} · {{ $activeWfaRequest->starts_at?->format('d/m/Y') }} s.d. {{ $activeWfaRequest->ends_at?->format('d/m/Y') }}
+                                            </p>
+                                            <p class="mt-1 text-xs text-emerald-800">Presensi tetap memakai GPS dan kamera, tetapi radius mitra tidak membatasi presensi pada tanggal WFA yang disetujui.</p>
+                                        </div>
+                                        <x-badge variant="success">WFA</x-badge>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div><x-input-label for="student_latitude" :value="__('Latitude Anda')" /><x-text-input id="student_latitude" name="student_latitude" type="text" class="mt-1 block w-full" readonly required /></div>
                                 <div><x-input-label for="student_longitude" :value="__('Longitude Anda')" /><x-text-input id="student_longitude" name="student_longitude" type="text" class="mt-1 block w-full" readonly required /></div>
@@ -174,6 +188,7 @@
                                         <td class="silat-table-cell">{{ $checkIn->action === 'check_out' ? 'Pulang' : 'Masuk' }}</td>
                                         <td class="silat-table-cell">
                                             <x-badge>{{ $checkIn->type }}</x-badge>
+                                            @if($checkIn->work_mode === 'wfa')<div class="mt-1"><x-badge variant="success">WFA</x-badge></div>@endif
                                             @if($checkIn->source_type === 'forgotten_request')<div class="mt-1"><x-badge variant="info">Koreksi disetujui</x-badge></div>@endif
                                             @if($checkIn->action === 'check_out' && ! $checkIn->pair_id)<div class="mt-1"><x-badge variant="warning">Belum berpasangan</x-badge></div>@endif
                                             @if($checkIn->location_status === 'suspicious')<div class="mt-1"><x-badge variant="warning">Audit lokasi</x-badge></div>@endif

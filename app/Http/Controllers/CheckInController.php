@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CheckIn;
 use App\Models\CheckInLocationSample;
 use App\Models\InternshipEnrollment;
+use App\Models\WfaRequest;
 use App\Services\CheckInStatusService;
 use App\Services\DistanceService;
 use Illuminate\Http\JsonResponse;
@@ -36,6 +37,7 @@ class CheckInController extends Controller
         return view('check-ins.create', [
             'enrollment' => $enrollment,
             'statusPreview' => $this->checkInStatus->statusFor(now($settings['timezone']), $settings),
+            'activeWfaRequest' => $this->approvedWfaFor($enrollment, now($settings['timezone'])),
             'mapConfig' => $this->configurations->frontendMapConfig($enrollment->internshipPeriod),
             'maxForgottenAttendanceRequests' => (int) data_get($settings, 'report.max_forgotten_attendance_requests', 3),
             'usedForgottenAttendanceRequests' => $enrollment->forgottenAttendanceRequests()
@@ -114,15 +116,17 @@ class CheckInController extends Controller
             ]);
         }
 
+        $checkedAt = now($settings['timezone']);
+        $approvedWfa = $this->approvedWfaFor($enrollment, $checkedAt);
+        $isWfa = (bool) $approvedWfa;
         $place = $enrollment->internshipPlace;
 
-        if (! $place || $place->latitude === null || $place->longitude === null) {
+        if (! $isWfa && (! $place || $place->latitude === null || $place->longitude === null)) {
             throw ValidationException::withMessages([
                 'student_latitude' => 'Lokasi mitra belum lengkap.',
             ]);
         }
 
-        $checkedAt = now($settings['timezone']);
         $attendanceStartsAt = $enrollment->effectiveAttendanceStartsAt();
         $attendanceEndsAt = $enrollment->effectiveAttendanceEndsAt();
 
@@ -163,17 +167,23 @@ class CheckInController extends Controller
             ]);
         }
 
-        $distanceMeters = $distanceService->meters(
-            (float) $locationSample->gps_latitude,
-            (float) $locationSample->gps_longitude,
-            (float) $place->latitude,
-            (float) $place->longitude,
-            (int) $settings['distance']['earth_radius_meters'],
-        );
+        $targetLatitude = $isWfa ? $approvedWfa?->planned_latitude : $place?->latitude;
+        $targetLongitude = $isWfa ? $approvedWfa?->planned_longitude : $place?->longitude;
+        $distanceMeters = null;
+
+        if ($targetLatitude !== null && $targetLongitude !== null) {
+            $distanceMeters = $distanceService->meters(
+                (float) $locationSample->gps_latitude,
+                (float) $locationSample->gps_longitude,
+                (float) $targetLatitude,
+                (float) $targetLongitude,
+                (int) $settings['distance']['earth_radius_meters'],
+            );
+        }
 
         $maxDistance = (int) ($settings['check_in']['max_distance_meters'] ?? 0);
 
-        if ($maxDistance > 0 && $distanceMeters > $maxDistance) {
+        if (! $isWfa && $maxDistance > 0 && $distanceMeters !== null && $distanceMeters > $maxDistance) {
             throw ValidationException::withMessages([
                 'student_latitude' => 'Lokasi Anda berada di luar radius presensi yang diizinkan. Jarak terhitung '.number_format($distanceMeters, 0, ',', '.').' meter.',
             ]);
@@ -183,6 +193,7 @@ class CheckInController extends Controller
             $distanceMeters,
             $settings,
             $submittedMismatchMeters,
+            ! $isWfa,
         );
 
         $dayStart = $checkedAt->copy()->startOfDay();
@@ -228,19 +239,21 @@ class CheckInController extends Controller
             (int) $settings['check_in']['photo_max_kb'],
         );
 
-        DB::transaction(function () use ($enrollment, $type, $validated, $checkedAt, $place, $distanceMeters, $locationAudit, $request, $photoPath, $pairedCheckIn, $durationMinutes, $sanctionPoints, $locationSample, $submittedMismatchMeters): void {
+        DB::transaction(function () use ($enrollment, $type, $validated, $checkedAt, $targetLatitude, $targetLongitude, $distanceMeters, $locationAudit, $request, $photoPath, $pairedCheckIn, $durationMinutes, $sanctionPoints, $locationSample, $submittedMismatchMeters, $isWfa, $approvedWfa): void {
             CheckIn::query()->create([
                 'internship_enrollment_id' => $enrollment->id,
                 'type' => $type,
                 'action' => $validated['action'],
+                'work_mode' => $isWfa ? 'wfa' : 'onsite',
+                'wfa_request_id' => $approvedWfa?->id,
                 'check_in_location_sample_id' => $locationSample->id,
                 'note' => $validated['note'] ?? null,
                 'checked_at' => $checkedAt,
                 'pair_id' => $pairedCheckIn?->id,
                 'student_latitude' => $locationSample->gps_latitude,
                 'student_longitude' => $locationSample->gps_longitude,
-                'office_latitude' => $place->latitude,
-                'office_longitude' => $place->longitude,
+                'office_latitude' => $targetLatitude,
+                'office_longitude' => $targetLongitude,
                 'distance_meters' => $distanceMeters,
                 'student_location_accuracy_meters' => $locationAudit['accuracy'],
                 'location_status' => $locationAudit['status'],
@@ -257,6 +270,9 @@ class CheckInController extends Controller
                     'submitted_longitude' => $validated['student_longitude'],
                     'submitted_sample_mismatch_meters' => $submittedMismatchMeters,
                     'location_sample_id' => $locationSample->id,
+                    'work_mode' => $isWfa ? 'wfa' : 'onsite',
+                    'wfa_request_id' => $approvedWfa?->id,
+                    'wfa_planned_location' => $approvedWfa?->planned_location,
                 ],
                 'source_url' => $request->fullUrl(),
                 'photo_path' => $photoPath,
@@ -275,6 +291,10 @@ class CheckInController extends Controller
 
         if ($sanctionPoints > 0) {
             $message .= ' Durasi harian kurang dari batas minimal, sanksi '.$sanctionPoints.' poin dicatat.';
+        }
+
+        if ($isWfa) {
+            $message .= ' Presensi ditandai sebagai WFA sesuai pengajuan yang disetujui.';
         }
 
         if ($validated['action'] === 'check_out' && ! $pairedCheckIn) {
@@ -353,7 +373,7 @@ class CheckInController extends Controller
         return $sample;
     }
 
-    private function locationAudit(null|float|int|string $accuracy, int $distanceMeters, array $settings, int|float $submittedMismatchMeters = 0): array
+    private function locationAudit(null|float|int|string $accuracy, null|int $distanceMeters, array $settings, int|float $submittedMismatchMeters = 0, bool $enforceRadiusAudit = true): array
     {
         $flags = [];
         $accuracyMeters = $accuracy === null || $accuracy === ''
@@ -368,7 +388,7 @@ class CheckInController extends Controller
             $flags[] = 'low_accuracy';
         }
 
-        if ($maxDistance > 0 && $distanceMeters > (int) floor($maxDistance * 0.8)) {
+        if ($enforceRadiusAudit && $maxDistance > 0 && $distanceMeters !== null && $distanceMeters > (int) floor($maxDistance * 0.8)) {
             $flags[] = 'near_radius_limit';
         }
 
@@ -428,5 +448,18 @@ class CheckInController extends Controller
         }
 
         return $query->latest('id')->first();
+    }
+
+    private function approvedWfaFor(InternshipEnrollment $enrollment, $checkedAt): ?WfaRequest
+    {
+        $date = $checkedAt->toDateString();
+
+        return WfaRequest::query()
+            ->where('internship_enrollment_id', $enrollment->id)
+            ->where('status', 'approved')
+            ->whereDate('starts_at', '<=', $date)
+            ->whereDate('ends_at', '>=', $date)
+            ->latest('id')
+            ->first();
     }
 }
