@@ -242,8 +242,8 @@
                                     </td>
                                     <td class="silat-table-cell whitespace-nowrap">{{ $row['date']?->format('d/m/Y') ?: '-' }}</td>
                                     <td class="silat-table-cell whitespace-nowrap">
-                                        <div>Masuk: {{ $row['check_in']?->checked_at?->format('H:i') ?: '-' }}</div>
-                                        <div>Pulang: {{ $row['check_out']?->checked_at?->format('H:i') ?: '-' }}</div>
+                                        <div>Masuk: {{ $row['check_in']?->checked_at?->format('H:i') ?: '-' }} <x-device-badge :device="\App\Support\DeviceInfo::from($row['check_in']?->device_info)" /></div>
+                                        <div>Pulang: {{ $row['check_out']?->checked_at?->format('H:i') ?: '-' }} <x-device-badge :device="\App\Support\DeviceInfo::from($row['check_out']?->device_info)" /></div>
                                     </td>
                                     <td class="silat-table-cell whitespace-nowrap">
                                         {{ $row['duration_minutes'] !== null ? floor($row['duration_minutes'] / 60).'j '.($row['duration_minutes'] % 60).'m' : '-' }}

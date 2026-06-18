@@ -166,6 +166,35 @@
                         </form>
                     </section>
                 </div>
+
+                <section class="silat-card p-6">
+                    <h3 class="text-base font-semibold text-gray-950">Jadwal Ringkasan Laporan</h3>
+                    <p class="mt-1 text-sm text-gray-500">Atur frekuensi email rekap laporan untuk dosen pembimbing. Nilai 3 berarti sistem hanya membuat ringkasan dosen paling cepat 3 hari sekali per penerima.</p>
+                    <form method="POST" action="{{ route('email-notifications.submission-progress.update') }}" class="mt-5 max-w-md">
+                        @csrf
+                        @method('PATCH')
+                        <div>
+                            <x-input-label for="lecturer_interval_days" value="Ringkasan dosen pembimbing setiap" />
+                            <div class="mt-1 flex items-center gap-3">
+                                <x-text-input
+                                    id="lecturer_interval_days"
+                                    name="summary[lecturer_interval_days]"
+                                    type="number"
+                                    min="1"
+                                    max="365"
+                                    class="block w-32"
+                                    :value="old('summary.lecturer_interval_days', data_get($submissionProgressSettings, 'summary.lecturer_interval_days', 1))"
+                                    required
+                                />
+                                <span class="text-sm font-medium text-gray-700">hari sekali</span>
+                            </div>
+                            <x-input-error :messages="$errors->get('summary.lecturer_interval_days')" class="mt-2" />
+                        </div>
+                        <div class="mt-5">
+                            <x-primary-button>Simpan Jadwal Ringkasan</x-primary-button>
+                        </div>
+                    </form>
+                </section>
             @elseif ($tab === 'queue')
                 <div class="silat-card overflow-hidden">
                     <x-table-controls title="Daftar Antrean Email" description="Pantau status pengiriman email sistem." search-placeholder="Cari email, subjek, atau tipe...">

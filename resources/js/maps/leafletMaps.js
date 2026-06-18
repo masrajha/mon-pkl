@@ -970,6 +970,7 @@ function renderMonitoringTable(tableBody, checkIns, onSelect) {
         const photo = checkIn.photo_url
             ? `<img src="${escapeHtml(checkIn.photo_url)}" alt="Foto presensi ${escapeHtml(checkIn.student?.name || '')}" class="rounded-md border border-gray-200 object-cover" style="max-width:20%;height:auto;">`
             : '<div class="flex h-14 w-14 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 text-[10px] font-semibold uppercase text-gray-400">Foto</div>';
+        const deviceBadge = renderDeviceBadge(checkIn.device);
 
         row.dataset.checkInId = checkIn.id;
         row.className = 'cursor-pointer transition hover:bg-blue-50';
@@ -980,7 +981,7 @@ function renderMonitoringTable(tableBody, checkIns, onSelect) {
                     <div class="min-w-0">
                         <div class="font-medium text-gray-900">${escapeHtml(checkIn.student?.name || '-')}</div>
                         <div class="text-xs text-gray-500">${escapeHtml(checkIn.student?.npm || '-')} &middot; ${escapeHtml(checkIn.place?.name || '-')}</div>
-                        <div class="text-xs text-gray-500">${escapeHtml(checkIn.period || '-')}</div>
+                        <div class="text-xs text-gray-500">${escapeHtml(checkIn.period || '-')} ${deviceBadge}</div>
                     </div>
                 </div>
             </td>
@@ -993,6 +994,18 @@ function renderMonitoringTable(tableBody, checkIns, onSelect) {
         row.addEventListener('click', () => onSelect(checkIn.id, { scroll: false }));
         tableBody.append(row);
     });
+}
+
+function renderDeviceBadge(device) {
+    if (!device) {
+        return '';
+    }
+
+    const label = escapeHtml(device.label || 'Perangkat');
+    const iconClass = escapeHtml(device.icon_class || 'fa-solid fa-circle-question');
+    const title = escapeHtml(device.user_agent || device.label || 'Perangkat');
+
+    return `<span class="ml-1 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-1.5 py-0.5 align-middle text-[10px] font-semibold text-gray-600" title="${title}"><i class="${iconClass}" aria-hidden="true"></i>${label}</span>`;
 }
 
 function highlightPlaceRow(tableBody, placeId) {
@@ -1094,6 +1107,7 @@ function checkInPopup(checkIn) {
             <strong>${escapeHtml(checkIn.student?.name || '-')}</strong>
             <span>${escapeHtml(checkIn.student?.npm || '-')}</span>
             <span>${escapeHtml(checkIn.type || '-')}${isWfa ? ' - WFA' : ''} - ${formatDate(checkIn.checked_at)}</span>
+            ${checkIn.device ? `<span>Perangkat: ${renderDeviceBadge(checkIn.device)}</span>` : ''}
             <span>${escapeHtml(checkIn.place?.name || '-')}</span>
             ${isWfa ? `<span>Lokasi WFA: ${escapeHtml(checkIn.wfa?.planned_location || '-')}</span>` : ''}
             <span>Jarak: ${distance}</span>

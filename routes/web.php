@@ -440,6 +440,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/email-notifications', [EmailNotificationConfigurationController::class, 'index'])->name('email-notifications.index');
         Route::patch('/email-notifications/status', [EmailNotificationConfigurationController::class, 'updateStatus'])->name('email-notifications.status.update');
         Route::patch('/email-notifications/coverage', [EmailNotificationConfigurationController::class, 'updateCoverage'])->name('email-notifications.coverage.update');
+        Route::patch('/email-notifications/submission-progress', [EmailNotificationConfigurationController::class, 'updateSubmissionProgress'])->name('email-notifications.submission-progress.update');
         Route::patch('/email-notifications/mail', [EmailNotificationConfigurationController::class, 'updateMail'])->name('email-notifications.mail.update');
         Route::post('/email-notifications/process', [EmailNotificationConfigurationController::class, 'processPending'])->name('email-notifications.process');
         Route::post('/email-notifications/retry-failed', [EmailNotificationConfigurationController::class, 'retryFailed'])->name('email-notifications.retry-failed');

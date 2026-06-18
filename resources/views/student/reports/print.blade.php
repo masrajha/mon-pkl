@@ -106,6 +106,8 @@
                         $timeMinutes = fn ($checkIn) => $checkIn?->checked_at ? (((int) $checkIn->checked_at->format('H') * 60) + (int) $checkIn->checked_at->format('i')) : null;
                         $checkInMinutes = $timeMinutes($row['check_in']);
                         $checkOutMinutes = $timeMinutes($row['check_out']);
+                        $checkInDevice = \App\Support\DeviceInfo::from($row['check_in']?->device_info);
+                        $checkOutDevice = \App\Support\DeviceInfo::from($row['check_out']?->device_info);
                         $checkInClass = $checkInMinutes === null
                             ? 'bg-danger'
                             : ($checkInMinutes < $attendanceColorRules['check_in_success_before'] ? 'bg-success' : ($checkInMinutes < $attendanceColorRules['check_in_warning_before'] ? 'bg-warning' : 'bg-danger'));
@@ -115,8 +117,8 @@
                     @endphp
                     <tr>
                         <td>{{ $row['date']?->translatedFormat('l, d M Y') }}</td>
-                        <td class="{{ $checkInClass }}">{{ $row['check_in']?->checked_at?->format('H:i:s') ?: '-' }}</td>
-                        <td class="{{ $checkOutClass }}">{{ $row['check_out']?->checked_at?->format('H:i:s') ?: '-' }}</td>
+                        <td class="{{ $checkInClass }}">{{ $row['check_in']?->checked_at?->format('H:i:s') ?: '-' }}<br><small>{{ $checkInDevice['label'] ?? '-' }}</small></td>
+                        <td class="{{ $checkOutClass }}">{{ $row['check_out']?->checked_at?->format('H:i:s') ?: '-' }}<br><small>{{ $checkOutDevice['label'] ?? '-' }}</small></td>
                         <td class="{{ $durationClass }}">{{ $durationHours !== null ? number_format($durationHours, 2, ',', '.').' jam' : '-' }}</td>
                         <td class="{{ $distanceClass($checkInDistance) }}">{{ $checkInDistance !== null ? number_format($checkInDistance, 2, ',', '.').' m' : '-' }}</td>
                         <td class="{{ $distanceClass($checkOutDistance) }}">{{ $checkOutDistance !== null ? number_format($checkOutDistance, 2, ',', '.').' m' : '-' }}</td>

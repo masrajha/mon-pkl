@@ -8,6 +8,7 @@ use App\Models\InternshipEnrollment;
 use App\Models\Lecturer;
 use App\Models\PeriodDeadline;
 use App\Models\SubmissionProgress;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Support\LocalClock;
 use Illuminate\Database\Eloquent\Builder;
@@ -152,6 +153,7 @@ class SubmissionProgressEmailNotificationService
         $queuedBefore = EmailNotification::query()->count();
         $today = LocalClock::today()->toDateString();
         $types = array_keys($this->deadlineLabels());
+        $lecturerSummaryIntervalDays = $this->lecturerSummaryIntervalDays();
 
         InternshipCoordinator::query()
             ->with(['lecturer.user', 'internshipPeriod.program', 'studyProgram'])
@@ -211,7 +213,7 @@ class SubmissionProgressEmailNotificationService
             })
             ->whereHas('enrollments.internshipPeriod', fn (Builder $query) => $this->startedPeriodQuery($query))
             ->get()
-            ->each(function (Lecturer $lecturer) use ($types, $today): void {
+            ->each(function (Lecturer $lecturer) use ($types, $today, $lecturerSummaryIntervalDays): void {
                 $enrollments = InternshipEnrollment::query()
                     ->with(['student', 'studyProgram', 'internshipPeriod.program', 'sanctions'])
                     ->where('lecturer_supervisor_id', $lecturer->id)
@@ -240,6 +242,10 @@ class SubmissionProgressEmailNotificationService
                 $recipient = $this->lecturerRecipient($lecturer);
 
                 if (! $recipient) {
+                    return;
+                }
+
+                if (! $this->canQueueLecturerSummary($recipient['email'], $lecturerSummaryIntervalDays)) {
                     return;
                 }
 
@@ -466,6 +472,26 @@ class SubmissionProgressEmailNotificationService
             'name' => $lecturer->name ?: $lecturer->user?->name ?: $email,
             'email' => Str::lower(trim($email)),
         ];
+    }
+
+    private function lecturerSummaryIntervalDays(): int
+    {
+        $settings = SystemSetting::getValue('submission_progress_notifications');
+
+        return max(1, (int) data_get($settings, 'summary.lecturer_interval_days', 1));
+    }
+
+    private function canQueueLecturerSummary(string $email, int $intervalDays): bool
+    {
+        if ($intervalDays <= 1) {
+            return true;
+        }
+
+        return ! EmailNotification::query()
+            ->where('type', 'submission_progress.summary.lecturer')
+            ->where('recipient_email', Str::lower(trim($email)))
+            ->where('created_at', '>=', now()->subDays($intervalDays))
+            ->exists();
     }
 
     private function deadlineLabels(): array

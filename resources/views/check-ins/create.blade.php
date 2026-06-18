@@ -184,7 +184,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @forelse ($recentCheckIns as $checkIn)
                                     <tr>
-                                        <td class="silat-table-cell">{{ $checkIn->checked_at?->format('d/m/Y H:i') }}</td>
+                                        <td class="silat-table-cell">{{ $checkIn->checked_at?->format('d/m/Y H:i') }}<div class="mt-1"><x-device-badge :device="\App\Support\DeviceInfo::from($checkIn->device_info)" /></div></td>
                                         <td class="silat-table-cell">{{ $checkIn->action === 'check_out' ? 'Pulang' : 'Masuk' }}</td>
                                         <td class="silat-table-cell">
                                             <x-badge>{{ $checkIn->type }}</x-badge>

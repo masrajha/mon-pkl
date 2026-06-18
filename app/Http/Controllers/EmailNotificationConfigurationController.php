@@ -61,6 +61,7 @@ class EmailNotificationConfigurationController extends Controller
             'mailSettings' => $this->emails->mailSettings(),
             'categories' => $this->categories(),
             'categorySettings' => $this->emails->categorySettings(),
+            'submissionProgressSettings' => $this->submissionProgressSettings(),
         ]);
     }
 
@@ -98,6 +99,23 @@ class EmailNotificationConfigurationController extends Controller
         return redirect()
             ->route('email-notifications.index')
             ->with('status', 'Cakupan notifikasi berhasil diperbarui.');
+    }
+
+    public function updateSubmissionProgress(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'summary.lecturer_interval_days' => ['required', 'integer', 'min:1', 'max:365'],
+        ]);
+
+        SystemSetting::putValue('submission_progress_notifications', [
+            'summary' => [
+                'lecturer_interval_days' => (int) data_get($validated, 'summary.lecturer_interval_days'),
+            ],
+        ]);
+
+        return redirect()
+            ->route('email-notifications.index', ['tab' => 'status'])
+            ->with('status', 'Jadwal ringkasan laporan dosen berhasil diperbarui.');
     }
 
     public function updateMail(Request $request): RedirectResponse
@@ -171,5 +189,14 @@ class EmailNotificationConfigurationController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    private function submissionProgressSettings(): array
+    {
+        return array_replace_recursive([
+            'summary' => [
+                'lecturer_interval_days' => 1,
+            ],
+        ], SystemSetting::getValue('submission_progress_notifications'));
     }
 }

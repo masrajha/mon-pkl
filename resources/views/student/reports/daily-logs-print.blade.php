@@ -47,6 +47,8 @@
                     <td class="nowrap">
                         Masuk: {{ $row['check_in']?->checked_at?->format('H:i:s') ?: '-' }}<br>
                         Pulang: {{ $row['check_out']?->checked_at?->format('H:i:s') ?: '-' }}<br>
+                        Perangkat masuk: {{ \App\Support\DeviceInfo::from($row['check_in']?->device_info)['label'] ?? '-' }}<br>
+                        Perangkat pulang: {{ \App\Support\DeviceInfo::from($row['check_out']?->device_info)['label'] ?? '-' }}<br>
                         Durasi: {{ $row['duration_minutes'] !== null ? number_format($row['duration_minutes'] / 60, 2, ',', '.') : '-' }}
                     </td>
                     <td class="nowrap">

@@ -13,6 +13,7 @@ use App\Services\PeriodConfigurationService;
 use App\Services\ReportScopeService;
 use App\Support\PublicStorage;
 use App\Support\LocalClock;
+use App\Support\DeviceInfo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -117,6 +118,7 @@ class MapController extends Controller
                 'work_mode' => $checkIn->work_mode ?: 'onsite',
                 'note' => $checkIn->note,
                 'photo_url' => PublicStorage::url($checkIn->photo_path),
+                'device' => DeviceInfo::from($checkIn->device_info),
                 'checked_at' => $checkIn->checked_at?->toIso8601String(),
                 'distance_meters' => $checkIn->distance_meters,
                 'student' => [
