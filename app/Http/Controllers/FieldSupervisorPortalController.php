@@ -49,6 +49,21 @@ class FieldSupervisorPortalController extends Controller
         return back()->with('status', 'Catatan harian berhasil divalidasi.');
     }
 
+    public function flagWithToken(Request $request, string $token, CheckIn $checkIn): RedirectResponse
+    {
+        $accessToken = FieldSupervisorAccessToken::query()
+            ->with('enrollment')
+            ->where('token_hash', hash('sha256', $token))
+            ->firstOrFail();
+
+        abort_unless($accessToken->isValid(), 403, 'Token akses pembimbing lapangan tidak valid atau sudah kedaluwarsa.');
+        abort_unless((int) $checkIn->internship_enrollment_id === (int) $accessToken->internship_enrollment_id, 403);
+
+        $this->flagDailyLog($request, $checkIn, $accessToken->email, $accessToken->enrollment?->field_supervisor ?: $accessToken->email, 'token');
+
+        return back()->with('status', 'Catatan harian ditandai bermasalah dan menunggu klarifikasi mahasiswa.');
+    }
+
     public function bulkValidateWithToken(Request $request, string $token): RedirectResponse
     {
         $accessToken = FieldSupervisorAccessToken::query()
@@ -173,6 +188,24 @@ class FieldSupervisorPortalController extends Controller
         return back()->with('status', 'Catatan harian berhasil divalidasi.');
     }
 
+    public function flagDailyLogForLogin(Request $request, CheckIn $checkIn): RedirectResponse
+    {
+        $email = Str::lower(trim((string) $request->user()?->email));
+
+        abort_unless(
+            InternshipEnrollment::query()
+                ->whereKey($checkIn->internship_enrollment_id)
+                ->whereRaw('LOWER(field_supervisor_email) = ?', [$email])
+                ->whereNotIn('status', ['cancelled', 'rejected'])
+                ->exists(),
+            403
+        );
+
+        $this->flagDailyLog($request, $checkIn, $email, $request->user()?->name ?: $email, 'login');
+
+        return back()->with('status', 'Catatan harian ditandai bermasalah dan menunggu klarifikasi mahasiswa.');
+    }
+
     public function bulkValidateDailyLogsForLogin(Request $request, InternshipEnrollment $enrollment): RedirectResponse
     {
         $email = Str::lower(trim((string) $request->user()?->email));
@@ -273,8 +306,9 @@ class FieldSupervisorPortalController extends Controller
             'period_bucket' => $this->periodBucket($enrollment),
             'attendance_range' => $this->dateRangeLabel($enrollment->effectiveAttendanceStartsAt(), $enrollment->effectiveAttendanceEndsAt()),
             'daily_total' => $dailyRows->count(),
-            'daily_validated' => $dailyRows->filter(fn (array $row): bool => (bool) ($row['validation_check_in']?->daily_log_validated_at))->count(),
-            'pending_daily_validations' => $dailyRows->filter(fn (array $row): bool => ! ($row['validation_check_in']?->daily_log_validated_at))->count(),
+            'daily_validated' => $dailyRows->filter(fn (array $row): bool => ($row['validation_check_in']?->daily_log_status ?: 'pending') === 'validated')->count(),
+            'daily_flagged' => $dailyRows->filter(fn (array $row): bool => ($row['validation_check_in']?->daily_log_status ?: 'pending') === 'flagged')->count(),
+            'pending_daily_validations' => $dailyRows->filter(fn (array $row): bool => ($row['validation_check_in']?->daily_log_status ?: 'pending') !== 'validated')->count(),
             'attendance_score' => $attendanceScore,
             'can_assess' => $canAssess,
             'has_assessment' => (bool) $assessment,
@@ -359,7 +393,7 @@ class FieldSupervisorPortalController extends Controller
                 $checkIn = $items->firstWhere('action', 'check_in') ?: $items->first();
                 $checkOut = $items->firstWhere('action', 'check_out') ?: $items->firstWhere('pair_id', $checkIn?->id);
                 $validationRecord = $items
-                    ->first(fn (CheckIn $item): bool => (bool) $item->daily_log_validated_at)
+                    ->first(fn (CheckIn $item): bool => in_array($item->daily_log_status ?: 'pending', ['validated', 'flagged'], true))
                     ?: $checkIn
                     ?: $checkOut;
 
@@ -382,6 +416,15 @@ class FieldSupervisorPortalController extends Controller
         ]);
 
         $this->applyDailyLogValidation($checkIn, $email, $name, $mode, $data['note'] ?? null);
+    }
+
+    private function flagDailyLog(Request $request, CheckIn $checkIn, string $email, string $name, string $mode): void
+    {
+        $data = $request->validate([
+            'reason' => ['required', 'string', 'min:10', 'max:2000'],
+        ]);
+
+        $this->applyDailyLogFlag($checkIn, $email, $name, $mode, $data['reason']);
     }
 
     private function bulkValidateDailyLogs(Request $request, int $enrollmentId, string $email, string $name, string $mode): int
@@ -446,6 +489,36 @@ class FieldSupervisorPortalController extends Controller
             'daily_log_validated_by_email' => Str::lower(trim($email)),
             'daily_log_validation_mode' => $mode,
             'daily_log_validation_note' => $note,
+            'daily_log_status' => 'validated',
+        ]);
+
+        $dailyCheckIns->each->save();
+    }
+
+    private function applyDailyLogFlag(CheckIn $checkIn, string $email, string $name, string $mode, string $reason): void
+    {
+        $checkedAt = $checkIn->checked_at;
+        $dailyCheckIns = $checkedAt
+            ? CheckIn::query()
+                ->where('internship_enrollment_id', $checkIn->internship_enrollment_id)
+                ->whereBetween('checked_at', [$checkedAt->copy()->startOfDay(), $checkedAt->copy()->endOfDay()])
+                ->get()
+            : collect([$checkIn]);
+
+        $dailyCheckIns->each->forceFill([
+            'daily_log_status' => 'flagged',
+            'daily_log_validated_at' => null,
+            'daily_log_validated_by_name' => null,
+            'daily_log_validated_by_email' => null,
+            'daily_log_validation_mode' => null,
+            'daily_log_validation_note' => null,
+            'daily_log_flagged_at' => now(),
+            'daily_log_flagged_by_name' => $name,
+            'daily_log_flagged_by_email' => Str::lower(trim($email)),
+            'daily_log_flag_mode' => $mode,
+            'daily_log_flag_reason' => $reason,
+            'daily_log_student_clarification' => null,
+            'daily_log_clarified_at' => null,
         ]);
 
         $dailyCheckIns->each->save();

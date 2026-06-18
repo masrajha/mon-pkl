@@ -39,7 +39,7 @@
             ['label' => 'Pembimbing lapangan', 'done' => filled($enrollment->field_supervisor)],
             ['label' => 'Mitra dan koordinat', 'done' => (bool) ($enrollment->internshipPlace?->latitude && $enrollment->internshipPlace?->longitude)],
             ['label' => 'Presensi', 'done' => $enrollment->checkIns->isNotEmpty()],
-            ['label' => 'Validasi catatan Pembimbing Lapangan', 'done' => ($dailyLogValidationSummary['total'] ?? 0) > 0 && ($dailyLogValidationSummary['pending'] ?? 0) === 0],
+            ['label' => 'Validasi catatan Pembimbing Lapangan', 'done' => ($dailyLogValidationSummary['total'] ?? 0) > 0 && ($dailyLogValidationSummary['pending'] ?? 0) === 0 && ($dailyLogValidationSummary['flagged'] ?? 0) === 0],
             ['label' => 'Nilai Pembimbing Lapangan', 'done' => (bool) $enrollment->fieldSupervisorAssessment],
             ['label' => 'Laporan lengkap', 'done' => $progressByType->has('full_report')],
             ['label' => 'Seminar', 'done' => $latestSeminarRequest?->status === 'completed'],
@@ -49,7 +49,11 @@
         $tabs = [
             'detail' => ['label' => 'Detail Program', 'icon' => 'fa-circle-info'],
             'pembekalan' => ['label' => 'Pembekalan', 'icon' => 'fa-users-line'],
-            'presensi' => ['label' => 'Presensi & Catatan', 'icon' => 'fa-fingerprint'],
+            'presensi' => [
+                'label' => 'Presensi & Catatan',
+                'icon' => 'fa-fingerprint',
+                'badge' => ($dailyLogValidationSummary['pending'] ?? 0) + ($dailyLogValidationSummary['flagged'] ?? 0),
+            ],
             'pelaporan' => ['label' => 'Pelaporan', 'icon' => 'fa-file-lines'],
             'seminar' => ['label' => 'Seminar & Penilaian', 'icon' => 'fa-person-chalkboard'],
             'penyelesaian' => ['label' => 'Penyelesaian', 'icon' => 'fa-flag-checkered'],
@@ -92,6 +96,11 @@
                         <button type="button" @click="tab = '{{ $key }}'" class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold" :class="tab === '{{ $key }}' ? 'border-blue-700 bg-blue-700 text-white' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'">
                             <x-icon :name="$item['icon']" class="w-4" />
                             {{ $item['label'] }}
+                            @if (($item['badge'] ?? 0) > 0)
+                                <span class="inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-bold" :class="tab === '{{ $key }}' ? 'bg-white text-blue-700' : 'bg-red-500 text-white'">
+                                    {{ number_format($item['badge'], 0, ',', '.') }}
+                                </span>
+                            @endif
                         </button>
                     @endforeach
                 </div>
@@ -212,7 +221,7 @@
                             @endif
                         </div>
                     </div>
-                    <div class="grid gap-3 px-5 pt-5 sm:grid-cols-3">
+                    <div class="grid gap-3 px-5 pt-5 sm:grid-cols-4">
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
                             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Catatan</p>
                             <p class="mt-1 text-xl font-bold text-gray-900">{{ number_format($dailyLogValidationSummary['total'] ?? 0, 0, ',', '.') }}</p>
@@ -225,20 +234,27 @@
                             <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">Menunggu Pembimbing Lapangan</p>
                             <p class="mt-1 text-xl font-bold text-amber-900">{{ number_format($dailyLogValidationSummary['pending'] ?? 0, 0, ',', '.') }}</p>
                         </div>
+                        <div class="rounded-lg border border-red-100 bg-red-50 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-red-700">Bermasalah / Klarifikasi</p>
+                            <p class="mt-1 text-xl font-bold text-red-900">{{ number_format($dailyLogValidationSummary['flagged'] ?? 0, 0, ',', '.') }}</p>
+                        </div>
                     </div>
                     <div class="overflow-x-auto p-5">
                         <table class="silat-table">
                             <thead class="silat-table-head"><tr><th class="silat-table-cell">Tanggal</th><th class="silat-table-cell">Jam</th><th class="silat-table-cell">Jarak</th><th class="silat-table-cell">Catatan</th><th class="silat-table-cell">Validasi Pembimbing Lapangan</th></tr></thead>
                             <tbody class="divide-y divide-gray-100">
                                 @forelse ($dailyActivityRows as $row)
-                                    @php $validationCheckIn = $row['validation_check_in'] ?? null; @endphp
+                                    @php
+                                        $validationCheckIn = $row['validation_check_in'] ?? null;
+                                        $dailyLogStatus = $validationCheckIn?->daily_log_status ?: 'pending';
+                                    @endphp
                                     <tr>
                                         <td class="silat-table-cell whitespace-nowrap">{{ $row['date']?->translatedFormat('l, d M Y') }}</td>
                                         <td class="silat-table-cell whitespace-nowrap"><div>Masuk: {{ $row['check_in']?->checked_at?->format('H:i:s') ?: '-' }}</div><div>Pulang: {{ $row['check_out']?->checked_at?->format('H:i:s') ?: '-' }}</div><div>Durasi: {{ $row['duration_minutes'] !== null ? number_format($row['duration_minutes'] / 60, 2, ',', '.') : '-' }}</div></td>
                                         <td class="silat-table-cell whitespace-nowrap"><div>Masuk: {{ $row['check_in']?->distance_meters !== null ? number_format($row['check_in']->distance_meters, 2, ',', '.') : '-' }}</div><div>Pulang: {{ $row['check_out']?->distance_meters !== null ? number_format($row['check_out']->distance_meters, 2, ',', '.') : '-' }}</div></td>
                                         <td class="silat-table-cell min-w-[420px]"><p><strong>Rencana:</strong> {{ $row['check_in']?->note ?: '-' }}</p><p class="mt-3"><strong>Realisasi:</strong> {{ $row['check_out']?->note ?: '-' }}</p></td>
                                         <td class="silat-table-cell min-w-[180px]">
-                                            @if ($validationCheckIn?->daily_log_validated_at)
+                                            @if ($dailyLogStatus === 'validated')
                                                 <x-badge variant="success">Tervalidasi</x-badge>
                                                 <div class="mt-2 text-xs text-gray-500">
                                                     {{ $validationCheckIn->daily_log_validated_at?->format('d/m/Y H:i') }}
@@ -247,6 +263,26 @@
                                                 @if ($validationCheckIn->daily_log_validation_note)
                                                     <p class="mt-2 text-xs text-gray-600">{{ $validationCheckIn->daily_log_validation_note }}</p>
                                                 @endif
+                                            @elseif ($dailyLogStatus === 'flagged')
+                                                <x-badge variant="danger">Bermasalah</x-badge>
+                                                <div class="mt-2 rounded-md border border-red-100 bg-red-50 p-2 text-xs text-red-900">
+                                                    <span class="font-semibold">Catatan PL:</span> {{ $validationCheckIn->daily_log_flag_reason }}
+                                                    <div class="mt-1 text-red-700">
+                                                        {{ $validationCheckIn->daily_log_flagged_at?->format('d/m/Y H:i') }}
+                                                        oleh {{ $validationCheckIn->daily_log_flagged_by_name ?: $validationCheckIn->daily_log_flagged_by_email }}
+                                                    </div>
+                                                </div>
+                                                @if ($validationCheckIn->daily_log_student_clarification)
+                                                    <div class="mt-2 rounded-md border border-blue-100 bg-blue-50 p-2 text-xs text-blue-950">
+                                                        <span class="font-semibold">Klarifikasi Anda:</span> {{ $validationCheckIn->daily_log_student_clarification }}
+                                                        <div class="mt-1 text-blue-700">{{ $validationCheckIn->daily_log_clarified_at?->format('d/m/Y H:i') }}</div>
+                                                    </div>
+                                                @endif
+                                                <form method="POST" action="{{ route('student.reports.daily-logs.clarification.store', [$enrollment, $validationCheckIn]) }}" class="mt-3 space-y-2">
+                                                    @csrf
+                                                    <textarea name="clarification" rows="3" class="block w-full rounded-md border-gray-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Tulis klarifikasi untuk Pembimbing Lapangan" required>{{ old('clarification', $validationCheckIn->daily_log_student_clarification) }}</textarea>
+                                                    <button type="submit" class="silat-btn px-3 py-2 text-xs"><x-icon name="fa-paper-plane" /> Kirim Klarifikasi</button>
+                                                </form>
                                             @else
                                                 <x-badge variant="warning">Menunggu Pembimbing Lapangan</x-badge>
                                             @endif

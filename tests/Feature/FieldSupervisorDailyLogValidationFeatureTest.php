@@ -146,6 +146,71 @@ class FieldSupervisorDailyLogValidationFeatureTest extends TestCase
             ->assertSee('Satu klik validasi satu baris.');
     }
 
+    public function test_field_supervisor_can_flag_daily_log_and_student_can_clarify(): void
+    {
+        [$enrollment, $checkOut, $checkIn] = $this->enrollmentWithDailyLog();
+        $fieldSupervisor = User::factory()->create([
+            'role' => 'pembimbing_lapangan',
+            'email' => 'pl@example.test',
+            'name' => 'Pembimbing Login',
+        ]);
+        $studentUser = $enrollment->student->user;
+
+        $this->actingAs($fieldSupervisor)
+            ->post(route('field-supervisor.daily-logs.flag', $checkOut), [
+                'reason' => 'Foto presensi tidak sesuai dengan aktivitas yang dilaporkan.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('status', 'Catatan harian ditandai bermasalah dan menunggu klarifikasi mahasiswa.');
+
+        foreach ([$checkOut->id, $checkIn->id] as $checkInId) {
+            $this->assertDatabaseHas('check_ins', [
+                'id' => $checkInId,
+                'daily_log_status' => 'flagged',
+                'daily_log_flagged_by_email' => 'pl@example.test',
+                'daily_log_flag_reason' => 'Foto presensi tidak sesuai dengan aktivitas yang dilaporkan.',
+            ]);
+        }
+
+        $this->actingAs($studentUser)
+            ->get(route('student.reports.show', ['enrollment' => $enrollment, 'tab' => 'presensi']))
+            ->assertOk()
+            ->assertSee('Bermasalah')
+            ->assertSee('Foto presensi tidak sesuai dengan aktivitas yang dilaporkan.')
+            ->assertSee('Kirim Klarifikasi');
+
+        $this->actingAs($studentUser)
+            ->post(route('student.reports.daily-logs.clarification.store', [$enrollment, $checkOut]), [
+                'clarification' => 'Foto diambil setelah kegiatan selesai karena lokasi kerja berpindah ruangan.',
+            ])
+            ->assertRedirect(route('student.reports.show', ['enrollment' => $enrollment, 'tab' => 'presensi']))
+            ->assertSessionHas('status', 'Klarifikasi catatan harian berhasil dikirim.');
+
+        $this->assertDatabaseHas('check_ins', [
+            'id' => $checkOut->id,
+            'daily_log_student_clarification' => 'Foto diambil setelah kegiatan selesai karena lokasi kerja berpindah ruangan.',
+        ]);
+
+        $this->actingAs($fieldSupervisor)
+            ->get(route('field-supervisor.enrollments.show', $enrollment))
+            ->assertOk()
+            ->assertSee('Klarifikasi mahasiswa')
+            ->assertSee('Foto diambil setelah kegiatan selesai karena lokasi kerja berpindah ruangan.');
+
+        $this->actingAs($fieldSupervisor)
+            ->post(route('field-supervisor.daily-logs.validate', $checkOut), [
+                'note' => 'Klarifikasi diterima.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('check_ins', [
+            'id' => $checkOut->id,
+            'daily_log_status' => 'validated',
+            'daily_log_validated_by_email' => 'pl@example.test',
+            'daily_log_validation_note' => 'Klarifikasi diterima.',
+        ]);
+    }
+
     public function test_field_supervisor_login_can_bulk_validate_daily_logs(): void
     {
         [$enrollment, $checkOut, $checkIn] = $this->enrollmentWithDailyLog();
@@ -197,6 +262,8 @@ class FieldSupervisorDailyLogValidationFeatureTest extends TestCase
 
     public function test_field_supervisor_assessment_requires_finished_attendance_period_and_unblocks_completion(): void
     {
+        $this->travelTo(Carbon::parse('2026-06-05 08:00:00', config('monpkl.timezone')));
+
         [$enrollment, $checkOut] = $this->enrollmentWithDailyLog();
         $fieldSupervisor = User::factory()->create([
             'role' => 'pembimbing_lapangan',
@@ -272,10 +339,14 @@ class FieldSupervisorDailyLogValidationFeatureTest extends TestCase
             'deadline_type' => 'hardcopy',
             'status' => 'pending',
         ]);
+
+        $this->travelBack();
     }
 
     public function test_field_supervisor_assessment_uses_period_end_when_enrollment_override_is_empty(): void
     {
+        $this->travelTo(Carbon::parse('2026-06-05 08:00:00', config('monpkl.timezone')));
+
         [$enrollment] = $this->enrollmentWithDailyLog();
         $fieldSupervisor = User::factory()->create([
             'role' => 'pembimbing_lapangan',
@@ -301,6 +372,8 @@ class FieldSupervisorDailyLogValidationFeatureTest extends TestCase
             'final_score' => 91.67,
             'assessed_by_email' => 'pl@example.test',
         ]);
+
+        $this->travelBack();
     }
 
     public function test_field_supervisor_assessment_opens_on_local_calendar_date_even_before_utc_midnight(): void

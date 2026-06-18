@@ -38,7 +38,10 @@
         </thead>
         <tbody>
             @forelse ($dailyActivityRows as $row)
-                @php $validationCheckIn = $row['validation_check_in'] ?? null; @endphp
+                @php
+                    $validationCheckIn = $row['validation_check_in'] ?? null;
+                    $dailyLogStatus = $validationCheckIn?->daily_log_status ?: 'pending';
+                @endphp
                 <tr>
                     <td class="nowrap">{{ $row['date']?->translatedFormat('l, d M Y') }}</td>
                     <td class="nowrap">
@@ -55,10 +58,18 @@
                         <p><strong>Realisasi:</strong> {{ $row['check_out']?->note ?: '-' }}</p>
                     </td>
                     <td class="signature">
-                        @if ($validationCheckIn?->daily_log_validated_at)
+                        @if ($dailyLogStatus === 'validated')
                             Tervalidasi<br>
                             {{ $validationCheckIn->daily_log_validated_at?->format('d/m/Y H:i') }}<br>
                             {{ $validationCheckIn->daily_log_validated_by_name ?: $validationCheckIn->daily_log_validated_by_email }}
+                        @elseif ($dailyLogStatus === 'flagged')
+                            Bermasalah / klarifikasi<br>
+                            {{ $validationCheckIn->daily_log_flagged_at?->format('d/m/Y H:i') }}<br>
+                            {{ $validationCheckIn->daily_log_flagged_by_name ?: $validationCheckIn->daily_log_flagged_by_email }}<br>
+                            Alasan: {{ $validationCheckIn->daily_log_flag_reason }}
+                            @if ($validationCheckIn->daily_log_student_clarification)
+                                <br>Klarifikasi: {{ $validationCheckIn->daily_log_student_clarification }}
+                            @endif
                         @else
                             Menunggu validasi
                         @endif

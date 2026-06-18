@@ -96,11 +96,11 @@
                             <button
                                 type="button"
                                 class="inline-flex items-center gap-2 rounded-md border px-3.5 py-2.5 text-sm font-semibold shadow-sm transition"
-                                :class="activeTab === 'daily' ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 bg-white text-gray-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700'"
+                                :class="activeTab === 'daily' ? 'border-green-600 bg-green-600 text-white' : 'border-gray-200 bg-white text-gray-700 hover:border-green-200 hover:bg-green-50 hover:text-green-700'"
                                 @click="activeTab = 'daily'"
                             >
                                 <x-icon name="fa-clipboard-check" />
-                                Catatan Harian
+                                Validasi Catatan Harian
                             </button>
                             <button
                                 type="button"
@@ -176,7 +176,7 @@
                             ? route('field-supervisor.token.daily-logs.bulk-validate', $requestToken ?? request()->route('token'))
                             : route('field-supervisor.daily-logs.bulk-validate', $enrollment);
                         $bulkValidationRows = $dailyRows
-                            ->filter(fn (array $row): bool => (bool) ($row['validation_check_in'] ?? null) && ! $row['validation_check_in']?->daily_log_validated_at)
+                            ->filter(fn (array $row): bool => (bool) ($row['validation_check_in'] ?? null) && ($row['validation_check_in']?->daily_log_status ?: 'pending') === 'pending')
                             ->count();
                     @endphp
                     @if ($bulkValidationRows > 0)
@@ -218,10 +218,16 @@
                                             ? route('field-supervisor.token.daily-logs.validate', [$requestToken ?? request()->route('token'), $validationCheckIn])
                                             : route('field-supervisor.daily-logs.validate', $validationCheckIn))
                                         : null;
+                                    $flagRoute = $validationCheckIn
+                                        ? ($isTokenAccess
+                                            ? route('field-supervisor.token.daily-logs.flag', [$requestToken ?? request()->route('token'), $validationCheckIn])
+                                            : route('field-supervisor.daily-logs.flag', $validationCheckIn))
+                                        : null;
+                                    $dailyLogStatus = $validationCheckIn?->daily_log_status ?: 'pending';
                                 @endphp
                                 <tr>
                                     <td class="silat-table-cell align-top">
-                                        @if ($validationCheckIn && ! $validationCheckIn->daily_log_validated_at)
+                                        @if ($validationCheckIn && $dailyLogStatus === 'pending')
                                             <input
                                                 type="checkbox"
                                                 name="check_in_ids[]"
@@ -280,7 +286,7 @@
                                         @endif
                                     </td>
                                     <td class="silat-table-cell min-w-[240px]">
-                                        @if ($validationCheckIn?->daily_log_validated_at)
+                                        @if ($dailyLogStatus === 'validated')
                                             <x-badge variant="success">Tervalidasi</x-badge>
                                             <div class="mt-2 text-xs text-gray-500">
                                                 {{ $validationCheckIn->daily_log_validated_at?->format('d/m/Y H:i') }}
@@ -289,12 +295,55 @@
                                             @if ($validationCheckIn->daily_log_validation_note)
                                                 <p class="mt-2 text-xs text-gray-600">{{ $validationCheckIn->daily_log_validation_note }}</p>
                                             @endif
+                                            @if ($flagRoute)
+                                                <details class="mt-3 rounded-md border border-red-100 bg-red-50 p-2">
+                                                    <summary class="cursor-pointer text-xs font-semibold text-red-800">Tandai bermasalah</summary>
+                                                    <form method="POST" action="{{ $flagRoute }}" class="mt-2 space-y-2">
+                                                        @csrf
+                                                        <textarea name="reason" rows="3" class="block w-full rounded-md border-red-200 text-xs shadow-sm focus:border-red-500 focus:ring-red-500" placeholder="Alasan wajib: lokasi/foto/catatan tidak valid, butuh klarifikasi..." required></textarea>
+                                                        <button type="submit" class="silat-btn-secondary px-3 py-2 text-xs text-red-700"><x-icon name="fa-triangle-exclamation" /> Tandai Bermasalah</button>
+                                                    </form>
+                                                </details>
+                                            @endif
+                                        @elseif ($dailyLogStatus === 'flagged')
+                                            <x-badge variant="danger">Bermasalah</x-badge>
+                                            <div class="mt-2 text-xs text-gray-500">
+                                                {{ $validationCheckIn->daily_log_flagged_at?->format('d/m/Y H:i') }}
+                                                <br>{{ $validationCheckIn->daily_log_flagged_by_name ?: $validationCheckIn->daily_log_flagged_by_email }}
+                                            </div>
+                                            <div class="mt-2 rounded-md border border-red-100 bg-red-50 p-2 text-xs text-red-900">
+                                                <span class="font-semibold">Alasan:</span> {{ $validationCheckIn->daily_log_flag_reason }}
+                                            </div>
+                                            @if ($validationCheckIn->daily_log_student_clarification)
+                                                <div class="mt-2 rounded-md border border-blue-100 bg-blue-50 p-2 text-xs text-blue-950">
+                                                    <span class="font-semibold">Klarifikasi mahasiswa:</span> {{ $validationCheckIn->daily_log_student_clarification }}
+                                                    <div class="mt-1 text-blue-700">{{ $validationCheckIn->daily_log_clarified_at?->format('d/m/Y H:i') }}</div>
+                                                </div>
+                                            @else
+                                                <p class="mt-2 text-xs text-amber-700">Menunggu klarifikasi mahasiswa.</p>
+                                            @endif
+                                            @if ($validateRoute)
+                                                <form method="POST" action="{{ $validateRoute }}" class="mt-3 space-y-2">
+                                                    @csrf
+                                                    <textarea name="note" rows="2" class="block w-full rounded-md border-gray-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Catatan penyelesaian/validasi"></textarea>
+                                                    <button type="submit" class="silat-btn px-3 py-2 text-xs"><x-icon name="fa-check" /> Validasi</button>
+                                                </form>
+                                            @endif
                                         @elseif ($validateRoute)
-                                            <form method="POST" action="{{ $validateRoute }}" class="space-y-2">
-                                                @csrf
-                                                <textarea name="note" rows="2" class="block w-full rounded-md border-gray-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Catatan validasi opsional"></textarea>
-                                                <button type="submit" class="silat-btn px-3 py-2 text-xs"><x-icon name="fa-check" /> Validasi</button>
-                                            </form>
+                                            <div class="space-y-3">
+                                                <form method="POST" action="{{ $validateRoute }}" class="space-y-2">
+                                                    @csrf
+                                                    <textarea name="note" rows="2" class="block w-full rounded-md border-gray-300 text-xs shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Catatan validasi opsional"></textarea>
+                                                    <button type="submit" class="silat-btn px-3 py-2 text-xs"><x-icon name="fa-check" /> Validasi</button>
+                                                </form>
+                                                @if ($flagRoute)
+                                                    <form method="POST" action="{{ $flagRoute }}" class="space-y-2 rounded-md border border-red-100 bg-red-50 p-2">
+                                                        @csrf
+                                                        <textarea name="reason" rows="2" class="block w-full rounded-md border-red-200 text-xs shadow-sm focus:border-red-500 focus:ring-red-500" placeholder="Alasan jika bermasalah" required></textarea>
+                                                        <button type="submit" class="silat-btn-secondary px-3 py-2 text-xs text-red-700"><x-icon name="fa-triangle-exclamation" /> Tandai Bermasalah</button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                         @else
                                             <x-badge variant="neutral">Belum lengkap</x-badge>
                                         @endif

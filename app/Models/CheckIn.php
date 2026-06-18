@@ -41,6 +41,14 @@ class CheckIn extends Model
         'daily_log_validated_by_email',
         'daily_log_validation_mode',
         'daily_log_validation_note',
+        'daily_log_status',
+        'daily_log_flagged_at',
+        'daily_log_flagged_by_name',
+        'daily_log_flagged_by_email',
+        'daily_log_flag_mode',
+        'daily_log_flag_reason',
+        'daily_log_student_clarification',
+        'daily_log_clarified_at',
         'device_info',
         'source_url',
         'photo_path',
@@ -52,6 +60,8 @@ class CheckIn extends Model
     {
         return [
             'daily_log_validated_at' => 'datetime',
+            'daily_log_flagged_at' => 'datetime',
+            'daily_log_clarified_at' => 'datetime',
             'student_latitude' => 'decimal:7',
             'student_longitude' => 'decimal:7',
             'office_latitude' => 'decimal:7',

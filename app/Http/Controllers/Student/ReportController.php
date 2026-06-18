@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\CheckIn;
 use App\Models\InternshipCoordinator;
 use App\Models\InternshipEnrollment;
 use App\Models\OrientationEvent;
@@ -198,6 +199,35 @@ class ReportController extends Controller
         return back()->with('status', 'Progres laporan berhasil diunggah.');
     }
 
+    public function storeDailyLogClarification(Request $request, InternshipEnrollment $enrollment, CheckIn $checkIn): RedirectResponse
+    {
+        $this->authorizeEnrollment($request, $enrollment);
+        abort_unless((int) $checkIn->internship_enrollment_id === (int) $enrollment->id, 403);
+        abort_unless(($checkIn->daily_log_status ?: 'pending') === 'flagged', 422, 'Catatan harian ini tidak sedang menunggu klarifikasi.');
+
+        $data = $request->validate([
+            'clarification' => ['required', 'string', 'min:10', 'max:2000'],
+        ]);
+
+        $checkedAt = $checkIn->checked_at;
+        $dailyCheckIns = $checkedAt
+            ? $enrollment->checkIns()
+                ->whereBetween('checked_at', [$checkedAt->copy()->startOfDay(), $checkedAt->copy()->endOfDay()])
+                ->get()
+            : collect([$checkIn]);
+
+        $dailyCheckIns->each->forceFill([
+            'daily_log_student_clarification' => $data['clarification'],
+            'daily_log_clarified_at' => now(),
+        ]);
+
+        $dailyCheckIns->each->save();
+
+        return redirect()
+            ->route('student.reports.show', ['enrollment' => $enrollment, 'tab' => 'presensi'])
+            ->with('status', 'Klarifikasi catatan harian berhasil dikirim.');
+    }
+
     public function printDailyLogs(Request $request, InternshipEnrollment $enrollment): View
     {
         $this->authorizeEnrollment($request, $enrollment);
@@ -377,7 +407,7 @@ class ReportController extends Controller
                 }
 
                 $validationRecord = $items
-                    ->first(fn ($item): bool => (bool) $item->daily_log_validated_at)
+                    ->first(fn ($item): bool => in_array($item->daily_log_status ?: 'pending', ['validated', 'flagged'], true))
                     ?: $checkIn
                     ?: $checkOut;
 
@@ -415,12 +445,16 @@ class ReportController extends Controller
     {
         $total = $dailyActivityRows->count();
         $validated = $dailyActivityRows
-            ->filter(fn (array $row): bool => (bool) ($row['validation_check_in']?->daily_log_validated_at))
+            ->filter(fn (array $row): bool => ($row['validation_check_in']?->daily_log_status ?: 'pending') === 'validated')
+            ->count();
+        $flagged = $dailyActivityRows
+            ->filter(fn (array $row): bool => ($row['validation_check_in']?->daily_log_status ?: 'pending') === 'flagged')
             ->count();
 
         return [
             'total' => $total,
             'validated' => $validated,
+            'flagged' => $flagged,
             'pending' => max(0, $total - $validated),
         ];
     }
@@ -501,8 +535,8 @@ class ReportController extends Controller
         return [
             [
                 'label' => 'Catatan harian tervalidasi Pembimbing Lapangan',
-                'done' => $validationSummary['total'] > 0 && $validationSummary['pending'] === 0,
-                'description' => $validationSummary['validated'].' dari '.$validationSummary['total'].' catatan tervalidasi.',
+                'done' => $validationSummary['total'] > 0 && $validationSummary['pending'] === 0 && $validationSummary['flagged'] === 0,
+                'description' => $validationSummary['validated'].' dari '.$validationSummary['total'].' catatan tervalidasi, '.$validationSummary['flagged'].' bermasalah.',
             ],
             [
                 'label' => 'Nilai program Pembimbing Lapangan sudah diisi',

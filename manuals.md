@@ -1,13 +1,16 @@
 # Manual Penggunaan SiLAT
 
-**Versi dokumen:** 2.5
-**Tanggal pembaruan:** 16 Juni 2026
-**Status:** Mengikuti implementasi fitur sampai role switcher multi-role, scope laporan Dosen Pembimbing, pembatasan aksi laporan sesuai mode aktif, perbaikan timezone laporan, snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Viewer Laporan berbasis organisasi, Finalisasi Nilai, Berita Acara Nilai, portal Pembimbing Lapangan, organisasi akademik, subnav laporan, dan pembatasan hapus master data terbaru.
+**Versi dokumen:** 2.6
+**Tanggal pembaruan:** 18 Juni 2026
+**Status:** Mengikuti implementasi fitur sampai role switcher multi-role, scope laporan Dosen Pembimbing, pembatasan aksi laporan sesuai mode aktif, perbaikan timezone laporan, snapshot GPS presensi, Lupa Presensi, foto profil, rubrik penilaian per periode, dashboard analisis, Viewer Laporan berbasis organisasi, Finalisasi Nilai, Berita Acara Nilai, portal Pembimbing Lapangan, validasi catatan harian dengan status bermasalah/klarifikasi, organisasi akademik, subnav laporan, dan pembatasan hapus master data terbaru.
 
 SiLAT (Sistem Laporan Aktivitas Terpadu MBKM & Kerja Praktik) adalah sistem untuk mengelola pendaftaran program, presensi, pembekalan, laporan, catatan harian, perpindahan mitra, perubahan pembimbing, dan monitoring aktivitas mahasiswa.
 
-> **What's New - Versi 2.5**
+> **What's New - Versi 2.6**
 >
+> - Portal Pembimbing Lapangan kini memiliki alur validasi catatan harian yang lebih lengkap: **Validasi Catatan Harian**, **Tandai Bermasalah**, klarifikasi mahasiswa, dan validasi ulang setelah klarifikasi diterima.
+> - Tab **Presensi & Catatan** pada detail program mahasiswa menampilkan badge angka jika ada catatan harian yang masih perlu validasi atau sedang bermasalah/perlu klarifikasi.
+> - Risk Scoring, Heatmap Kehadiran, Rekap Monitoring, dan cetak catatan harian ikut menampilkan status catatan harian bermasalah agar presensi tidak disalahartikan sebagai valid hanya karena memiliki pasangan masuk/pulang.
 > - Header menyediakan **role switcher** untuk akun yang memiliki lebih dari satu hak akses, misalnya Dosen Pembimbing, Koordinator, dan Viewer Laporan. Mode yang dipilih menentukan menu, scope data, dan aksi yang boleh digunakan.
 > - Mode **Dosen Pembimbing** kini memakai scope bimbingan secara eksplisit pada peta, rekap, dan halaman Analisis & Laporan. Data yang tampil dibatasi pada mahasiswa bimbingan dosen tersebut.
 > - Sidebar Dosen Pembimbing dirapikan: menu operasional dosen berisi Review Laporan, Seminar & Penilaian, Peta Monitoring Bimbingan, dan Rekap Monitoring Bimbingan. Menu **Input Lokasi Mitra** tidak ditampilkan untuk dosen pembimbing.
@@ -516,7 +519,7 @@ Halaman detail program memakai tab agar workflow mahasiswa tidak bercampur dalam
 |-----|-----------|
 | Detail Program | Ringkasan pelaksanaan, data program/periode, mitra, dosen pembimbing, pembimbing lapangan, deadline periode, tombol ajukan pindah mitra, dan tombol perubahan pembimbing. |
 | Pembekalan | Event pembekalan yang sesuai program/periode dan tombol presensi pembekalan jika tersedia. |
-| Presensi & Catatan | Presensi harian, log presensi, catatan harian, tombol cetak catatan harian, dan tombol cetak laporan presensi. |
+| Presensi & Catatan | Presensi harian, log presensi, catatan harian, badge jumlah catatan yang perlu validasi/klarifikasi, tombol cetak catatan harian, dan tombol cetak laporan presensi. |
 | Pelaporan | Form unggah progres laporan sampai Pelaporan Tahap 4/Laporan Lengkap Bab 1 sampai 5, status review, catatan reviewer, dan file unggahan. |
 | Seminar & Penilaian | Pengajuan seminar, ACC seminar, jadwal seminar, penilaian dosen via sistem, atau penilaian manual yang divalidasi admin/koordinator. |
 | Penyelesaian | Upload bukti penyerahan laporan hardcopy, tombol cetak laporan, rekap nilai akhir setelah final, dan tombol cetak berita acara nilai jika nilai sudah final. |
@@ -630,6 +633,19 @@ Catatan harian menampilkan:
 - Jarak saat pulang.
 - Rencana aktivitas.
 - Realisasi aktivitas.
+- Status validasi Pembimbing Lapangan.
+
+Status validasi catatan harian:
+
+| Status | Arti |
+|--------|------|
+| Menunggu Pembimbing Lapangan | Catatan belum divalidasi oleh Pembimbing Lapangan. |
+| Tervalidasi | Pembimbing Lapangan menyetujui catatan harian tersebut. |
+| Bermasalah | Pembimbing Lapangan menilai data presensi/catatan perlu klarifikasi. |
+
+Jika ada catatan yang masih menunggu validasi atau bermasalah, tab **Presensi & Catatan** menampilkan badge angka notifikasi. Angka ini membantu mahasiswa langsung melihat bahwa ada catatan harian yang perlu ditindaklanjuti.
+
+Jika catatan ditandai **Bermasalah**, mahasiswa dapat melihat alasan dari Pembimbing Lapangan pada kolom validasi. Mahasiswa kemudian dapat mengisi klarifikasi melalui form **Kirim Klarifikasi** pada baris catatan tersebut. Klarifikasi tidak otomatis membuat catatan menjadi valid; Pembimbing Lapangan tetap perlu membaca klarifikasi dan melakukan validasi ulang jika klarifikasi diterima.
 
 Mahasiswa dapat mencetak form catatan harian dari tab **Presensi & Catatan** untuk keperluan paraf pembimbing lapangan.
 
@@ -2268,8 +2284,8 @@ Halaman yang tersedia:
 |---------|--------|
 | Dashboard Progres | Menampilkan kartu ringkasan peserta aktif/selesai, presensi belum lengkap, catatan harian belum divalidasi, laporan terlambat, seminar belum diajukan, nilai belum lengkap, nilai final, dan sanksi tertinggi. |
 | Progress Funnel | Menampilkan alur peserta dari pendaftaran disetujui, presensi aktif, laporan lengkap, nilai Pembimbing Lapangan, seminar, nilai dosen, sampai nilai final untuk menemukan bottleneck proses. Tampilan dibuat dua kolom. |
-| Risk Scoring | Mengelompokkan peserta menjadi Aman, Perlu Dipantau, Berisiko, atau Kritis berdasarkan indikator presensi, laporan, seminar, nilai, Lupa Presensi, dan sanksi. |
-| Heatmap Kehadiran | Menampilkan status kehadiran per mahasiswa dan tanggal, termasuk hadir valid, presensi satu sisi, Lupa Presensi disetujui, akhir pekan, dan hari libur. |
+| Risk Scoring | Mengelompokkan peserta menjadi Aman, Perlu Dipantau, Berisiko, atau Kritis berdasarkan indikator presensi, laporan, seminar, nilai, Lupa Presensi, catatan harian bermasalah, dan sanksi. |
+| Heatmap Kehadiran | Menampilkan status kehadiran per mahasiswa dan tanggal, termasuk hadir valid, WFA valid, catatan bermasalah, presensi satu sisi, Lupa Presensi disetujui, akhir pekan, dan hari libur. |
 | Grafik Operasional | Menampilkan tren presensi harian, stacked bar status peserta per prodi, donut status laporan lengkap, top sanksi, dan progres nilai dosen/Pembimbing Lapangan/final. |
 | Drill-down | Menampilkan daftar peserta yang berasal dari klik chart/kartu laporan, dengan filter dan scope yang sama. |
 
@@ -2688,7 +2704,7 @@ Alur pelaksanaan:
 8. Admin/koordinator mengirim token akses pembimbing lapangan jika diperlukan.
 9. Mahasiswa mengajukan seminar setelah Laporan Lengkap Bab 1-5 diunggah.
 10. Dosen/admin/koordinator memproses ACC, jadwal, dan nilai seminar sesuai jalur sistem atau manual.
-11. Pembimbing Lapangan memvalidasi catatan harian, memproses Lupa Presensi jika ada, dan mengisi nilai lapangan.
+11. Pembimbing Lapangan memvalidasi catatan harian, menandai catatan bermasalah jika perlu klarifikasi, memproses Lupa Presensi jika ada, dan mengisi nilai lapangan.
 12. Admin/koordinator memproses pengajuan Lupa Presensi yang belum diproses Pembimbing Lapangan jika diperlukan.
 13. Admin memantau rekap monitoring, dashboard analisis, WFA, sanksi, pembekalan, seminar, dan antrean email.
 
@@ -2761,17 +2777,32 @@ Menu **Mahasiswa Bimbingan** menampilkan mahasiswa terkait. Pada detail mahasisw
 
 | Tab | Fungsi |
 |-----|--------|
-| Catatan Harian | Melihat presensi masuk/pulang, durasi, jarak, rencana, realisasi, status validasi, tombol validasi catatan harian, dan blok pengajuan Lupa Presensi yang masih pending. |
+| Validasi Catatan Harian | Melihat presensi masuk/pulang, durasi, jarak, rencana, realisasi, status validasi, aksi validasi, aksi tandai bermasalah, klarifikasi mahasiswa, dan blok pengajuan Lupa Presensi yang masih pending. |
 | Penilaian dan Feedback | Mengisi nilai Pembimbing Lapangan, catatan untuk mahasiswa, rekomendasi mahasiswa, serta feedback untuk institusi/program studi. |
 
-Pada tab **Catatan Harian**, Pembimbing Lapangan dapat memvalidasi satu baris melalui tombol **Validasi** atau memilih beberapa baris dengan checkbox lalu klik **Validasi Terpilih** untuk validasi massal.
+Pada tab **Validasi Catatan Harian**, Pembimbing Lapangan dapat:
+
+- Memvalidasi satu baris melalui tombol **Validasi**.
+- Memilih beberapa baris dengan checkbox lalu klik **Validasi Terpilih** untuk validasi massal.
+- Menandai catatan sebagai **Bermasalah** jika data presensi/catatan dinilai tidak valid atau perlu klarifikasi.
+- Membaca klarifikasi mahasiswa, lalu melakukan validasi ulang jika klarifikasi diterima.
+
+Status catatan harian:
+
+| Status | Arti |
+|--------|------|
+| Pending / perlu validasi | Catatan belum diputuskan oleh Pembimbing Lapangan. |
+| Tervalidasi | Catatan disetujui oleh Pembimbing Lapangan dan dihitung sebagai validasi selesai. |
+| Bermasalah | Pembimbing Lapangan menilai catatan tidak valid atau perlu klarifikasi. |
+
+Saat memilih **Tandai Bermasalah**, Pembimbing Lapangan wajib mengisi alasan. Alasan ini tampil pada tab **Presensi & Catatan** mahasiswa. Mahasiswa dapat mengirim klarifikasi, tetapi status tetap **Bermasalah** sampai Pembimbing Lapangan memvalidasi ulang.
 
 Jika foto presensi tersedia, baris catatan harian menampilkan bagian **Foto audit presensi** untuk membuka foto masuk dan/atau pulang. Pengajuan Lupa Presensi pending juga menampilkan **Foto bukti Lupa Presensi** jika mahasiswa mengirim foto bukti.
 
 Validasi Lupa Presensi untuk Pembimbing Lapangan berada di:
 
 ```text
-Mahasiswa Bimbingan -> buka mahasiswa -> tab Catatan Harian -> Pengajuan Lupa Presensi
+Mahasiswa Bimbingan -> buka mahasiswa -> tab Validasi Catatan Harian -> Pengajuan Lupa Presensi
 ```
 
 Blok **Pengajuan Lupa Presensi** hanya muncul jika ada pengajuan dengan status menunggu review. Pembimbing Lapangan dapat memilih **Setujui** atau **Tolak** dan memberi catatan review. Saat memproses, Pembimbing Lapangan sebaiknya memeriksa jarak, foto bukti, akurasi/indikasi audit lokasi jika tersedia, catatan aktivitas, dan alasan lupa.
@@ -2779,7 +2810,7 @@ Blok **Pengajuan Lupa Presensi** hanya muncul jika ada pengajuan dengan status m
 Catatan:
 
 - Approval Lupa Presensi hanya ditampilkan pada akses login Pembimbing Lapangan.
-- Akses melalui token URL dapat dipakai untuk monitoring dan validasi catatan harian, tetapi tidak menampilkan aksi approval Lupa Presensi.
+- Akses melalui token URL dapat dipakai untuk monitoring, validasi catatan harian, dan tandai bermasalah, tetapi tidak menampilkan aksi approval Lupa Presensi.
 - Setelah nilai akhir mahasiswa difinalisasi admin/koordinator, form nilai Pembimbing Lapangan terkunci dan tidak dapat diedit.
 
 ### 5.5 Batasan Role Pembimbing Lapangan
@@ -2789,7 +2820,8 @@ Catatan:
 | Scope data | Hanya data mahasiswa yang email pembimbing lapangannya sama dengan email token/login. |
 | Token | Token dapat kedaluwarsa atau dicabut admin. |
 | Login | Email login harus cocok dengan email pembimbing lapangan pada enrollment aktif. |
-| Validasi catatan harian | Aktif pada portal login dan token sesuai izin rute. |
+| Validasi catatan harian | Aktif pada portal login dan token sesuai izin rute. Termasuk validasi, validasi massal, dan tandai bermasalah. |
+| Klarifikasi mahasiswa | Pembimbing Lapangan dapat membaca klarifikasi pada baris catatan bermasalah dan memvalidasi ulang jika diterima. |
 | Lupa Presensi | Approval Lupa Presensi hanya tampil pada portal login Pembimbing Lapangan, bukan pada akses token. |
 | Penilaian lapangan | Aktif sampai nilai akhir difinalisasi. Setelah final, nilai terkunci. |
 
@@ -2799,10 +2831,14 @@ Catatan:
 2. Buka portal Pembimbing Lapangan.
 3. Periksa daftar mahasiswa terkait.
 4. Buka mahasiswa pada menu **Mahasiswa Bimbingan**.
-5. Validasi catatan harian pada tab **Catatan Harian**.
-6. Proses pengajuan Lupa Presensi yang muncul pada tab **Catatan Harian** jika ada.
-7. Isi nilai dan feedback pada tab **Penilaian dan Feedback** setelah periode presensi selesai.
-8. Hubungi admin/koordinator jika data mahasiswa tidak sesuai.
+5. Buka tab **Validasi Catatan Harian**.
+6. Untuk catatan yang sesuai, klik **Validasi** atau gunakan **Validasi Terpilih**.
+7. Jika catatan tidak valid atau perlu penjelasan, klik **Tandai Bermasalah** dan isi alasan.
+8. Tunggu mahasiswa mengirim klarifikasi jika diperlukan.
+9. Setelah klarifikasi diterima, validasi ulang catatan tersebut.
+10. Proses pengajuan Lupa Presensi yang muncul pada tab **Validasi Catatan Harian** jika ada.
+11. Isi nilai dan feedback pada tab **Penilaian dan Feedback** setelah periode presensi selesai.
+12. Hubungi admin/koordinator jika data mahasiswa tidak sesuai.
 
 ---
 

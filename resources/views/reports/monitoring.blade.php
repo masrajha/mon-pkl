@@ -57,7 +57,7 @@
             <div class="silat-stat-card"><p class="silat-stat-label">Mahasiswa</p><p class="silat-stat-value">{{ number_format($totals['students'], 0, ',', '.') }}</p></div>
             <div class="silat-stat-card"><p class="silat-stat-label">Total Hari Hadir</p><p class="silat-stat-value">{{ number_format($totals['attendance_days'], 0, ',', '.') }}</p></div>
             <div class="silat-stat-card"><p class="silat-stat-label">Total Durasi</p><p class="silat-stat-value">{{ number_format($totals['duration_hours'], 2, ',', '.') }} jam</p></div>
-            <div class="silat-stat-card"><p class="silat-stat-label">Butuh Tindak Lanjut</p><p class="silat-stat-value">{{ number_format($totals['pending_forgotten_attendance'] + $totals['pending_daily_logs'], 0, ',', '.') }}</p><p class="silat-stat-note">Lupa presensi/catatan harian pending.</p></div>
+            <div class="silat-stat-card"><p class="silat-stat-label">Butuh Tindak Lanjut</p><p class="silat-stat-value">{{ number_format($totals['pending_forgotten_attendance'] + $totals['pending_daily_logs'], 0, ',', '.') }}</p><p class="silat-stat-note">Lupa presensi, catatan pending/bermasalah.</p></div>
         </div>
 
         <section class="silat-card">
@@ -91,7 +91,7 @@
                                 <td class="silat-table-cell"><x-badge :variant="$row['seminar_status_variant']">{{ $row['seminar_status_label'] }}</x-badge></td>
                                 <td class="silat-table-cell"><x-badge :variant="$row['assessment_status_variant']">{{ $row['assessment_status_label'] }}</x-badge></td>
                                 <td class="silat-table-cell"><p class="text-sm font-semibold text-gray-900">{{ $row['forgotten_pending'] }} pending</p><p class="text-xs text-gray-500">{{ $row['forgotten_approved'] }} disetujui</p></td>
-                                <td class="silat-table-cell"><p class="text-sm font-semibold text-gray-900">{{ $row['daily_logs_validated'] }}/{{ $row['daily_logs_total'] }}</p><p class="text-xs text-gray-500">{{ $row['daily_logs_pending'] }} pending</p></td>
+                                <td class="silat-table-cell"><p class="text-sm font-semibold text-gray-900">{{ $row['daily_logs_validated'] }}/{{ $row['daily_logs_total'] }}</p><p class="text-xs text-gray-500">{{ $row['daily_logs_pending'] }} pending</p>@if (($row['daily_logs_flagged'] ?? 0) > 0)<p class="text-xs font-semibold text-red-700">{{ $row['daily_logs_flagged'] }} bermasalah</p>@endif</td>
                                 <td class="silat-table-cell font-semibold {{ $row['sanction_points'] > 0 ? 'text-rose-700' : 'text-emerald-700' }}">{{ number_format($row['sanction_points'], 2, ',', '.') }}</td>
                             </tr>
                         @empty

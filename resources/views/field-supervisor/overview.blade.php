@@ -83,6 +83,9 @@
                                             <div class="rounded-md bg-gray-50 p-3">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Catatan</p>
                                                 <p class="mt-1 font-semibold text-gray-900">{{ $summary['daily_validated'] }}/{{ $summary['daily_total'] }}</p>
+                                                @if (($summary['daily_flagged'] ?? 0) > 0)
+                                                    <p class="mt-1 text-xs font-semibold text-red-700">{{ number_format($summary['daily_flagged'], 0, ',', '.') }} bermasalah</p>
+                                                @endif
                                             </div>
                                             <div class="rounded-md bg-gray-50 p-3">
                                                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Kehadiran</p>
@@ -95,9 +98,9 @@
                                         </div>
 
                                         <div class="mt-4 flex flex-wrap gap-2">
-                                            <a href="{{ route('field-supervisor.enrollments.show', ['enrollment' => $enrollment, 'tab' => 'daily']) }}" class="silat-btn-secondary px-3 py-2 text-xs">
+                                            <a href="{{ route('field-supervisor.enrollments.show', ['enrollment' => $enrollment, 'tab' => 'daily']) }}" class="silat-btn-success px-3 py-2 text-xs">
                                                 <x-icon name="fa-clipboard-check" />
-                                                Catatan Harian
+                                                Validasi Catatan Harian
                                             </a>
                                             <a href="{{ route('field-supervisor.enrollments.show', ['enrollment' => $enrollment, 'tab' => 'assessment']) }}" class="silat-btn px-3 py-2 text-xs">
                                                 <x-icon name="fa-star-half-stroke" />

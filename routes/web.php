@@ -181,6 +181,7 @@ Route::get('/docs', [DocumentationController::class, 'index'])->name('docs.index
 Route::get('/docs/{role}', [DocumentationController::class, 'show'])->name('docs.show');
 Route::get('/field-supervisor/access/{token}', [FieldSupervisorPortalController::class, 'token'])->name('field-supervisor.token');
 Route::post('/field-supervisor/access/{token}/daily-logs/{checkIn}/validate', [FieldSupervisorPortalController::class, 'validateWithToken'])->name('field-supervisor.token.daily-logs.validate');
+Route::post('/field-supervisor/access/{token}/daily-logs/{checkIn}/flag', [FieldSupervisorPortalController::class, 'flagWithToken'])->name('field-supervisor.token.daily-logs.flag');
 Route::post('/field-supervisor/access/{token}/daily-logs/bulk-validate', [FieldSupervisorPortalController::class, 'bulkValidateWithToken'])->name('field-supervisor.token.daily-logs.bulk-validate');
 Route::post('/field-supervisor/access/{token}/enrollments/{enrollment}/assessment', [FieldSupervisorPortalController::class, 'assessWithToken'])->name('field-supervisor.token.assessment.store');
 Route::get('/verify/final-assessments/{token}', [FinalAssessmentVerificationController::class, 'show'])->name('final-assessments.verify');
@@ -245,6 +246,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/field-supervisor/enrollments', [FieldSupervisorPortalController::class, 'enrollments'])->name('field-supervisor.enrollments.index');
         Route::get('/field-supervisor/enrollments/{enrollment}', [FieldSupervisorPortalController::class, 'show'])->name('field-supervisor.enrollments.show');
         Route::post('/field-supervisor/daily-logs/{checkIn}/validate', [FieldSupervisorPortalController::class, 'validateDailyLogForLogin'])->name('field-supervisor.daily-logs.validate');
+        Route::post('/field-supervisor/daily-logs/{checkIn}/flag', [FieldSupervisorPortalController::class, 'flagDailyLogForLogin'])->name('field-supervisor.daily-logs.flag');
         Route::post('/field-supervisor/enrollments/{enrollment}/daily-logs/bulk-validate', [FieldSupervisorPortalController::class, 'bulkValidateDailyLogsForLogin'])->name('field-supervisor.daily-logs.bulk-validate');
         Route::post('/field-supervisor/enrollments/{enrollment}/assessment', [FieldSupervisorPortalController::class, 'assessForLogin'])->name('field-supervisor.assessment.store');
         Route::post('/field-supervisor/forgotten-attendance-requests/{forgottenAttendanceRequest}/approve', [ForgottenAttendanceApprovalController::class, 'approveAsFieldSupervisor'])->name('forgotten-attendance-requests.field-supervisor.approve');
@@ -285,6 +287,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/student/reports/{enrollment}', [StudentReportController::class, 'show'])->name('student.reports.show');
         Route::get('/student/reports/{enrollment}/final-assessment/print', [StudentReportController::class, 'printFinalAssessment'])->name('student.reports.final-assessment.print');
         Route::post('/student/reports/{enrollment}/progress', [StudentReportController::class, 'storeProgress'])->name('student.reports.progress.store');
+        Route::post('/student/reports/{enrollment}/daily-logs/{checkIn}/clarification', [StudentReportController::class, 'storeDailyLogClarification'])->name('student.reports.daily-logs.clarification.store');
         Route::post('/student/reports/{enrollment}/seminar-requests', [StudentSeminarRequestController::class, 'store'])->name('student.seminar-requests.store');
         Route::patch('/student/seminar-requests/{seminarRequest}/cancel', [StudentSeminarRequestController::class, 'cancel'])->name('student.seminar-requests.cancel');
         Route::patch('/student/seminar-requests/{seminarRequest}/manual-assessment', [StudentSeminarRequestController::class, 'submitManualAssessment'])->name('student.seminar-requests.manual-assessment');

@@ -1403,7 +1403,10 @@ class ReportController extends Controller
             ->filter(fn (CheckIn $checkIn): bool => filled($checkIn->note))
             ->groupBy(fn (CheckIn $checkIn): string => $checkIn->checked_at->toDateString());
         $validatedDailyLogs = $dailyLogs
-            ->filter(fn (Collection $items): bool => $items->every(fn (CheckIn $checkIn): bool => filled($checkIn->daily_log_validated_at)))
+            ->filter(fn (Collection $items): bool => $items->every(fn (CheckIn $checkIn): bool => ($checkIn->daily_log_status ?: 'pending') === 'validated'))
+            ->count();
+        $flaggedDailyLogs = $dailyLogs
+            ->filter(fn (Collection $items): bool => $items->contains(fn (CheckIn $checkIn): bool => ($checkIn->daily_log_status ?: 'pending') === 'flagged'))
             ->count();
         $reportStatus = $this->latestFullReportStatus($enrollment);
         $reportStatusMeta = $this->reportStatusMeta($reportStatus);
@@ -1440,6 +1443,7 @@ class ReportController extends Controller
             'daily_logs_total' => $dailyLogs->count(),
             'daily_logs_validated' => $validatedDailyLogs,
             'daily_logs_pending' => max(0, $dailyLogs->count() - $validatedDailyLogs),
+            'daily_logs_flagged' => $flaggedDailyLogs,
             'sanction_points' => round((float) $sanctionRow['total'], 2),
         ];
     }
@@ -1615,6 +1619,10 @@ class ReportController extends Controller
             return 'forgotten_approved';
         }
 
+        if ($checkIns->contains(fn (CheckIn $checkIn): bool => ($checkIn->daily_log_status ?: 'pending') === 'flagged')) {
+            return 'flagged';
+        }
+
         $hasCheckIn = $checkIns->contains('action', 'check_in');
         $hasCheckOut = $checkIns->contains('action', 'check_out');
 
@@ -1638,6 +1646,7 @@ class ReportController extends Controller
         return [
             'present' => ['label' => 'Hadir valid', 'class' => 'bg-emerald-500 text-white ring-emerald-600'],
             'wfa' => ['label' => 'WFA valid', 'class' => 'bg-teal-500 text-white ring-teal-600'],
+            'flagged' => ['label' => 'Catatan bermasalah', 'class' => 'bg-red-500 text-white ring-red-600'],
             'incomplete' => ['label' => 'Presensi satu sisi/tidak valid', 'class' => 'bg-amber-400 text-amber-950 ring-amber-500'],
             'absent' => ['label' => 'Tidak hadir', 'class' => 'bg-red-100 text-red-800 ring-red-200'],
             'forgotten_approved' => ['label' => 'Lupa Presensi disetujui', 'class' => 'bg-sky-500 text-white ring-sky-600'],
@@ -1868,7 +1877,7 @@ class ReportController extends Controller
                     'constraint' => fn (Builder $query) => $query->where(function (Builder $query): void {
                         $query->whereHas('checkIns', fn (Builder $checkIn) => $checkIn
                             ->whereNotNull('note')
-                            ->whereNotNull('daily_log_validated_at'))
+                            ->where('daily_log_status', 'validated'))
                             ->orWhereHas('submissionProgress', fn (Builder $progress) => $progress
                                 ->where('deadline_type', 'full_report')
                                 ->where('status', 'approved'));

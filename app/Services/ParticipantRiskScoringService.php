@@ -26,7 +26,12 @@ class ParticipantRiskScoringService
             ->where('status', 'pending')
             ->count();
         $unvalidatedDailyLogs = $enrollment->checkIns
-            ->filter(fn (CheckIn $checkIn): bool => filled($checkIn->note) && blank($checkIn->daily_log_validated_at))
+            ->filter(fn (CheckIn $checkIn): bool => filled($checkIn->note) && ($checkIn->daily_log_status ?: 'pending') !== 'validated')
+            ->groupBy(fn (CheckIn $checkIn): string => $checkIn->checked_at?->toDateString() ?? '')
+            ->filter(fn (Collection $rows, string $date): bool => filled($date))
+            ->count();
+        $flaggedDailyLogs = $enrollment->checkIns
+            ->filter(fn (CheckIn $checkIn): bool => filled($checkIn->note) && ($checkIn->daily_log_status ?: 'pending') === 'flagged')
             ->groupBy(fn (CheckIn $checkIn): string => $checkIn->checked_at?->toDateString() ?? '')
             ->filter(fn (Collection $rows, string $date): bool => filled($date))
             ->count();
@@ -77,6 +82,11 @@ class ParticipantRiskScoringService
                 'label' => 'Catatan harian belum divalidasi',
                 'value' => $unvalidatedDailyLogs,
                 'points' => min(20, $unvalidatedDailyLogs * 4),
+            ],
+            'daily_logs_flagged' => [
+                'label' => 'Catatan harian bermasalah',
+                'value' => $flaggedDailyLogs,
+                'points' => min(30, $flaggedDailyLogs * 10),
             ],
             'late_reports' => [
                 'label' => 'Laporan terlambat / revisi berulang',

@@ -87,6 +87,9 @@
                                         @else
                                             <x-badge variant="success">Lengkap</x-badge>
                                         @endif
+                                        @if (($summary['daily_flagged'] ?? 0) > 0)
+                                            <div class="mt-1"><x-badge variant="danger">{{ number_format($summary['daily_flagged'], 0, ',', '.') }} bermasalah</x-badge></div>
+                                        @endif
                                         <p class="mt-1 text-xs text-gray-500">{{ $summary['daily_validated'] }}/{{ $summary['daily_total'] }} catatan</p>
                                     </td>
                                     <td class="silat-table-cell whitespace-nowrap">
@@ -98,9 +101,9 @@
                                     </td>
                                     <td class="silat-table-cell min-w-[220px]">
                                         <div class="flex justify-end gap-2">
-                                            <a href="{{ route('field-supervisor.enrollments.show', ['enrollment' => $enrollment, 'tab' => 'daily']) }}" class="silat-btn-secondary px-3 py-2 text-xs">
+                                            <a href="{{ route('field-supervisor.enrollments.show', ['enrollment' => $enrollment, 'tab' => 'daily']) }}" class="silat-btn-success px-3 py-2 text-xs">
                                                 <x-icon name="fa-clipboard-check" />
-                                                Validasi
+                                                Validasi Catatan Harian
                                             </a>
                                             <a href="{{ route('field-supervisor.enrollments.show', ['enrollment' => $enrollment, 'tab' => 'assessment']) }}" class="silat-btn px-3 py-2 text-xs">
                                                 <x-icon name="fa-star-half-stroke" />
