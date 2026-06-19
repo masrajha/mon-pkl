@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Management;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Concerns\InteractsWithTableControls;
+use App\Models\InternshipEnrollment;
 use App\Models\InternshipPeriod;
 use App\Models\SubmissionProgress;
+use App\Services\ReportScopeService;
 use App\Services\SubmissionProgressEmailNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +18,10 @@ class SubmissionProgressController extends Controller
 {
     use InteractsWithTableControls;
 
-    public function __construct(private readonly SubmissionProgressEmailNotificationService $submissionEmails)
+    public function __construct(
+        private readonly SubmissionProgressEmailNotificationService $submissionEmails,
+        private readonly ReportScopeService $reportScope,
+    )
     {
     }
 
@@ -93,34 +98,13 @@ class SubmissionProgressController extends Controller
             return;
         }
 
-        $assignments = $user->lecturer?->coordinatorAssignments()
-            ->where('status', 'active')
-            ->get(['internship_period_id', 'study_program_id']) ?? collect();
-
-        if ($user?->role !== 'dosen' && $assignments->isEmpty()) {
+        if (! $user?->hasRole(['dosen', 'koordinator'])) {
             $query->whereRaw('1 = 0');
 
             return;
         }
 
-        $query->where(function ($query) use ($user, $assignments): void {
-            if ($user?->role === 'dosen') {
-                $query->whereHas('enrollment', fn ($enrollment) => $enrollment->where('lecturer_supervisor_user_id', $user->id));
-            }
-
-            if ($assignments->isEmpty()) {
-                return;
-            }
-
-            $query->orWhereHas('enrollment', function ($enrollment) use ($assignments): void {
-                foreach ($assignments as $assignment) {
-                    $enrollment->orWhere(function ($enrollment) use ($assignment): void {
-                        $enrollment->where('internship_period_id', $assignment->internship_period_id)
-                            ->where('study_program_id', $assignment->study_program_id);
-                    });
-                }
-            });
-        });
+        $query->whereHas('enrollment', fn ($enrollment) => $this->reportScope->applyEnrollmentScope($enrollment, $user));
     }
 
     private function authorizeProgress(SubmissionProgress $progress, Request $request): void
@@ -156,19 +140,9 @@ class SubmissionProgressController extends Controller
             return $query->get();
         }
 
-        $periodIds = collect();
-
-        if ($user?->role === 'dosen') {
-            $periodIds = $periodIds->merge(
-                \App\Models\InternshipEnrollment::query()
-                    ->where('lecturer_supervisor_user_id', $user->id)
-                    ->pluck('internship_period_id')
-            );
-        }
-
-        $periodIds = $periodIds->merge($user?->lecturer?->coordinatorAssignments()
-            ->where('status', 'active')
-            ->pluck('internship_period_id') ?? collect());
+        $periodIds = $this->reportScope
+            ->applyEnrollmentScope(InternshipEnrollment::query(), $user)
+            ->pluck('internship_period_id');
 
         return $query->whereIn('id', $periodIds->filter()->unique()->values())->get();
     }

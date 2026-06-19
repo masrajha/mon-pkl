@@ -3,23 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\SubmissionProgress;
+use App\Models\InternshipEnrollment;
+use App\Services\ReportScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SubmissionProgressFileController extends Controller
 {
-    public function __invoke(Request $request, SubmissionProgress $progress): StreamedResponse
+    public function __invoke(Request $request, SubmissionProgress $progress, ReportScopeService $reportScope): StreamedResponse
     {
-        $progress->loadMissing(['enrollment.student', 'enrollment.lecturer']);
+        $progress->loadMissing('enrollment');
 
-        abort_unless($this->canOpen($request, $progress), 403);
+        abort_unless($this->canOpen($request, $progress, $reportScope), 403);
         abort_unless(Storage::disk('public')->exists($progress->file_path), 404);
 
         return Storage::disk('public')->response($progress->file_path);
     }
 
-    private function canOpen(Request $request, SubmissionProgress $progress): bool
+    private function canOpen(Request $request, SubmissionProgress $progress, ReportScopeService $reportScope): bool
     {
         $user = $request->user();
         $enrollment = $progress->enrollment;
@@ -28,22 +30,8 @@ class SubmissionProgressFileController extends Controller
             return false;
         }
 
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-
-        if ($user->hasRole('mahasiswa') && $enrollment->student?->user_id === $user->id) {
-            return true;
-        }
-
-        if ($user->hasRole('dosen') && $enrollment->lecturer_supervisor_user_id === $user->id) {
-            return true;
-        }
-
-        return $user->lecturer?->coordinatorAssignments()
-            ->where('status', 'active')
-            ->where('internship_period_id', $enrollment->internship_period_id)
-            ->where('study_program_id', $enrollment->study_program_id)
-            ->exists() ?? false;
+        return $reportScope
+            ->applyEnrollmentScope(InternshipEnrollment::query()->whereKey($enrollment->id), $user)
+            ->exists();
     }
 }
