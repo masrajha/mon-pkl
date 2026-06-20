@@ -161,6 +161,88 @@ class ReportController extends Controller
         ]);
     }
 
+    public function submissionProgress(Request $request): View
+    {
+        [$periods, $selectedPeriod] = $this->periodOptions($request);
+        $reportTypes = $this->submissionReportTypes();
+        $statusLabels = $this->submissionProgressStatusLabels();
+        $selectedDeadlineType = $request->string('deadline_type')->toString();
+        $selectedProgressStatus = $request->string('progress_status')->toString();
+
+        $query = InternshipEnrollment::query()
+            ->with([
+                'student.user',
+                'studyProgram',
+                'internshipPeriod.program',
+                'internshipPlace',
+                'lecturerSupervisor',
+                'submissionProgress' => fn ($query) => $query
+                    ->whereIn('deadline_type', array_keys($reportTypes))
+                    ->latest('uploaded_at')
+                    ->latest('id'),
+            ]);
+
+        $this->onlyReportParticipants($query);
+        $this->scopeEnrollments($query, $request);
+
+        $rows = $query->get()
+            ->sortBy(fn (InternshipEnrollment $enrollment): string => $enrollment->student?->full_name ?? '')
+            ->map(fn (InternshipEnrollment $enrollment): array => $this->submissionProgressReportRow($enrollment, $reportTypes))
+            ->when($selectedDeadlineType && isset($reportTypes[$selectedDeadlineType]) && $selectedProgressStatus, fn (Collection $rows): Collection => $rows
+                ->filter(fn (array $row): bool => data_get($row, 'stages.'.$selectedDeadlineType.'.status') === $selectedProgressStatus)
+                ->values())
+            ->when((! $selectedDeadlineType || ! isset($reportTypes[$selectedDeadlineType])) && $selectedProgressStatus, fn (Collection $rows): Collection => $rows
+                ->filter(fn (array $row): bool => collect($row['stages'])->contains(fn (array $stage): bool => $stage['status'] === $selectedProgressStatus))
+                ->values())
+            ->values();
+
+        $stageStats = collect($reportTypes)
+            ->map(function (string $label, string $type) use ($rows, $statusLabels): array {
+                $statuses = collect($statusLabels)
+                    ->mapWithKeys(fn (string $statusLabel, string $status): array => [
+                        $status => $rows->filter(fn (array $row): bool => data_get($row, 'stages.'.$type.'.status') === $status)->count(),
+                    ])
+                    ->all();
+                $total = max(1, array_sum($statuses));
+
+                return [
+                    'key' => $type,
+                    'label' => $label,
+                    'statuses' => $statuses,
+                    'approved' => $statuses['approved'] ?? 0,
+                    'approved_percent' => round((($statuses['approved'] ?? 0) / $total) * 100, 1),
+                ];
+            })
+            ->values();
+
+        $totals = [
+            'students' => $rows->count(),
+            'full_report_approved' => $rows->filter(fn (array $row): bool => data_get($row, 'stages.full_report.status') === 'approved')->count(),
+            'pending' => $rows->sum(fn (array $row): int => collect($row['stages'])->where('status', 'pending')->count()),
+            'revision_required' => $rows->sum(fn (array $row): int => collect($row['stages'])->where('status', 'revision_required')->count()),
+            'rejected' => $rows->sum(fn (array $row): int => collect($row['stages'])->where('status', 'rejected')->count()),
+            'sanctions' => $rows->sum('report_sanctions'),
+        ];
+
+        return view('reports.submission-progress', [
+            'periods' => $periods,
+            'programs' => Program::query()->where('is_active', true)->orderBy('name')->get(),
+            'studyPrograms' => $this->studyProgramOptions($request),
+            'selectedPeriod' => $selectedPeriod?->id,
+            'selectedProgram' => $request->integer('program_id') ?: null,
+            'selectedStudyProgram' => $request->integer('study_program_id') ?: null,
+            'selectedDeadlineType' => $selectedDeadlineType,
+            'selectedProgressStatus' => $selectedProgressStatus,
+            'reportTypes' => $reportTypes,
+            'statusLabels' => $statusLabels,
+            'statusMeta' => collect(array_keys($statusLabels))->mapWithKeys(fn (string $status): array => [$status => $this->submissionProgressStatusMeta($status)])->all(),
+            'stageStats' => $stageStats,
+            'rows' => $rows,
+            'totals' => $totals,
+            ...$this->reportActionPermissions($request),
+        ]);
+    }
+
     public function riskScoring(Request $request): View
     {
         [$periods, $selectedPeriod] = $this->periodOptions($request);
@@ -1453,10 +1535,103 @@ class ReportController extends Controller
         return match ($status) {
             'approved' => ['label' => 'Laporan disetujui', 'variant' => 'success'],
             'submitted', 'pending', 'review' => ['label' => 'Menunggu review', 'variant' => 'warning'],
-            'revision', 'needs_revision' => ['label' => 'Perlu revisi', 'variant' => 'warning'],
+            'revision', 'needs_revision', 'revision_required' => ['label' => 'Perlu revisi', 'variant' => 'warning'],
             'rejected' => ['label' => 'Ditolak', 'variant' => 'danger'],
             default => ['label' => 'Belum upload', 'variant' => 'neutral'],
         };
+    }
+
+    private function submissionReportTypes(): array
+    {
+        $labels = config('monpkl.report_submission_types', []);
+
+        return [
+            'proposal' => $labels['proposal'] ?? 'Proposal Rencana Kerja',
+            'bab1' => 'Tahap 1',
+            'bab2' => 'Tahap 2',
+            'bab3' => 'Tahap 3',
+            'full_report' => 'Tahap 4 / Laporan Lengkap',
+        ];
+    }
+
+    private function submissionProgressStatusLabels(): array
+    {
+        return [
+            'not_uploaded' => 'Belum unggah',
+            'pending' => 'Menunggu review',
+            'revision_required' => 'Perlu revisi',
+            'approved' => 'Disetujui',
+            'rejected' => 'Ditolak',
+        ];
+    }
+
+    private function submissionProgressStatusMeta(string $status): array
+    {
+        return match ($status) {
+            'approved' => ['label' => 'Disetujui', 'variant' => 'success', 'color' => '#10b981', 'class' => 'bg-emerald-500'],
+            'pending', 'submitted', 'review' => ['label' => 'Menunggu review', 'variant' => 'warning', 'color' => '#f59e0b', 'class' => 'bg-amber-400'],
+            'revision_required', 'revision', 'needs_revision' => ['label' => 'Perlu revisi', 'variant' => 'warning', 'color' => '#fb923c', 'class' => 'bg-orange-400'],
+            'rejected' => ['label' => 'Ditolak', 'variant' => 'danger', 'color' => '#ef4444', 'class' => 'bg-red-500'],
+            default => ['label' => 'Belum unggah', 'variant' => 'neutral', 'color' => '#94a3b8', 'class' => 'bg-slate-300'],
+        };
+    }
+
+    private function normalizeSubmissionProgressStatus(?string $status): string
+    {
+        return match ($status) {
+            'approved' => 'approved',
+            'pending', 'submitted', 'review' => 'pending',
+            'revision_required', 'revision', 'needs_revision' => 'revision_required',
+            'rejected' => 'rejected',
+            default => 'not_uploaded',
+        };
+    }
+
+    private function submissionProgressReportRow(InternshipEnrollment $enrollment, array $reportTypes): array
+    {
+        $progressByType = $enrollment->submissionProgress
+            ->groupBy('deadline_type')
+            ->map(fn (Collection $items) => $items->first());
+
+        $stages = collect($reportTypes)
+            ->mapWithKeys(function (string $label, string $type) use ($progressByType): array {
+                $progress = $progressByType->get($type);
+                $status = $this->normalizeSubmissionProgressStatus($progress?->status);
+                $meta = $this->submissionProgressStatusMeta($status);
+
+                return [
+                    $type => [
+                        'label' => $label,
+                        'status' => $status,
+                        'status_label' => $meta['label'],
+                        'status_variant' => $meta['variant'],
+                        'uploaded_at' => $progress?->uploaded_at,
+                        'reviewed_at' => $progress?->reviewed_at,
+                        'sanction_points' => (int) ($progress?->sanction_points ?? 0),
+                        'note' => $progress?->lecturer_note,
+                        'progress_id' => $progress?->id,
+                    ],
+                ];
+            })
+            ->all();
+
+        $approvedCount = collect($stages)->where('status', 'approved')->count();
+
+        return [
+            'enrollment_id' => $enrollment->id,
+            'student' => $enrollment->student?->full_name ?: '-',
+            'npm' => $enrollment->student?->npm ?: '-',
+            'study_program' => $enrollment->studyProgram?->name ?: '-',
+            'period' => $enrollment->internshipPeriod?->display_name ?: '-',
+            'place' => $enrollment->internshipPlace?->name ?: '-',
+            'lecturer' => $enrollment->lecturerSupervisor?->name ?: $enrollment->lecturer?->name ?: '-',
+            'stages' => $stages,
+            'approved_count' => $approvedCount,
+            'progress_percent' => count($reportTypes) > 0 ? round(($approvedCount / count($reportTypes)) * 100, 1) : 0,
+            'pending_count' => collect($stages)->where('status', 'pending')->count(),
+            'revision_count' => collect($stages)->where('status', 'revision_required')->count(),
+            'report_sanctions' => collect($stages)->sum('sanction_points'),
+        ];
     }
 
     private function latestSeminarStatus(InternshipEnrollment $enrollment): string

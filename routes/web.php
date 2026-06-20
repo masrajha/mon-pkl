@@ -305,6 +305,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin,dosen,koordinator,report_viewer')->group(function () {
         Route::get('/reports/progress-funnel', [ReportController::class, 'progressFunnel'])->name('reports.progress-funnel');
+        Route::get('/reports/submission-progress', [ReportController::class, 'submissionProgress'])->name('reports.submission-progress');
         Route::get('/reports/risk-scoring', [ReportController::class, 'riskScoring'])->name('reports.risk-scoring');
         Route::get('/reports/attendance-heatmap', [ReportController::class, 'attendanceHeatmap'])->name('reports.attendance-heatmap');
         Route::get('/reports/operational-charts', [ReportController::class, 'operationalCharts'])->name('reports.operational-charts');

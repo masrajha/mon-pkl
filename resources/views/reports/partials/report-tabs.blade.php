@@ -1,6 +1,7 @@
 @php
     $reportTabs = [
         ['route' => 'reports.progress-funnel', 'label' => 'Progress Funnel', 'icon' => 'fa-chart-simple'],
+        ['route' => 'reports.submission-progress', 'label' => 'Rekap Progres Laporan', 'icon' => 'fa-file-lines'],
         ['route' => 'reports.risk-scoring', 'label' => 'Risk Scoring', 'icon' => 'fa-triangle-exclamation'],
         ['route' => 'reports.attendance-heatmap', 'label' => 'Heatmap Kehadiran', 'icon' => 'fa-table-cells'],
         ['route' => 'reports.operational-charts', 'label' => 'Grafik Operasional', 'icon' => 'fa-chart-pie'],
