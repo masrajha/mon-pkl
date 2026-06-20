@@ -146,7 +146,7 @@
                         <p class="silat-section-description">Mengukur mahasiswa yang dokumennya sudah disetujui pada tiap tahap.</p>
                     </div>
                 </div>
-                <div class="grid gap-3 p-6 lg:grid-cols-5">
+                <div class="grid gap-3 p-6 md:grid-cols-2">
                     @foreach ($stageStats as $stage)
                         <div class="rounded-lg border border-gray-200 p-4">
                             <p class="text-sm font-semibold text-gray-950">{{ $stage['label'] }}</p>
