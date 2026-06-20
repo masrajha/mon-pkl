@@ -44,6 +44,7 @@ return [
 
     'google' => [
         'enabled' => env('SSO_GOOGLE_ENABLED', false),
+        'stateless' => env('SSO_GOOGLE_STATELESS', false),
         'allowed_domains' => array_filter(array_map('trim', explode(',', env('SSO_GOOGLE_ALLOWED_DOMAINS', '')))),
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

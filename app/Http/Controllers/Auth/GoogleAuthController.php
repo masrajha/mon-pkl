@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Contracts\Provider;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
@@ -16,14 +17,14 @@ class GoogleAuthController extends Controller
     {
         abort_unless(config('services.google.enabled'), 404);
 
-        return Socialite::driver('google')->redirect();
+        return $this->googleProvider()->redirect();
     }
 
     public function callback(): RedirectResponse
     {
         abort_unless(config('services.google.enabled'), 404);
 
-        $googleUser = Socialite::driver('google')->user();
+        $googleUser = $this->googleProvider()->user();
         $email = strtolower((string) $googleUser->getEmail());
 
         $isFieldSupervisorEmail = $this->isFieldSupervisorEmail($email);
@@ -106,5 +107,16 @@ class GoogleAuthController extends Controller
             ->whereRaw('LOWER(field_supervisor_email) = ?', [Str::lower(trim($email))])
             ->whereNotIn('status', ['cancelled', 'rejected'])
             ->exists();
+    }
+
+    private function googleProvider(): Provider
+    {
+        $provider = Socialite::driver('google');
+
+        if (config('services.google.stateless')) {
+            $provider->stateless();
+        }
+
+        return $provider;
     }
 }
