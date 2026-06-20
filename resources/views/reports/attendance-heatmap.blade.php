@@ -69,7 +69,7 @@
                 @foreach ($legend as $status => $item)
                     <div class="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
                         <div class="flex items-center gap-2">
-                            <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-sm px-1 text-[9px] font-bold ring-1 {{ $item['class'] }}">{{ $item['abbr'] ?? '' }}</span>
+                            <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-sm border px-1 text-[8px] font-normal {{ $item['class'] }}" style="{{ $item['style'] ?? '' }}">{{ $item['abbr'] ?? '' }}</span>
                             <span class="text-xs font-semibold text-gray-700">{{ $item['label'] }}</span>
                         </div>
                         <p class="mt-2 text-xl font-semibold text-gray-900">{{ number_format($summary[$status] ?? 0, 0, ',', '.') }}</p>
@@ -110,7 +110,8 @@
                                     @foreach ($row['cells'] as $cell)
                                         <td class="border-b border-gray-100 px-1 py-2 text-center">
                                             <span
-                                                class="inline-flex h-7 min-w-7 items-center justify-center rounded-sm px-1 text-[9px] font-bold ring-1 {{ $cell['class'] }}"
+                                                class="inline-flex h-7 min-w-7 items-center justify-center rounded-sm border px-1 text-[8px] font-normal {{ $cell['class'] }}"
+                                                style="{{ $cell['style'] ?? '' }}"
                                                 title="{{ $cell['date'] }} - {{ $cell['label'] }}{{ $cell['check_in'] ? ' | Masuk '.$cell['check_in'] : '' }}{{ $cell['check_out'] ? ' | Pulang '.$cell['check_out'] : '' }}"
                                             >
                                                 {{ $legend[$cell['status']]['abbr'] ?? '' }}

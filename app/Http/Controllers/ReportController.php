@@ -1767,6 +1767,7 @@ class ReportController extends Controller
                 'status' => $status,
                 'label' => $meta['label'],
                 'class' => $meta['class'],
+                'style' => $meta['style'] ?? '',
                 'check_in' => $checkIns->firstWhere('action', 'check_in')?->checked_at?->format('H:i'),
                 'check_out' => $checkIns->firstWhere('action', 'check_out')?->checked_at?->format('H:i'),
             ];
@@ -1819,14 +1820,14 @@ class ReportController extends Controller
     private function heatmapLegend(): array
     {
         return [
-            'present' => ['label' => 'Hadir valid', 'abbr' => 'H', 'class' => 'bg-emerald-500 text-white ring-emerald-600'],
-            'wfa' => ['label' => 'WFA valid', 'abbr' => 'W', 'class' => 'bg-teal-500 text-white ring-teal-600'],
-            'flagged' => ['label' => 'Catatan bermasalah', 'abbr' => '!', 'class' => 'bg-red-500 text-white ring-red-600'],
-            'incomplete' => ['label' => 'Presensi satu sisi/tidak valid', 'abbr' => '!', 'class' => 'bg-amber-400 text-amber-950 ring-amber-500'],
-            'absent' => ['label' => 'Tidak hadir', 'abbr' => 'A', 'class' => 'bg-red-100 text-red-800 ring-red-200'],
-            'forgotten_approved' => ['label' => 'Lupa Presensi disetujui', 'abbr' => 'LP', 'class' => 'bg-sky-500 text-white ring-sky-600'],
-            'weekend' => ['label' => 'Sabtu/Minggu', 'abbr' => 'WE', 'class' => 'bg-slate-200 text-slate-700 ring-slate-300'],
-            'holiday' => ['label' => 'Hari libur', 'abbr' => 'HL', 'class' => 'bg-violet-100 text-violet-800 ring-violet-300'],
+            'present' => ['label' => 'Hadir valid', 'abbr' => 'H', 'class' => 'text-white', 'style' => 'background-color:#10b981;color:#ffffff;border-color:#059669;'],
+            'wfa' => ['label' => 'WFA valid', 'abbr' => 'W', 'class' => 'text-white', 'style' => 'background-color:#0f766e;color:#ffffff;border-color:#0f766e;'],
+            'flagged' => ['label' => 'Catatan bermasalah', 'abbr' => '!', 'class' => 'text-white', 'style' => 'background-color:#ef4444;color:#ffffff;border-color:#dc2626;'],
+            'incomplete' => ['label' => 'Presensi satu sisi/tidak valid', 'abbr' => '!', 'class' => 'text-amber-950', 'style' => 'background-color:#fbbf24;color:#451a03;border-color:#f59e0b;'],
+            'absent' => ['label' => 'Tidak hadir', 'abbr' => 'A', 'class' => 'text-red-800', 'style' => 'background-color:#fee2e2;color:#991b1b;border-color:#fca5a5;'],
+            'forgotten_approved' => ['label' => 'Lupa Presensi disetujui', 'abbr' => 'LP', 'class' => 'text-white', 'style' => 'background-color:#0284c7;color:#ffffff;border-color:#0369a1;'],
+            'weekend' => ['label' => 'Sabtu/Minggu', 'abbr' => 'WE', 'class' => 'text-slate-700', 'style' => 'background-color:#e2e8f0;color:#334155;border-color:#cbd5e1;'],
+            'holiday' => ['label' => 'Hari libur', 'abbr' => 'HL', 'class' => 'text-violet-800', 'style' => 'background-color:#ede9fe;color:#5b21b6;border-color:#c4b5fd;'],
         ];
     }
 
