@@ -508,4 +508,73 @@
         z-index: 2;
         background: var(--silat-soft);
     }
+
+    .silat-mobile-card-table-wrap {
+        overflow-x: visible;
+    }
+
+    .silat-mobile-card-table,
+    .silat-mobile-card-table tbody,
+    .silat-mobile-card-table tr,
+    .silat-mobile-card-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .silat-mobile-card-table thead {
+        display: none;
+    }
+
+    .silat-mobile-card-table tbody {
+        padding: 1rem;
+    }
+
+    .silat-mobile-card-table tbody tr {
+        margin-bottom: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: #ffffff !important;
+        padding: 1rem;
+        box-shadow: 0 8px 24px -20px rgb(15 23 42 / 0.35);
+    }
+
+    .silat-mobile-card-table tbody tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .silat-mobile-card-table .silat-table-cell {
+        min-width: 0;
+        border-bottom: 0;
+        padding: 0;
+    }
+
+    .silat-mobile-card-table .silat-table-cell + .silat-table-cell {
+        margin-top: 0.875rem;
+    }
+
+    .silat-mobile-card-table .silat-table-cell::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.25rem;
+        color: #667085;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .silat-mobile-card-table th:last-child,
+    .silat-mobile-card-table td:last-child {
+        position: static;
+        right: auto;
+        z-index: auto;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .silat-mobile-card-table select,
+    .silat-mobile-card-table textarea,
+    .silat-mobile-card-table button {
+        max-width: 100%;
+    }
 }

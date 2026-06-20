@@ -66,8 +66,8 @@
             </section>
 
             <section class="silat-card">
-                <div class="overflow-x-auto">
-                    <table class="silat-table">
+                <div class="silat-mobile-card-table-wrap overflow-x-auto">
+                    <table class="silat-table silat-mobile-card-table">
                         <thead class="silat-table-head">
                             <tr>
                                 <th class="silat-table-cell">Mahasiswa</th>
@@ -87,12 +87,12 @@
                                     $isFinalized = (bool) $enrollment?->finalAssessment;
                                 @endphp
                                 <tr>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="Mahasiswa">
                                         <div class="font-semibold text-gray-900">{{ $enrollment?->student?->full_name ?: '-' }}</div>
                                         <div class="text-xs text-gray-500">{{ $enrollment?->student?->npm ?: '-' }} · {{ $enrollment?->studyProgram?->name ?: '-' }}</div>
                                         <div class="text-xs text-gray-500">{{ $enrollment?->internshipPlace?->name ?: '-' }}</div>
                                     </td>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="Seminar">
                                         <div class="font-medium text-gray-900">{{ $seminarRequest->title }}</div>
                                         <div class="text-xs text-gray-500">{{ $enrollment?->internshipPeriod?->display_name ?: '-' }}</div>
                                         <div class="mt-1 text-xs text-gray-500">Usulan: {{ $seminarRequest->proposed_date?->format('d/m/Y') ?: '-' }} {{ $seminarRequest->proposed_time ? substr((string) $seminarRequest->proposed_time, 0, 5) : '' }}</div>
@@ -100,7 +100,7 @@
                                             <div class="mt-1 text-xs text-gray-500">{{ Str::limit($seminarRequest->student_note, 100) }}</div>
                                         @endif
                                     </td>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="ACC">
                                         <div>{{ $seminarRequest->approval_method === 'manual_upload' ? 'Berkas ACC' : 'Sistem' }}</div>
                                         <div class="mt-1 space-x-2">
                                             @if ($seminarRequest->seminar_document_path)
@@ -111,7 +111,7 @@
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="Status">
                                         <x-badge :variant="$statusVariants[$seminarRequest->status] ?? 'neutral'">{{ $statusLabels[$seminarRequest->status] ?? Str::headline($seminarRequest->status) }}</x-badge>
                                         @if ($seminarRequest->lecturer_note)
                                             <div class="mt-1 text-xs text-amber-700">{{ $seminarRequest->lecturer_note }}</div>
@@ -132,7 +132,7 @@
                                             <div class="mt-1 text-xs text-blue-700">Terkunci karena nilai akhir sudah difinalisasi.</div>
                                         @endif
                                     </td>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="Jadwal">
                                         {{ $seminarRequest->scheduled_at?->format('d/m/Y H:i') ?: '-' }}
                                         <div class="text-xs text-gray-500">{{ Str::headline($seminarRequest->mode) }}</div>
                                         @if ($seminarRequest->location)
@@ -142,7 +142,7 @@
                                             <a class="silat-secondary-link text-xs" href="{{ $seminarRequest->meeting_url }}" target="_blank">Link meeting</a>
                                         @endif
                                     </td>
-                                    <td class="silat-table-cell min-w-[360px]">
+                                    <td class="silat-table-cell min-w-[360px]" data-label="Aksi">
                                         <div class="space-y-4">
                                             @if ($canLecturerAct && $seminarRequest->status === 'waiting_lecturer_approval')
                                                 <form method="POST" action="{{ route('management.seminar-requests.lecturer-decision', $seminarRequest) }}" class="space-y-2 rounded-lg border border-gray-200 p-3">

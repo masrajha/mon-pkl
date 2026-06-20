@@ -40,8 +40,8 @@
             </section>
 
             <section class="silat-card">
-                <div class="overflow-x-auto">
-                    <table class="silat-table">
+                <div class="silat-mobile-card-table-wrap overflow-x-auto">
+                    <table class="silat-table silat-mobile-card-table">
                         <thead class="silat-table-head">
                             <tr>
                                 <th class="silat-table-cell">Mahasiswa</th>
@@ -55,24 +55,24 @@
                         <tbody class="divide-y divide-gray-100">
                             @forelse ($progressItems as $progress)
                                 <tr>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="Mahasiswa">
                                         <div class="font-semibold text-gray-900">{{ $progress->enrollment?->student?->full_name }}</div>
                                         <div class="text-xs text-gray-500">{{ $progress->enrollment?->student?->npm }} · {{ $progress->enrollment?->studyProgram?->name }}</div>
                                         <div class="text-xs text-gray-500">{{ $progress->enrollment?->internshipPlace?->name }}</div>
                                     </td>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="Program/Periode">
                                         <div>{{ $progress->enrollment?->internshipPeriod?->program?->name }}</div>
                                         <div class="text-xs text-gray-500">{{ $progress->enrollment?->internshipPeriod?->display_name }}</div>
                                     </td>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="Dokumen">
                                         <div>{{ $deadlineLabels[$progress->deadline_type] ?? str($progress->deadline_type)->replace('_', ' ')->title() }}</div>
                                         <a class="silat-secondary-link text-xs" href="{{ route('submission-progress.file', $progress) }}" target="_blank">Buka file</a>
                                         @if ($progress->sanction_points)
                                             <div class="text-xs text-rose-600">{{ $progress->sanction_points }} poin sanksi</div>
                                         @endif
                                     </td>
-                                    <td class="silat-table-cell">{{ $progress->uploaded_at?->format('d/m/Y H:i') }}</td>
-                                    <td class="silat-table-cell">
+                                    <td class="silat-table-cell" data-label="Unggah">{{ $progress->uploaded_at?->format('d/m/Y H:i') }}</td>
+                                    <td class="silat-table-cell" data-label="Status">
                                         <x-badge variant="{{ $progress->status === 'approved' ? 'success' : (in_array($progress->status, ['revision_required', 'revision'], true) ? 'warning' : ($progress->status === 'rejected' ? 'danger' : 'neutral')) }}">{{ $statusLabels[$progress->status] ?? $progress->status }}</x-badge>
                                         @if ($progress->status === 'approved')
                                             <div class="mt-1 text-xs text-gray-500">Terkunci</div>
@@ -80,7 +80,7 @@
                                             <div class="mt-1 text-xs text-gray-500">Review oleh {{ $progress->reviewer->name }}</div>
                                         @endif
                                     </td>
-                                    <td class="silat-table-cell min-w-[320px]">
+                                    <td class="silat-table-cell min-w-[320px]" data-label="Review">
                                         @if ($progress->status === 'approved')
                                             <div class="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-900">
                                                 Dokumen sudah disetujui dan tidak dapat diubah lagi.
