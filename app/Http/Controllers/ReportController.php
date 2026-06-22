@@ -1017,19 +1017,23 @@ class ReportController extends Controller
 
         return [
             'headers' => ['Mahasiswa', 'NPM', 'Prodi', 'Periode', 'Mitra', 'Jenis Laporan', 'Status', 'Tanggal Upload', 'Tanggal Review', 'Sanksi', 'Catatan Dosen'],
-            'rows' => $query->get()->flatMap(fn (InternshipEnrollment $enrollment): Collection => $enrollment->submissionProgress->map(fn ($progress): array => [
-                $enrollment->student?->full_name ?: '-',
-                $enrollment->student?->npm ?: '-',
-                $enrollment->studyProgram?->name ?: '-',
-                $enrollment->internshipPeriod?->display_name ?: '-',
-                $enrollment->internshipPlace?->name ?: '-',
-                $progress->deadline_type,
-                $this->reportStatusMeta((string) $progress->status)['label'],
-                $progress->uploaded_at?->format('Y-m-d H:i') ?: '-',
-                $progress->reviewed_at?->format('Y-m-d H:i') ?: '-',
-                $progress->sanction_points ?: 0,
-                $progress->lecturer_note ?: '-',
-            ])),
+            'rows' => $query->get()->flatMap(fn (InternshipEnrollment $enrollment): Collection => $enrollment->submissionProgress->map(function ($progress) use ($enrollment): array {
+                $reviewedAt = $this->normalizedSubmissionReviewedAt($progress);
+
+                return [
+                    $enrollment->student?->full_name ?: '-',
+                    $enrollment->student?->npm ?: '-',
+                    $enrollment->studyProgram?->name ?: '-',
+                    $enrollment->internshipPeriod?->display_name ?: '-',
+                    $enrollment->internshipPlace?->name ?: '-',
+                    $progress->deadline_type,
+                    $this->reportStatusMeta((string) $progress->status)['label'],
+                    $progress->uploaded_at?->format('Y-m-d H:i') ?: '-',
+                    $reviewedAt?->format('Y-m-d H:i') ?: '-',
+                    $progress->sanction_points ?: 0,
+                    $progress->lecturer_note ?: '-',
+                ];
+            })),
         ];
     }
 
@@ -1606,7 +1610,7 @@ class ReportController extends Controller
                         'status_label' => $meta['label'],
                         'status_variant' => $meta['variant'],
                         'uploaded_at' => $progress?->uploaded_at,
-                        'reviewed_at' => $progress?->reviewed_at,
+                        'reviewed_at' => $this->normalizedSubmissionReviewedAt($progress),
                         'sanction_points' => (int) ($progress?->sanction_points ?? 0),
                         'note' => $progress?->lecturer_note,
                         'progress_id' => $progress?->id,
@@ -1632,6 +1636,25 @@ class ReportController extends Controller
             'revision_count' => collect($stages)->where('status', 'revision_required')->count(),
             'report_sanctions' => collect($stages)->sum('sanction_points'),
         ];
+    }
+
+    private function normalizedSubmissionReviewedAt($progress): ?Carbon
+    {
+        $reviewedAt = $progress?->reviewed_at?->copy();
+        $uploadedAt = $progress?->uploaded_at?->copy();
+
+        if (! $reviewedAt || ! $uploadedAt || $reviewedAt->gte($uploadedAt)) {
+            return $reviewedAt;
+        }
+
+        $offsetSeconds = LocalClock::now()->offset;
+        if ($offsetSeconds <= 0 || $reviewedAt->diffInSeconds($uploadedAt) > ($offsetSeconds + 3600)) {
+            return $reviewedAt;
+        }
+
+        $candidate = $reviewedAt->copy()->addSeconds($offsetSeconds);
+
+        return $candidate->gte($uploadedAt) ? $candidate : $reviewedAt;
     }
 
     private function latestSeminarStatus(InternshipEnrollment $enrollment): string

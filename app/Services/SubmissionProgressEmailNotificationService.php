@@ -129,7 +129,7 @@ class SubmissionProgressEmailNotificationService
         SubmissionProgress::query()
             ->with(['enrollment.student', 'enrollment.studyProgram', 'enrollment.internshipPeriod.program', 'enrollment.internshipPlace', 'enrollment.lecturer.user'])
             ->where('status', 'pending')
-            ->where('uploaded_at', '<=', now()->subHours($hours))
+            ->where('uploaded_at', '<=', LocalClock::now()->subHours($hours))
             ->get()
             ->each(function (SubmissionProgress $progress) use ($hours): void {
                 $this->notifyLecturer(
@@ -490,7 +490,7 @@ class SubmissionProgressEmailNotificationService
         return ! EmailNotification::query()
             ->where('type', 'submission_progress.summary.lecturer')
             ->where('recipient_email', Str::lower(trim($email)))
-            ->where('created_at', '>=', now()->subDays($intervalDays))
+            ->where('created_at', '>=', LocalClock::now()->subDays($intervalDays))
             ->exists();
     }
 

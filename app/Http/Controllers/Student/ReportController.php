@@ -14,6 +14,7 @@ use App\Services\PeriodConfigurationService;
 use App\Services\ReportScopeService;
 use App\Services\StudentWorkflowAccessService;
 use App\Services\SubmissionProgressEmailNotificationService;
+use App\Support\LocalClock;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -139,7 +140,7 @@ class ReportController extends Controller
                 ->withInput();
         }
 
-        $uploadedAt = now();
+        $uploadedAt = LocalClock::now();
         $filePath = $request->file('file')->store('submission-progress', 'public');
 
         $progress = DB::transaction(function () use ($enrollment, $data, $uploadedAt, $filePath): SubmissionProgress {

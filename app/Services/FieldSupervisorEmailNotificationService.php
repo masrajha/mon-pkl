@@ -165,7 +165,7 @@ class FieldSupervisorEmailNotificationService
                     actionText: 'Buka Portal Pembimbing',
                     actionUrl: route('field-supervisor.index'),
                     notifiable: $enrollment,
-                    eventKey: 'field-supervisor-daily-reminder-'.$enrollment->id.'-'.now()->toDateString(),
+                    eventKey: 'field-supervisor-daily-reminder-'.$enrollment->id.'-'.LocalClock::today()->toDateString(),
                 );
             });
 
@@ -198,7 +198,7 @@ class FieldSupervisorEmailNotificationService
                     actionText: 'Buka Form Nilai',
                     actionUrl: route('field-supervisor.index'),
                     notifiable: $enrollment,
-                    eventKey: 'field-supervisor-assessment-reminder-'.$enrollment->id.'-'.now()->toDateString(),
+                    eventKey: 'field-supervisor-assessment-reminder-'.$enrollment->id.'-'.LocalClock::today()->toDateString(),
                 );
             });
 
@@ -307,7 +307,7 @@ class FieldSupervisorEmailNotificationService
                     actionText: 'Buka Lupa Presensi',
                     actionUrl: route('field-supervisor.index'),
                     notifiable: $enrollment,
-                    eventKey: 'field-supervisor-forgotten-attendance-'.$enrollment->id.'-'.now()->toDateString(),
+                    eventKey: 'field-supervisor-forgotten-attendance-'.$enrollment->id.'-'.LocalClock::today()->toDateString(),
                 );
             });
 

@@ -9,6 +9,7 @@ use App\Models\InternshipPeriod;
 use App\Models\SubmissionProgress;
 use App\Services\ReportScopeService;
 use App\Services\SubmissionProgressEmailNotificationService;
+use App\Support\LocalClock;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -78,7 +79,7 @@ class SubmissionProgressController extends Controller
 
         $progress->update($data + [
             'reviewed_by' => $request->user()->id,
-            'reviewed_at' => now(),
+            'reviewed_at' => LocalClock::now(),
         ]);
 
         if ($data['status'] === 'approved' && $progress->deadline_type === 'full_report') {
