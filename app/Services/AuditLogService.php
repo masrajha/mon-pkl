@@ -85,6 +85,7 @@ class AuditLogService
             \App\Models\InternshipPeriodSetting::class => 'configuration',
             \App\Models\CheckIn::class => 'attendance',
             \App\Models\Sanction::class => 'sanction',
+            \App\Models\SubmissionProgress::class => 'submission_progress',
             \App\Models\FieldSupervisorAssessment::class => 'assessment',
             \App\Models\FinalAssessment::class => 'final_assessment',
             \App\Models\InternshipEnrollment::class => 'enrollment',

@@ -203,6 +203,16 @@
         background: #b91c1c;
     }
 
+    .silat-btn-warning {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-transparent px-4 py-2.5 text-sm font-semibold text-white transition disabled:pointer-events-none disabled:opacity-50;
+        background: var(--silat-warning);
+        box-shadow: 0 1px 2px 0 rgba(16, 24, 40, 0.05);
+    }
+
+    .silat-btn-warning:hover {
+        background: #b45309;
+    }
+
     .silat-secondary-link,
     .monpkl-secondary-link {
         @apply inline-flex text-sm font-medium;

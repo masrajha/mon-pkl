@@ -19,6 +19,7 @@ use App\Models\ReportViewerAssignment;
 use App\Models\Sanction;
 use App\Models\Student;
 use App\Models\StudyProgram;
+use App\Models\SubmissionProgress;
 use App\Models\User;
 use App\Models\WfaRequest;
 use App\Observers\AuditLogObserver;
@@ -72,6 +73,7 @@ class AppServiceProvider extends ServiceProvider
             InternshipPeriod::class,
             PeriodDeadline::class,
             InternshipCoordinator::class,
+            SubmissionProgress::class,
             ReportViewerAssignment::class,
             WfaRequest::class,
         ];

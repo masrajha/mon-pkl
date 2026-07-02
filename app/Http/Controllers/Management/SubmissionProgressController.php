@@ -12,6 +12,7 @@ use App\Services\SubmissionProgressEmailNotificationService;
 use App\Support\LocalClock;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -29,7 +30,16 @@ class SubmissionProgressController extends Controller
     public function index(Request $request): View
     {
         $query = SubmissionProgress::query()
-            ->with(['enrollment.student', 'enrollment.studyProgram', 'enrollment.internshipPeriod.program', 'enrollment.internshipPlace', 'enrollment.lecturer', 'reviewer']);
+            ->with([
+                'enrollment.student',
+                'enrollment.studyProgram',
+                'enrollment.internshipPeriod.program',
+                'enrollment.internshipPlace',
+                'enrollment.lecturer',
+                'enrollment.finalAssessment',
+                'enrollment.seminarRequests',
+                'reviewer',
+            ]);
 
         $this->scopeQuery($query, $request);
 
@@ -91,6 +101,46 @@ class SubmissionProgressController extends Controller
         return back()->with('status', 'Review progres laporan berhasil disimpan.');
     }
 
+    public function reopen(Request $request, SubmissionProgress $progress): RedirectResponse
+    {
+        $this->authorizeProgress($progress, $request);
+        $progress->loadMissing(['enrollment.finalAssessment', 'enrollment.seminarRequests']);
+
+        abort_unless($progress->status === 'approved', 403, 'Hanya dokumen yang sudah disetujui yang dapat dibuka ulang.');
+        abort_if($progress->enrollment?->finalAssessment, 403, 'Review tidak dapat dibuka ulang karena nilai akhir sudah difinalisasi.');
+        abort_if($this->hasCompletedSeminar($progress), 403, 'Review tidak dapat dibuka ulang karena seminar sudah selesai atau nilai dosen sudah masuk.');
+
+        $data = $request->validate([
+            'reopen_status' => ['required', Rule::in(['pending', 'revision_required'])],
+            'reopen_reason' => ['required', 'string', 'max:3000'],
+        ], [
+            'reopen_reason.required' => 'Alasan buka ulang review wajib diisi.',
+        ]);
+
+        DB::transaction(function () use ($progress, $request, $data): void {
+            $progress->update([
+                'status' => $data['reopen_status'],
+                'lecturer_note' => $data['reopen_reason'],
+                'reviewed_by' => $request->user()->id,
+                'reviewed_at' => LocalClock::now(),
+            ]);
+
+            $enrollment = $progress->enrollment;
+
+            if (
+                $enrollment
+                && $progress->deadline_type === 'full_report'
+                && $enrollment->final_report_path === $progress->file_path
+            ) {
+                $enrollment->update(['final_report_path' => null]);
+            }
+        });
+
+        $this->submissionEmails->reviewed($progress->refresh());
+
+        return back()->with('status', 'Review laporan berhasil dibuka ulang.');
+    }
+
     private function scopeQuery($query, Request $request): void
     {
         $user = $request->user();
@@ -130,6 +180,14 @@ class SubmissionProgressController extends Controller
             'revision' => 'Perlu Revisi',
             'rejected' => 'Ditolak',
         ];
+    }
+
+    private function hasCompletedSeminar(SubmissionProgress $progress): bool
+    {
+        return (bool) $progress->enrollment?->seminarRequests
+            ?->contains(fn ($seminarRequest): bool => $seminarRequest->status === 'completed'
+                || filled($seminarRequest->completed_at)
+                || filled($seminarRequest->seminar_score));
     }
 
     private function periodOptions(Request $request)

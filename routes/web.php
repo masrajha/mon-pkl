@@ -352,6 +352,7 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin,dosen,koordinator')->group(function () {
         Route::get('/management/submission-progress', [ManagementSubmissionProgressController::class, 'index'])->name('management.submission-progress.index');
+        Route::patch('/management/submission-progress/{progress}/reopen', [ManagementSubmissionProgressController::class, 'reopen'])->name('management.submission-progress.reopen');
         Route::patch('/management/submission-progress/{progress}', [ManagementSubmissionProgressController::class, 'update'])->name('management.submission-progress.update');
         Route::get('/management/seminar-requests', [ManagementSeminarRequestController::class, 'index'])->name('management.seminar-requests.index');
         Route::patch('/management/seminar-requests/{seminarRequest}/lecturer-decision', [ManagementSeminarRequestController::class, 'lecturerDecision'])->name('management.seminar-requests.lecturer-decision');

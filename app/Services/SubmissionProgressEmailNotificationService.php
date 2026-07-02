@@ -64,6 +64,7 @@ class SubmissionProgressEmailNotificationService
 
         $label = $this->deadlineLabels()[$progress->deadline_type] ?? Str::headline($progress->deadline_type);
         $statusLabel = match ($progress->status) {
+            'pending' => 'Menunggu Review',
             'approved' => 'Disetujui',
             'revision_required' => 'Perlu Revisi',
             'rejected' => 'Ditolak',
@@ -79,9 +80,11 @@ class SubmissionProgressEmailNotificationService
             $lines[] = 'Catatan reviewer: '.$progress->lecturer_note;
         }
 
-        $lines[] = $progress->status === 'approved'
-            ? 'Dokumen yang sudah disetujui terkunci dan tidak dapat direvisi lagi.'
-            : 'Silakan unggah revisi melalui tab Pelaporan jika diperlukan.';
+        $lines[] = match ($progress->status) {
+            'approved' => 'Dokumen yang sudah disetujui terkunci dan tidak dapat direvisi lagi.',
+            'pending' => 'Review laporan dibuka ulang. Mohon menunggu review lanjutan dari dosen pembimbing.',
+            default => 'Silakan unggah revisi melalui tab Pelaporan jika diperlukan.',
+        };
 
         $this->notifyStudent(
             $progress,

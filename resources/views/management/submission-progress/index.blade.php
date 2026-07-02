@@ -88,6 +88,62 @@
                                                     <p class="mt-2 text-emerald-800">{{ $progress->lecturer_note }}</p>
                                                 @endif
                                             </div>
+                                            @php
+                                                $isFinalized = (bool) $progress->enrollment?->finalAssessment;
+                                                $hasCompletedSeminar = (bool) $progress->enrollment?->seminarRequests?->contains(fn ($seminarRequest) => $seminarRequest->status === 'completed' || filled($seminarRequest->completed_at) || filled($seminarRequest->seminar_score));
+                                            @endphp
+                                            @if ($isFinalized || $hasCompletedSeminar)
+                                                <div class="mt-2 text-xs text-gray-500">
+                                                    Buka ulang review tidak tersedia karena {{ $isFinalized ? 'nilai akhir sudah difinalisasi' : 'seminar sudah selesai atau nilai dosen sudah masuk' }}.
+                                                </div>
+                                            @else
+                                                <button
+                                                    type="button"
+                                                    class="silat-btn-warning mt-3 px-3 py-2 text-xs"
+                                                    x-data
+                                                    x-on:click.prevent="$dispatch('open-modal', 'reopen-submission-progress-{{ $progress->id }}')"
+                                                >
+                                                    Buka Ulang
+                                                </button>
+
+                                                <x-modal name="reopen-submission-progress-{{ $progress->id }}" maxWidth="md" focusable>
+                                                    <form method="POST" action="{{ route('management.submission-progress.reopen', $progress) }}" class="p-6">
+                                                        @csrf
+                                                        @method('PATCH')
+
+                                                        <div>
+                                                            <p class="text-xs font-semibold uppercase tracking-wide text-amber-700">Buka Ulang Review</p>
+                                                            <h3 class="mt-1 text-lg font-semibold text-gray-900">{{ $progress->enrollment?->student?->full_name }}</h3>
+                                                            <p class="mt-1 text-sm text-gray-500">
+                                                                {{ $deadlineLabels[$progress->deadline_type] ?? str($progress->deadline_type)->replace('_', ' ')->title() }}
+                                                            </p>
+                                                        </div>
+
+                                                        <div class="mt-5 space-y-4">
+                                                            <div>
+                                                                <x-input-label value="Buka ulang sebagai" />
+                                                                <x-select-input name="reopen_status" class="mt-1 block w-full" required>
+                                                                    <option value="pending" @selected(old('reopen_status') === 'pending')>Menunggu Review</option>
+                                                                    <option value="revision_required" @selected(old('reopen_status') === 'revision_required')>Perlu Revisi</option>
+                                                                </x-select-input>
+                                                            </div>
+                                                            <div>
+                                                                <x-input-label value="Alasan buka ulang" />
+                                                                <x-textarea-input name="reopen_reason" class="mt-1 block w-full" rows="3" placeholder="Contoh: ada bagian laporan yang perlu dikoreksi ulang" required>{{ old('reopen_reason') }}</x-textarea-input>
+                                                                <x-input-error :messages="$errors->get('reopen_reason')" class="mt-2" />
+                                                            </div>
+                                                            <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                                                                Jika ini laporan akhir, status laporan lengkap akan dilepas sampai dokumen disetujui kembali.
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-6 flex justify-end gap-3">
+                                                            <x-secondary-button x-on:click="$dispatch('close-modal', 'reopen-submission-progress-{{ $progress->id }}')">Batal</x-secondary-button>
+                                                            <button type="submit" class="silat-btn-warning">Buka Ulang Review</button>
+                                                        </div>
+                                                    </form>
+                                                </x-modal>
+                                            @endif
                                         @else
                                             <form method="POST" action="{{ route('management.submission-progress.update', $progress) }}" class="space-y-3">
                                                 @csrf

@@ -12,32 +12,36 @@ return new class extends Migration
 
     public function up(): void
     {
-        if ($this->indexExists('internship_periods', self::OLD_INDEX)) {
-            Schema::table('internship_periods', function (Blueprint $table): void {
-                $table->dropUnique(self::OLD_INDEX);
-            });
-        }
+        $this->withoutForeignKeyChecks(function (): void {
+            if ($this->indexExists('internship_periods', self::OLD_INDEX)) {
+                Schema::table('internship_periods', function (Blueprint $table): void {
+                    $table->dropUnique(self::OLD_INDEX);
+                });
+            }
 
-        if (! $this->indexExists('internship_periods', self::NEW_INDEX)) {
-            Schema::table('internship_periods', function (Blueprint $table): void {
-                $table->unique(['program_id', 'name', 'academic_year', 'semester', 'batch'], self::NEW_INDEX);
-            });
-        }
+            if (! $this->indexExists('internship_periods', self::NEW_INDEX)) {
+                Schema::table('internship_periods', function (Blueprint $table): void {
+                    $table->unique(['program_id', 'name', 'academic_year', 'semester', 'batch'], self::NEW_INDEX);
+                });
+            }
+        });
     }
 
     public function down(): void
     {
-        if ($this->indexExists('internship_periods', self::NEW_INDEX)) {
-            Schema::table('internship_periods', function (Blueprint $table): void {
-                $table->dropUnique(self::NEW_INDEX);
-            });
-        }
+        $this->withoutForeignKeyChecks(function (): void {
+            if ($this->indexExists('internship_periods', self::NEW_INDEX)) {
+                Schema::table('internship_periods', function (Blueprint $table): void {
+                    $table->dropUnique(self::NEW_INDEX);
+                });
+            }
 
-        if (! $this->indexExists('internship_periods', self::OLD_INDEX)) {
-            Schema::table('internship_periods', function (Blueprint $table): void {
-                $table->unique(['name', 'academic_year', 'semester', 'batch'], self::OLD_INDEX);
-            });
-        }
+            if (! $this->indexExists('internship_periods', self::OLD_INDEX)) {
+                Schema::table('internship_periods', function (Blueprint $table): void {
+                    $table->unique(['name', 'academic_year', 'semester', 'batch'], self::OLD_INDEX);
+                });
+            }
+        });
     }
 
     private function indexExists(string $table, string $index): bool
@@ -66,5 +70,22 @@ return new class extends Migration
         }
 
         return false;
+    }
+
+    private function withoutForeignKeyChecks(callable $callback): void
+    {
+        if (Schema::getConnection()->getDriverName() !== 'mysql') {
+            $callback();
+
+            return;
+        }
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+        try {
+            $callback();
+        } finally {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
     }
 };
