@@ -72,6 +72,22 @@ class SubmissionProgressController extends Controller
         ]);
     }
 
+    public function redirectToIndex(Request $request, SubmissionProgress $progress): RedirectResponse
+    {
+        $this->authorizeProgress($progress, $request);
+
+        $student = $progress->enrollment?->student;
+        $query = array_filter([
+            'q' => $student?->npm ?: $student?->full_name,
+            'status' => $progress->status,
+            'period_id' => $progress->enrollment?->internship_period_id,
+        ], fn ($value) => filled($value));
+
+        return redirect()
+            ->route('management.submission-progress.index', $query)
+            ->with('status', 'Silakan pilih status review dan klik Simpan Review.');
+    }
+
     public function update(Request $request, SubmissionProgress $progress): RedirectResponse
     {
         $this->authorizeProgress($progress, $request);
