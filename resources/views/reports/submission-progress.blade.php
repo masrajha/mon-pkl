@@ -122,14 +122,14 @@
                                         $width = $stageTotal > 0 ? ($value / $stageTotal * 100) : 0;
                                     @endphp
                                     @if ($value > 0)
-                                        <div class="{{ $statusMeta[$status]['class'] }}" style="width: {{ $width }}%;" title="{{ $label }}: {{ $value }}"></div>
+                                        <div style="width: {{ $width }}%; background-color: {{ $statusMeta[$status]['color'] }};" title="{{ $label }}: {{ $value }}"></div>
                                     @endif
                                 @endforeach
                             </div>
                             <div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                                 @foreach ($statusLabels as $status => $label)
                                     <a href="{{ route('reports.submission-progress', array_filter(request()->only(['scope', 'period_id', 'program_id', 'study_program_id']) + ['deadline_type' => $stage['key'], 'progress_status' => $status], fn ($value) => filled($value))) }}" class="flex items-center justify-between gap-2 rounded-md border border-gray-100 px-3 py-2 text-xs hover:border-blue-200 hover:bg-blue-50">
-                                        <span class="inline-flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full {{ $statusMeta[$status]['class'] }}"></span>{{ $label }}</span>
+                                        <span class="inline-flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-full" style="background-color: {{ $statusMeta[$status]['color'] }};"></span>{{ $label }}</span>
                                         <strong>{{ number_format($stage['statuses'][$status] ?? 0, 0, ',', '.') }}</strong>
                                     </a>
                                 @endforeach

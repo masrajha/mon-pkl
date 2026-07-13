@@ -432,7 +432,7 @@ class ReportController extends Controller
         $reportColors = [
             'not_uploaded' => '#94a3b8',
             'pending' => '#f59e0b',
-            'revision_required' => '#fb923c',
+            'revision_required' => '#8b5cf6',
             'approved' => '#10b981',
             'rejected' => '#ef4444',
         ];
@@ -1574,7 +1574,7 @@ class ReportController extends Controller
         return match ($status) {
             'approved' => ['label' => 'Disetujui', 'variant' => 'success', 'color' => '#10b981', 'class' => 'bg-emerald-500'],
             'pending', 'submitted', 'review' => ['label' => 'Menunggu review', 'variant' => 'warning', 'color' => '#f59e0b', 'class' => 'bg-amber-400'],
-            'revision_required', 'revision', 'needs_revision' => ['label' => 'Perlu revisi', 'variant' => 'warning', 'color' => '#fb923c', 'class' => 'bg-orange-400'],
+            'revision_required', 'revision', 'needs_revision' => ['label' => 'Perlu revisi', 'variant' => 'warning', 'color' => '#8b5cf6', 'class' => 'bg-violet-500'],
             'rejected' => ['label' => 'Ditolak', 'variant' => 'danger', 'color' => '#ef4444', 'class' => 'bg-red-500'],
             default => ['label' => 'Belum unggah', 'variant' => 'neutral', 'color' => '#94a3b8', 'class' => 'bg-slate-300'],
         };
