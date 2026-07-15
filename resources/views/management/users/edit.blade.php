@@ -34,6 +34,11 @@
             <select id="role" name="role" class="block w-full rounded-md border-gray-300" x-model="role">
                 @foreach (['admin' => 'Admin', 'dosen' => 'Dosen', 'mahasiswa' => 'Mahasiswa'] + ($user->role === 'pembimbing_lapangan' ? ['pembimbing_lapangan' => 'Pembimbing Lapangan'] : []) as $role => $label)<option value="{{ $role }}" @selected($user->role === $role)>{{ $label }}</option>@endforeach
             </select>
+            <x-input-label for="status" value="Status Akun" />
+            <select id="status" name="status" class="block w-full rounded-md border-gray-300">
+                <option value="active" @selected(old('status', $user->status ?? 'active') === 'active')>Aktif</option>
+                <option value="inactive" @selected(old('status', $user->status ?? 'active') === 'inactive')>Nonaktif</option>
+            </select>
             <div x-show="role === 'mahasiswa'" class="space-y-3 rounded-lg border border-blue-100 bg-blue-50/60 p-4">
                 <p class="text-sm font-semibold text-blue-900">Profil Mahasiswa</p>
                 <x-input-label for="student_npm" value="NPM" /><x-text-input id="student_npm" name="student_npm" class="block w-full" :value="old('student_npm', $user->student?->npm)" />
@@ -66,5 +71,26 @@
             <x-input-label for="password" value="Password baru" /><x-text-input id="password" name="password" type="password" class="block w-full" />
             <x-primary-button>Simpan Perubahan</x-primary-button>
         </form>
+
+        <section class="mt-6 rounded-lg border border-red-200 bg-red-50 p-6 shadow-sm">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h3 class="font-semibold text-red-900">Hapus User</h3>
+                    <p class="mt-1 text-sm text-red-800">
+                        Sistem akan menghapus permanen user yang belum terkait kegiatan. Jika sudah punya data kegiatan, akun hanya dinonaktifkan agar riwayat tetap aman.
+                    </p>
+                </div>
+                <form method="POST" action="{{ route('management.users.destroy', $user) }}" onsubmit="return confirm('Hapus user ini? Jika sudah terkait kegiatan, akun akan dinonaktifkan dan riwayat tetap disimpan.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2" @disabled(auth()->id() === $user->id)>
+                        <x-icon name="fa-trash" /> Hapus User
+                    </button>
+                </form>
+            </div>
+            @if (auth()->id() === $user->id)
+                <p class="mt-3 text-xs text-red-700">Akun yang sedang digunakan untuk login tidak dapat dihapus dari halaman ini.</p>
+            @endif
+        </section>
     </div></div>
 </x-app-layout>

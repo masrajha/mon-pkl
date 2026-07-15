@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class UserController extends Controller
@@ -81,6 +82,41 @@ class UserController extends Controller
         return redirect()->route('management.users.index')->with('status', 'User berhasil diperbarui.');
     }
 
+    public function destroy(Request $request, User $user): RedirectResponse
+    {
+        if ((int) $request->user()?->id === (int) $user->id) {
+            throw ValidationException::withMessages([
+                'user' => 'Anda tidak dapat menghapus akun yang sedang digunakan untuk login.',
+            ]);
+        }
+
+        $user->loadMissing(['student', 'lecturer']);
+
+        if ($this->hasWorkflowRecords($user)) {
+            DB::transaction(function () use ($user): void {
+                $user->forceFill(['status' => 'inactive'])->save();
+                $user->lecturer?->update(['status' => 'inactive']);
+                DB::table('sessions')->where('user_id', $user->id)->delete();
+            });
+
+            return redirect()
+                ->route('management.users.index')
+                ->with('status', 'User terkait data kegiatan, sehingga akun dinonaktifkan dan riwayat tetap dipertahankan.');
+        }
+
+        DB::transaction(function () use ($user): void {
+            $this->deleteLocalAvatar($user);
+            $user->student?->delete();
+            $user->lecturer?->delete();
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            $user->delete();
+        });
+
+        return redirect()
+            ->route('management.users.index')
+            ->with('status', 'User tidak terkait data kegiatan, sehingga berhasil dihapus permanen.');
+    }
+
     private function validated(Request $request, ?User $user = null): array
     {
         $data = $request->validate([
@@ -90,6 +126,7 @@ class UserController extends Controller
                 ? ['admin', 'dosen', 'mahasiswa', 'pembimbing_lapangan']
                 : ['admin', 'dosen', 'mahasiswa'])],
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:8'],
+            'status' => ['nullable', Rule::in(['active', 'inactive'])],
             'avatar_photo' => ['nullable', 'image', 'max:2048'],
             'remove_avatar' => ['nullable', 'boolean'],
             'student_npm' => ['nullable', 'required_if:role,mahasiswa', 'string', 'max:30', Rule::unique('students', 'npm')->ignore($user?->student)],
@@ -129,11 +166,68 @@ class UserController extends Controller
             $data['lecturer_status'],
         );
 
+        $data['status'] = $data['status'] ?? 'active';
+
         if (empty($data['password'])) {
             unset($data['password']);
         }
 
         return [$data, $profileData];
+    }
+
+    private function hasWorkflowRecords(User $user): bool
+    {
+        $studentId = $user->student?->id;
+        $lecturerId = $user->lecturer?->id;
+        $userId = $user->id;
+
+        if ($studentId && $this->existsInAny([
+            ['internship_enrollments', 'student_id', $studentId],
+            ['orientation_attendances', 'student_id', $studentId],
+            ['internship_place_proposals', 'student_id', $studentId],
+        ])) {
+            return true;
+        }
+
+        if ($lecturerId && $this->existsInAny([
+            ['internship_enrollments', 'lecturer_supervisor_id', $lecturerId],
+            ['internship_enrollments', 'lecturer_supervisor_user_id', $userId],
+            ['internship_coordinators', 'lecturer_id', $lecturerId],
+            ['report_viewer_assignments', 'lecturer_id', $lecturerId],
+        ])) {
+            return true;
+        }
+
+        return $this->existsInAny([
+            ['internship_period_settings', 'updated_by', $userId],
+            ['internship_place_proposals', 'proposed_by', $userId],
+            ['internship_place_proposals', 'reviewed_by', $userId],
+            ['relocation_requests', 'reviewed_by', $userId],
+            ['supervisor_change_requests', 'reviewed_by', $userId],
+            ['submission_progress', 'reviewed_by', $userId],
+            ['orientation_events', 'created_by', $userId],
+            ['seminar_requests', 'lecturer_approved_by', $userId],
+            ['seminar_requests', 'manual_acc_validated_by', $userId],
+            ['seminar_requests', 'scheduled_by', $userId],
+            ['seminar_requests', 'scored_by', $userId],
+            ['seminar_requests', 'assessment_validated_by', $userId],
+            ['field_supervisor_access_tokens', 'created_by', $userId],
+            ['final_assessments', 'finalized_by', $userId],
+            ['forgotten_attendance_requests', 'reviewed_by', $userId],
+            ['wfa_requests', 'reviewed_by', $userId],
+            ['check_in_location_samples', 'user_id', $userId],
+        ]);
+    }
+
+    private function existsInAny(array $checks): bool
+    {
+        foreach ($checks as [$table, $column, $value]) {
+            if ($value && DB::table($table)->where($column, $value)->exists()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function syncRoleProfile(User $user, array $profileData): void

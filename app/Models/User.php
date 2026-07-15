@@ -27,6 +27,7 @@ class User extends Authenticatable
         'firebase_uid',
         'avatar_url',
         'role',
+        'status',
     ];
 
     /**
@@ -49,6 +50,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'status' => 'string',
         ];
     }
 
@@ -81,8 +83,17 @@ class User extends Authenticatable
             ->exists();
     }
 
+    public function isActive(): bool
+    {
+        return ($this->status ?: 'active') === 'active';
+    }
+
     public function hasRole(string|array $roles): bool
     {
+        if (! $this->isActive()) {
+            return false;
+        }
+
         if (in_array('koordinator', (array) $roles, true) && $this->isCoordinator()) {
             return true;
         }

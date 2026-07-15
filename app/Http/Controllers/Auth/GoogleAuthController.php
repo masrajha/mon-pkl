@@ -42,6 +42,14 @@ class GoogleAuthController extends Controller
             ->orWhere('email', $email)
             ->first();
 
+        if ($user && ! $user->isActive()) {
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' => 'Akun Anda sedang nonaktif. Silakan hubungi administrator.',
+                ]);
+        }
+
         if ($user) {
             $updates = [
                 'google_id' => $user->google_id ?: $googleUser->getId(),

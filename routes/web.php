@@ -377,6 +377,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/management/users', [ManagementUserController::class, 'store'])->name('management.users.store');
         Route::get('/management/users/{user}/edit', [ManagementUserController::class, 'edit'])->name('management.users.edit');
         Route::patch('/management/users/{user}', [ManagementUserController::class, 'update'])->name('management.users.update');
+        Route::delete('/management/users/{user}', [ManagementUserController::class, 'destroy'])->name('management.users.destroy');
 
         Route::get('/management/study-programs', [ManagementStudyProgramController::class, 'index'])->name('management.study-programs.index');
         Route::post('/management/study-programs', [ManagementStudyProgramController::class, 'store'])->name('management.study-programs.store');
