@@ -46,6 +46,7 @@
             ['label' => 'Hardcopy', 'done' => $hardcopyProgress?->status === 'approved'],
         ];
         $guidanceProgress = (int) round(collect($guidanceItems)->where('done', true)->count() / count($guidanceItems) * 100);
+        $phpUploadMaxSize = ini_get('upload_max_filesize') ?: '8 MB';
         $tabs = [
             'detail' => ['label' => 'Detail Program', 'icon' => 'fa-circle-info'],
             'pembekalan' => ['label' => 'Pembekalan', 'icon' => 'fa-users-line'],
@@ -350,7 +351,7 @@
                                 <div class="mt-3 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-950" x-show="notes[selectedType]" x-cloak><p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Catatan Jenis Pelaporan</p><p class="mt-1" x-text="notes[selectedType]"></p></div>
                             @endif
                         </div>
-                        <div><x-input-label for="file" value="File PDF/DOC" /><input id="file" name="file" type="file" accept=".pdf,.doc,.docx" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" required></div>
+                        <div><x-input-label for="file" value="File PDF/DOC" /><input id="file" name="file" type="file" accept=".pdf,.doc,.docx" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" required><p class="mt-1 text-xs text-gray-500">Maks. ukuran berkas (PHP): {{ $phpUploadMaxSize }}. Batas aplikasi: 10 MB.</p></div>
                         <x-primary-button :disabled="empty($uploadableDeadlineLabels)">Unggah / Revisi</x-primary-button>
                     </form>
                     <div class="overflow-x-auto">
@@ -548,7 +549,7 @@
                             @csrf
                             <input type="hidden" name="deadline_type" value="hardcopy">
                             <div class="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-950">{{ $submissionNotes['hardcopy'] ?? 'Upload bukti penyerahan laporan hardcopy.' }}</div>
-                            <div><x-input-label for="hardcopy_file" value="Bukti Penyerahan Hardcopy" /><input id="hardcopy_file" name="file" type="file" accept=".pdf,.doc,.docx" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" required></div>
+                            <div><x-input-label for="hardcopy_file" value="Bukti Penyerahan Hardcopy" /><input id="hardcopy_file" name="file" type="file" accept=".pdf,.doc,.docx" class="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm" required><p class="mt-1 text-xs text-gray-500">Maks. ukuran berkas (PHP): {{ $phpUploadMaxSize }}. Batas aplikasi: 10 MB.</p></div>
                             <x-primary-button :disabled="! $canUploadHardcopy">Upload Hardcopy</x-primary-button>
                             @if (! $canUploadHardcopy)<p class="text-sm text-gray-500">Bukti hardcopy terkunci sampai validasi catatan harian dan nilai Pembimbing Lapangan lengkap, atau bukti sudah disetujui.</p>@endif
                         </form>

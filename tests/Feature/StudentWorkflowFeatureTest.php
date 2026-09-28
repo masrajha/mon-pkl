@@ -950,6 +950,7 @@ class StudentWorkflowFeatureTest extends TestCase
             ->get($reportUrl)
             ->assertOk()
             ->assertSee('Pelaporan Tahap 4 (Laporan Lengkap): Bab 1 s.d 5')
+            ->assertSee('Maks. ukuran berkas (PHP): '.(ini_get('upload_max_filesize') ?: '8 MB'))
             ->assertSee('history.replaceState', false);
 
         $this->actingAs($user)
