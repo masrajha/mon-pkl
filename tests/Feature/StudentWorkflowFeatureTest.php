@@ -984,6 +984,43 @@ class StudentWorkflowFeatureTest extends TestCase
             ->assertSee('Pelaporan Tahap 4 (Laporan Lengkap): Bab 1 s.d 5');
     }
 
+    public function test_student_sees_php_upload_error_code_when_upload_fails(): void
+    {
+        $user = User::factory()->create(['role' => 'mahasiswa']);
+        $program = StudyProgram::query()->create(['code' => 'ILKOM', 'name' => 'Ilmu Komputer', 'is_active' => true]);
+        $period = InternshipPeriod::query()->create(['name' => 'Periode Upload Gagal', 'academic_year' => '2026/2027']);
+        $student = Student::query()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $program->id,
+            'npm' => '2217051098',
+            'full_name' => 'Mahasiswa Upload Gagal',
+        ]);
+        $enrollment = InternshipEnrollment::query()->create([
+            'student_id' => $student->id,
+            'study_program_id' => $program->id,
+            'internship_period_id' => $period->id,
+            'status' => 'active',
+        ]);
+        $reportUrl = route('student.reports.show', ['enrollment' => $enrollment, 'tab' => 'pelaporan']);
+        $failedUpload = new UploadedFile('', 'laporan-lengkap.pdf', 'application/pdf', UPLOAD_ERR_CANT_WRITE, true);
+
+        $this->actingAs($user)
+            ->from($reportUrl)
+            ->post(route('student.reports.progress.store', $enrollment), [
+                'deadline_type' => 'full_report',
+                'file' => $failedUpload,
+            ])
+            ->assertRedirect($reportUrl)
+            ->assertSessionHasErrors([
+                'file' => 'File gagal diunggah (kode PHP 7: UPLOAD_ERR_CANT_WRITE).',
+            ]);
+
+        $this->actingAs($user)
+            ->get($reportUrl)
+            ->assertOk()
+            ->assertSee('kode PHP 7: UPLOAD_ERR_CANT_WRITE');
+    }
+
     public function test_student_must_have_field_supervisor_email_before_uploading_seminar(): void
     {
         Storage::fake('public');

@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\File\UploadedFile as SymfonyUploadedFile;
 
 class ReportController extends Controller
 {
@@ -111,6 +112,26 @@ class ReportController extends Controller
     {
         $this->authorizeEnrollment($request, $enrollment);
         abort_unless($enrollment->status === 'active', 403);
+
+        $uploadedFile = $request->files->get('file');
+
+        if ($uploadedFile instanceof SymfonyUploadedFile && $uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            $uploadError = $uploadedFile->getError();
+            $uploadErrorName = match ($uploadError) {
+                UPLOAD_ERR_INI_SIZE => 'UPLOAD_ERR_INI_SIZE',
+                UPLOAD_ERR_FORM_SIZE => 'UPLOAD_ERR_FORM_SIZE',
+                UPLOAD_ERR_PARTIAL => 'UPLOAD_ERR_PARTIAL',
+                UPLOAD_ERR_NO_FILE => 'UPLOAD_ERR_NO_FILE',
+                UPLOAD_ERR_NO_TMP_DIR => 'UPLOAD_ERR_NO_TMP_DIR',
+                UPLOAD_ERR_CANT_WRITE => 'UPLOAD_ERR_CANT_WRITE',
+                UPLOAD_ERR_EXTENSION => 'UPLOAD_ERR_EXTENSION',
+                default => 'UPLOAD_ERR_UNKNOWN',
+            };
+
+            return back()
+                ->withErrors(['file' => "File gagal diunggah (kode PHP {$uploadError}: {$uploadErrorName})."])
+                ->withInput();
+        }
 
         $data = $request->validate([
             'deadline_type' => ['required', Rule::in(array_keys($this->deadlineLabels()))],
