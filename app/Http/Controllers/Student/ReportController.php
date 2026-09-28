@@ -141,7 +141,22 @@ class ReportController extends Controller
         }
 
         $uploadedAt = LocalClock::now();
-        $filePath = $request->file('file')->store('submission-progress', 'public');
+
+        try {
+            $filePath = $request->file('file')->store('submission-progress', 'public');
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()
+                ->withErrors(['file' => 'File gagal disimpan. Silakan coba lagi atau hubungi administrator.'])
+                ->withInput();
+        }
+
+        if (! $filePath) {
+            return back()
+                ->withErrors(['file' => 'File gagal disimpan. Silakan coba lagi atau hubungi administrator.'])
+                ->withInput();
+        }
 
         $progress = DB::transaction(function () use ($enrollment, $data, $uploadedAt, $filePath): SubmissionProgress {
             $existingProgress = SubmissionProgress::query()

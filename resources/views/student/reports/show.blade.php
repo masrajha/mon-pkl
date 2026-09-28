@@ -72,9 +72,28 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="silat-shell space-y-6" x-data="{ tab: @js($activeTab) }">
+        <div class="silat-shell space-y-6" x-data="{
+            tab: @js($activeTab),
+            setTab(tab) {
+                this.tab = tab;
+                const url = new URL(window.location.href);
+                url.searchParams.set('tab', tab);
+                window.history.replaceState(window.history.state, '', url);
+            }
+        }">
             @if (session('status'))
                 <x-alert variant="success">{{ session('status') }}</x-alert>
+            @endif
+
+            @if ($errors->any())
+                <x-alert variant="danger">
+                    <p class="font-semibold">Proses belum berhasil:</p>
+                    <ul class="mt-1 list-inside list-disc">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </x-alert>
             @endif
 
             @if ($missingPrintData->isNotEmpty())
@@ -93,7 +112,7 @@
             <section class="silat-card p-4">
                 <div class="flex flex-wrap gap-2">
                     @foreach ($tabs as $key => $item)
-                        <button type="button" @click="tab = '{{ $key }}'" class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold" :class="tab === '{{ $key }}' ? 'border-blue-700 bg-blue-700 text-white' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'">
+                        <button type="button" @click="setTab('{{ $key }}')" class="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold" :class="tab === '{{ $key }}' ? 'border-blue-700 bg-blue-700 text-white' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'">
                             <x-icon :name="$item['icon']" class="w-4" />
                             {{ $item['label'] }}
                             @if (($item['badge'] ?? 0) > 0)
